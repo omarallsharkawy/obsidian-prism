@@ -798,6 +798,37 @@ final class WatcherApp {
             dirSource = src
         }
 
+        // Instant wake when Antigravity writes DevToolsActivePort (avoids up to 2s cold-attach sleep)
+        var portDirSource: DispatchSourceFileSystemObject?
+        var portFileSource: DispatchSourceFileSystemObject?
+        var fastRetryDeadline = Date.distantPast
+        let portWatchQueue = DispatchQueue(label: "io.github.rmvdesi.obsidian-prism.port-watch")
+        let triggerPortWake = {
+            stateLock.lock()
+            fastRetryDeadline = Date().addingTimeInterval(2.0)
+            stateLock.unlock()
+            exitSem.signal()
+        }
+        let agAppSupportDir = (FileManager.default.homeDirectoryForCurrentUser.path as NSString)
+            .appendingPathComponent("Library/Application Support/Antigravity")
+        let agPortFile = (agAppSupportDir as NSString).appendingPathComponent("DevToolsActivePort")
+        let portDirFd = open(agAppSupportDir, O_EVTONLY)
+        if portDirFd >= 0 {
+            let pSrc = DispatchSource.makeFileSystemObjectSource(fileDescriptor: portDirFd, eventMask: [.write, .rename, .extend, .attrib], queue: portWatchQueue)
+            pSrc.setEventHandler(handler: triggerPortWake)
+            pSrc.setCancelHandler { close(portDirFd) }
+            pSrc.resume()
+            portDirSource = pSrc
+        }
+        let portFileFd = open(agPortFile, O_EVTONLY)
+        if portFileFd >= 0 {
+            let pfSrc = DispatchSource.makeFileSystemObjectSource(fileDescriptor: portFileFd, eventMask: [.write, .rename, .extend, .attrib], queue: portWatchQueue)
+            pfSrc.setEventHandler(handler: triggerPortWake)
+            pfSrc.setCancelHandler { close(portFileFd) }
+            pfSrc.resume()
+            portFileSource = pfSrc
+        }
+
         let syncNewerPluginConfigToBase = {
             guard !self.pluginDir.isEmpty else { return }
             let pluginCfg = (self.pluginDir as NSString).appendingPathComponent("config.json")
@@ -1010,9 +1041,14 @@ final class WatcherApp {
                 _ = group.wait(timeout: .now() + .seconds(10))
             }
 
-            _ = exitSem.wait(timeout: .now() + .seconds(2))
+            stateLock.lock()
+            let inFastRetry = attached.isEmpty && Date() < fastRetryDeadline
+            stateLock.unlock()
+            _ = exitSem.wait(timeout: .now() + .milliseconds(inFastRetry ? 80 : 2000))
         }
 
+        portFileSource?.cancel()
+        portDirSource?.cancel()
         dirSource?.cancel()
         termSource.cancel()
         intSource.cancel()

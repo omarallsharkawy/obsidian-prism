@@ -5279,8 +5279,12 @@ export class PrismDaemon {
           .send('Page.addScriptToEvaluateOnNewDocument', { source: activeExpr })
           .catch(() => null);
         if (ppAdd && ppAdd.identifier) {
+          const prevId = entry.periodicPickerScriptId;
           entry.periodicPickerScriptId = ppAdd.identifier;
           entry.lastPeriodicPickerScriptSig = ppSig;
+          if (prevId && prevId !== ppAdd.identifier) {
+            await entry.session.send('Page.removeScriptToEvaluateOnNewDocument', { identifier: prevId }).catch(() => {});
+          }
         } else {
           entry.lastPeriodicPickerScriptSig = '';
         }
@@ -5487,8 +5491,12 @@ export class PrismDaemon {
           .send('Page.addScriptToEvaluateOnNewDocument', { source: activeExpr })
           .catch(() => null);
         if (mAdd && mAdd.identifier) {
+          const prevId = entry.mascotScriptId;
           entry.mascotScriptId = mAdd.identifier;
           entry.lastMascotScriptSig = mSig;
+          if (prevId && prevId !== mAdd.identifier) {
+            await entry.session.send('Page.removeScriptToEvaluateOnNewDocument', { identifier: prevId }).catch(() => {});
+          }
         } else {
           entry.lastMascotScriptSig = '';
         }
@@ -5658,8 +5666,12 @@ export class PrismDaemon {
           .send('Page.addScriptToEvaluateOnNewDocument', { source: activeExpr })
           .catch(() => null);
         if (hsAdd && hsAdd.identifier) {
+          const prevId = entry.homeStudioScriptId;
           entry.homeStudioScriptId = hsAdd.identifier;
           entry.lastHomeStudioScriptSig = hsSig;
+          if (prevId && prevId !== hsAdd.identifier) {
+            await entry.session.send('Page.removeScriptToEvaluateOnNewDocument', { identifier: prevId }).catch(() => {});
+          }
         } else {
           entry.lastHomeStudioScriptSig = '';
         }
@@ -8314,8 +8326,8 @@ export class PrismDaemon {
       }
 
       const cfgNow = getCurrentCfg();
-      // Start first-paint visible channels (Home Studio, Mascot, Periodic Picker) concurrently while Omni/Sidebar servers finish initializing
-      const firstPaintPromise = Promise.allSettled([
+      // Mount first-paint visible channels (Home Studio, Mascot, Periodic Picker) in parallel right after Channel 1, before waiting on Omni/Sidebar servers
+      await Promise.allSettled([
         this._syncHomeStudioOnEntry(entry, cfgNow, {
           forceReplaceScript: true,
           forceEval: true,
@@ -8612,7 +8624,6 @@ export class PrismDaemon {
         entry.lastWallpaperHash = '';
         entry.lastWallpaperScriptHash = '';
       }
-      await firstPaintPromise;
       const hadSuggesterBefore = Boolean(entry.suggesterScriptId || entry.suggesterMounted);
       if (entry.suggesterScriptId) {
         await entry.session

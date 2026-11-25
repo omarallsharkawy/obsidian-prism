@@ -1280,6 +1280,173 @@ function removeLinuxSystemdWatcher({ homeDir = null, env = null, runSystemctl = 
   return { removed, unitPath };
 }
 
+const MACOS_LAUNCH_AGENT_LABEL = "com.obsidian-prism.daemon";
+const WINDOWS_RUN_KEY = "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run";
+const WINDOWS_RUN_VALUE = "ObsidianPrismDaemon";
+
+function xmlEscape(s) {
+  return String(s || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+function getMacosLaunchAgentPath({ homeDir = null } = {}) {
+  const home = homeDir || os.homedir();
+  return path.join(home, "Library", "LaunchAgents", `${MACOS_LAUNCH_AGENT_LABEL}.plist`);
+}
+
+function generateMacosLaunchAgentPlist({ nodeExe = process.execPath, targetDir, repoDir = null } = {}) {
+  const daemonScript = path.join(targetDir, "sidecars", "daemon", "main.mjs");
+  const args = [nodeExe, daemonScript, "--root", targetDir];
+  if (repoDir) args.push("--repo", repoDir);
+  args.push("--persistent");
+  const argLines = args.map((a) => `    <string>${xmlEscape(a)}</string>`).join("\n");
+  return [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">',
+    '<plist version="1.0">',
+    "<dict>",
+    "  <key>Label</key>",
+    `  <string>${MACOS_LAUNCH_AGENT_LABEL}</string>`,
+    "  <key>ProgramArguments</key>",
+    "  <array>",
+    argLines,
+    "  </array>",
+    "  <key>RunAtLoad</key>",
+    "  <true/>",
+    "  <key>KeepAlive</key>",
+    "  <dict>",
+    "    <key>SuccessfulExit</key>",
+    "    <false/>",
+    "  </dict>",
+    "  <key>StandardOutPath</key>",
+    "  <string>/dev/null</string>",
+    "  <key>StandardErrorPath</key>",
+    "  <string>/dev/null</string>",
+    "</dict>",
+    "</plist>",
+    "",
+  ].join("\n");
+}
+
+function installMacosLaunchAgentWatcher({ targetDir, repoDir = null, nodeExe = process.execPath, homeDir = null, runLaunchctl = null } = {}) {
+  const plistPath = getMacosLaunchAgentPath({ homeDir });
+  const plistDir = path.dirname(plistPath);
+  const uid = typeof process.getuid === "function" ? process.getuid() : 501;
+  const domain = `gui/${uid}`;
+  const run = typeof runLaunchctl === "function"
+    ? runLaunchctl
+    : (args) => {
+        const res = spawnSync("launchctl", args, { encoding: "utf8", timeout: 5000 });
+        return res.status === 0;
+      };
+  try {
+    fs.mkdirSync(plistDir, { recursive: true });
+    assertNotSymbolicLink(plistPath, "macOS LaunchAgent plist");
+    const content = generateMacosLaunchAgentPlist({ nodeExe, targetDir, repoDir });
+    atomicWriteFileSync(plistPath, content, { encoding: "utf8", mode: 0o644 });
+    run(["bootout", `${domain}/${MACOS_LAUNCH_AGENT_LABEL}`]);
+    const active = run(["bootstrap", domain, plistPath]) || run(["load", "-w", plistPath]);
+    return { installed: true, plistPath, active: Boolean(active) };
+  } catch (err) {
+    return { installed: false, plistPath, active: false, error: err && err.message ? err.message : String(err) };
+  }
+}
+
+function removeMacosLaunchAgentWatcher({ homeDir = null, runLaunchctl = null } = {}) {
+  const plistPath = getMacosLaunchAgentPath({ homeDir });
+  const uid = typeof process.getuid === "function" ? process.getuid() : 501;
+  const domain = `gui/${uid}`;
+  const run = typeof runLaunchctl === "function"
+    ? runLaunchctl
+    : (args) => {
+        const res = spawnSync("launchctl", args, { encoding: "utf8", timeout: 5000 });
+        return res.status === 0;
+      };
+  let removed = false;
+  try {
+    run(["bootout", `${domain}/${MACOS_LAUNCH_AGENT_LABEL}`]) || run(["unload", "-w", plistPath]);
+  } catch {}
+  try {
+    if (fs.existsSync(plistPath)) {
+      const st = fs.lstatSync(plistPath);
+      if (!st.isSymbolicLink() && st.isFile()) {
+        fs.unlinkSync(plistPath);
+        removed = true;
+      }
+    }
+  } catch {}
+  return { removed, plistPath };
+}
+
+function vbsQuote(s) {
+  return String(s || "").replace(/"/g, '""');
+}
+
+function generateWindowsDaemonVbs({ nodeExe = process.execPath, targetDir, repoDir = null } = {}) {
+  const daemonScript = path.join(targetDir, "sidecars", "daemon", "main.mjs");
+  const parts = [
+    `""${vbsQuote(nodeExe)}""`,
+    `""${vbsQuote(daemonScript)}""`,
+    "--root",
+    `""${vbsQuote(targetDir)}""`,
+  ];
+  if (repoDir) parts.push("--repo", `""${vbsQuote(repoDir)}""`);
+  parts.push("--persistent");
+  return [
+    'Set sh = CreateObject("WScript.Shell")',
+    `sh.Run "${parts.join(" ")}", 0, False`,
+    "",
+  ].join("\r\n");
+}
+
+function installWindowsStartupWatcher({ targetDir, repoDir = null, nodeExe = process.execPath, runReg = null } = {}) {
+  const vbsPath = path.join(targetDir, "start-daemon.vbs");
+  const run = typeof runReg === "function"
+    ? runReg
+    : (args) => {
+        const res = spawnSync("reg", args, { encoding: "utf8", timeout: 5000, windowsHide: true });
+        return res.status === 0;
+      };
+  try {
+    fs.mkdirSync(targetDir, { recursive: true });
+    assertNotSymbolicLink(vbsPath, "Windows daemon VBS launcher");
+    atomicWriteFileSync(vbsPath, generateWindowsDaemonVbs({ nodeExe, targetDir, repoDir }), { encoding: "utf8", mode: 0o644 });
+    const cmdValue = `wscript.exe //B //Nologo "${vbsPath}"`;
+    const registered = run(["add", WINDOWS_RUN_KEY, "/v", WINDOWS_RUN_VALUE, "/t", "REG_SZ", "/d", cmdValue, "/f"]);
+    return { installed: true, vbsPath, registered: Boolean(registered) };
+  } catch (err) {
+    return { installed: false, vbsPath, registered: false, error: err && err.message ? err.message : String(err) };
+  }
+}
+
+function removeWindowsStartupWatcher({ targetDir = null, runReg = null } = {}) {
+  const vbsPath = targetDir ? path.join(targetDir, "start-daemon.vbs") : null;
+  const run = typeof runReg === "function"
+    ? runReg
+    : (args) => {
+        const res = spawnSync("reg", args, { encoding: "utf8", timeout: 5000, windowsHide: true });
+        return res.status === 0;
+      };
+  let removed = false;
+  try {
+    run(["delete", WINDOWS_RUN_KEY, "/v", WINDOWS_RUN_VALUE, "/f"]);
+  } catch {}
+  try {
+    if (vbsPath && fs.existsSync(vbsPath)) {
+      const st = fs.lstatSync(vbsPath);
+      if (!st.isSymbolicLink() && st.isFile()) {
+        fs.unlinkSync(vbsPath);
+        removed = true;
+      }
+    }
+  } catch {}
+  return { removed, vbsPath };
+}
+
 function isManagedLinuxLauncherDesktop(desktopPath) {
   if (!desktopPath) return false;
   try {
@@ -1856,19 +2023,35 @@ async function installPlugin(opts = {}) {
     if (cdpPort) daemonArgs.push("--port", String(cdpPort));
 
     let spawnRes = null;
-    if (effectivePlatform === "linux" && isDefaultTarget && !cdpPort && !isAutomatedTestRuntime()) {
-      const sdRes = installLinuxSystemdWatcher({
-        targetDir,
-        repoDir: sourceDir,
-        homeDir: opts.homeDir,
-        env: opts.env,
-      });
-      if (sdRes && sdRes.active) {
-        spawnRes = { spawned: true, pid: null, method: "systemd-user" };
+    if (isDefaultTarget && !cdpPort && !isAutomatedTestRuntime()) {
+      if (effectivePlatform === "linux") {
+        const sdRes = installLinuxSystemdWatcher({
+          targetDir,
+          repoDir: sourceDir,
+          homeDir: opts.homeDir,
+          env: opts.env,
+        });
+        if (sdRes && sdRes.active) {
+          spawnRes = { spawned: true, pid: null, method: "systemd-user" };
+        }
+      } else if (effectivePlatform === "darwin") {
+        const macRes = installMacosLaunchAgentWatcher({
+          targetDir,
+          repoDir: sourceDir,
+          homeDir: opts.homeDir,
+        });
+        if (macRes && macRes.active) {
+          spawnRes = { spawned: true, pid: null, method: "launchd-agent" };
+        }
+      } else if (effectivePlatform === "win32") {
+        installWindowsStartupWatcher({
+          targetDir,
+          repoDir: sourceDir,
+        });
       }
     }
     if (!spawnRes) {
-      if (effectivePlatform === "linux" && !cdpPort) daemonArgs.push("--persistent");
+      if (!cdpPort) daemonArgs.push("--persistent");
       spawnRes = spawnBreakawayNodeProcess(daemonArgs, {
         cwd: path.dirname(daemonScript),
         disablePowerShellBreakaway: Boolean(opts.disablePowerShellBreakaway),
@@ -2048,6 +2231,9 @@ async function uninstallPlugin(opts = {}) {
   let launcher = { supported: effectivePlatform === "darwin" || effectivePlatform === "linux", removed: false, refused: false, appPath: null };
   if (shouldRemoveLauncher) {
     if (effectivePlatform === "darwin") {
+      if (isDefaultTarget && !isAutomatedTestRuntime()) {
+        removeMacosLaunchAgentWatcher({ homeDir: opts.homeDir });
+      }
       launcher = removeMacosLosslessLauncher({
         launcherDir: opts.launcherDir,
         stopRoot: opts.launcherStopRoot,
@@ -2066,6 +2252,9 @@ async function uninstallPlugin(opts = {}) {
         platformOverride: effectivePlatform,
       });
     }
+  }
+  if (effectivePlatform === "win32" && isDefaultTarget && !isAutomatedTestRuntime()) {
+    removeWindowsStartupWatcher({ targetDir });
   }
 
   const hostConfigDir = resolveHostGeminiConfigDir(opts.targetDir ? targetDir : null, opts.hostConfigDir || null);
@@ -2201,13 +2390,19 @@ function isStandaloneWatcherInstalled(opts = {}) {
     const base =
       customDir ||
       path.join(process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local"), "obsidian-prism");
-    return fs.existsSync(path.join(base, "obsidian-prism-watcher.exe"));
+    if (fs.existsSync(path.join(base, "obsidian-prism-watcher.exe"))) return true;
+    const pluginTarget = opts.targetDir ? path.resolve(opts.targetDir) : getDefaultPluginTargetDir();
+    if (!customDir && fs.existsSync(path.join(pluginTarget, "start-daemon.vbs"))) return true;
+    return false;
   }
   if (plat === "darwin") {
+    const home = opts.homeDir ? path.resolve(opts.homeDir) : os.homedir();
     const base =
       customDir ||
-      path.join(os.homedir(), "Library", "Application Support", "obsidian-prism");
-    return fs.existsSync(path.join(base, "obsidian-prism-watcher"));
+      path.join(home, "Library", "Application Support", "obsidian-prism");
+    if (fs.existsSync(path.join(base, "obsidian-prism-watcher"))) return true;
+    if (!customDir && fs.existsSync(getMacosLaunchAgentPath({ homeDir: home }))) return true;
+    return false;
   }
   if (plat === "linux") {
     const home = opts.homeDir ? path.resolve(opts.homeDir) : os.homedir();
@@ -2482,6 +2677,12 @@ module.exports = {
   generateLinuxSystemdUnit,
   installLinuxSystemdWatcher,
   removeLinuxSystemdWatcher,
+  generateMacosLaunchAgentPlist,
+  installMacosLaunchAgentWatcher,
+  removeMacosLaunchAgentWatcher,
+  generateWindowsDaemonVbs,
+  installWindowsStartupWatcher,
+  removeWindowsStartupWatcher,
   installPlugin,
   uninstallPlugin,
   verifyLiveWindowAttach,

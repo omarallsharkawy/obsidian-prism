@@ -188,3 +188,80 @@ test('installLinuxSystemdWatcher writes --persistent unit and removeLinuxSystemd
     fs.rmSync(tmpHome, { recursive: true, force: true });
   }
 });
+
+test('installMacosLaunchAgentWatcher writes --persistent LaunchAgent plist and removes cleanly', () => {
+  const tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), 'prism-macos-agent-'));
+  const calls = [];
+  const fakeLaunchctl = (args) => {
+    calls.push(args.join(' '));
+    return true;
+  };
+  try {
+    const res = installer.installMacosLaunchAgentWatcher({
+      targetDir: '/Users/test/.gemini/config/plugins/obsidian-prism',
+      repoDir: '/Users/test/obsidian-prism',
+      nodeExe: '/usr/local/bin/node',
+      homeDir: tmpHome,
+      runLaunchctl: fakeLaunchctl,
+    });
+    assert.equal(res.installed, true);
+    assert.equal(res.active, true);
+    const plist = fs.readFileSync(res.plistPath, 'utf8');
+    assert.ok(plist.includes('com.obsidian-prism.daemon'));
+    assert.ok(plist.includes('<string>--persistent</string>'));
+    assert.ok(plist.includes('<key>RunAtLoad</key>'));
+    assert.ok(calls.some((c) => c.startsWith('bootstrap gui/')));
+    assert.equal(installer.isStandaloneWatcherInstalled({ platformOverride: 'darwin', homeDir: tmpHome }), true);
+
+    const rm = installer.removeMacosLaunchAgentWatcher({ homeDir: tmpHome, runLaunchctl: fakeLaunchctl });
+    assert.equal(rm.removed, true);
+    assert.equal(fs.existsSync(res.plistPath), false);
+    assert.equal(installer.isStandaloneWatcherInstalled({ platformOverride: 'darwin', homeDir: tmpHome }), false);
+  } finally {
+    fs.rmSync(tmpHome, { recursive: true, force: true });
+  }
+});
+
+test('installWindowsStartupWatcher writes silent VBS --persistent launcher, registers HKCU Run, and removes cleanly', () => {
+  const tmpTarget = fs.mkdtempSync(path.join(os.tmpdir(), 'prism-win-startup-'));
+  const regCalls = [];
+  const fakeReg = (args) => {
+    regCalls.push(args);
+    return true;
+  };
+  try {
+    const res = installer.installWindowsStartupWatcher({
+      targetDir: tmpTarget,
+      repoDir: 'C:\\Users\\Test\\obsidian-prism',
+      nodeExe: 'C:\\Program Files\\nodejs\\node.exe',
+      runReg: fakeReg,
+    });
+    assert.equal(res.installed, true);
+    assert.equal(res.registered, true);
+    const vbs = fs.readFileSync(res.vbsPath, 'utf8');
+    assert.ok(vbs.includes('WScript.Shell'));
+    assert.ok(vbs.includes('--persistent'));
+    assert.ok(vbs.includes(', 0, False'));
+    assert.equal(regCalls[0][0], 'add');
+    assert.ok(regCalls[0].includes('ObsidianPrismDaemon'));
+    assert.equal(installer.isStandaloneWatcherInstalled({ platformOverride: 'win32', targetDir: tmpTarget }), true);
+
+    const rm = installer.removeWindowsStartupWatcher({ targetDir: tmpTarget, runReg: fakeReg });
+    assert.equal(rm.removed, true);
+    assert.equal(fs.existsSync(res.vbsPath), false);
+    assert.equal(regCalls[1][0], 'delete');
+  } finally {
+    fs.rmSync(tmpTarget, { recursive: true, force: true });
+  }
+});
+
+test('Windows C# and macOS Swift standalone watchers include instant DevToolsActivePort file watching', () => {
+  const winWatcher = fs.readFileSync(path.resolve(import.meta.dirname, '..', 'installer', 'watcher', 'Program.cs'), 'utf8');
+  assert.ok(winWatcher.includes('new FileSystemWatcher(agConfigDir, "DevToolsActivePort")'));
+  assert.ok(winWatcher.includes('portWakeEvent'));
+
+  const macWatcher = fs.readFileSync(path.resolve(import.meta.dirname, '..', 'installer', 'macos', 'Watcher', 'main.swift'), 'utf8');
+  assert.ok(macWatcher.includes('DevToolsActivePort'));
+  assert.ok(macWatcher.includes('portDirSource'));
+  assert.ok(macWatcher.includes('fastRetryDeadline'));
+});

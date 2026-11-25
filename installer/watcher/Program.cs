@@ -1132,6 +1132,34 @@ namespace AgyClaudeStyle.Watcher
                 }
                 catch { }
 
+                AutoResetEvent portWakeEvent = new AutoResetEvent(false);
+                long fastRetryUntilTick = 0L;
+                FileSystemWatcher portFsw = null;
+                try
+                {
+                    string appDataDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                    string agConfigDir = !string.IsNullOrEmpty(appDataDir) ? Path.Combine(appDataDir, "Antigravity") : null;
+                    if (!string.IsNullOrEmpty(agConfigDir) && Directory.Exists(agConfigDir))
+                    {
+                        portFsw = new FileSystemWatcher(agConfigDir, "DevToolsActivePort");
+                        portFsw.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.CreationTime | NotifyFilters.Size;
+                        FileSystemEventHandler onPortChange = (s, e) =>
+                        {
+                            try
+                            {
+                                Interlocked.Exchange(ref fastRetryUntilTick, (Environment.TickCount & int.MaxValue) + 2000L);
+                                portWakeEvent.Set();
+                            }
+                            catch { }
+                        };
+                        portFsw.Changed += onPortChange;
+                        portFsw.Created += onPortChange;
+                        portFsw.Renamed += (s, e) => onPortChange(s, e);
+                        portFsw.EnableRaisingEvents = true;
+                    }
+                }
+                catch { }
+
                 int? lastPort = null;
                 int? lastLoggedStalePort = null;
                 int consecutiveProbeFailures = 0;
@@ -1446,11 +1474,23 @@ namespace AgyClaudeStyle.Watcher
                         }
                         catch { }
 
-                        exitEvent.Wait(2000);
+                        long waitTickNow = Environment.TickCount & int.MaxValue;
+                        long retryUntil = Interlocked.Read(ref fastRetryUntilTick);
+                        int waitMs = (attached.Count == 0 && retryUntil > waitTickNow && (retryUntil - waitTickNow) <= 2500L) ? 80 : 2000;
+                        try
+                        {
+                            WaitHandle.WaitAny(new WaitHandle[] { exitEvent.WaitHandle, portWakeEvent }, waitMs);
+                        }
+                        catch
+                        {
+                            exitEvent.Wait(waitMs);
+                        }
                     }
                 }
                 finally
                 {
+                    if (portFsw != null) { try { portFsw.Dispose(); } catch { } }
+                    try { portWakeEvent.Dispose(); } catch { }
                     if (fsw != null) { try { fsw.Dispose(); } catch { } }
                     if (reloadTimer != null) { try { reloadTimer.Dispose(); } catch { } }
                     foreach (KeyValuePair<string, AttachedEntry> kv in attached)

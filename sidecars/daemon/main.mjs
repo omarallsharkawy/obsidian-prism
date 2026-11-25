@@ -8314,6 +8314,27 @@ export class PrismDaemon {
       }
 
       const cfgNow = getCurrentCfg();
+      // Start first-paint visible channels (Home Studio, Mascot, Periodic Picker) concurrently while Omni/Sidebar servers finish initializing
+      const firstPaintPromise = Promise.allSettled([
+        this._syncHomeStudioOnEntry(entry, cfgNow, {
+          forceReplaceScript: true,
+          forceEval: true,
+          evalTimeoutMs: 0,
+          cleanupTimeoutMs: 0,
+        }),
+        this._syncMascotOnEntry(entry, cfgNow, {
+          forceReplaceScript: true,
+          forceEval: true,
+          evalTimeoutMs: 0,
+          cleanupTimeoutMs: 0,
+        }),
+        this._syncPeriodicPickerOnEntry(entry, cfgNow, {
+          forceReplaceScript: true,
+          forceEval: true,
+          evalTimeoutMs: 0,
+          cleanupTimeoutMs: 0,
+        }),
+      ]);
       await Promise.all([omniInitPromise, sidebarInitPromise]);
       {
         const chOpts = this._getChannelCacheOpts(true);
@@ -8591,24 +8612,7 @@ export class PrismDaemon {
         entry.lastWallpaperHash = '';
         entry.lastWallpaperScriptHash = '';
       }
-      await this._syncPeriodicPickerOnEntry(entry, getCurrentCfg(), {
-        forceReplaceScript: true,
-        forceEval: true,
-        evalTimeoutMs: 0,
-        cleanupTimeoutMs: 0,
-      });
-      await this._syncMascotOnEntry(entry, getCurrentCfg(), {
-        forceReplaceScript: true,
-        forceEval: true,
-        evalTimeoutMs: 0,
-        cleanupTimeoutMs: 0,
-      });
-      await this._syncHomeStudioOnEntry(entry, getCurrentCfg(), {
-        forceReplaceScript: true,
-        forceEval: true,
-        evalTimeoutMs: 0,
-        cleanupTimeoutMs: 0,
-      });
+      await firstPaintPromise;
       const hadSuggesterBefore = Boolean(entry.suggesterScriptId || entry.suggesterMounted);
       if (entry.suggesterScriptId) {
         await entry.session
@@ -10836,27 +10840,39 @@ export class PrismDaemon {
     if (!this.running || this.overridePort) return;
     const candidates = this.portFile ? [this.portFile] : resolvePortFileCandidates();
     const seenDirs = new Set();
+    const triggerPortWake = (resolvedFile) => {
+      if (!this.running) return;
+      _portFileCache.delete(resolvedFile);
+      this._forceListPagesNextTick = true;
+      this._portRetryArmed = true;
+      this._portRetryStep = 0;
+      this.scheduleImmediateTick(10);
+    };
     for (const file of candidates) {
       if (!file) continue;
       const resolvedFile = path.resolve(file);
       const dir = path.dirname(resolvedFile);
       const baseName = path.basename(resolvedFile).toLowerCase();
-      if (seenDirs.has(dir)) continue;
+      if (!seenDirs.has(dir)) {
+        try {
+          if (fs.existsSync(dir)) {
+            seenDirs.add(dir);
+            const w = fs.watch(dir, { persistent: false }, (_, filename) => {
+              const changed = filename ? path.basename(String(filename)).toLowerCase() : '';
+              if (changed && changed !== baseName) return;
+              triggerPortWake(resolvedFile);
+            });
+            if (w && typeof w.unref === 'function') w.unref();
+            this._portWatchers.push(w);
+          }
+        } catch {}
+      }
       try {
-        if (!fs.existsSync(dir)) continue;
-        seenDirs.add(dir);
-        const w = fs.watch(dir, { persistent: false }, (_, filename) => {
-          if (!this.running) return;
-          const changed = filename ? path.basename(String(filename)).toLowerCase() : '';
-          if (changed && changed !== baseName) return;
-          _portFileCache.delete(resolvedFile);
-          this._forceListPagesNextTick = true;
-          this._portRetryArmed = true;
-          this._portRetryStep = 0;
-          this.scheduleImmediateTick(10);
-        });
-        if (w && typeof w.unref === 'function') w.unref();
-        this._portWatchers.push(w);
+        if (fs.existsSync(resolvedFile)) {
+          const fw = fs.watch(resolvedFile, { persistent: false }, () => triggerPortWake(resolvedFile));
+          if (fw && typeof fw.unref === 'function') fw.unref();
+          this._portWatchers.push(fw);
+        }
       } catch {}
     }
   }

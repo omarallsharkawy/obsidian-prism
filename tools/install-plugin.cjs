@@ -2054,7 +2054,9 @@ async function uninstallPlugin(opts = {}) {
         platformOverride: effectivePlatform,
       });
     } else if (effectivePlatform === "linux") {
-      removeLinuxSystemdWatcher({ homeDir: opts.homeDir, env: opts.env });
+      if (isDefaultTarget && !isAutomatedTestRuntime()) {
+        removeLinuxSystemdWatcher({ homeDir: opts.homeDir, env: opts.env });
+      }
       launcher = removeLinuxLosslessLauncher({
         launcherDir: opts.launcherDir,
         iconDir: opts.iconDir,

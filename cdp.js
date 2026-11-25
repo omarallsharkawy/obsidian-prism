@@ -6090,6 +6090,7 @@ const RUNTIME_PARTS = [
   'stream-choreography.js',
   'prism-rim-canvas.js',
   'host-workbench-enhancer.js',
+  'arabic-bidi.js',
   'context-menu-btw.js',
   'ui-runtime.js',
 ];

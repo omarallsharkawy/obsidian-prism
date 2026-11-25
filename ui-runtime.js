@@ -87,6 +87,7 @@
   const streamChoreoMod = GT.__agPrismStreamChoreography;
   const prismRimMod = GT.__agPrismRimCanvas;
   const hostEnhancerMod = GT.__agPrismHostEnhancer;
+  const arabicBidiMod = GT.__agPrismArabicBidi;
   let ownedCtxMenu = W.__agPrismContextMenu || GT.__agPrismContextMenu || null;
 
   // Obsidian Prism primary storage key + legacy key migration compatibility
@@ -794,6 +795,16 @@
         runGuardedMut,
         setAttrIfChanged,
         getConfig: () => normalizeConfigShape(cfg),
+      })
+    : noopStub();
+
+  const arabicBidiCtl = arabicBidiMod?.createArabicBidiController
+    ? arabicBidiMod.createArabicBidiController({
+        doc: D,
+        win: W,
+        isDestroyed: () => destroyed,
+        runGuardedMut,
+        setAttrIfChanged,
       })
     : noopStub();
 
@@ -2373,6 +2384,7 @@
             runGuardedMut(() => {
               syncHostAnimatedIcons([convNow]);
             });
+            try { arabicBidiCtl.sync?.(convNow); } catch {}
             streamChoreoCtl.syncWorkedForAutoUnfold();
             if (getThoughtTranslateMode() !== 'off') {
               try {
@@ -2413,6 +2425,9 @@
     if (!deferHeavyConvWork && (flags.f || flags.r || flags.l || flags.c || flags.b || flags.t || flags.s || flags.g || flags.o)) {
       const enhFlags = routeJumped ? { ...flags, f: true } : flags;
       scheduleHostEnhancerSync(!!(flags.f || routeJumped || flags.g || flags.o || (flags.t && !isConvRunning())), enhFlags);
+    }
+    if (!deferHeavyConvWork && (flags.f || flags.r || flags.l || flags.c || flags.s || routeJumped)) {
+      try { arabicBidiCtl.sync?.(); } catch {}
     }
     if (!deferHeavyConvWork) {
       if (flags.f || routeJumped) {
@@ -2935,6 +2950,7 @@
     safe(() => motionBinding?.unbind?.()); motionBinding = null;
     safe(() => pulseBridgeInst?.destroy?.()); pulseBridgeInst = null;
     safe(() => hostEnhancerCtl.destroy?.());
+    safe(() => arabicBidiCtl.destroy?.());
     modelGlyphCtl.teardownCrystalMount();
     if (Array.isArray(GT.__agCsCleanups)) {
       const idx = GT.__agCsCleanups.indexOf(teardownCore);

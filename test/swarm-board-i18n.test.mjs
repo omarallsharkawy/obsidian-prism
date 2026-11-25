@@ -642,13 +642,13 @@ test('swarm-board-i18n 3: sandbox DOM translation, exemptions, <option>.value sa
   assert.equal(exportBtn.getAttribute('title'), 'تصدير إعادة تشغيل المخطط كصورة GIF متحركة');
   assert.equal(stallB.textContent, 'توقف السرب — لا يوجد وكلاء يعملون حالياً');
   assert.equal(goalLbl.textContent, 'الهدف');
-  assert.equal(thnNowSpan.textContent, 'نشط');
+  assert.equal(thnNowSpan.textContent, 'الآن');
   assert.equal(ovFresh.textContent, 'قُرئ حتى #12 · حُدّث 2m ago');
   assert.equal(chAllBtn.textContent, 'الكل');
   assert.equal(chAllBtn.getAttribute('title'), 'المنشورات في جميع القنوات');
   assert.equal(chMainBtn.textContent, '#main');
   assert.equal(chMainBtn.getAttribute('title'), 'main: يقرأها السرب بالكامل');
-  assert.equal(mentionSpan.getAttribute('title'), 'جميع الأعضاء في قناة #backend');
+  assert.equal(mentionSpan.getAttribute('title'), 'الجميع في القناة #backend');
   assert.equal(msgChannel.getAttribute('title'), 'نُشر في #dev؛ انقر لعرض #dev فقط');
 
   // Whitelisted <select>/<option>: textContent translated, .value strictly untouched
@@ -663,7 +663,7 @@ test('swarm-board-i18n 3: sandbox DOM translation, exemptions, <option>.value sa
   assert.equal(optMUser.textContent, 'إلى worker-2');
   assert.equal(optMUser.value, 'worker-2');
   assert.equal(optChAll.textContent, 'جميع القنوات');
-  assert.equal(optChArch.textContent, '#backend (مؤرشف)');
+  assert.equal(optChArch.textContent, '#backend (مؤرشفة)');
   assert.equal(optChArch.value, 'backend');
   assert.equal(optEven.textContent, 'إيقاع منتظم');
   assert.equal(optEven.value, 'even');
@@ -710,7 +710,7 @@ test('swarm-board-i18n 3: sandbox DOM translation, exemptions, <option>.value sa
   assert.equal(chCustomBtn.getAttribute('title'), 'Running');
 
   // .o2-rmeta keeps leading digit and survives hive.js in-place .replace(/^\d+/, f.done)
-  assert.equal(rmetaP.textContent, '2 / 5 مهام مكتملة');
+  assert.equal(rmetaP.textContent, '2 / 5 مهمة مكتملة');
   rmetaP.childNodes[0].nodeValue = rmetaP.childNodes[0].nodeValue.replace(/^\d+/, '4');
   assert.equal(rmetaP.textContent, '4 / 5 مهمة مكتملة');
 
@@ -728,7 +728,7 @@ test('swarm-board-i18n 3: sandbox DOM translation, exemptions, <option>.value sa
   inst.destroy();
   assert.equal(doc.documentElement.getAttribute('data-ag-prism-swarm-i18n'), null);
   assert.equal(win.__agPrismSwarmI18n, undefined);
-  assert.equal(liveLabel.textContent, 'مباشر');
+  assert.equal(liveLabel.textContent, 'Live');
   assert.equal(tabOverview.textContent, 'Overview');
   assert.equal(tabFeed.textContent, 'Board');
   assert.equal(tabMembers.textContent, 'Members');

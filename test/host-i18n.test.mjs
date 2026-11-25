@@ -1746,18 +1746,17 @@ function createBruteForceReferenceTranslator(dictData) {
     if (
       normalized.includes('. ') ||
       normalized.includes('! ') ||
-      normalized.includes('? ') ||
-      normalized.includes('。')
+      normalized.includes('? ')
     ) {
-      const sentences = normalized.split(/([.!?]\s+|[。！？]\s*)/);
+      const sentences = normalized.split(/([.!?]\s+)/);
       let anyTranslated = false;
       let allTranslated = true;
       const translatedParts = [];
       for (let sIdx = 0; sIdx < sentences.length; sIdx++) {
         const part = sentences[sIdx];
         const trimmedPart = part.trim();
-        if (!trimmedPart || /^[.!?。！？\s]+$/.test(part)) {
-          translatedParts.push(part.replace(/\.\s*/g, '。 '));
+        if (!trimmedPart || /^[.!؟?\s]+$/.test(part)) {
+          translatedParts.push(part.replace(/\?\s*/g, '؟ '));
           continue;
         }
         let transPart =
@@ -1767,7 +1766,7 @@ function createBruteForceReferenceTranslator(dictData) {
         if (!transPart) {
           const pMatch = trimmedPart.match(/^([\w\s\-\/]+)([:…\.؟\?!]+)$/);
           if (pMatch && hasOwn.call(exactDict, pMatch[1].trim())) {
-            transPart = exactDict[pMatch[1].trim()] + (pMatch[2] === ':' ? '：' : pMatch[2]);
+            transPart = exactDict[pMatch[1].trim()] + (pMatch[2] === '?' ? '؟' : pMatch[2]);
           }
         }
         if (transPart) {
@@ -1779,7 +1778,7 @@ function createBruteForceReferenceTranslator(dictData) {
         }
       }
       if (anyTranslated && allTranslated) {
-        return translatedParts.join('').replace(/([。！？])[。！？.]*\s*/g, '$1 ').trim();
+        return translatedParts.join('').replace(/([.!؟?])[.!؟?]*\s*/g, '$1 ').trim();
       }
     }
     return null;

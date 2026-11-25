@@ -12,6 +12,7 @@
  */
 
 const crypto = require("node:crypto");
+const { spawnSync } = require("node:child_process");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
@@ -1189,6 +1190,96 @@ function generateLinuxLauncherDesktop({ targetExe = "antigravity", iconPath = "o
   ].join("\n");
 }
 
+function quoteSystemdArg(arg) {
+  const s = String(arg || "");
+  return `"${s.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
+}
+
+function getLinuxSystemdUnitPath({ homeDir = null, env = null } = {}) {
+  const home = homeDir || os.homedir();
+  const xdg = (env && env.XDG_CONFIG_HOME) || (!homeDir && process.env.XDG_CONFIG_HOME) || path.join(home, ".config");
+  return path.join(xdg, "systemd", "user", "obsidian-prism.service");
+}
+
+function generateLinuxSystemdUnit({ nodeExe = process.execPath, targetDir, repoDir = null } = {}) {
+  const daemonScript = path.join(targetDir, "sidecars", "daemon", "main.mjs");
+  const execParts = [
+    quoteSystemdArg(nodeExe),
+    quoteSystemdArg(daemonScript),
+    "--root",
+    quoteSystemdArg(targetDir),
+  ];
+  if (repoDir) execParts.push("--repo", quoteSystemdArg(repoDir));
+  execParts.push("--persistent");
+  return [
+    "[Unit]",
+    "Description=Obsidian Prism Instant-Attach Daemon for Antigravity",
+    "After=graphical-session.target",
+    "",
+    "[Service]",
+    "Type=simple",
+    `ExecStart=${execParts.join(" ")}`,
+    "Restart=on-failure",
+    "RestartSec=2",
+    "StandardOutput=null",
+    "StandardError=null",
+    "",
+    "[Install]",
+    "WantedBy=default.target",
+    "",
+  ].join("\n");
+}
+
+function installLinuxSystemdWatcher({ targetDir, repoDir = null, nodeExe = process.execPath, homeDir = null, env = null, runSystemctl = null } = {}) {
+  const unitPath = getLinuxSystemdUnitPath({ homeDir, env });
+  const unitDir = path.dirname(unitPath);
+  const run = typeof runSystemctl === "function"
+    ? runSystemctl
+    : (args) => {
+        const res = spawnSync("systemctl", ["--user", ...args], { encoding: "utf8", timeout: 5000 });
+        return res.status === 0;
+      };
+  try {
+    fs.mkdirSync(unitDir, { recursive: true });
+    assertNotSymbolicLink(unitPath, "systemd unit");
+    const content = generateLinuxSystemdUnit({ nodeExe, targetDir, repoDir });
+    atomicWriteFileSync(unitPath, content, { encoding: "utf8", mode: 0o644 });
+    const reloaded = run(["daemon-reload"]);
+    const enabled = reloaded ? run(["enable", "obsidian-prism.service"]) : false;
+    const started = reloaded ? run(["restart", "obsidian-prism.service"]) : false;
+    return { installed: true, unitPath, active: Boolean(started), enabled: Boolean(enabled) };
+  } catch (err) {
+    return { installed: false, unitPath, active: false, enabled: false, error: err && err.message ? err.message : String(err) };
+  }
+}
+
+function removeLinuxSystemdWatcher({ homeDir = null, env = null, runSystemctl = null } = {}) {
+  const unitPath = getLinuxSystemdUnitPath({ homeDir, env });
+  const run = typeof runSystemctl === "function"
+    ? runSystemctl
+    : (args) => {
+        const res = spawnSync("systemctl", ["--user", ...args], { encoding: "utf8", timeout: 5000 });
+        return res.status === 0;
+      };
+  let removed = false;
+  try {
+    run(["disable", "--now", "obsidian-prism.service"]);
+  } catch {}
+  try {
+    if (fs.existsSync(unitPath)) {
+      const st = fs.lstatSync(unitPath);
+      if (!st.isSymbolicLink() && st.isFile()) {
+        fs.unlinkSync(unitPath);
+        removed = true;
+      }
+    }
+  } catch {}
+  try {
+    if (removed) run(["daemon-reload"]);
+  } catch {}
+  return { removed, unitPath };
+}
+
 function isManagedLinuxLauncherDesktop(desktopPath) {
   if (!desktopPath) return false;
   try {
@@ -1764,10 +1855,25 @@ async function installPlugin(opts = {}) {
     const daemonArgs = [daemonScript, "--root", targetDir, "--repo", sourceDir];
     if (cdpPort) daemonArgs.push("--port", String(cdpPort));
 
-    const spawnRes = spawnBreakawayNodeProcess(daemonArgs, {
-      cwd: path.dirname(daemonScript),
-      disablePowerShellBreakaway: Boolean(opts.disablePowerShellBreakaway),
-    });
+    let spawnRes = null;
+    if (effectivePlatform === "linux" && isDefaultTarget && !cdpPort && !isAutomatedTestRuntime()) {
+      const sdRes = installLinuxSystemdWatcher({
+        targetDir,
+        repoDir: sourceDir,
+        homeDir: opts.homeDir,
+        env: opts.env,
+      });
+      if (sdRes && sdRes.active) {
+        spawnRes = { spawned: true, pid: null, method: "systemd-user" };
+      }
+    }
+    if (!spawnRes) {
+      if (effectivePlatform === "linux" && !cdpPort) daemonArgs.push("--persistent");
+      spawnRes = spawnBreakawayNodeProcess(daemonArgs, {
+        cwd: path.dirname(daemonScript),
+        disablePowerShellBreakaway: Boolean(opts.disablePowerShellBreakaway),
+      });
+    }
 
     const pidFile = path.join(targetDir, ".daemon.pid");
     let verifiedPid = spawnRes.pid;
@@ -1948,6 +2054,7 @@ async function uninstallPlugin(opts = {}) {
         platformOverride: effectivePlatform,
       });
     } else if (effectivePlatform === "linux") {
+      removeLinuxSystemdWatcher({ homeDir: opts.homeDir, env: opts.env });
       launcher = removeLinuxLosslessLauncher({
         launcherDir: opts.launcherDir,
         iconDir: opts.iconDir,
@@ -2370,6 +2477,9 @@ module.exports = {
   isManagedLinuxLauncherDesktop,
   createLinuxLosslessLauncher,
   removeLinuxLosslessLauncher,
+  generateLinuxSystemdUnit,
+  installLinuxSystemdWatcher,
+  removeLinuxSystemdWatcher,
   installPlugin,
   uninstallPlugin,
   verifyLiveWindowAttach,

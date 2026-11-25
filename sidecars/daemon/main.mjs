@@ -2077,6 +2077,7 @@ export class PrismDaemon {
     storageGuardInitialDelayMs = 35000,
     storageGuardIntervalMs = 300000,
     enableStorageGuardTimer = true,
+    persistent = false,
     silent = false,
   } = {}) {
     this.rootDir = path.resolve(rootDir);
@@ -2086,6 +2087,7 @@ export class PrismDaemon {
     this.portFile = portFile;
     this.pollIntervalMs = Math.max(200, Number(pollIntervalMs) || 3000);
     this.enabledCheck = enabledCheck;
+    this.persistent = Boolean(persistent);
     this.silent = Boolean(silent);
     this.cdp = require(path.join(this.rootDir, 'cdp.js'));
     this._loadedCdpVerifier = typeof this.cdp?.isExpectedDaemonProcess === 'function' ? this.cdp.isExpectedDaemonProcess : null;
@@ -2116,6 +2118,10 @@ export class PrismDaemon {
     this.busy = false;
     this.timer = null;
     this.fsw = null;
+    this._portWatchers = [];
+    this._portRetryTimer = null;
+    this._portRetryStep = 0;
+    this._portRetryArmed = false;
     this.injectExpr = '';
     this.omniExpr = '';
     this.sidebarExpr = '';
@@ -8209,78 +8215,24 @@ export class PrismDaemon {
         return cfg;
       };
       const omniEnabledInit = this._isOmniEnabled(cfg);
-      if (omniEnabledInit) {
-        await this.ensureOmniServer().catch(() => null);
-      }
+      const omniInitPromise = omniEnabledInit ? this.ensureOmniServer().catch(() => null) : Promise.resolve(null);
       const sidebarEnabledInit = this._isSidebarStudioEnabled(cfg);
-      if (sidebarEnabledInit) {
-        await this.ensureSidebarService().catch(() => null);
-      }
+      const sidebarInitPromise = sidebarEnabledInit ? this.ensureSidebarService().catch(() => null) : Promise.resolve(null);
       if (!this.injectExpr) this.rebuildBundle();
-      else {
-        const curCfg = getCurrentCfg();
-        const chOpts = this._getChannelCacheOpts(true);
-        let usedChCache = false;
-        if (!omniEnabledInit) {
-          this.omniExpr = '';
-        } else if (this.omniServer && !this.omniExpr && typeof this.cdp.buildOmniClientExpression === 'function') {
-          this.omniExpr = chOpts
-            ? this.cdp.buildOmniClientExpression(this.omniServer.getServerInfo(), null, chOpts)
-            : this.cdp.buildOmniClientExpression(this.omniServer.getServerInfo());
-          if (chOpts) usedChCache = true;
-        }
-        if (sidebarEnabledInit && !this.sidebarExpr && typeof this.cdp.buildSidebarStudioExpression === 'function') {
-          this.sidebarExpr = this._buildSidebarExprForCurrentClient(chOpts);
-          if (chOpts) usedChCache = true;
-        }
-        if (!this.hostI18nExpr && this._isHostI18nEnabled(curCfg) && typeof this.cdp.buildHostI18nExpression === 'function') {
-          this.hostI18nExpr = chOpts
-            ? this.cdp.buildHostI18nExpression(curCfg, null, chOpts)
-            : this.cdp.buildHostI18nExpression(curCfg);
-          if (chOpts) usedChCache = true;
-        }
-        if (!this.thoughtExpr && this._isThoughtEnabled(curCfg) && typeof this.cdp.buildThoughtExpression === 'function') {
-          this._buildThoughtExprForConfig(curCfg, chOpts);
-          if (chOpts) usedChCache = true;
-        }
-        if (!this.inlineDiffExpr && typeof this.cdp.buildInlineDiffInjectExpression === 'function') {
-          this._buildInlineDiffExprForConfig(curCfg, chOpts);
-          if (chOpts && this.inlineDiffExpr) usedChCache = true;
-        }
-        if (!this.wallpaperExpr && typeof this.cdp.buildWallpaperExpression === 'function') {
-          this._buildWallpaperExprForConfig(curCfg, chOpts);
-          if (chOpts && this.wallpaperExpr) usedChCache = true;
-        }
-        if (!this.periodicPickerExpr && this._hasPeriodicPickerFile() && this._isPeriodicPickerEnabled(curCfg) && typeof this.cdp.buildPeriodicPickerExpression === 'function') {
-          this._buildPeriodicPickerExprForConfig(curCfg, chOpts);
-          if (chOpts && this.periodicPickerExpr) usedChCache = true;
-        }
-        if (!this.suggesterExpr && typeof this.cdp.buildSuggesterExpression === 'function') {
-          this._buildSuggesterExprForConfig(curCfg, chOpts);
-          if (chOpts && this.suggesterExpr) usedChCache = true;
-        }
-        if (!this.homeStudioExpr && this._hasHomeStudioFile() && this._isHomeStudioEnabled(curCfg) && typeof this.cdp.buildHomeStudioChannelExpression === 'function') {
-          this._buildHomeStudioExprForConfig(curCfg, chOpts);
-          if (chOpts && this.homeStudioExpr) usedChCache = true;
-        }
-        if (usedChCache && this.running) {
-          this._scheduleBundleCacheFlush();
-        }
-      }
       if (entry.scriptId) {
         await entry.session
           .send('Page.removeScriptToEvaluateOnNewDocument', { identifier: entry.scriptId })
           .catch(() => {});
         entry.scriptId = null;
       }
-      const addRes = await entry.session.send('Page.addScriptToEvaluateOnNewDocument', {
-        source: this.injectExpr,
-      });
+      const sidebarDocument = entry.sidebarDocument;
+      const [addRes, mainRes] = await Promise.all([
+        entry.session.send('Page.addScriptToEvaluateOnNewDocument', { source: this.injectExpr }).catch(() => null),
+        entry.session.evaluate(this.injectExpr),
+      ]);
       if (addRes && addRes.identifier) {
         entry.scriptId = addRes.identifier;
       }
-      const sidebarDocument = entry.sidebarDocument;
-      const mainRes = await entry.session.evaluate(this.injectExpr);
       this._markSidebarHostVerified(entry, sidebarDocument, mainRes?.status === 'ok');
 
       if (mainRes && mainRes.status === 'skipped-non-host') {
@@ -8362,6 +8314,56 @@ export class PrismDaemon {
       }
 
       const cfgNow = getCurrentCfg();
+      await Promise.all([omniInitPromise, sidebarInitPromise]);
+      {
+        const chOpts = this._getChannelCacheOpts(true);
+        let usedChCache = false;
+        if (!this._isOmniEnabled(cfgNow)) {
+          this.omniExpr = '';
+        } else if (this.omniServer && !this.omniExpr && typeof this.cdp.buildOmniClientExpression === 'function') {
+          this.omniExpr = chOpts
+            ? this.cdp.buildOmniClientExpression(this.omniServer.getServerInfo(), null, chOpts)
+            : this.cdp.buildOmniClientExpression(this.omniServer.getServerInfo());
+          if (chOpts) usedChCache = true;
+        }
+        if (this._isSidebarStudioEnabled(cfgNow) && !this.sidebarExpr && typeof this.cdp.buildSidebarStudioExpression === 'function') {
+          this.sidebarExpr = this._buildSidebarExprForCurrentClient(chOpts);
+          if (chOpts) usedChCache = true;
+        }
+        if (!this.hostI18nExpr && this._isHostI18nEnabled(cfgNow) && typeof this.cdp.buildHostI18nExpression === 'function') {
+          this.hostI18nExpr = chOpts
+            ? this.cdp.buildHostI18nExpression(cfgNow, null, chOpts)
+            : this.cdp.buildHostI18nExpression(cfgNow);
+          if (chOpts) usedChCache = true;
+        }
+        if (!this.thoughtExpr && this._isThoughtEnabled(cfgNow) && typeof this.cdp.buildThoughtExpression === 'function') {
+          this._buildThoughtExprForConfig(cfgNow, chOpts);
+          if (chOpts) usedChCache = true;
+        }
+        if (!this.inlineDiffExpr && typeof this.cdp.buildInlineDiffInjectExpression === 'function') {
+          this._buildInlineDiffExprForConfig(cfgNow, chOpts);
+          if (chOpts && this.inlineDiffExpr) usedChCache = true;
+        }
+        if (!this.wallpaperExpr && typeof this.cdp.buildWallpaperExpression === 'function') {
+          this._buildWallpaperExprForConfig(cfgNow, chOpts);
+          if (chOpts && this.wallpaperExpr) usedChCache = true;
+        }
+        if (!this.periodicPickerExpr && this._hasPeriodicPickerFile() && this._isPeriodicPickerEnabled(cfgNow) && typeof this.cdp.buildPeriodicPickerExpression === 'function') {
+          this._buildPeriodicPickerExprForConfig(cfgNow, chOpts);
+          if (chOpts && this.periodicPickerExpr) usedChCache = true;
+        }
+        if (!this.suggesterExpr && typeof this.cdp.buildSuggesterExpression === 'function') {
+          this._buildSuggesterExprForConfig(cfgNow, chOpts);
+          if (chOpts && this.suggesterExpr) usedChCache = true;
+        }
+        if (!this.homeStudioExpr && this._hasHomeStudioFile() && this._isHomeStudioEnabled(cfgNow) && typeof this.cdp.buildHomeStudioChannelExpression === 'function') {
+          this._buildHomeStudioExprForConfig(cfgNow, chOpts);
+          if (chOpts && this.homeStudioExpr) usedChCache = true;
+        }
+        if (usedChCache && this.running) {
+          this._scheduleBundleCacheFlush();
+        }
+      }
       const hadOmniBefore = Boolean(entry.omniScriptId || entry.lastOmniExpr);
       if (entry.omniScriptId) {
         await entry.session
@@ -8371,15 +8373,15 @@ export class PrismDaemon {
       }
       const omniEnabledNow = this._isOmniEnabled(cfgNow);
       if (omniEnabledNow && this.omniExpr) {
-        await entry.session.send('Runtime.addBinding', { name: OMNI_BINDING }).catch(() => {});
-        const omniAdd = await entry.session
-          .send('Page.addScriptToEvaluateOnNewDocument', { source: this.omniExpr })
-          .catch(() => null);
+        const [, omniAdd] = await Promise.all([
+          entry.session.send('Runtime.addBinding', { name: OMNI_BINDING }).catch(() => {}),
+          entry.session.send('Page.addScriptToEvaluateOnNewDocument', { source: this.omniExpr }).catch(() => null),
+          entry.session.evaluate(this.omniExpr).catch(() => null),
+        ]);
         if (omniAdd && omniAdd.identifier) {
           entry.omniScriptId = omniAdd.identifier;
           entry.lastOmniExpr = this.omniExpr;
         }
-        await entry.session.evaluate(this.omniExpr).catch(() => null);
       } else {
         if (hadOmniBefore) {
           await entry.session.evaluate(this._buildOmniCleanupExpression()).catch(() => null);
@@ -8439,13 +8441,13 @@ export class PrismDaemon {
           if (chOpts && this.running) this._scheduleBundleCacheFlush();
         }
         if (this.hostI18nExpr) {
-          const hiAdd = await entry.session
-            .send('Page.addScriptToEvaluateOnNewDocument', { source: this.hostI18nExpr })
-            .catch(() => null);
+          const [hiAdd, evalRes] = await Promise.all([
+            entry.session.send('Page.addScriptToEvaluateOnNewDocument', { source: this.hostI18nExpr }).catch(() => null),
+            entry.session.evaluate(this.hostI18nExpr).catch(() => null),
+          ]);
           if (hiAdd && hiAdd.identifier) {
             entry.hostI18nScriptId = hiAdd.identifier;
           }
-          const evalRes = await entry.session.evaluate(this.hostI18nExpr).catch(() => null);
           const hiSig = this._getHostI18nCfgSig(cfgNow);
           if (evalRes?.skippedByLiveCfg) {
             entry.hostI18nMounted = false;
@@ -9698,27 +9700,29 @@ export class PrismDaemon {
           }
         }
       });
-      await session.send('Page.enable');
-      await this._ensureMainFrameId(entry, 4500, 1);
-      await session.send('Runtime.enable');
       session.on('Runtime.bindingCalled', (params) => {
         void this.handleBindingCall(entry, params || {});
       });
-      await session.send('Runtime.addBinding', { name: this.cdp.SETTING_BINDING });
-      await session.send('Runtime.addBinding', { name: this.cdp.LEGACY_SETTING_BINDING }).catch(() => {});
-      await session.send('Runtime.addBinding', { name: METRICS_BINDING });
-      await session.send('Runtime.addBinding', { name: REPO_BINDING });
-      await session.send('Runtime.addBinding', { name: THOUGHT_BINDING });
-      await session.send('Runtime.addBinding', { name: USAGE_BINDING });
-      await session.send('Runtime.addBinding', { name: INLINE_DIFF_BINDING });
+      const attachCfg = typeof this.cdp?.readConfig === 'function' ? this.cdp.readConfig() : null;
+      const wantOmniBind = this._isOmniEnabled(attachCfg);
+      const wantSidebarBind = this._isSidebarStudioEnabled(attachCfg);
+      const setupCalls = [
+        session.send('Page.enable'),
+        this._ensureMainFrameId(entry, 4500, 1),
+        session.send('Runtime.enable'),
+        session.send('Runtime.addBinding', { name: this.cdp.SETTING_BINDING }),
+        session.send('Runtime.addBinding', { name: this.cdp.LEGACY_SETTING_BINDING }).catch(() => {}),
+        session.send('Runtime.addBinding', { name: METRICS_BINDING }),
+        session.send('Runtime.addBinding', { name: REPO_BINDING }),
+        session.send('Runtime.addBinding', { name: THOUGHT_BINDING }),
+        session.send('Runtime.addBinding', { name: USAGE_BINDING }),
+        session.send('Runtime.addBinding', { name: INLINE_DIFF_BINDING }),
+      ];
+      if (wantOmniBind) setupCalls.push(session.send('Runtime.addBinding', { name: OMNI_BINDING }));
+      if (wantSidebarBind) setupCalls.push(session.send('Runtime.addBinding', { name: SIDEBAR_BINDING }));
+      await Promise.all(setupCalls);
       entry.inlineDiffBindingAdded = true;
-      if (this._isOmniEnabled()) {
-        await session.send('Runtime.addBinding', { name: OMNI_BINDING });
-      }
-      if (this._isSidebarStudioEnabled()) {
-        await session.send('Runtime.addBinding', { name: SIDEBAR_BINDING });
-        entry.sidebarBindingAdded = true;
-      }
+      if (wantSidebarBind) entry.sidebarBindingAdded = true;
 
       const healOnNav = () => {
         if (!this.running || entry.session.closed) return;
@@ -10789,6 +10793,74 @@ export class PrismDaemon {
     }
   }
 
+  _clearFastPortRetry() {
+    this._portRetryArmed = false;
+    this._portRetryStep = 0;
+    if (this._portRetryTimer) {
+      clearTimeout(this._portRetryTimer);
+      this._portRetryTimer = null;
+    }
+  }
+
+  _scheduleFastPortRetry() {
+    if (!this.running || !this._portRetryArmed) return;
+    const delays = [40, 80, 120, 180, 260, 400, 600];
+    if (this._portRetryStep >= delays.length) {
+      this._portRetryArmed = false;
+      return;
+    }
+    const waitMs = delays[this._portRetryStep++];
+    if (this._portRetryTimer) clearTimeout(this._portRetryTimer);
+    this._portRetryTimer = setTimeout(() => {
+      this._portRetryTimer = null;
+      if (this.running) void this.tick();
+    }, waitMs);
+    if (typeof this._portRetryTimer.unref === 'function') {
+      this._portRetryTimer.unref();
+    }
+  }
+
+  _stopPortFileWatchers() {
+    if (Array.isArray(this._portWatchers)) {
+      for (const w of this._portWatchers) {
+        try {
+          w.close();
+        } catch {}
+      }
+      this._portWatchers = [];
+    }
+  }
+
+  _startPortFileWatchers() {
+    this._stopPortFileWatchers();
+    if (!this.running || this.overridePort) return;
+    const candidates = this.portFile ? [this.portFile] : resolvePortFileCandidates();
+    const seenDirs = new Set();
+    for (const file of candidates) {
+      if (!file) continue;
+      const resolvedFile = path.resolve(file);
+      const dir = path.dirname(resolvedFile);
+      const baseName = path.basename(resolvedFile).toLowerCase();
+      if (seenDirs.has(dir)) continue;
+      try {
+        if (!fs.existsSync(dir)) continue;
+        seenDirs.add(dir);
+        const w = fs.watch(dir, { persistent: false }, (_, filename) => {
+          if (!this.running) return;
+          const changed = filename ? path.basename(String(filename)).toLowerCase() : '';
+          if (changed && changed !== baseName) return;
+          _portFileCache.delete(resolvedFile);
+          this._forceListPagesNextTick = true;
+          this._portRetryArmed = true;
+          this._portRetryStep = 0;
+          this.scheduleImmediateTick(10);
+        });
+        if (w && typeof w.unref === 'function') w.unref();
+        this._portWatchers.push(w);
+      } catch {}
+    }
+  }
+
   async ensureBrowserDiscovery(port) {
     if (!this.running || !port || typeof this.cdp.getBrowserWsUrl !== 'function') return;
     if (this.browserSession && !this.browserSession.closed && this.browserPort === port) return;
@@ -10844,14 +10916,14 @@ export class PrismDaemon {
               existing._usageScopeVerified = false;
               existing.verifyDirty = true;
               existing.healthyStreak = 0;
-              this.scheduleImmediateTick(45);
+              this.scheduleImmediateTick(10);
             }
             return;
           }
         }
         if (!this._isEligibleDaemonTarget({ ...info, id: tid, webSocketDebuggerUrl: 'ws://check' })) return;
         this._forceListPagesNextTick = true;
-        this.scheduleImmediateTick(45);
+        this.scheduleImmediateTick(10);
       };
       bSession.on('Target.targetCreated', onTargetEvent);
       bSession.on('Target.targetInfoChanged', onTargetEvent);
@@ -11275,6 +11347,7 @@ export class PrismDaemon {
             void this._maybeRunAutoArchiveOnExit().catch(() => {});
           }
           await this._handleMissingCdpPort();
+          if (this._portRetryArmed) this._scheduleFastPortRetry();
         }
         return { attached: this.sessions.size, port, unreachable: true };
       }
@@ -11393,10 +11466,13 @@ export class PrismDaemon {
       // Blind spot 3: when all windows disconnect and reconnect (active count recovers from 0), reset 45-min backoff and re-check shortcuts immediately
       const nowAttachedCount = this.sessions.size;
       if (nowAttachedCount > 0) {
+        this._clearFastPortRetry();
         this._sawLiveHost = true;
         if (!(this._archiveScheduledAt > 0 && Date.now() - this._archiveScheduledAt < 60000)) {
           this._autoArchiveExitRan = false;
         }
+      } else if (this._portRetryArmed) {
+        this._scheduleFastPortRetry();
       }
       if (nowAttachedCount === 0) {
         if (this._prevAttachedCount > 0 || prevSessionCount > 0) {
@@ -11519,6 +11595,34 @@ export class PrismDaemon {
     }
   }
 
+  hasMatchingPersistentOwner() {
+    try {
+      if (!this.pidFile) return null;
+      const st = fs.lstatSync(this.pidFile);
+      if (st.isSymbolicLink() || !st.isFile()) return null;
+      const cur = JSON.parse(fs.readFileSync(this.pidFile, 'utf8'));
+      const pid = Number(cur?.pid);
+      if (!cur || !cur.persistent || !Number.isInteger(pid) || pid <= 0 || pid === process.pid) return null;
+      if (cur.cdpSig && this._cdpFileSig && cur.cdpSig !== this._cdpFileSig) return null;
+      if (cur.rootDir && path.resolve(cur.rootDir) !== this.rootDir) return null;
+      try {
+        process.kill(pid, 0);
+      } catch {
+        return null;
+      }
+      const verifier =
+        typeof this._daemonPidVerifier === 'function'
+          ? this._daemonPidVerifier
+          : typeof this.cdp?.isExpectedDaemonProcess === 'function'
+          ? this.cdp.isExpectedDaemonProcess
+          : null;
+      if (verifier && !verifier(pid, this.pidFile)) return null;
+      return { pid, token: cur.token || '' };
+    } catch {
+      return null;
+    }
+  }
+
   claimOwnership() {
     this.stopExistingDaemon();
     this._ownerFileCache = null;
@@ -11531,7 +11635,12 @@ export class PrismDaemon {
       }
       writeFileAtomicSync(
         this.pidFile,
-        JSON.stringify({ pid: process.pid, token: this.ownerToken, startedAt: Date.now() }),
+        JSON.stringify({
+          pid: process.pid,
+          token: this.ownerToken,
+          startedAt: Date.now(),
+          ...(this.persistent ? { persistent: true, rootDir: this.rootDir, cdpSig: this._cdpFileSig || '' } : {}),
+        }),
         { mode: 0o600 }
       );
       this._ownerFileCache = null;
@@ -11660,6 +11769,7 @@ export class PrismDaemon {
         });
         if (this.fsw && typeof this.fsw.unref === 'function') this.fsw.unref();
       } catch {}
+      this._startPortFileWatchers();
     }
 
     this.timer = setInterval(() => {
@@ -11804,6 +11914,8 @@ export class PrismDaemon {
       try { this.fsw.close(); } catch {}
       this.fsw = null;
     }
+    this._stopPortFileWatchers();
+    this._clearFastPortRetry();
     await this.detachAll(cleanPageDom);
     const standaloneLsClient = this._lazyLsClient && this._lazyLsClient !== this._lazyStore?.client ? this._lazyLsClient : null;
     for (const svc of [this._lazyUsage, this._lazyStore, standaloneLsClient, this._lazyThoughtService]) {
@@ -11858,6 +11970,7 @@ export class PrismDaemon {
 function parseArgs(argv) {
   const args = argv.slice(2);
   let once = false;
+  let persistent = false;
   let port = null;
   let rootDir = DEFAULT_ROOT_DIR;
   let gitRepoDir = null;
@@ -11865,12 +11978,13 @@ function parseArgs(argv) {
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
     if (a === '--once') once = true;
+    else if (a === '--persistent') persistent = true;
     else if (a === '--port' && args[i + 1]) port = parseInt(args[++i], 10);
     else if (a === '--root' && args[i + 1]) rootDir = path.resolve(args[++i]);
     else if (a === '--repo' && args[i + 1]) gitRepoDir = path.resolve(args[++i]);
     else if (a === '--out' && args[i + 1]) outFile = path.resolve(args[++i]);
   }
-  return { once, port, rootDir, gitRepoDir, outFile };
+  return { once, persistent, port, rootDir, gitRepoDir, outFile };
 }
 
 /**
@@ -11953,6 +12067,7 @@ if (isMainEntry(process.argv[1], __filename)) {
     rootDir: cli.rootDir,
     gitRepoDir: cli.gitRepoDir,
     overridePort: cli.port,
+    persistent: cli.persistent,
   });
 
   if (cli.once) {
@@ -11975,8 +12090,33 @@ if (isMainEntry(process.argv[1], __filename)) {
         process.exitCode = 1;
       });
   } else {
-    daemon.start({ claimPid: true, watchFiles: true });
-    registerDaemonShutdownSignals(daemon);
+    const activePersistent = !cli.persistent ? daemon.hasMatchingPersistentOwner() : null;
+    if (activePersistent) {
+      daemon.log(`[standby] Yielding to warm persistent daemon (pid=${activePersistent.pid})`);
+      let standbyTimer = setInterval(() => {
+        if (!daemon.hasMatchingPersistentOwner()) {
+          clearInterval(standbyTimer);
+          standbyTimer = null;
+          daemon.start({ claimPid: true, watchFiles: true });
+        }
+      }, 5000);
+      for (const sig of DAEMON_SHUTDOWN_SIGNALS) {
+        process.on(sig, () => {
+          if (standbyTimer) {
+            clearInterval(standbyTimer);
+            standbyTimer = null;
+          }
+          if (daemon.running) {
+            void daemon.stop(false).catch(() => {}).finally(() => process.exit(0));
+          } else {
+            process.exit(0);
+          }
+        });
+      }
+    } else {
+      daemon.start({ claimPid: true, watchFiles: true });
+      registerDaemonShutdownSignals(daemon);
+    }
     process.on('uncaughtException', (err) => {
       daemon.log(`[!] uncaughtException: ${err?.stack || err}`);
     });

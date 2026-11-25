@@ -1,6 +1,6 @@
 "use strict";
 /**
-* Antigravity Codex 风格推理等级滑条 (antigravity-codex-effort-slider)
+* Antigravity Codex-style Reasoning Effort Slider (antigravity-codex-effort-slider)
 */
 (function (root, factory) {
 try {
@@ -15,12 +15,12 @@ root.AntigravityCodexEffortSlider = exportsObj;
 // Factory error handled silently
 }
 })(typeof globalThis !== "undefined" ? globalThis : typeof window !== "undefined" ? window : this, function (globalRoot) {
-// ── 常量与默认几何参数 ──────────────────────────────────────────────────────
+// -- Constants and default geometry --
 var STYLE_ELEMENT_ID = "ag-codex-effort-slider-styles";
 var KNOB_RADIUS = 14;
 var ENERGY_START = 0;
 var ENERGY_END = 0.5;
-// Antigravity 官方推理档位枚举与展示名映射（对应 main.js 中的 DXb / EXb / GXb）
+// Antigravity official reasoning effort enum and display label mapping
 var AG_EFFORT_ORDER = ["off", "minimal", "low", "medium", "high", "xhigh", "max"];
 var AG_EFFORT_LABELS = {
 off: "Off",
@@ -33,13 +33,13 @@ max: "Max"
 };
 var AG_MODEL_LABEL_RE = /^(.*?)\s*\((off|minimal|low|medium|high|xhigh|extra|max)(?:\s+thinking)?\)\s*$/i;
 var _EFF_ALIAS = Object.create(null);
-"xhigh:xhigh|extra|extra high|超高|极高|極高|特高|很高;high:high|高;medium:medium|med|中|中等;low:low|低;minimal:minimal|极低|極低|最小|最低|极简|極簡;max:max|最高|最大|极限|極限;off:off|关闭|關閉|关|關|不推理|无|無|none|disabled;auto:auto|自动|自動;adaptive:adaptive|自适应|自適應;thinking:thinking|深度思考|思考中|思考;fixed:fixed|固定".split(";").forEach(function (g) {
+"xhigh:xhigh|extra|extra high|فائق|عالي جداً|عالٍ جداً;high:high|عالٍ|عالي|مرتفع;medium:medium|med|متوسط;low:low|منخفض;minimal:minimal|أدنى|الحد الأدنى|ضئيل;max:max|أقصى|الحد الأقصى;off:off|متوقف|إيقاف|معطل|بلا|none|disabled;auto:auto|تلقائي;adaptive:adaptive|تكيفي;thinking:thinking|تفكير عميق|تفكير;fixed:fixed|ثابت".split(";").forEach(function (g) {
 var p = g.split(":"), k = p[0], vs = p[1].split("|");
 for (var i = 0; i < vs.length; i += 1) _EFF_ALIAS[vs[i]] = k;
 });
 function _normEffTxt(raw) {
-var s = String(raw || "").trim().replace(/^[(\uff08]+|[)\uff09]+$/g, "").trim().replace(/\s+thinking$/i, "").toLowerCase();
-return _EFF_ALIAS[s] || _EFF_ALIAS[s.replace(/(.+?)(?:思考|推理|强度|強度)$/, "$1")] || "";
+var s = String(raw || "").trim().replace(/^\(+|\)+$/g, "").trim().replace(/\s+thinking$/i, "").toLowerCase();
+return _EFF_ALIAS[s] || _EFF_ALIAS[s.replace(/^(?:تفكير|استدلال)\s+/, "")] || "";
 }
 function _sameEffTxt(a, b) {
 if (a === b) return true;
@@ -66,8 +66,8 @@ function isClaudeModel(name) {
 if (!name || typeof name !== "string") return false;
 return /claude/i.test(name);
 }
-// ── 连续物理运动参数 ────────────────────────────────────────────────────────
-// full: 完整星云阻尼变速动画；fast: 快速 ~70ms 跟手吸附（默认）；quick: 0 动画直接跳格
+// -- Continuous physics motion parameters --
+// full: smooth damped catch-up + starfield; fast: snappy ~70ms settle (default); quick: instant jump
 var _F = Object.freeze;
 var MOTION = _F({ maxSpeed: 3.2, accel: 28, decel: 18, snapEps: 0.0015, velEps: 0.01 });
 var MOTION_REDUCED = _F({ maxSpeed: 1e6, accel: 1e9, decel: 1e9, snapEps: 1e-4, velEps: 1e6 });
@@ -78,15 +78,15 @@ var LEGACY_SETTINGS_KEY = "dsh.codexEffortSlider.settings.v1";
 var SETTINGS_EVENT = "ag:codex-effort-slider:settings";
 var SETTINGS_VERSION = 1;
 var SETTINGS_SCHEMA = _F([
-_F({ key: "motion", label: "动画效果", labelEn: "Animation", defaultValue: "fast", options: _F([
-_F({ value: "fast", label: "快速动画", labelEn: "Fast", hint: "拨过 1/3 即切档 · ~70ms 快速吸附", hintEn: "Snaps after 1/3 travel (~70ms)" }),
-_F({ value: "quick", label: "简洁动画", labelEn: "Instant", hint: "无过渡 · 直接跳档", hintEn: "No transition, immediate jump" }),
-_F({ value: "full", label: "完整动画", labelEn: "Full", hint: "匀变速追赶 + 星尘渐亮", hintEn: "Smooth physics catch-up + starfield" })
+_F({ key: "motion", label: "Animation", labelEn: "Animation", labelAr: "تأثير الحركة", defaultValue: "fast", options: _F([
+_F({ value: "fast", label: "Fast", labelEn: "Fast", labelAr: "سريع", hint: "Snaps after 1/3 travel (~70ms)", hintEn: "Snaps after 1/3 travel (~70ms)", hintAr: "ينتقل بعد ثلث المسافة (~70 مللي ثانية)" }),
+_F({ value: "quick", label: "Instant", labelEn: "Instant", labelAr: "فوري", hint: "No transition, immediate jump", hintEn: "No transition, immediate jump", hintAr: "بلا انتقال · قفز فوري" }),
+_F({ value: "full", label: "Full", labelEn: "Full", labelAr: "كامل", hint: "Smooth physics catch-up + starfield", hintEn: "Smooth physics catch-up + starfield", hintAr: "حركة فيزيائية سلسة + حقل نجوم" })
 ]) }),
-_F({ key: "ticks", label: "已到达档位的刻度点", labelEn: "Reached Tick Marks", defaultValue: "highlight", options: _F([
-_F({ value: "highlight", label: "亮白显示", labelEn: "Bright", hint: "默认 · 已滑过档位高亮", hintEn: "Default: highlight reached ticks" }),
-_F({ value: "dim", label: "与未到达同色", labelEn: "Muted", hint: "所有刻度点保持柔和半透明", hintEn: "Keep all ticks softly muted" }),
-_F({ value: "hidden", label: "隐藏", labelEn: "Hidden", hint: "不显示任何刻度点", hintEn: "Hide all tick marks" })
+_F({ key: "ticks", label: "Reached Tick Marks", labelEn: "Reached Tick Marks", labelAr: "علامات التدريج", defaultValue: "highlight", options: _F([
+_F({ value: "highlight", label: "Bright", labelEn: "Bright", labelAr: "ساطع", hint: "Default: highlight reached ticks", hintEn: "Default: highlight reached ticks", hintAr: "افتراضي · إبراز الدرجات التي تم بلوغها" }),
+_F({ value: "dim", label: "Muted", labelEn: "Muted", labelAr: "خافت", hint: "Keep all ticks softly muted", hintEn: "Keep all ticks softly muted", hintAr: "إبقاء جميع العلامات خافتة بهدوء" }),
+_F({ value: "hidden", label: "Hidden", labelEn: "Hidden", labelAr: "مخفي", hint: "Hide all tick marks", hintEn: "Hide all tick marks", hintAr: "إخفاء جميع علامات التدريج" })
 ]) })
 ]);
 function schemaDefaults() {
@@ -141,7 +141,7 @@ function isPrismMotionOff(doc, win) { return getPrismRootAttr(doc, win, "data-ag
 function resolvePrismAccentTone(doc, win) { var ac = getPrismRootAttr(doc, win, "data-ag-cs-accent"); return ac === "mono" || ac === "amber" || ac === "iris" || ac === "cobalt" ? ac : "follow"; }
 function motionMode(win, explicitSettings, doc) { return isPrismMotionOff(doc, win) ? "quick" : (explicitSettings ? normalizeSettings(explicitSettings) : readSettings(win)).motion || "fast"; }
 function motionParamsForMode(mode) { return mode === "quick" ? MOTION_REDUCED : mode === "full" ? MOTION : MOTION_FAST; }
-// ── 诊断环形缓冲区 ──────────────────────────────────────────────────────────
+// -- Diagnostic ring buffer --
 var _tr = [];
 function tracePush(type, detail) {
 var e = Object.assign({ t: Date.now(), type: String(type || "event") }, detail && typeof detail === "object" ? detail : null);
@@ -156,7 +156,7 @@ function clamp01(v) { var n = Number(v); return !Number.isFinite(n) || n <= 0 ? 
 function clampAbs(v, l) { var m = Math.max(0, Number(l) || 0), n = Number(v) || 0; return n > m ? m : n < -m ? -m : n; }
 function pctFromIndex(i, c) { var n = Number(c) || 0; return n <= 1 ? 0 : Math.max(0, Math.min(n - 1, Math.round(Number(i) || 0))) / (n - 1); }
 function indexFromPct(p, c) { var n = Number(c) || 0; return n <= 1 ? 0 : Math.max(0, Math.min(n - 1, Math.round(clamp01(p) * (n - 1)))); }
-// 迟滞棘轮分档器（推进 1/3 切档，回退 2/3 防抖）
+// Hysteresis detent stepper (switches at 1/3 forward, 2/3 rollback debounce)
 function detentTargetIndex(currentIndex, ptrPct, count) {
 var n = Number(count) || 0, p = clamp01(ptrPct);
 if (n <= 1) return 0;
@@ -179,7 +179,7 @@ var vel = Math.abs(Number(state.v) || 0);
 return dist <= cfg.snapEps && vel <= cfg.velEps;
 }
 /**
-* 连续物理步进器：基于刹车距离 v^2 / (2 * decel) 平滑追赶 target，无过冲回弹
+* Continuous physics stepper: uses braking distance v^2 / (2 * decel) to chase target smoothly without overshoot
 */
 function motionStep(state, dtSeconds, params) {
 if (!state) return;
@@ -208,7 +208,7 @@ var v = decayPointerSpeed(rawSpeed, idleSeconds);
 var projected = clamp01((Number(ptrPct) || 0) + v * _REL_PRJ);
 return indexFromPct(projected, count);
 }
-// ── 22 颗黄金分割确定性星尘与色彩引擎（对齐 dsh-codex-effort-slider 右向左横穿星空） ──
+// -- 22 golden-ratio deterministic starfield particles & color engine --
 var PARTICLE_COUNT = 22;
 var _SF_MEAN = 1.5;
 var _SF_SPR = 0.08;
@@ -216,12 +216,12 @@ var STARFIELD_MIN = 0.5;
 var GOLDEN_RATIO = 0.6180339887498949;
 var MAX_SPEED_FACTOR = 2;
 var _RM_SLOW = 2.6;
-/** 确定性伪随机 [0,1)：不用 Math.random，每次渲染完全一致且可离线断言 */
+/** Deterministic PRNG [0,1): avoids Math.random for reproducible rendering */
 function starHash01(index, salt) {
 var value = ((index + 1) * (salt || 1) * 2654435761) % 4294967296;
 return ((value >>> 8) % 1000) / 1000;
 }
-// 22 颗黄金比确定性星尘粒子（右向左横穿）
+// 22 golden-ratio deterministic starfield particles (sweeping right-to-left)
 var PARTICLES = (function () {
 var count = PARTICLE_COUNT, out = [], byPhase = [], i;
 for (i = 0; i < count; i += 1) {
@@ -238,9 +238,9 @@ return _F(out);
 function isOffLevel(text) {
 if (text === null || text === undefined) return false;
 if (typeof text === "object") return isOffLevel(text.id || text.name || text.effort || text.label || "");
-return /^(?:off|none|disabled|0|关闭|关|不推理|无)$/.test(String(text).trim().toLowerCase());
+return /^(?:off|none|disabled|0|متوقف|إيقاف|معطل|بلا)$/.test(String(text).trim().toLowerCase());
 }
-/* ── Claude Ultracode 像素点阵抖动引擎 ──────────────────────────────── */
+/* -- Claude Ultracode pixel dot-matrix dithering engine -- */
 function hash01(a, b, c) {
 var h = (a | 0) * 374761393 + (b | 0) * 668265263 + (c | 0) * 1274126177;
 h = (h ^ (h >>> 13)) * 1274126177;
@@ -312,7 +312,7 @@ var ps = ((w.getComputedStyle && w.getComputedStyle(d.body).backgroundColor) || 
 return !ps || ps.length < 3 || (ps.length > 3 && +ps[3] < 0.5) || (0.2126 * ps[0] + 0.7152 * ps[1] + 0.0722 * ps[2]) / 255 < 0.5;
 } catch (e) { return true; }
 }
-// Claude 点阵绘制（intensity ∈ [0,1] 连续控制底晕/密度/亮度）
+// Claude dot-matrix renderer (intensity in [0,1] continuously controls glow, density, brightness)
 var _ditherWashCache = typeof WeakMap === "function" ? new WeakMap() : null;
 function paintDither(ctx, w, h, dark, progress, timeSec, intensity) {
 if (!ctx) return;
@@ -497,7 +497,7 @@ if (!tp && idx <= first) return lo;
 if (isClaude && n === 3 && idx === 1) return "#a78bfa";
 return mixHex(lo, hi, clamp01((idx - first) / Math.max(1, n - 1 - first)));
 }
-// ── 样式表注入（对齐 dsh-codex-effort-slider 右向左星尘横穿 + 星云扫光 + Antigravity 面板适配） ──
+// -- Stylesheet injection (starfield sweep + nebula glow + Antigravity panel adaptation) --
 var SLIDER_CSS = "@keyframes ces-sweep{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}@keyframes ces-star-sweep{0%{transform:translate3d(0,0,0);opacity:0}6%,94%{opacity:1}100%{transform:translate3d(-100%,0,0);opacity:0}}.ces-inline,.ces-root,.ces-track,.ces-ag-section,.ces-ag-effort-row{box-sizing:border-box}.ces-inline,.ces-root,.ces-ag-section,.ces-ag-section *{user-select:none!important;-webkit-user-select:none!important;-webkit-tap-highlight-color:transparent!important}.ces-inline{width:100%;padding-top:6px}.ces-root{position:relative;width:100%;outline:none!important;box-shadow:none!important}.ces-track{position:relative;width:100%;height:28px;border-radius:999px;background:rgba(128,128,145,.18);box-shadow:inset 0 1px 2px rgba(0,0,0,.24),inset 0 0 0 1px rgba(255,255,255,.06);cursor:pointer;touch-action:none;transition:opacity .15s,box-shadow .2s}.ces-root[data-energy='1'] .ces-track{box-shadow:0 0 calc(var(--ces-energy,0) * 16px) rgba(168,85,247,.5),inset 0 1px 2px rgba(0,0,0,.24)}.ces-root[data-energy='0'] .ces-star,.ces-root[data-energy='0'] .ces-energy__sweep{animation-play-state:paused}.ces-track.is-locked{opacity:.45;cursor:not-allowed;filter:saturate(.25)}.ces-fill,.ces-energy,.ces-stars{position:absolute;top:0;left:0;bottom:0;width:var(--ces-fill,14px);border-radius:14px 0 0 14px;pointer-events:none}.ces-fill{background:var(--ces-fill-bg,#4d93f8);overflow:hidden}.ces-energy{overflow:hidden;opacity:var(--ces-energy,0);transition:opacity .2s;background:linear-gradient(90deg,#3b1178,#6d28d9 30%,#9333ea 62%,#c084fc)}.ces-energy__sweep{position:absolute;inset:0;background:linear-gradient(100deg,transparent 18%,rgba(255,255,255,.3) 50%,transparent 82%);transform:translateX(100%);animation:ces-sweep 2.4s linear infinite;pointer-events:none}.ces-stars{opacity:var(--ces-star-opacity,0);transition:opacity .2s;overflow:hidden}.ces-star{position:absolute;left:0;right:0;height:3px;margin-top:-1.5px;pointer-events:none;animation:ces-star-sweep linear infinite}.ces-star__dot{position:absolute;left:100%;top:0;width:3px;height:3px;margin-left:-1.5px;border-radius:50%;background:#f5f3ff;box-shadow:0 0 5px rgba(216,180,254,.95);opacity:var(--ces-b,1);transform:scale(var(--ces-b,1))}.ces-ticks{position:absolute;inset:0;pointer-events:none}.ces-tick{position:absolute;top:50%;width:3px;height:3px;margin:-1.5px 0 0 -1.5px;border-radius:50%;background:rgba(255,255,255,.28);pointer-events:none;transition:background-color .12s}.ces-tick.is-on{background:rgba(255,255,255,.65)}.ces-tick.is-dim{background:rgba(255,255,255,.28)}.ces-knob{position:absolute;top:50%;left:var(--ces-fill,14px);width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:50%;background:#fff;box-shadow:0 1px 5px rgba(0,0,0,.34),0 0 0 .5px rgba(0,0,0,.06);pointer-events:none;will-change:transform}.ces-root[data-theme='claude'] .ces-stars,.ces-root[data-theme='claude'] .ces-energy{display:none!important}.ces-root[data-theme='claude'] .ces-track{background:rgba(128,128,145,.16);box-shadow:inset 0 1px 2px rgba(0,0,0,.22),inset 0 0 0 1px rgba(255,255,255,.08)}.ces-root[data-theme='claude'][data-energy='1'] .ces-track{box-shadow:0 0 16px rgba(167,139,250,.45),inset 0 1px 2px rgba(0,0,0,.22)}.ces-root[data-theme='claude'] .ces-knob{width:24px;height:30px;margin:-15px 0 0 -12px;border-radius:7px;box-shadow:0 2px 6px rgba(0,0,0,.4),0 0 0 .5px rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center}.ces-knob-notch{display:none;width:2px;height:10px;border-radius:999px;background:rgba(0,0,0,.28)}.ces-root[data-theme='claude'] .ces-knob-notch{display:block}.ces-claude-canvas{position:absolute;left:0;top:0;border-radius:14px 0 0 14px;display:none;pointer-events:none}.ces-root[data-theme='claude'][data-energy='1'] .ces-claude-canvas{display:block}@keyframes ces-claude-rise{0%{transform:translateY(20%) scale(.98);opacity:.15}60%{opacity:1}85%{transform:translateY(-2%) scale(1.01)}100%{transform:none;opacity:1}}.ces-ag-effort-value:is(.is-claude-changing,.ces-text-rise){animation:ces-claude-rise .24s cubic-bezier(.2,.85,.25,1)}.ces-ag-effort-value.is-glowing:is(.is-claude-changing,.ces-text-rise){animation:ces-claude-rise .24s cubic-bezier(.2,.85,.25,1),ces-text-bloom .4s cubic-bezier(.16,1,.3,1) forwards}[data-testid='model-selector-panel'].ces-ag-panel-enhanced{max-height:26rem!important}.ces-ag-section,.ces-ag-section *{outline:none!important}.ces-ag-section,.ces-ag-effort-row{display:flex;flex-direction:column;width:100%}.ces-ag-section{flex-shrink:0}.ces-ag-effort-row{padding:6px 8px 8px;border-radius:6px;transition:box-shadow .2s,background-color .2s}.ces-ag-effort-row:hover{background:rgba(128,128,145,.08)}.ces-ag-effort-row[data-ces-max='true'],[data-ces-effort-row='true'][data-ces-max='true']{box-shadow:inset 0 0 0 1px rgba(139,92,246,.42),0 0 14px -4px rgba(139,92,246,.45)!important;background:rgba(139,92,246,.06)}.ces-ag-effort-head{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:18px;padding:1px 0;font-size:12px;line-height:16px;overflow-y:clip;overflow-clip-margin:10px}.ces-ag-effort-title{display:inline-flex;align-items:center;gap:6px;color:inherit;font-weight:500;opacity:.9}.ces-ag-effort-value{position:relative;z-index:1;display:inline-block;font-size:12px;font-weight:600;transition:color .15s}.ces-ag-effort-value::after{content:'';position:absolute;top:50%;left:50%;width:52px;height:26px;border-radius:999px;transform:translate(-50%,-50%) scale(.6);background:radial-gradient(ellipse,var(--ces-glow-color,rgba(168,85,247,.85)),var(--ces-glow-color,rgba(168,85,247,.45)) 45%,rgba(168,85,247,0) 75%);filter:blur(8px);pointer-events:none;opacity:0;z-index:-1}@keyframes ces-glow-flash{0%{opacity:.95;transform:translate(-50%,-50%) scale(.65);filter:blur(6px)}25%{opacity:1;transform:translate(-50%,-50%) scale(1.15);filter:blur(8px)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.5);filter:blur(14px)}}@keyframes ces-text-bloom{0%{text-shadow:0 0 8px var(--ces-glow-color,#c084fc)}30%{text-shadow:0 0 14px var(--ces-glow-color,#c084fc),0 0 3px #fff}100%{text-shadow:none}}.ces-ag-effort-value.is-glowing{animation:ces-text-bloom .4s cubic-bezier(.16,1,.3,1) forwards}.ces-ag-effort-value.is-glowing::after{animation:ces-glow-flash .4s cubic-bezier(.16,1,.3,1) forwards}@media (prefers-reduced-motion:reduce){.ces-panel-shaking,.ces-ag-effort-value.is-glowing,.ces-ag-effort-value.is-glowing::after,.ces-ag-effort-value.ces-text-rise,.ces-ag-effort-value.is-claude-changing{animation:none!important}}html[data-ces-slider-ready='1'] [role='menu']:has([data-testid='model-selector-effort-option']):not(:has([data-testid='model-selector-panel'])),html[data-ces-slider-ready='1'] div[role='presentation']:has(>[role='menu'] [data-testid='model-selector-effort-option']):not(:has([data-testid='model-selector-panel'])),html[data-ces-slider-ready='1'] [role='menu']:has([data-testid='orchestrator-picker-effort']):not(:has([data-testid='model-selector-panel'])),html[data-ces-slider-ready='1'] div[role='presentation']:has([data-testid='orchestrator-picker-effort']):not(:has([data-testid='model-selector-panel'])),html[data-ces-slider-ready='1'] [data-testid='orchestrator-picker-effort']:not(:has([data-testid='model-selector-panel'])),html[data-ces-slider-ready='1'] [data-ag-cs-orch-l3='1']{display:none!important;visibility:hidden!important;pointer-events:none!important;opacity:0!important}html[data-ces-slider-ready='1'] [role='menuitem']:has([data-testid='model-selector-effort-group'])>span.shrink-0:last-child,html[data-ces-slider-ready='1'] [data-ces-orch-row='1']>svg:last-child:not(:first-child):not(.lucide-check),html[data-ces-slider-ready='1'] [data-ces-orch-row='1']>span:last-child:not(:first-child):has(>svg:only-child:not(.lucide-check)),html[data-ces-slider-ready='1'] [data-ces-orch-row='1']>*:last-child>svg:last-child:not(.lucide-check){display:none!important}html[data-ces-slider-ready='1'] [role='menuitem']:has([data-testid='model-selector-effort-group'])>.group-hover\\:hidden{display:flex!important}[role='menuitem'][data-ces-model-selected='true'],[data-ces-orch-row='1'][data-ces-model-selected='true']{background:rgba(128,128,145,.14)}.ces-set{position:fixed;z-index:2147483646;width:268px;padding:12px;border-radius:10px;background:rgba(24,24,28,.96);color:#f4f4f6;border:1px solid rgba(255,255,255,.12);box-shadow:0 12px 32px rgba(0,0,0,.55);backdrop-filter:blur(12px);font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:12px;box-sizing:border-box;user-select:none}.ces-set-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.08);font-weight:600;font-size:12.5px}.ces-set-ver{font-size:11px;font-weight:400;opacity:.55}.ces-set-group{margin-bottom:10px}.ces-set-label{margin-bottom:5px;font-size:11px;opacity:.72}.ces-set-opts{display:flex;gap:4px}.ces-set-opt{flex:1;padding:5px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#d4d4d8;font-size:11.5px;cursor:pointer;text-align:center;transition:all .12s ease}.ces-set-opt:hover{background:rgba(255,255,255,.1);color:#fff}.ces-set-opt.is-on{background:rgba(139,92,246,.28);border-color:rgba(139,92,246,.75);color:#fff;font-weight:600}.ces-set-actions{display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.08)}.ces-set-btn{flex:1;padding:5px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#e4e4e7;font-size:11px;cursor:pointer}.ces-set-btn:hover{background:rgba(255,255,255,.14)}[data-testid='model-selector-panel'] .ces-ag-section[data-effort-slot='true']{grid-template-rows:auto auto}[data-testid='model-selector-panel'] .ces-ag-section[data-effort-slot='true']>[role='separator']{grid-row:1;grid-column:1}[data-testid='model-selector-panel'] .ces-ag-section[data-effort-slot='true']>:is(.ces-ag-effort-row,[data-testid='orchestrator-effort-bar']){grid-row:2!important;grid-column:1!important}";
 function installStyles(doc) {
 var d = doc || (typeof document !== "undefined" ? document : null);
@@ -507,10 +507,10 @@ if (!s) { s = d.createElement("style"); s.id = STYLE_ELEMENT_ID; d.head.appendCh
 if (s.textContent !== SLIDER_CSS) s.textContent = SLIDER_CSS;
 return s;
 }
-// ── 右键设置面板 ────────────────────────────────────────────────────────────
-var SET_TITLE_I18N = { "zh-CN": "推理等级滑条设置", "zh-TW": "推理等級滑桿設定", en: "Effort Slider", ja: "推論スライダー設定", ko: "추론 슬라이더 설정", es: "Ajustes de esfuerzo", fr: "Réglages d’effort", de: "Aufwandsregler-Einstellungen" };
-var SET_HEAD_I18N = { "zh-CN": "推理等级滑条", "zh-TW": "推理等級滑桿", en: "Effort Slider", ja: "推論スライダー", ko: "추론 슬라이더", es: "Nivel de esfuerzo", fr: "Niveau d’effort", de: "Aufwandsregler" };
-var FIXED_I18N = { "zh-CN": "固定", "zh-TW": "固定", en: "Fixed", ja: "固定", ko: "고정", es: "Fijo", fr: "Fixe", de: "Fest" };
+// -- Context-menu settings panel --
+var SET_TITLE_I18N = { en: "Effort Slider", ar: "إعدادات شريط جهد التفكير" };
+var SET_HEAD_I18N = { en: "Effort Slider", ar: "شريط جهد التفكير" };
+var FIXED_I18N = { en: "Fixed", ar: "ثابت" };
 function _normSliderLang(raw, win) {
 var v = String(raw || "").trim();
 if (!v || v.toLowerCase() === "auto") {
@@ -520,29 +520,22 @@ v = String(navObj?.language || "").trim();
 }
 var s = v.toLowerCase().replace(/_/g, "-");
 if (!s || s === "auto") return "en";
-if (s === "yue" || s.startsWith("yue-") || s === "zh-yue" || s.includes("cantonese")) return "zh-CN";
-if (/^zh-(tw|hant|hk|mo)/.test(s) || s === "tw" || s === "hant") return "zh-TW";
-if (/^zh/.test(s)) return "zh-CN";
-if (/^(ja|jp)/.test(s) || s === "japanese") return "ja";
-if (/^(ko|kr)/.test(s) || s === "korean") return "ko";
-if (/^es/.test(s) || s === "spanish") return "es";
-if (/^fr/.test(s) || s === "french") return "fr";
-if (/^de/.test(s) || s === "german") return "de";
+if (s === "ar" || s.startsWith("ar-") || s === "arabic") return "ar";
 return "en";
 }
-function _isZhLang(lk) { var n = _normSliderLang(lk); return n === "zh-CN" || n === "zh-TW"; }
 function openSettingsPanel(options) {
 var o = options || {}, d = o.document || (typeof document !== "undefined" ? document : null);
 var w = o.window || d?.defaultView || (typeof window !== "undefined" ? window : globalRoot);
 if (!d?.body) return () => {};
 installStyles(d);
 var lk = _normSliderLang(getPrismRootAttr(d, w, "data-ag-cs-lang"), w);
-var zh = lk === "zh-CN" || lk === "zh-TW";
+var ar = lk === "ar";
 d.querySelector(".ces-set")?.remove?.();
 var mk = (t, c, tx) => { var e = d.createElement(t); if (c) e.className = c; if (tx) e.textContent = tx; return e; };
 var p = markNoTranslate(mk("div", "ces-set"));
 p.setAttribute("role", "dialog");
 p.setAttribute("aria-label", SET_TITLE_I18N[lk] || SET_TITLE_I18N.en);
+if (ar) p.setAttribute("dir", "rtl");
 p.style.left = Math.max(8, Math.min((w?.innerWidth || 800) - 276, typeof o.x === "number" ? o.x : 120)) + "px";
 p.style.top = Math.max(8, Math.min((w?.innerHeight || 600) - 230, typeof o.y === "number" ? o.y : 120)) + "px";
 var hd = mk("div", "ces-set-head");
@@ -561,12 +554,12 @@ it.b.setAttribute("aria-pressed", String(on));
 };
 for (var sc of SETTINGS_SCHEMA) {
 var g = mk("div", "ces-set-group"), r = mk("div", "ces-set-opts");
-g.appendChild(mk("div", "ces-set-label", zh ? sc.label : (sc.labelEn || sc.label)));
+g.appendChild(mk("div", "ces-set-label", ar ? (sc.labelAr || sc.label) : (sc.labelEn || sc.label)));
 for (var op of sc.options) {
 let k = sc.key, v = op.value;
-var b = mk("button", "ces-set-opt", zh ? op.label : (op.labelEn || op.label));
+var b = mk("button", "ces-set-opt", ar ? (op.labelAr || op.label) : (op.labelEn || op.label));
 b.type = "button";
-var hTxt = zh ? op.hint : (op.hintEn || op.hint);
+var hTxt = ar ? (op.hintAr || op.hint) : (op.hintEn || op.hint);
 if (hTxt) b.title = hTxt;
 b.addEventListener("click", (ev) => { ev.stopPropagation(); writeSettings({ [k]: v }, w); ref(); });
 obs.push({ k, v, b });
@@ -581,9 +574,9 @@ b.type = "button";
 b.addEventListener("click", (ev) => { ev.stopPropagation(); fn(b); });
 acts.appendChild(b);
 };
-mb(zh ? "复制诊断" : "Copy Debug", (b) => { try { w?.navigator?.clipboard?.writeText?.(JSON.stringify(dumpTrace(w), null, 2)); } catch {} b.textContent = zh ? "已复制" : "Copied"; });
-mb(zh ? "恢复默认" : "Reset", () => { resetSettings(w); ref(); });
-mb(zh ? "关闭" : "Close", () => cls());
+mb(ar ? "نسخ التشخيص" : "Copy Debug", (b) => { try { w?.navigator?.clipboard?.writeText?.(JSON.stringify(dumpTrace(w), null, 2)); } catch {} b.textContent = ar ? "تم النسخ" : "Copied"; });
+mb(ar ? "إعادة تعيين" : "Reset", () => { resetSettings(w); ref(); });
+mb(ar ? "إغلاق" : "Close", () => cls());
 p.appendChild(acts);
 ref();
 var offS = onSettingsChange(ref, w);
@@ -613,15 +606,15 @@ var evs = [
 evs.forEach((e) => d.addEventListener(e[0], e[1], true));
 return { stop: () => { clr(); ac?.(); ac = null; evs.forEach((e) => d.removeEventListener(e[0], e[1], true)); } };
 }
-// ── DOM 与 Antigravity React Fiber 解析辅助函数 ─────────────────────────────
-var INFERENCE_LABELS = ["推理等级", "Reasoning effort", "Reasoning Effort", "Thinking effort", "推理强度"];
+// -- DOM and Antigravity React Fiber inspection helpers --
+var INFERENCE_LABELS = ["Reasoning effort", "Reasoning Effort", "Thinking effort", "جهد التفكير", "مستوى التفكير"];
 function parseModelLabel(label) {
 if (!label || typeof label !== "string") return null;
 var match = AG_MODEL_LABEL_RE.exec(label.trim());
 if (!match) return null;
 var base = match[1].trim();
 var effort = match[2].toLowerCase();
-// 兼容展示名 "(Extra)" 与内部枚举 "(xhigh)"，统一归并到 xhigh 槽位进行排序与着色
+// Normalize display name "(Extra)" and internal enum "(xhigh)" into the xhigh slot for sorting and coloring
 if (effort === "extra") effort = "xhigh";
 return {
 base: base,
@@ -814,8 +807,8 @@ return String(s || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(
 }
 function _isOrch(m) {
 if (!m) return false;
-if (typeof m === "string") return /\borchestrator\b|编排/i.test(m);
-return /\borchestrator\b|编排/i.test(String(m.label || "")) || /orchestrator/i.test(String(m.modelId || ""));
+if (typeof m === "string") return /\borchestrator\b|المنسق/i.test(m);
+return /\borchestrator\b|المنسق/i.test(String(m.label || "")) || /orchestrator/i.test(String(m.modelId || ""));
 }
 function buildEffortIndexFromOptions(list) {
 var out = new Map();
@@ -877,11 +870,11 @@ var oi = ctx.orchIdx || ctx.orchestratorPlannerIndex;
 return act ? { opt: act, def: def, idx: oi instanceof Map && oi.size ? oi : ctx.effortIndex } : null;
 }
 /**
-* 从 Antigravity 的 DOM 节点向上遍历 React Fiber 树，提取：
-* - OXb.Provider: effortIndex, modelOptions, selectedModel, groups
-* - $Xb         : 未包装 setIsOpen(false) 的 setSelectedModel, open, setIsOpen
-* - cYb         : conversationId
-* - eKa.Provider: setModelConfigByLabelForConversation（直接切档不关菜单、不抢焦点）
+* Walk up the React Fiber tree from an Antigravity DOM node to extract:
+* - Provider context: effortIndex, modelOptions, selectedModel, groups
+* - Selector props: unwrapped setSelectedModel, open, setIsOpen
+* - Conversation props: conversationId
+* - Model config provider: setModelConfigByLabelForConversation (switch without closing menu or stealing focus)
 */
 function _rdAgFiber(el) {
 var cur = getReactFiber(el);
@@ -1011,7 +1004,7 @@ if (typeof item?.label === "string" && item.label) return item.label;
 if (typeof seat?.formatEffortLabel === "function") { try { var f = seat.formatEffortLabel(effortKey); if (f) return String(f); } catch {} }
 return AG_EFFORT_LABELS[String(effortKey || "").toLowerCase()] || String(effortKey || "");
 }
-var EFFORT_TITLE_I18N = { "zh-CN": "推理等级", "zh-TW": "推理等級", en: "Reasoning Effort", ja: "推論レベル", ko: "추론 수준", es: "Nivel de razonamiento", fr: "Niveau de raisonnement", de: "Denkaufwand" };
+var EFFORT_TITLE_I18N = { en: "Reasoning Effort", ar: "جهد التفكير" };
 function resolveEffortTitle(doc, win) {
 var lang = _normSliderLang(getPrismRootAttr(doc, win, "data-ag-cs-lang"), win);
 try {
@@ -1052,7 +1045,7 @@ if (!container || !doc) {
 return { unmount: function () {}, refresh: function () {} };
 }
 installStyles(doc);
-// 清空宿主容器并构建 DOM 树（对齐 dsh-codex-effort-slider 四层结构：fill / energy+sweep / stars+dot / knob）
+// Clear host container and build 4-layer DOM tree: fill / energy+sweep / stars+dot / knob
 container.innerHTML = "";
 var _sa = function (el, k, v) { if (el && typeof el.setAttribute === "function" && el.getAttribute(k) !== v) el.setAttribute(k, v); };
 function _ce(tag, cls, part, parent) {
@@ -1089,7 +1082,7 @@ claudeCanvasEl.height = 28;
 var knobEl = _ce("div", "ces-knob", "knob", trackEl);
 _ce("div", "ces-knob-notch", null, knobEl);
 container.appendChild(rootEl);
-// ── 内部状态机 ──────────────────────────────────────────────────────────
+// -- Internal state machine --
 var destroyed = false;
 var rafId = null;
 var lastFrameMs = 0;
@@ -1097,11 +1090,11 @@ var claudeRafId = null;
 var _clTm = null;
 var _dLW = 0;
 var claudeAnimStart = 0;
-// 点阵流动相位（秒）：按「帧间隔 × 当前速度倍率」累加，而不是 elapsed × 倍率，
-// 这样拖动中速度连续变化时波纹不会因倍率突变而跳帧/倒退
+// Dot-matrix flow phase (seconds): accumulated by (frame delta * current speed multiplier)
+// so changing drag speed continuously never causes wave jumps or reversals
 var claudeFlowTime = 0;
 var claudeLastTs = 0;
-// 当前位置对应的强度与速度（由 applyVisualPct 每次刷新，RAF 循环读取）
+// Current intensity and speed for the active position (updated by applyVisualPct, read by RAF loop)
 var claudeIntensity = 0;
 var claudeSpeed = 0;
 var dragging = false;
@@ -1409,8 +1402,8 @@ _reAnim(valEl, ["is-glowing"], "_g", 450);
 }
 }
 /**
-* 立即把目标档位写回宿主（Antigravity React Fiber 或 Seat）：
-* 拖过档位边界时同步触发，无需等待 pointerup 松手。
+* Commit target effort level back to the host (Antigravity React Fiber or Seat):
+* triggered synchronously when crossing a level boundary without waiting for pointerup.
 */
 function commitAtIndex(targetIndex, reason) {
 var snap = readSeatSnapshot();
@@ -1575,7 +1568,7 @@ var snap = readSeatSnapshot();
 var m = ensureMotion(snap);
 applyVisualPct(snap, m.x, currentShownIndex(snap));
 }, win);
-// 首次同步渲染
+// Initial synchronous render
 var initSnap = readSeatSnapshot();
 var initMotion = ensureMotion(initSnap);
 initMotion.x = pctFromIndex(initSnap.officialIndex, initSnap.count);
@@ -1613,7 +1606,7 @@ syncFromExternal();
 }
 };
 }
-// ── 通用菜单观察器（兼容预置「推理等级」行的 DOM 结构与独立预览页） ────────────
+// -- Generic menu observer (compatible with preset effort rows and standalone preview pages) --
 function installMenuObserver(options) {
 var o = options || {}, d = o.document || (typeof document !== "undefined" ? document : null);
 var w = o.window || d?.defaultView || (typeof window !== "undefined" ? window : globalRoot);
@@ -1649,7 +1642,7 @@ var MO = o.MutationObserver || w?.MutationObserver || (typeof MutationObserver =
 if (typeof MO === "function") { obs = new MO(scan); obs.observe(d.body, { childList: true, subtree: true }); }
 return { stop: () => { obs?.disconnect(); obs = null; detach(); }, rescan: scan, getCurrent: () => cur };
 }
-// ── Antigravity 原生模型选择器深度桥接器 ───────────────────────────────────
+// -- Antigravity native model selector deep bridge --
 var EFFORT_MEMORY_KEY = "ag.prism.effortMemory.v1", _EFF_V = Object.create(null);
 AG_EFFORT_ORDER.forEach((k) => { _EFF_V[k] = 1; });
 function _loadEffMem(w) {
@@ -1798,9 +1791,9 @@ function getActiveProfile(ctx) {
 return ctx ? resolveModelEffortProfile(ctx, _actOptOvr || activeBaseOverride || ctx.selectedModel, _curEffMap(), _orchPlanOvr) : null;
 }
 /**
-* 立即同步更新：
-* 1. 底部 Composer 折叠触发按钮的模型名与档位颜色
-* 2. 展开菜单中每一行模型右侧的档位文字与颜色、以及选中态高亮
+* Immediately sync updates to:
+* 1. Model name and effort color on the bottom Composer trigger button
+* 2. Effort label, color, and active highlight on each row in the expanded menu
 */
 function _syncAgDom(ctx, activeProfile) {
 var profile = ctx && (activeProfile || getActiveProfile(ctx));
@@ -1938,10 +1931,10 @@ function _mPlan(it, c) {
 if (!it || !_hasOrch(c)) return null;
 var g = it.querySelector && it.querySelector('[data-testid="model-selector-effort-group"]');
 var raw = (g && (g.getAttribute("data-model-base") || g.textContent)) || it.getAttribute("data-model-label") || it.getAttribute("data-model-base") || it.textContent || "";
-var cl = String(raw).replace(/\b(?:new|notice|beta|preview|recommended|default)\b|默认|自动/gi, " ").replace(/\s+/g, " ").trim();
+var cl = String(raw).replace(/\b(?:new|notice|beta|preview|recommended|default)\b|افتراضي|تلقائي/gi, " ").replace(/\s+/g, " ").trim();
 if (_isOrch(cl) || cl.length > 80) return null;
 if (!cl) {
-if (!/^(?:default|auto|默认|自动)\b/i.test(String(raw).trim())) return null;
+if (!/^(?:default|auto|افتراضي|تلقائي)\b/i.test(String(raw).trim())) return null;
 var d = c.orchDef || c.orchPlanners[0];
 return _okOpt(d) ? { opt: d, base: (parseModelLabel(d.label) || {}).base || d.label, fam: true } : null;
 }
@@ -1975,7 +1968,7 @@ return _okOpt(fb) ? { opt: fb, base: mb, fam: true } : null;
 }
 var _SUB_BOX = '[role="menu"],[role="listbox"],[data-testid="context-menu-submenu-popup"],.agy-overlay,[data-side]';
 var _SUB_IT = '[role^="menuitem"],[role="option"],.agy-overlay-item';
-var _L3_RE = /^(?:off|minimal|low|medium|high|xhigh|extra|max)(?:\s+thinking)?$|^(?:关闭|关|极低|最低|最小|低|中|中等|高|超高|极高|特高|最高|最大)(?:思考|推理|强度)?$/i;
+var _L3_RE = /^(?:off|minimal|low|medium|high|xhigh|extra|max)(?:\s+thinking)?$|^(?:متوقف|إيقاف|معطل|أدنى|الحد الأدنى|منخفض|متوسط|عالٍ|عالي|مرتفع|فائق|أقصى|الحد الأقصى)$/i;
 function _subIts(m) {
 if (!m || !m.querySelectorAll) return [];
 var raw = m.querySelectorAll(_SUB_IT);
@@ -2161,10 +2154,10 @@ notifySeatListeners();
 var uTm = null, uEl = null, uOk = false, uSyn = false;
 function fUsg(target) {
 if (!target || typeof target.closest !== "function") return null;
-var item = target.closest('[role="menuitem"],.agy-overlay-item,button'), uRe = /View Usage|查看用量|\bUsage\b/;
+var item = target.closest('[role="menuitem"],.agy-overlay-item,button'), uRe = /View Usage|عرض الاستخدام|\bUsage\b/;
 if (!item) {
 var div = target.closest("div"), dt = div && div !== panel && panel.contains(div) ? (div.textContent || "").trim() : "";
-if (dt && /^(?:View Usage|Usage$|查看用量)/.test(dt) && !/Claude|Gemini|GPT/.test(dt)) item = div;
+if (dt && /^(?:View Usage|Usage$|عرض الاستخدام)/.test(dt) && !/Claude|Gemini|GPT/.test(dt)) item = div;
 }
 return item && item !== panel && panel.contains(item) && uRe.test((item.textContent || "").trim()) ? item : null;
 }
@@ -2289,7 +2282,7 @@ row.appendChild(head);
 var hostEl = mk("div", "ces-inline", "host");
 row.appendChild(hostEl);
 section.appendChild(row);
-// 挂载位置：模型列表容器 (panel.firstElementChild) 之后、View Usage 分隔线之前
+// Mount position: after model list wrapper (panel.firstElementChild), before View Usage separator
 var modelListWrapper = panel.firstElementChild;
 if (modelListWrapper && modelListWrapper.nextSibling) {
 panel.insertBefore(section, modelListWrapper.nextSibling);
@@ -2504,7 +2497,7 @@ setRememberEffort: (on) => { agObs.setRememberEffort?.(on); }
 if (w) w.__agCodexEffortSliderInstance = inst;
 return inst;
 }
-// 在浏览器主世界（非 Node 测试环境且非禁用自动启动）下自动挂载
+// Auto-mount in browser main world (unless in Node test env or auto-boot is disabled)
 if (
 typeof window !== "undefined" &&
 typeof document !== "undefined" &&

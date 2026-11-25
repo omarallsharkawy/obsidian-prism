@@ -29,10 +29,9 @@ const cdp = require(path.join(ROOT_DIR, 'cdp.js'));
 
 const CJK_RE = /[\u3400-\u9FFF\uF900-\uFAFF]/;
 
-// 轻量 FakeDOM 工厂：支持标签+属性、复合选择器、捕获/冒泡事件及可选 Observer/Listener 计数探针
 function createFakeSuggesterDom(opts = {}) {
   const {
-    lang = 'zh-CN',
+    lang = 'ar',
     withMutationObserverSpy = false,
     withComposer = true,
   } = opts;
@@ -336,7 +335,7 @@ function createFakeSuggesterDom(opts = {}) {
     convView.setAttribute('data-cascade-id', 'cascade-a');
     const uMsg = fakeDoc.createElement('div');
     uMsg.setAttribute('data-testid', 'user-message-content');
-    uMsg.appendChild(fakeDoc.createTextNode('验证4060迁移效果'));
+    uMsg.appendChild(fakeDoc.createTextNode('تحقق من نتيجة الترحيل إلى 4060'));
     convView.appendChild(uMsg);
     fakeDoc.body.appendChild(convView);
 
@@ -368,7 +367,7 @@ function createFakeSuggesterDom(opts = {}) {
       },
     };
     const placeholder = fakeDoc.createElement('p');
-    placeholder.setAttribute('data-ag-cs-placeholder', '描述任务或提出问题');
+    placeholder.setAttribute('data-ag-cs-placeholder', 'كيف يمكنني مساعدتك اليوم؟');
     caretHost.appendChild(lexicalEl);
     caretHost.appendChild(placeholder);
 
@@ -507,14 +506,12 @@ test('Channel 1 stays strictly < 550,000 B and Channel 11 suggester sources obey
   assert.ok(cssBlockMatch, 'Expected SUGGESTER_CSS block');
   assert.equal(/[^\x00-\x7F]/.test(cssBlockMatch[1]), false, 'SUGGESTER_CSS must be pure ASCII');
 
-  // 确认 daemon SUGGESTER_ALLOWED_ACTIONS 与 ALLOWED_SUGGESTER_ACTIONS 1:1 对齐
   const daemonSrc = fs.readFileSync(path.join(ROOT_DIR, 'sidecars', 'daemon', 'main.mjs'), 'utf8');
   const allowMatch = daemonSrc.match(/const SUGGESTER_ALLOWED_ACTIONS = new Set\(\[([\s\S]*?)\]\);/);
   assert.ok(allowMatch, 'Expected SUGGESTER_ALLOWED_ACTIONS in daemon main.mjs');
   const daemonActions = Array.from(allowMatch[1].matchAll(/'([^']+)'/g), (m) => m[1]).sort();
   assert.deepEqual(daemonActions, Array.from(ALLOWED_SUGGESTER_ACTIONS).sort());
 
-  // 确认 settings-panel.js 在 Beta 分组中挂载 prism-suggester-slot，且 Channel 9 按需加载包含 __prismMountSg 兜底
   const panelSrc = fs.readFileSync(path.join(ROOT_DIR, 'settings-panel.js'), 'utf8');
   assert.ok(
     /if\s*\(grp\.id\s*===\s*'beta'\)\s*\{\s*sgSlot\s*=/.test(panelSrc),
@@ -547,7 +544,6 @@ test('Fail-Closed: sanitizeSuggesterConfig({}) and empty/corrupt disk config str
       },
     };
 
-    // 空 JSON 对象落盘
     fs.writeFileSync(cfgPath, '{}', 'utf8');
     const svc1 = new PromptSuggesterService({ configDir: tmpDir, translatorService: mockTr });
     assert.equal(svc1.loadConfig().enabled, false);
@@ -556,7 +552,6 @@ test('Fail-Closed: sanitizeSuggesterConfig({}) and empty/corrupt disk config str
     assert.equal(r1.reason, 'disabled');
     assert.equal(upstreamCalls, 0);
 
-    // 损坏 JSON 落盘
     fs.writeFileSync(cfgPath, '{corrupted json', 'utf8');
     const svc2 = new PromptSuggesterService({ configDir: tmpDir, translatorService: mockTr });
     assert.equal(svc2.loadConfig().enabled, false);
@@ -572,7 +567,6 @@ test('Fail-Closed: sanitizeSuggesterConfig({}) and empty/corrupt disk config str
 test('PromptSuggesterService shares profiles bidirectionally while keeping independent activeProfileId, supports fetch-models, and redacts secrets across all profiles', async () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prism-sg-svc-'));
   try {
-    // 1) Beta 默认严格关闭（enabled: false -> 0 意外 API 请求）
     const unconfSvc = new PromptSuggesterService({
       configDir: tmpDir,
       translatorService: {
@@ -587,23 +581,21 @@ test('PromptSuggesterService shares profiles bidirectionally while keeping indep
     });
     assert.equal(unconfSvc.loadConfig().enabled, false, 'Beta feature must default to enabled: false');
     const disabledByDefaultRes = await unconfSvc.handleAction('suggest', {
-      turns: [{ role: 'assistant', text: '需要继续吗？' }],
-      lang: 'zh-CN',
+      turns: [{ role: 'assistant', text: 'هل نتابع؟' }],
+      lang: 'ar',
     });
     assert.equal(disabledByDefaultRes.ok, false);
     assert.equal(disabledByDefaultRes.reason, 'disabled');
 
-    // 1b) 开启但未配置密钥 -> 返回 ai-not-configured
     unconfSvc.saveConfig({ enabled: true });
     const unconfRes = await unconfSvc.handleAction('suggest', {
-      turns: [{ role: 'assistant', text: '需要继续吗？' }],
-      lang: 'zh-CN',
+      turns: [{ role: 'assistant', text: 'هل نتابع؟' }],
+      lang: 'ar',
     });
     assert.equal(unconfRes.ok, false);
     assert.equal(unconfRes.reason, 'ai-not-configured');
     assert.equal(unconfRes.suggestion, undefined);
 
-    // 2) 共享凭据池：多渠道联合脱敏 + 模型 ID 独立保存
     let upstreamCalls = 0;
     let lastBody = null;
     const sharedStore = {
@@ -678,7 +670,7 @@ test('PromptSuggesterService shares profiles bidirectionally while keeping indep
               choices: [
                 {
                   message: {
-                    content: '本地4060的实验跑完了，帮我看一下结果，这个方向还值得继续做吗？',
+                    content: 'انتهى اختبار 4060 المحلي. راجع النتائج وحدد هل نتابع.',
                   },
                 },
               ],
@@ -731,16 +723,16 @@ test('PromptSuggesterService shares profiles bidirectionally while keeping indep
     const turns = [
       {
         role: 'user',
-        text: '帮我接入 key AIzaSySecretTestKey1234567890、sk-abcdef1234567890 与 custom-nonstandard-token-987654321',
+        text: 'استخدم المفاتيح AIzaSySecretTestKey1234567890、sk-abcdef1234567890 وcustom-nonstandard-token-987654321',
       },
-      { role: 'assistant', text: '跑完后，把同轮 L4/4060 对照表和两条时间线发给我就够了。' },
+      { role: 'assistant', text: 'أرسل جدول مقارنة L4 و4060 والمخططين الزمنيين عند انتهاء الاختبارات.' },
     ];
 
-    const res1 = await svc.handleAction('suggest', { turns, lang: 'zh-CN' });
+    const res1 = await svc.handleAction('suggest', { turns, lang: 'ar' });
     assert.equal(res1.ok, true);
     assert.equal(res1.engine, 'ai');
     assert.equal(res1.profileName, 'Gemini AI Studio');
-    assert.equal(res1.suggestion, '本地4060的实验跑完了，帮我看一下结果，这个方向还值得继续做吗？');
+    assert.equal(res1.suggestion, 'انتهى اختبار 4060 المحلي. راجع النتائج وحدد هل نتابع');
     assert.equal(upstreamCalls, 1);
 
     assert.equal(lastBody.model, 'gemini-3-flash-preview');
@@ -757,7 +749,7 @@ test('PromptSuggesterService shares profiles bidirectionally while keeping indep
     );
     assert.ok(sentUserContent.includes('***REDACTED***'));
 
-    const res2 = await svc.handleAction('suggest', { turns, lang: 'zh-CN' });
+    const res2 = await svc.handleAction('suggest', { turns, lang: 'ar' });
     assert.equal(res2.ok, true);
     assert.equal(res2.cached, true);
     assert.equal(upstreamCalls, 1);
@@ -766,52 +758,15 @@ test('PromptSuggesterService shares profiles bidirectionally while keeping indep
   }
 });
 
-test('parseSingleSuggestion cleans output and detectConversationLang supports 8 languages without yue', () => {
-  assert.equal(
-    parseSingleSuggestion('太厉害了！帮我跑一下单元测试看看'),
-    '帮我跑一下单元测试看看'
-  );
-  assert.equal(
-    parseSingleSuggestion('Awesome! Run the test suite next\nSecond unwanted line'),
-    'Run the test suite next'
-  );
-  assert.equal(parseSingleSuggestion('[实验数据或运行结果]'), '');
-  assert.equal(
-    parseSingleSuggestion('我去设置里看下现在Beta内容里的配置是不是清爽多了。'),
-    '',
-    'Self-action monologue MUST be rejected — suggestions must be prompts for the AI'
-  );
-  assert.equal(
-    detectConversationLang([{ role: 'user', text: '你认为哪种模型提供方案好' }], 'zh-CN'),
-    'zh-CN',
-    'Simplified Chinese containing 方案 must NEVER be misclassified as zh-TW'
-  );
-  assert.equal(
-    detectConversationLang([{ role: 'user', text: '請幫我檢查這個設定與驗證結果' }], 'zh-CN'),
-    'zh-TW'
-  );
-  assert.equal(detectConversationLang([{ role: 'user', text: 'テストを実行してください' }]), 'ja');
-  assert.equal(detectConversationLang([{ role: 'user', text: '단위 테스트를 실행해 주세요' }]), 'ko');
-  assert.equal(
-    detectConversationLang([{ role: 'user', text: 'Ejecuta las pruebas unitarias ahora' }], 'es'),
-    'es',
-    'Spanish fallback must NOT be overwritten to en by latinWords >= 2'
-  );
-  assert.equal(
-    detectConversationLang([{ role: 'user', text: 'Lance les tests unitaires maintenant' }], 'fr'),
-    'fr',
-    'French fallback must NOT be overwritten to en by latinWords >= 2'
-  );
-  assert.equal(
-    detectConversationLang([{ role: 'user', text: 'Fuehre bitte die Tests aus' }], 'de'),
-    'de',
-    'German fallback must NOT be overwritten to en by latinWords >= 2'
-  );
-  assert.notEqual(
-    detectConversationLang([{ role: 'user', text: '咁樣做唔好意思啊喺邊度' }], 'yue'),
-    'yue',
-    'Legacy yue must NEVER be returned'
-  );
+test('suggestion cleanup and language detection support English and Arabic', () => {
+  assert.equal(parseSingleSuggestion('رائع! شغّل اختبارات الوحدة'), 'شغّل اختبارات الوحدة');
+  assert.equal(parseSingleSuggestion('Awesome! Run the test suite next\nSecond unwanted line'), 'Run the test suite next');
+  assert.equal(parseSingleSuggestion('[بيانات الاختبار]'), '');
+  assert.equal(parseSingleSuggestion('دعني أتحقق من الإعدادات'), '');
+  assert.equal(detectConversationLang([{ role: 'user', text: 'شغّل اختبارات الوحدة' }]), 'ar');
+  assert.equal(detectConversationLang([{ role: 'user', text: 'Run the tests' }], 'ar'), 'en');
+  assert.equal(detectConversationLang([{ role: 'user', text: '42' }], 'ar'), 'ar');
+  assert.equal(detectConversationLang([], 'pt-BR'), 'en');
   assert.equal(sanitizeConversationTurns([{ role: 'user', text: 'hello' }]).length, 1);
 
   const curated = curateChatModelList([
@@ -843,16 +798,15 @@ test('parseSingleSuggestion cleans output and detectConversationLang supports 8 
 });
 
 test('Auto-only Ghost UI: zero ✨ button, fires strictly ONCE after reply completion, and zero double-insertion on Tab', async () => {
-  const dom = createFakeSuggesterDom({ lang: 'zh-CN' });
+  const dom = createFakeSuggesterDom({ lang: 'ar' });
   const { fakeDoc, fakeWin, convView, lexicalEl, footer, sgSlot } = dom;
 
-  // 植入旧版 ✨ 按钮，验证启动时自动清除
   const legacySparkle = fakeDoc.createElement('button');
   legacySparkle.setAttribute('data-testid', 'prism-suggest-trigger');
   footer.appendChild(legacySparkle);
 
   let suggestRpcCount = 0;
-  const EXPECTED = '本地4060的实验跑完了，帮我看一下结果，这个方向还值得继续做吗？';
+  const EXPECTED = 'انتهى اختبار 4060 المحلي. راجع النتائج وحدد هل نتابع.';
   const storedCfg = { enabled: true, ttlMinutes: 15 };
   fakeWin.__agPrismSuggestCall = (rawPayload) => {
     const msg = JSON.parse(rawPayload);
@@ -881,7 +835,6 @@ test('Auto-only Ghost UI: zero ✨ button, fires strictly ONCE after reply compl
   assert.equal(evalRes.ok, true);
   await new Promise((r) => setTimeout(r, 20));
 
-  // 1) 零 ✨ 按钮 + 设置卡片挂载完整
   assert.equal(fakeDoc.querySelector('[data-testid="prism-suggest-trigger"]'), null);
   assert.equal(sgSlot.hidden, false, 'Settings slot must be unhidden when UI mounts');
   assert.equal(sgSlot.style.display, '', 'Settings slot display:none must be cleared');
@@ -891,7 +844,6 @@ test('Auto-only Ghost UI: zero ✨ button, fires strictly ONCE after reply compl
   assert.ok(fakeDoc.querySelector('[data-testid="prism-sg-fetch-models-btn"]'), 'Fetch models button must be mounted');
   assert.equal(suggestRpcCount, 0, 'Must NOT fire on static history load');
 
-  // 2) 模拟主对话运行中 -> 完成状态切换
   const cancelBtn = fakeDoc.createElement('button');
   cancelBtn.setAttribute('data-testid', 'input-cancel-button');
   footer.appendChild(cancelBtn);
@@ -899,7 +851,7 @@ test('Auto-only Ghost UI: zero ✨ button, fires strictly ONCE after reply compl
 
   const aMsg = fakeDoc.createElement('div');
   aMsg.setAttribute('data-testid', 'planner-response-text');
-  aMsg.appendChild(fakeDoc.createTextNode('跑完后把对照表发给我就够了。'));
+  aMsg.appendChild(fakeDoc.createTextNode('أرسل جدول المقارنة بعد انتهاء الاختبار.'));
   convView.appendChild(aMsg);
   cancelBtn.remove();
   fakeWin.__agPrismSuggester.checkAgentStateTransition();
@@ -915,14 +867,12 @@ test('Auto-only Ghost UI: zero ✨ button, fires strictly ONCE after reply compl
   assert.ok(overlay);
   assert.equal(overlay.textContent, `${EXPECTED}\u21e5 Tab`, 'Overlay must only contain suggestion + ⇥ Tab');
 
-  // 2b) 切换到历史空闲会话 cascade-b -> 立即隐藏且不发 RPC
   convView.setAttribute('data-cascade-id', 'cascade-b');
   fakeWin.__agPrismSuggester.checkAgentStateTransition();
   assert.equal(fakeDoc.querySelector('[data-testid="prism-ghost-overlay"]'), null);
   await new Promise((r) => setTimeout(r, 820));
   assert.equal(suggestRpcCount, 1);
 
-  // 2c) 从运行中会话 cascade-c 切回空闲会话 cascade-b -> 绝不误触发
   convView.setAttribute('data-cascade-id', 'cascade-c');
   footer.appendChild(cancelBtn);
   fakeWin.__agPrismSuggester.checkAgentStateTransition();
@@ -932,7 +882,6 @@ test('Auto-only Ghost UI: zero ✨ button, fires strictly ONCE after reply compl
   await new Promise((r) => setTimeout(r, 820));
   assert.equal(suggestRpcCount, 1);
 
-  // 2d) /btw 侧栏问答结束 -> 绝不误触发主输入框建议
   const sidePanel = fakeDoc.createElement('div');
   sidePanel.setAttribute('data-testid', 'side-question-panel');
   const sideCancel = fakeDoc.createElement('button');
@@ -945,13 +894,11 @@ test('Auto-only Ghost UI: zero ✨ button, fires strictly ONCE after reply compl
   await new Promise((r) => setTimeout(r, 820));
   assert.equal(suggestRpcCount, 1);
 
-  // 2e) 切回 cascade-a -> 0 额外 RPC 即时恢复内存建议
   convView.setAttribute('data-cascade-id', 'cascade-a');
   fakeWin.__agPrismSuggester.checkAgentStateTransition();
   assert.equal(suggestRpcCount, 1);
   assert.ok(fakeDoc.querySelector('[data-testid="prism-ghost-overlay"]'));
 
-  // 3) 焦点在主输入框按 Tab -> 单次 Lexical 上屏，0 重复
   lexicalEl.focus();
   const tabEv = new fakeWin.Event('keydown', { bubbles: true });
   tabEv.key = 'Tab';
@@ -963,7 +910,6 @@ test('Auto-only Ghost UI: zero ✨ button, fires strictly ONCE after reply compl
   assert.equal(dom.getCounts().insertedBuffer, EXPECTED, 'Inserted text must NOT be duplicated');
   assert.equal(fakeDoc.querySelector('[data-testid="prism-ghost-overlay"]'), null);
 
-  // 3b) 清空未发送草稿立即恢复幽灵提示
   dom.advanceNow(200);
   dom.resetInserted();
   lexicalEl.dispatchEvent(new fakeWin.Event('input', { bubbles: true }));
@@ -971,9 +917,8 @@ test('Auto-only Ghost UI: zero ✨ button, fires strictly ONCE after reply compl
   assert.equal(suggestRpcCount, 1);
   assert.ok(fakeDoc.querySelector('[data-testid="prism-ghost-overlay"]'));
 
-  // 自定义输入隐藏 -> 清空恢复 -> Escape 永久关闭当前轮
-  lexicalEl.__lexicalTextContent = '我自己先打几个字';
-  lexicalEl.textContent = '我自己先打几个字';
+  lexicalEl.__lexicalTextContent = 'سأكتب هذا بنفسي';
+  lexicalEl.textContent = 'سأكتب هذا بنفسي';
   lexicalEl.dispatchEvent(new fakeWin.Event('input', { bubbles: true }));
   assert.equal(fakeDoc.querySelector('[data-testid="prism-ghost-overlay"]'), null);
 
@@ -987,7 +932,6 @@ test('Auto-only Ghost UI: zero ✨ button, fires strictly ONCE after reply compl
   lexicalEl.dispatchEvent(escEv);
   assert.equal(fakeDoc.querySelector('[data-testid="prism-ghost-overlay"]'), null);
 
-  // 4) 后台任务完成 + TTL 过期 + 延迟 hydration
   dom.resetInserted();
   const rowFresh = fakeDoc.createElement('div');
   rowFresh.setAttribute('data-testid', 'conversation-row-sidebar');
@@ -1045,7 +989,7 @@ test('Auto-only Ghost UI: zero ✨ button, fires strictly ONCE after reply compl
   setTimeout(() => {
     const delayedReply = fakeDoc.createElement('div');
     delayedReply.setAttribute('data-testid', 'planner-response-text');
-    delayedReply.appendChild(fakeDoc.createTextNode('已完成模型列表清洗，是否需要把闭环静默判定提到第一优先级？'));
+    delayedReply.appendChild(fakeDoc.createTextNode('نظفت قائمة النماذج. هل نعطي الأولوية لعدم عرض اقتراح عند اكتمال المهمة؟'));
     convView.appendChild(delayedReply);
     fakeWin.__agPrismSuggester.checkAgentStateTransition();
   }, 500);
@@ -1059,7 +1003,7 @@ test('Auto-only Ghost UI: zero ✨ button, fires strictly ONCE after reply compl
   fakeWin.__agPrismSuggester.checkAgentStateTransition();
   const nextReply = fakeDoc.createElement('div');
   nextReply.setAttribute('data-testid', 'planner-response-text');
-  nextReply.appendChild(fakeDoc.createTextNode('已修复延迟挂载丢提示的问题，还要调整静默优先级吗？'));
+  nextReply.appendChild(fakeDoc.createTextNode('أصلحت اختفاء الاقتراح عند تأخر التحميل. هل نغير أولوية الصمت؟'));
   convView.appendChild(nextReply);
   sbSpinner.remove();
   fakeWin.__agPrismSuggester.checkAgentStateTransition();
@@ -1093,7 +1037,6 @@ test('Zero-overhead disabled state: enabled: false starts 0 MutationObserver & 0
   assert.equal(evalRes.ok, true);
   await new Promise((r) => setTimeout(r, 25));
 
-  // 默认关闭态：0 Observer、0 document 捕获监听、0 运行时样式标签
   const offState = fakeWin.__agPrismSuggester.getDebugState();
   assert.equal(offState.config.enabled, false);
   assert.equal(offState.active, false);
@@ -1104,7 +1047,6 @@ test('Zero-overhead disabled state: enabled: false starts 0 MutationObserver & 0
   assert.equal(docListenerStats.activeCaptureCount, 0, 'Disabled state must bind 0 document capture listeners');
   assert.equal(fakeDoc.getElementById('ag-prism-suggester-css'), null, 'Disabled state must NOT inject runtime CSS');
 
-  // 切换到开启态 -> 启动监控与捕获监听
   fakeWin.__agPrismSuggester.applyConfig(
     { enabled: true, ttlMinutes: 15 },
     { aiReady: true, profileName: 'Default', model: 'gpt-4o-mini' }
@@ -1118,7 +1060,6 @@ test('Zero-overhead disabled state: enabled: false starts 0 MutationObserver & 0
   assert.ok(docListenerStats.activeCaptureCount > 0);
   assert.ok(fakeDoc.getElementById('ag-prism-suggester-css'), 'Enabled state must inject runtime CSS');
 
-  // 切回关闭态 -> 立即 disconnect()、清空监听、移除运行时样式
   fakeWin.__agPrismSuggester.applyConfig(
     { enabled: false, ttlMinutes: 15 },
     { aiReady: true, profileName: 'Default', model: 'gpt-4o-mini' }
@@ -1162,7 +1103,6 @@ test('Shortcut safety: Tab does NOT hijack when html[data-ag-pp-open="1"] or foc
   vm.runInContext(cdp.buildSuggesterExpression(), ctx);
   await new Promise((r) => setTimeout(r, 20));
 
-  // 触发一次幽灵建议展示
   const cancelBtn = fakeDoc.createElement('button');
   cancelBtn.setAttribute('data-testid', 'input-cancel-button');
   footer.appendChild(cancelBtn);
@@ -1177,7 +1117,6 @@ test('Shortcut safety: Tab does NOT hijack when html[data-ag-pp-open="1"] or foc
   await new Promise((r) => setTimeout(r, 820));
   assert.ok(fakeDoc.querySelector('[data-testid="prism-ghost-overlay"]'), 'Ghost overlay must be active');
 
-  // 场景 1：周期表 3D 面板开启（html[data-ag-pp-open="1"]）时，Tab 严禁劫持
   fakeDoc.documentElement.setAttribute('data-ag-pp-open', '1');
   lexicalEl.focus();
   const tabPp = new fakeWin.Event('keydown', { bubbles: true });
@@ -1188,7 +1127,6 @@ test('Shortcut safety: Tab does NOT hijack when html[data-ag-pp-open="1"] or foc
   assert.equal(dom.getCounts().lexicalDispatchCount, 0, 'Must NOT insert suggestion while Periodic Picker is open');
   fakeDoc.documentElement.removeAttribute('data-ag-pp-open');
 
-  // 场景 2：模型菜单打开（html[data-ag-cs-model-menu="1"]）时，Tab 严禁劫持
   fakeDoc.documentElement.setAttribute('data-ag-cs-model-menu', '1');
   const tabMenu = new fakeWin.Event('keydown', { bubbles: true });
   tabMenu.key = 'Tab';
@@ -1197,7 +1135,6 @@ test('Shortcut safety: Tab does NOT hijack when html[data-ag-pp-open="1"] or foc
   assert.equal(dom.getCounts().lexicalDispatchCount, 0);
   fakeDoc.documentElement.removeAttribute('data-ag-cs-model-menu');
 
-  // 场景 3：焦点位于外部按钮时，Tab 严禁劫持
   const extBtn = fakeDoc.createElement('button');
   extBtn.id = 'external-toolbar-btn';
   extBtn.textContent = 'External';
@@ -1210,7 +1147,6 @@ test('Shortcut safety: Tab does NOT hijack when html[data-ag-pp-open="1"] or foc
   assert.equal(tabExt.defaultPrevented, false, 'Tab must NOT hijack focus navigation on external buttons');
   assert.equal(dom.getCounts().lexicalDispatchCount, 0, 'Must NOT insert suggestion when external button is focused');
 
-  // 场景 4：焦点回到主输入框且无阻断浮层 -> Tab 正常接受建议
   lexicalEl.focus();
   const tabOk = new fakeWin.Event('keydown', { bubbles: true });
   tabOk.key = 'Tab';
@@ -1245,12 +1181,10 @@ test('Zero style leak: #ag-prism-model-dd-css is completely removed by UI destro
   assert.ok(fakeDoc.getElementById('ag-prism-model-dd-css'), 'Model dropdown CSS must be injected on settings mount');
   assert.ok(fakeDoc.getElementById('ag-prism-suggester-css'), 'Runtime CSS must be injected when enabled');
 
-  // 1) Settings UI handle.destroy() 彻底删除 #ag-prism-model-dd-css
   assert.ok(sgSlot.__agPrismSgUiHandle, 'Expected mounted UI handle on slot');
   sgSlot.__agPrismSgUiHandle.destroy();
   assert.equal(fakeDoc.getElementById('ag-prism-model-dd-css'), null, 'Settings UI destroy() must remove #ag-prism-model-dd-css');
 
-  // 2) 重新挂载后运行 SUGGESTER_REMOVE_EXPRESSION -> 同时删除 #ag-prism-model-dd-css 与 #ag-prism-suggester-css
   fakeWin.__prismMountSuggesterUi(sgSlot, { lang: 'en' });
   assert.ok(fakeDoc.getElementById('ag-prism-model-dd-css'));
   vm.runInContext(cdp.SUGGESTER_REMOVE_EXPRESSION, ctx);
@@ -1259,7 +1193,6 @@ test('Zero style leak: #ag-prism-model-dd-css is completely removed by UI destro
   assert.equal(fakeWin.__agPrismSuggester, undefined);
   assert.equal(fakeWin.__agPrismSuggesterSettingsUi, undefined);
 
-  // 3) 重新挂载后运行全量 REMOVE_EXPRESSION -> 同时删除 #ag-prism-model-dd-css、#ag-prism-suggester-css 及属性
   vm.runInContext(cdp.buildSuggesterExpression(), ctx);
   await new Promise((r) => setTimeout(r, 20));
   assert.ok(fakeDoc.getElementById('ag-prism-model-dd-css'));
@@ -1272,7 +1205,6 @@ test('Zero style leak: #ag-prism-model-dd-css is completely removed by UI destro
 });
 
 test('8-language alignment (no yue, 0 CJK leak in en/es/fr/de) and .bundle-cache.json channels.suggester disk cache hit', async () => {
-  // Part A: 8 语词典与规范化校验
   const dom = createFakeSuggesterDom({ lang: 'en', withComposer: false });
   const { fakeDoc, fakeWin, sgSlot } = dom;
   fakeWin.__agPrismSuggestCall = (rawPayload) => {
@@ -1292,16 +1224,15 @@ test('8-language alignment (no yue, 0 CJK leak in en/es/fr/de) and .bundle-cache
 
   const uiApi = fakeWin.__agPrismSuggesterSettingsUi;
   assert.ok(uiApi, 'Expected __agPrismSuggesterSettingsUi');
-  assert.equal(uiApi.normalizeLang('yue'), 'zh-CN', 'yue must normalize to zh-CN');
-  assert.equal(uiApi.normalizeLang('zh-HK'), 'zh-TW', 'zh-HK must normalize to zh-TW');
-  assert.equal(uiApi.normalizeLang('zh-MO'), 'zh-TW', 'zh-MO must normalize to zh-TW');
+  assert.equal(uiApi.normalizeLang('ar-EG'), 'ar');
+  assert.equal(uiApi.normalizeLang('en-US'), 'en');
+  assert.equal(uiApi.normalizeLang('pt-BR'), '');
   assert.equal(uiApi.normalizeLang('xx-ZZ'), '', 'Unknown lang normalizes to empty string');
   fakeDoc.documentElement.setAttribute('data-ag-cs-lang', 'xx-ZZ');
   assert.equal(uiApi.resolveLang(fakeDoc, {}), 'en', 'Unknown language must fall back to en');
 
-  // 逐一验证全部 8 语渲染，其中 en/es/fr/de 严格 0 CJK 泄漏
-  const ALL_8_LANGS = ['zh-CN', 'zh-TW', 'en', 'ja', 'ko', 'es', 'fr', 'de'];
-  const ZERO_CJK_LANGS = new Set(['en', 'es', 'fr', 'de']);
+  const ALL_8_LANGS = ['en', 'ar'];
+  const ZERO_CJK_LANGS = new Set(['en', 'ar']);
   for (const lang of ALL_8_LANGS) {
     sgSlot.__agPrismSgUiHandle.updateLang(lang);
     const cardText = sgSlot.textContent;
@@ -1315,7 +1246,6 @@ test('8-language alignment (no yue, 0 CJK leak in en/es/fr/de) and .bundle-cache
     }
   }
 
-  // 静态验证两份前端源码词典不含 yue 键，且 ARIA_LABELS 覆盖完整 8 语
   const uiSrc = fs.readFileSync(path.join(ROOT_DIR, 'vendor', 'prompt-suggester', 'suggester-settings-ui.js'), 'utf8');
   const clientSrc = fs.readFileSync(path.join(ROOT_DIR, 'vendor', 'prompt-suggester', 'suggester-client.js'), 'utf8');
   assert.equal(/^\s*['"]?yue['"]?\s*:/m.test(uiSrc), false, 'suggester-settings-ui.js must not declare yue locale key');
@@ -1332,7 +1262,6 @@ test('8-language alignment (no yue, 0 CJK leak in en/es/fr/de) and .bundle-cache
   }
   fakeWin.__agPrismSuggester.destroy();
 
-  // Part B: .bundle-cache.json channels.suggester 磁盘缓存写入与冷重载命中
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prism-sg-cache-'));
   const cachePath = path.join(tmpDir, '.bundle-cache.json');
   try {
@@ -1345,7 +1274,6 @@ test('8-language alignment (no yue, 0 CJK leak in en/es/fr/de) and .bundle-cache
     assert.match(diskJson.channels.suggester.sourceHash, /^[0-9a-f]{64}$/);
     assert.match(diskJson.channels.suggester.payloadSha256, /^[0-9a-f]{64}$/);
 
-    // 模拟冷启：清空 require.cache 重新加载 cdp.js，确认直接命中磁盘缓存 0 编译
     const cdpPath = require.resolve(path.join(ROOT_DIR, 'cdp.js'));
     delete require.cache[cdpPath];
     const freshCdp = require(cdpPath);
@@ -1463,7 +1391,6 @@ test('P0 cross-card & cross-window profiles bidirectional sync across THOUGHT_BI
     daemon.sessions.set(winA.entry.wsUrl, winA.entry);
     daemon.sessions.set(winB.entry.wsUrl, winB.entry);
 
-    // 1) THOUGHT_BINDING save-config -> 双向反向通知本窗口与另一窗口的 Suggester UI 重载 profiles（并同步另一窗口 Thought UI）
     await daemon.handleBindingCall(winA.entry, {
       name: THOUGHT_BINDING,
       executionContextId: 101,
@@ -1503,7 +1430,6 @@ test('P0 cross-card & cross-window profiles bidirectional sync across THOUGHT_BI
     winA.evals.length = 0;
     winB.evals.length = 0;
 
-    // 2) SUGGESTER_BINDING save-config -> 同步全部窗口 applyConfig + reloadProfiles + 思考转译 UI reloadConfig
     await daemon.handleBindingCall(winA.entry, {
       name: SUGGESTER_BINDING,
       executionContextId: 101,
@@ -1545,7 +1471,6 @@ test('P0 cross-card & cross-window profiles bidirectional sync across THOUGHT_BI
     winA.evals.length = 0;
     winB.evals.length = 0;
 
-    // 3) SUGGESTER_BINDING test-connection（内含 saveWorkbenchConfig）-> 同样触发全窗口同步并通知思考转译 UI
     await daemon.handleBindingCall(winA.entry, {
       name: SUGGESTER_BINDING,
       executionContextId: 101,
@@ -1645,7 +1570,7 @@ test('UX regression: reusing mounted Suggester card on settings sync updates lan
 
   // Simulate repeated settings-panel sync calling mountSuggesterUi on existing slot (same lang & switched lang)
   const reusedSameLang = fakeWin.__prismMountSuggesterUi(sgSlot, { lang: 'en' });
-  const reusedZh = fakeWin.__prismMountSuggesterUi(sgSlot, { lang: 'zh-CN' });
+  const reusedZh = fakeWin.__prismMountSuggesterUi(sgSlot, { lang: 'ar' });
   await new Promise((r) => setTimeout(r, 25));
 
   assert.equal(reusedSameLang, firstHandle);
@@ -1654,7 +1579,7 @@ test('UX regression: reusing mounted Suggester card on settings sync updates lan
   assert.equal(urlInput.value, 'https://custom.proxy.local/v1', 'Unsaved Base URL must be preserved');
   assert.equal(modelInput.value, 'gemini-2.5-flash-draft', 'Unsaved Model must be preserved');
   assert.equal(keyInput.value, 'sk-unsaved-draft-key-999999', 'Unsaved API Key draft must be preserved');
-  assert.equal(firstHandle.root.getAttribute('data-ag-cs-lang'), 'zh-CN', 'Language update must still apply cleanly');
+  assert.equal(firstHandle.root.getAttribute('data-ag-cs-lang'), 'ar', 'Language update must still apply cleanly');
 
   fakeWin.__agPrismSuggester.destroy();
 });

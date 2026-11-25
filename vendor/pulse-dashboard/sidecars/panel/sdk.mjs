@@ -39,11 +39,11 @@ function sdkTokens(source){
     const c=source[i];
     if(/\s/.test(c)){i++;continue;}
     if(source.startsWith('//',i)){const end=source.indexOf('\n',i+2);i=end<0?source.length:end+1;continue;}
-    if(source.startsWith('/*',i)){const end=source.indexOf('*/',i+2);if(end<0)throw Error('SDK 资源校验失败');i=end+2;continue;}
+    if(source.startsWith('/*',i)){const end=source.indexOf('*/',i+2);if(end<0)throw Error('SDK resource validation failed');i=end+2;continue;}
     if(c==='"'||c==="'"||c==='`'){
       const quote=c;let text='',escaped=false,closed=false;i++;
       while(i<source.length){const ch=source[i++];if(ch===quote){closed=true;break;}if(ch==='\\'){escaped=true;if(i>=source.length)break;text+=ch+source[i++];}else text+=ch;}
-      if(!closed)throw Error('SDK 资源校验失败');tokens.push({kind:quote==='`'?'template':'string',text,escaped});continue;
+      if(!closed)throw Error('SDK resource validation failed');tokens.push({kind:quote==='`'?'template':'string',text,escaped});continue;
     }
     const word=source.slice(i).match(/^[A-Za-z_$][\w$]*/);
     if(word){tokens.push({kind:'word',text:word[0]});i+=word[0].length;continue;}
@@ -53,9 +53,9 @@ function sdkTokens(source){
 }
 
 export function validateSdkResources(sdk,preload){
-  if(typeof sdk!=='string'||typeof preload!=='string'||!preload.includes('window.sidecar ='))throw Error('SDK 资源校验失败');
+  if(typeof sdk!=='string'||typeof preload!=='string'||!preload.includes('window.sidecar ='))throw Error('SDK resource validation failed');
   const tokens=sdkTokens(sdk),text=i=>tokens[i]?.text;
-  for(const name of ['Response','SidecarApp'])if(!tokens.some((t,i)=>t.kind==='word'&&t.text==='export'&&text(i+1)==='class'&&text(i+2)===name))throw Error('SDK 资源校验失败');
+  for(const name of ['Response','SidecarApp'])if(!tokens.some((t,i)=>t.kind==='word'&&t.text==='export'&&text(i+1)==='class'&&text(i+2)===name))throw Error('SDK resource validation failed');
   const bindings=[];
   for(let i=0;i<tokens.length;i++){
     if(tokens[i].kind!=='word'||text(i)!=='listen'||text(i-1)!=='.'||text(i+1)!=='(')continue;
@@ -66,26 +66,26 @@ export function validateSdkResources(sdk,preload){
       if(t.kind==='punct'&&t.text===','&&depth===0){args.push(current);current=[];continue;}
       if(t.kind==='punct'&&'([{'.includes(t.text))depth++;
       if(t.kind==='punct'&&')]}'.includes(t.text))depth--;
-      if(depth<0)throw Error('SDK 资源校验失败');current.push(t);
+      if(depth<0)throw Error('SDK resource validation failed');current.push(t);
     }
-    if(!end||args.length<2||args[1].length!==1)throw Error('SDK 本地监听地址无法确认');
+    if(!end||args.length<2||args[1].length!==1)throw Error('Unable to verify SDK loopback listen address');
     const host=args[1][0];
     if(host.kind==='string'&&!host.escaped&&host.text==='127.0.0.1'){bindings.push('literal');continue;}
-    if(host.kind!=='word')throw Error('SDK 本地监听地址无法确认');
+    if(host.kind!=='word')throw Error('Unable to verify SDK loopback listen address');
     const declarations=[];
     for(let k=0;k<tokens.length;k++)if(text(k+1)===host.text&&['const','let','var'].includes(text(k)))declarations.push(k);
     const k=declarations[0],literal=tokens[k+3];
     // Accept one immutable constant, not a mutable alias or an expression.
-    if(declarations.length!==1||text(k)!=='const'||text(k+2)!=='='||literal?.kind!=='string'||literal.escaped||literal.text!=='127.0.0.1'||text(k+4)!==';')throw Error('SDK 本地监听地址无法确认');
-    if(tokens.some((t,j)=>t.kind==='word'&&t.text===host.text&&j!==k+1&&(text(j+1)==='='||text(j+1)==='+'&&text(j+2)==='+'||text(j+1)==='-'&&text(j+2)==='-')))throw Error('SDK 本地监听地址无法确认');
+    if(declarations.length!==1||text(k)!=='const'||text(k+2)!=='='||literal?.kind!=='string'||literal.escaped||literal.text!=='127.0.0.1'||text(k+4)!==';')throw Error('Unable to verify SDK loopback listen address');
+    if(tokens.some((t,j)=>t.kind==='word'&&t.text===host.text&&j!==k+1&&(text(j+1)==='='||text(j+1)==='+'&&text(j+2)==='+'||text(j+1)==='-'&&text(j+2)==='-')))throw Error('Unable to verify SDK loopback listen address');
     bindings.push('constant');
   }
-  if(bindings.length!==1)throw Error('SDK 本地监听地址无法确认');
+  if(bindings.length!==1)throw Error('Unable to verify SDK loopback listen address');
   return {loopback:true,binding:bindings[0]};
 }
 
 export function extractBundledSdk(binary){
-  if(!Buffer.isBuffer(binary))throw Error('此版本的 Sidecar SDK 格式不兼容；请更新 SDK 适配器');
+  if(!Buffer.isBuffer(binary))throw Error('Incompatible Sidecar SDK format for this version; please update the SDK adapter');
   const marker=binary.indexOf('export class SidecarApp');
   const start=binary.lastIndexOf("import { execFileSync } from 'node:child_process';",marker);
   const tail="return provided === this.#token;\n  }\n}\n";
@@ -93,7 +93,7 @@ export function extractBundledSdk(binary){
   const preloadMarker=binary.indexOf('window.sidecar =');
   const preloadStart=binary.lastIndexOf('(function() {',preloadMarker);
   const preloadTail='\n})();';const preloadEnd=binary.indexOf(preloadTail,preloadMarker);
-  if(marker<0||start<0||marker-start>12000||tailIndex<marker||tailIndex-marker>24000||preloadStart<0||preloadEnd<preloadMarker||preloadEnd-preloadStart>24000)throw Error('此版本的 Sidecar SDK 格式不兼容；请更新 SDK 适配器');
+  if(marker<0||start<0||marker-start>12000||tailIndex<marker||tailIndex-marker>24000||preloadStart<0||preloadEnd<preloadMarker||preloadEnd-preloadStart>24000)throw Error('Incompatible Sidecar SDK format for this version; please update the SDK adapter');
   const sdk=binary.subarray(start,tailIndex+Buffer.byteLength(tail)).toString('utf8');
   const preload=binary.subarray(preloadStart,preloadEnd+Buffer.byteLength(preloadTail)).toString('utf8');
   validateSdkResources(sdk,preload);return {sdk,preload};
@@ -129,6 +129,6 @@ async function loadBundledNow(exe,directory) {
     await atomicWrite(join(root,'manifest.json'),JSON.stringify({stamp,sdk:hash(resources.sdk),preload:hash(resources.preload)})+'\n');
   }
   const result=await import(pathToFileURL(join(root,'index.mjs')).href+'?v='+hash(resources.sdk+resources.preload));
-  if(typeof result.SidecarApp!=='function'||typeof result.Response!=='function'||['api','page','run'].some(name=>typeof result.SidecarApp.prototype[name]!=='function'))throw Error('SDK 导出接口不兼容');
+  if(typeof result.SidecarApp!=='function'||typeof result.Response!=='function'||['api','page','run'].some(name=>typeof result.SidecarApp.prototype[name]!=='function'))throw Error('Incompatible SDK export interface');
   return result;
 }

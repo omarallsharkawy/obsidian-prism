@@ -529,7 +529,7 @@ test('Issue #63 CSS, hygiene & Channel 1 budget gate (< 549,500 B, ~2 KB delta, 
     assert.ok(css.includes(tok), `style.css conv transparency chain must cover live Antigravity container ${tok}`);
   }
 
-  for (const lang of ['auto', 'zh-CN', 'zh-TW', 'en', 'ja', 'ko', 'es', 'fr', 'de']) {
+  for (const lang of ['auto', 'en', 'ar']) {
     const expr = cdp.buildInjectExpression({ ...cdp.DEFAULT_CONFIG, language: lang }, { bundleCachePath: '' });
     const bytes = Buffer.byteLength(expr, 'utf8');
     assert.ok(bytes < 549500, `Channel 1 (${lang}) must stay < 549,500 B, got ${bytes}`);

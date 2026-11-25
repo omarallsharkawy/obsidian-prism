@@ -1,5 +1,10 @@
-Obsidian Prism (黑曜棱镜) — Optical UI, Motion & Thought Suite for Antigravity
+Obsidian Prism — Optical UI, Motion & Thought Suite for Antigravity
 Copyright (C) 2026 RMvdesi (https://github.com/RMvdesi/obsidian-prism)
+
+Modified Fork Notice (GPL-3.0 Section 5(a)):
+Modified on 2026-11-25 by omarallsharkawy (https://github.com/omarallsharkawy/obsidian-prism)
+to provide a bilingual English (`en`) and Arabic (`ar`, RTL) edition with all CJK
+strings removed, distributed under the same GNU General Public License v3.0.
 
 ================================================================================
 1. PRIMARY LICENSE & DOWNSTREAM DERIVATIVE OBLIGATIONS (GPL-3.0 + Section 7)
@@ -53,7 +58,7 @@ notices are preserved in full in `THIRD_PARTY_NOTICES.md`:
     Copyright (c) 2026 AG Pulse contributors — MIT License (compatible with GPL-3.0-only),
     absorbed and adapted in `vendor/pulse-dashboard/`
   - LLYSH-HANNARI/antigravity-Codex-Claude-effort-slider (https://github.com/LLYSH-HANNARI/antigravity-Codex-Claude-effort-slider)
-    Copyright (c) 2026 月上寒 / LLYSH-HANNARI — MIT License (compatible with GPL-3.0-only),
+    Copyright (c) 2026 Yueshanghan / LLYSH-HANNARI — MIT License (compatible with GPL-3.0-only),
     absorbed and adapted in `vendor/effort-slider/`
   - yiheng8023/antigravity-chinese v3.3.63 (https://github.com/yiheng8023/antigravity-chinese)
     Copyright (c) 2026 Antigravity Chinese Localization Contributors — MIT License (compatible with GPL-3.0-only),

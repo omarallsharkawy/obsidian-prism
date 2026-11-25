@@ -207,7 +207,7 @@ function createMiniDom({ hasLayout = false, hooks = null } = {}) {
     window: null,
     globalThis: null,
     document: doc,
-    navigator: { language: 'zh-CN' },
+    navigator: { language: 'en' },
     location: { pathname: '/' },
     localStorage: {
       _m: {},

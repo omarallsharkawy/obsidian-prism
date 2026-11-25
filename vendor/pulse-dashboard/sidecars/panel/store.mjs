@@ -165,7 +165,7 @@ export class MetricsStore {
           const saved = await this.history.save(scope, id, entry.data, { isCurrent: current });
           if (saved && current()) entry.savedAt = saved.savedAt;
         } catch {
-          if (current()) this.persistenceError = '统计暂时无法保存到本地';
+          if (current()) this.persistenceError = 'Unable to save statistics locally right now';
         }
       },
     });
@@ -236,13 +236,13 @@ export class MetricsStore {
   }
 
   async refreshQuota(force = false) {
-    if (!this.owned()) throw new Error('后台已重新连接，请等待刷新');
+    if (!this.owned()) throw new Error('Backend reconnected; waiting for refresh');
     if (!force && this.quota && Date.now() - this.quotaAt < 60000) return;
     if (this.quotaPending) return this.quotaPending;
     const epoch = this.epoch;
     this.quotaPending = (async () => {
       const user = await this.client.call('GetUserStatus');
-      if (!this.owned() || epoch !== this.epoch) throw new Error('后台已重新连接，请等待刷新');
+      if (!this.owned() || epoch !== this.epoch) throw new Error('Backend reconnected; waiting for refresh');
       const email = user.userStatus?.email;
       const identity = email ? createHash('sha256').update(email).digest('hex') : null;
       if (identity !== this.identity) {
@@ -262,10 +262,10 @@ export class MetricsStore {
       let quotaErr = null;
       try {
         const response = await this.client.call('RetrieveUserQuotaSummary', force ? { forceRefresh: true } : {});
-        if (!this.owned() || epoch !== this.epoch || identity !== this.identity) throw new Error('后台已重新连接，请等待刷新');
+        if (!this.owned() || epoch !== this.epoch || identity !== this.identity) throw new Error('Backend reconnected; waiting for refresh');
         primaryQuota = quotaMetrics(response);
       } catch (err) {
-        if (!this.owned() || epoch !== this.epoch || identity !== this.identity) throw new Error('后台已重新连接，请等待刷新');
+        if (!this.owned() || epoch !== this.epoch || identity !== this.identity) throw new Error('Backend reconnected; waiting for refresh');
         quotaErr = err;
       }
       const hasUsablePool = (groups) =>
@@ -287,11 +287,11 @@ export class MetricsStore {
   }
 
   async listConversations(force = false) {
-    if (!this.owned()) throw new Error('后台已重新连接，请等待刷新');
+    if (!this.owned()) throw new Error('Backend reconnected; waiting for refresh');
     if (!force && Date.now() - this.summariesAt < 12000) return this.summaries;
     const scope = this.identity, epoch = this.epoch;
     const response = await this.client.call('GetAllCascadeTrajectories', { excludeSubtrajectories: false });
-    if (!this.owned() || scope !== this.identity || epoch !== this.epoch) throw new Error('后台已重新连接，请等待刷新');
+    if (!this.owned() || scope !== this.identity || epoch !== this.epoch) throw new Error('Backend reconnected; waiting for refresh');
     const toEpochMs = (t) => {
       if (t === undefined || t === null || t === '') return 0;
       if (typeof t === 'bigint' || typeof t === 'number') {
@@ -316,7 +316,7 @@ export class MetricsStore {
           : (modMs > 0 ? new Date(modMs).toISOString() : null);
         return {
           id,
-          title: value?.summary || '未命名会话',
+          title: value?.summary || 'Untitled conversation',
           modifiedAt: modIso || value?.lastModifiedTime,
           lastModifiedTime: value?.lastModifiedTime,
           createdTime: value?.createdTime,
@@ -385,7 +385,7 @@ export class MetricsStore {
       const saved = await this.history.save(scope, id, entry.data, { isCurrent: current });
       if (saved && current()) entry.savedAt = saved.savedAt;
     } catch {
-      if (current()) this.persistenceError = '统计暂时无法保存到本地';
+      if (current()) this.persistenceError = 'Unable to save statistics locally right now';
     }
   }
 
@@ -401,8 +401,8 @@ export class MetricsStore {
   }
 
   async session(id, force = false) {
-    if (!GUID.test(id)) throw new Error('会话标识无效');
-    if (!this.owned()) throw new Error('后台已重新连接，请等待刷新');
+    if (!GUID.test(id)) throw new Error('Invalid conversation ID');
+    if (!this.owned()) throw new Error('Backend reconnected; waiting for refresh');
     id = id.toLowerCase();
     const identity = this.identity, scope = this.storageScope(identity), epoch = this.epoch;
     let entry = this.sessions.get(id);
@@ -416,7 +416,7 @@ export class MetricsStore {
     entry.pending = (async () => {
       if (!entry.data) {
         const saved = await this.history.load(scope, id);
-        if (!current()) throw new Error('后台已重新连接，请等待刷新');
+        if (!current()) throw new Error('Backend reconnected; waiting for refresh');
         if (saved) {
           entry.data = saved.metrics;
           entry.savedAt = saved.savedAt;
@@ -431,7 +431,7 @@ export class MetricsStore {
           if (force && age < BACKGROUND_MANUAL_COOLDOWN_MS) return entry.data;
           if (!force && Date.now() - entry.backgroundCheckedAt < 30000) return entry.data;
           const summary = await this.client.reader.summary(id, null, force);
-          if (!current()) throw Error('后台已重新连接，请等待刷新');
+          if (!current()) throw Error('Backend reconnected; waiting for refresh');
           entry.backgroundCheckedAt = Date.now();
           const revision = JSON.stringify([summary.stepCount ?? null, summary.lastModifiedTime ?? null, summary.status ?? null, summary.lastUserInputStepIndex ?? null]);
           if (revision === entry.backgroundRevision && age < (force ? BACKGROUND_MANUAL_COOLDOWN_MS : BACKGROUND_RECHECK_MS)) return entry.data;
@@ -440,7 +440,7 @@ export class MetricsStore {
         return entry.data || null;
       }
       const raw = await this.client.trajectory(id, { force, isCurrent: current });
-      if (!current()) throw new Error('后台已重新连接，请等待刷新');
+      if (!current()) throw new Error('Backend reconnected; waiting for refresh');
       if (this.onTrajectory) {
         try {
           const result = await this.onTrajectory(scope, id, raw, { isCurrent: current, guardKey: entry });
@@ -449,7 +449,7 @@ export class MetricsStore {
           if (current()) this.setUsagePersistenceError('foreground:' + id, true);
         }
       }
-      if (!current()) throw new Error('后台已重新连接，请等待刷新');
+      if (!current()) throw new Error('Backend reconnected; waiting for refresh');
       entry.collection = null;
       entry.lastSuccessAt = new Date().toISOString();
       const fresh = trajectoryMetrics(raw);
@@ -465,9 +465,9 @@ export class MetricsStore {
         if (saved && current()) entry.savedAt = saved.savedAt;
         if (current()) this.persistenceError = null;
       } catch {
-        if (current()) this.persistenceError = '统计暂时无法保存到本地';
+        if (current()) this.persistenceError = 'Unable to save statistics locally right now';
       }
-      if (!current()) throw new Error('后台已重新连接，请等待刷新');
+      if (!current()) throw new Error('Backend reconnected; waiting for refresh');
       return entry.data;
     })()
       .catch(error => {
@@ -490,9 +490,9 @@ export class MetricsStore {
     if (cdpPort) this.setCdpPort(cdpPort);
     let connection = 'live', error = null, speed = null, sessionError = null, collection = null;
     try {
-      if (!this.owned()) throw new Error('后台已重新连接，请等待刷新');
+      if (!this.owned()) throw new Error('Backend reconnected; waiting for refresh');
       const server = await this.client.discover();
-      if (!this.owned()) throw new Error('后台已重新连接，请等待刷新');
+      if (!this.owned()) throw new Error('Backend reconnected; waiting for refresh');
       if (server.pid !== this.serverPid) {
         this.epoch++;
         this.background?.reset();

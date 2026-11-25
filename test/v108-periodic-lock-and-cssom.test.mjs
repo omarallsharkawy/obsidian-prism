@@ -335,7 +335,7 @@ function createDomSandbox({ pathname = '/conv-1' } = {}) {
     return node;
   }
 
-  const html = makeEl('html', { attrs: { 'data-ag-cs-theme': 'dark', 'data-ag-cs-lang': 'zh-CN' } });
+  const html = makeEl('html', { attrs: { 'data-ag-cs-theme': 'dark', 'data-ag-cs-lang': 'en' } });
   const head = makeEl('head');
   const body = makeEl('body', { className: 'monaco-workbench' });
   html.appendChild(head);
@@ -447,7 +447,7 @@ function createDomSandbox({ pathname = '/conv-1' } = {}) {
     location: { href: 'vscode-file://vscode-app/index.html', pathname },
     history: { pushState() {}, replaceState() {} },
     performance: { now: () => nowMs },
-    navigator: { language: 'zh-CN' },
+    navigator: { language: 'en' },
     devicePixelRatio: 1,
     innerWidth: 1280,
     innerHeight: 800,
@@ -542,7 +542,7 @@ function createDomSandbox({ pathname = '/conv-1' } = {}) {
   };
 }
 
-test('style.css: zero -webkit-mask:var(--_m0) / background:var(--_x0), 6 CSSOM-safe masks, 0 :has(), 0 non-ASCII & Ch1 9-lang < 549,500 B', () => {
+test('style.css: zero -webkit-mask:var(--_m0) / background:var(--_x0), 6 CSSOM-safe masks, 0 :has(), 0 non-ASCII & Ch1 3-mode < 549,500 B', () => {
   const css = fs.readFileSync(path.join(ROOT_DIR, 'style.css'), 'utf8');
   assert.equal(css.includes('-webkit-mask:var(--_m0)'), false, 'must not contain CSSOM-dropped -webkit-mask:var(--_m0)');
   assert.equal(css.includes('--_m0'), false, 'must remove obsolete --_m0 token');
@@ -553,7 +553,7 @@ test('style.css: zero -webkit-mask:var(--_m0) / background:var(--_x0), 6 CSSOM-s
   assert.equal(/:has\(/.test(css), false, 'style.css must have 0 :has()');
   assert.equal(/[^\x00-\x7F]/.test(css), false, 'style.css must be 100% ASCII');
 
-  const langs = ['auto', 'zh-CN', 'zh-TW', 'en', 'ja', 'ko', 'es', 'fr', 'de'];
+  const langs = ['auto', 'en', 'ar'];
   for (const lang of langs) {
     const expr = cdp.buildInjectExpression({ ...cdp.DEFAULT_CONFIG, language: lang }, { bundleCachePath: '' });
     const bytes = Buffer.byteLength(expr, 'utf8');
@@ -614,7 +614,7 @@ test('model-glyph-crystal & ui-runtime: readButtonLabelWithoutGlyph skips mini-k
   convView.appendChild(inputBox);
   runtimeEnv.body.appendChild(convView);
 
-  const injectExpr = cdp.buildInjectExpression({ lang: 'zh-CN', motionLevel: 'ultra' });
+  const injectExpr = cdp.buildInjectExpression({ lang: 'en', motionLevel: 'ultra' });
   const res = vm.runInContext(injectExpr, runtimeEnv.sandbox);
   assert.equal(res.status, 'ok');
   assert.equal(card.hasAttribute('data-ag-cs-fiber-camp'), false, 'initial mount must not fire fiber pulse');
@@ -996,7 +996,7 @@ test('prism-rim + ui-runtime: data-ag-pp-open="1" keeps composer, step-plan, hom
   env.body.appendChild(overviewMirror);
 
   // Inject full Channel 1 runtime
-  const injectExpr = cdp.buildInjectExpression({ ...cdp.DEFAULT_CONFIG, language: 'zh-CN', motionLevel: 'ultra' }, { bundleCachePath: '' });
+  const injectExpr = cdp.buildInjectExpression({ ...cdp.DEFAULT_CONFIG, language: 'en', motionLevel: 'ultra' }, { bundleCachePath: '' });
   const res = vm.runInContext(injectExpr, env.sandbox);
   assert.equal(res.status, 'ok');
 

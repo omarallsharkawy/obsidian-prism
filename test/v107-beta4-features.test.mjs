@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), '..');
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 const cdp = require(path.join(ROOT, 'cdp.js'));
 const locales = require(path.join(ROOT, 'i18n-locales.js'));
@@ -570,10 +571,10 @@ test('v1.0.7-beta.4: host-i18n rollbackAllSnapshots restores detached-then-reatt
     root: win,
     doc,
     mode: 'on',
-    dict: { exact: { Settings: '设置' } },
+    dict: { exact: { Settings: 'الإعدادات' } },
   });
-  assert.equal(txt.nodeValue, '设置');
-  assert.equal(btn.getAttribute('aria-label'), '设置');
+  assert.equal(txt.nodeValue, 'الإعدادات');
+  assert.equal(btn.getAttribute('aria-label'), 'الإعدادات');
 
   // Simulate React temporarily detaching node while tracker prunes, then reattaching same node
   doc.body.removeChild(btn);
@@ -598,14 +599,13 @@ test('v1.0.7-beta.4: effort slider settings popup & new i18n keys have complete 
   assert.ok(dlg.textContent.includes('Close'));
   close();
 
-  for (const lang of ['zh-CN', 'zh-TW', 'yue', 'en', 'ja']) {
+  for (const lang of ['en', 'ar']) {
     const ui = locales.getUiStrings(lang);
     assert.ok(ui.setEffortMemoryTitle, `missing setEffortMemoryTitle for ${lang}`);
     assert.ok(ui.setEffortMemoryDesc, `missing setEffortMemoryDesc for ${lang}`);
     assert.ok(ui.hostI18nOffExtHint, `missing hostI18nOffExtHint for ${lang}`);
+    assert.ok(!/[\u4e00-\u9fff]/.test(ui.setEffortMemoryTitle + ui.setEffortMemoryDesc + ui.hostI18nOffExtHint));
   }
-  const enUi = locales.getUiStrings('en');
-  assert.ok(!/[\u4e00-\u9fff]/.test(enUi.setEffortMemoryTitle + enUi.setEffortMemoryDesc + enUi.hostI18nOffExtHint));
 });
 
 test('v1.0.7-beta.4: Issue #38 macOS relaunch normalizes .app bundle, strips ELECTRON_RUN_AS_NODE, waits for Helpers & SingletonLock, uses open -na', () => {
@@ -658,7 +658,7 @@ test('v1.0.7-beta.4: ui-runtime switches host-i18n to off reverse-restore on off
   win.HTMLElement = Object;
   win.Element = Object;
   win.Node = { ELEMENT_NODE: 1, TEXT_NODE: 3 };
-  win.navigator = { language: 'zh-CN' };
+  win.navigator = { language: 'ar' };
 
   // Build composer + model-selector + takeover card + settings panel with external zh marker
   const conv = doc.createElement('div');
@@ -707,7 +707,7 @@ test('v1.0.7-beta.4: ui-runtime switches host-i18n to off reverse-restore on off
   sandbox.globalThis = sandbox;
   doc.defaultView = sandbox;
 
-  const expr = cdp.buildInjectExpression({ ...cdp.DEFAULT_CONFIG, hostLocalization: 'on', language: 'zh-CN' });
+  const expr = cdp.buildInjectExpression({ ...cdp.DEFAULT_CONFIG, hostLocalization: 'on', language: 'ar' });
   const res = vm.runInNewContext(expr, sandbox);
   assert.equal(res.status, 'ok');
   try {
@@ -772,7 +772,7 @@ test('v1.0.7-beta.4: ui-runtime switches host-i18n to off reverse-restore on off
     sandbox.__agPrism.sync();
     const hiDesc = sec.querySelector('[data-ag-cs-row="hostLocalization"] [data-k="d"]');
     assert.ok(hiDesc);
-    assert.equal(hiDesc.textContent, locales.getUiStrings('zh-CN').hostI18nOffExtHint);
+    assert.equal(hiDesc.textContent, locales.getUiStrings('ar').hostI18nOffExtHint);
     assert.equal(hiDesc.getAttribute('data-ag-cs-hi-warn'), 'ext');
 
     // Switching to auto + English immediately calls window.__agPrismHostI18n.destroy() and shows the external-i18n warning pill
@@ -850,9 +850,9 @@ test('v1.0.7: thought-client auto-translates asynchronously updated & newly adde
   doc.body.appendChild(convView);
 
   const dict = {
-    'New Conversation': '新会话',
-    'Optimize Async Title Sync': '优化异步标题同步',
-    'Debug WebGL Rim Layer': '调试 WebGL 棱镜层',
+    'New Conversation': 'محادثة جديدة',
+    'Optimize Async Title Sync': 'تحسين مزامنة العناوين غير المتزامنة',
+    'Debug WebGL Rim Layer': 'تصحيح طبقة حافة WebGL',
   };
   const batchCalls = [];
   const bridge = {
@@ -875,7 +875,7 @@ test('v1.0.7: thought-client auto-translates asynchronously updated & newly adde
     setTimeout,
     clearTimeout,
     performance: { now: () => Date.now() },
-    navigator: { language: 'zh-CN' },
+    navigator: { language: 'ar' },
     localStorage: win.localStorage,
     MutationObserver: MockMutationObserver,
     getComputedStyle: () => ({ display: 'block', visibility: 'visible', opacity: '1' }),
@@ -893,12 +893,12 @@ test('v1.0.7: thought-client auto-translates asynchronously updated & newly adde
   assert.ok(th);
 
   try {
-    th.sync({ thoughtTranslate: 'machine', language: 'zh-CN', translateTitles: true });
+    th.sync({ thoughtTranslate: 'machine', language: 'ar', translateTitles: true });
     th.scanImmediate();
     await new Promise((r) => setTimeout(r, 30));
 
-    assert.equal(row1Text.nodeValue, '新会话');
-    assert.equal(bc2Text.nodeValue, '新会话');
+    assert.equal(row1Text.nodeValue, 'محادثة جديدة');
+    assert.equal(bc2Text.nodeValue, 'محادثة جديدة');
     assert.ok(th.__observedTitleRoots.has(listEl), 'titleObserver must observe conversation-list-sidebar');
     assert.ok(th.__observedTitleRoots.has(nav), 'titleObserver must observe breadcrumb nav');
     assert.equal(th.__observedTitleRoots.has(doc.body), false, 'titleObserver must NEVER observe document.body');
@@ -921,8 +921,8 @@ test('v1.0.7: thought-client auto-translates asynchronously updated & newly adde
       { type: 'characterData', target: bc2Text },
     ]);
     await new Promise((r) => setTimeout(r, 200));
-    assert.equal(row1Text.nodeValue, '优化异步标题同步', 'sidebar new conversation title must auto-translate on async characterData update');
-    assert.equal(bc2Text.nodeValue, '优化异步标题同步', 'breadcrumb new conversation title must auto-translate on async characterData update');
+    assert.equal(row1Text.nodeValue, 'تحسين مزامنة العناوين غير المتزامنة', 'sidebar new conversation title must auto-translate on async characterData update');
+    assert.equal(bc2Text.nodeValue, 'تحسين مزامنة العناوين غير المتزامنة', 'breadcrumb new conversation title must auto-translate on async characterData update');
     assert.equal(batchCalls.length, callsAfterInit + 1, 'simultaneous sidebar+breadcrumb updates must coalesce into 1 batch RPC');
 
     // Simulate a brand new sidebar row inserted dynamically (childList)
@@ -936,7 +936,7 @@ test('v1.0.7: thought-client auto-translates asynchronously updated & newly adde
     listEl.appendChild(row2);
     titleObs.trigger([{ type: 'childList', target: listEl, addedNodes: [row2] }]);
     await new Promise((r) => setTimeout(r, 200));
-    assert.equal(row2Text.nodeValue, '调试 WebGL 棱镜层', 'newly inserted sidebar row must auto-translate');
+    assert.equal(row2Text.nodeValue, 'تصحيح طبقة حافة WebGL', 'newly inserted sidebar row must auto-translate');
 
     // Disabling translateTitles disconnects titleObserver and restores latest English originals (NOT stale placeholder)
     th.setTranslateTitles(false);

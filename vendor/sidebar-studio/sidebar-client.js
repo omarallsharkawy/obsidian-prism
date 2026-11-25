@@ -1,8 +1,8 @@
-// Obsidian Prism v1.0.2 — Sidebar Studio v2.1 Channel 3 客户端（Code 原生无损保留 + Chat 双极工作台）
-// - 核心架构：Code 模式 100% 保留原生 Antigravity 侧边栏（多工作区分组、运行态四点动画、Swarm/Coordinator 与子代理标识零改动）
-// - 持久顶栏：仅在原生侧栏顶部嵌入持久化 [ Code | Chat ] 失重弹簧切换胶囊；切至 Chat 模式平滑切入 Knowledge+Spark 侧栏与 M3 Expressive 首页
-// - 安全红线：100% DOM API 构建、零全局偏好写入、零 Emoji、零跨模式迁移、TanStack Router 对象签名路由
-// - 性能红线：严守 7 条性能规范，侧栏仅使用 contain: style，隐藏态 0fps 休眠，destroy() 100% 原子复原
+// Obsidian Prism v1.0.2 - Sidebar Studio v2.1 Channel 3 Client (Lossless Native Code + Bipolar Chat Workbench)
+// - Core architecture: Code mode preserves the native Antigravity sidebar 100% intact (multi-workspace groups, running animations, Swarm/Coordinator and subagent badges untouched)
+// - Persistent top dock: embeds a persistent [ Code | Chat ] spring-animated toggle pill at the top of the native sidebar; switching to Chat transitions smoothly into the Knowledge+Spark sidebar and M3 Expressive home
+// - Security redlines: 100% DOM API construction, zero global preference writes, zero Emoji, zero cross-mode migration, TanStack Router object-signature navigation
+// - Performance redlines: strictly follows 7 performance rules, sidebar uses contain: style only, 0fps sleep when hidden, destroy() restores atomically 100%
 
 (function (root) {
   'use strict';
@@ -20,7 +20,7 @@
   }
   const SVG_NS = 'http://www.w3.org/2000/svg';
 
-  // 官方原版彩色 Brand SVG（DOMParser 挂载并重写唯一 ID 前缀，纯安全 DOM 注入）
+  // Official full-color Brand SVGs (mounted via DOMParser with unique rewritten ID prefixes for safe pure-DOM injection)
   const OFFICIAL_GEMINI_COLOR_SVG =
     '<svg viewBox="0 0 24 24" width="100%" height="100%" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.616 10.835a14.147 14.147 0 01-4.45-3.001 14.111 14.111 0 01-3.678-6.452.503.503 0 00-.975 0 14.134 14.134 0 01-3.679 6.452 14.155 14.155 0 01-4.45 3.001c-.65.28-1.318.505-2.002.678a.502.502 0 000 .975c.684.172 1.35.397 2.002.677a14.147 14.147 0 014.45 3.001 14.112 14.112 0 013.679 6.453.502.502 0 00.975 0c.172-.685.397-1.351.677-2.003a14.145 14.145 0 013.001-4.45 14.113 14.113 0 016.453-3.678.503.503 0 000-.975 13.245 13.245 0 01-2.003-.678z" fill="#3186FF"/><path d="M20.616 10.835a14.147 14.147 0 01-4.45-3.001 14.111 14.111 0 01-3.678-6.452.503.503 0 00-.975 0 14.134 14.134 0 01-3.679 6.452 14.155 14.155 0 01-4.45 3.001c-.65.28-1.318.505-2.002.678a.502.502 0 000 .975c.684.172 1.35.397 2.002.677a14.147 14.147 0 014.45 3.001 14.112 14.112 0 013.679 6.453.502.502 0 00.975 0c.172-.685.397-1.351.677-2.003a14.145 14.145 0 013.001-4.45 14.113 14.113 0 016.453-3.678.503.503 0 000-.975 13.245 13.245 0 01-2.003-.678z" fill="url(#gem-brand-0)"/><path d="M20.616 10.835a14.147 14.147 0 01-4.45-3.001 14.111 14.111 0 01-3.678-6.452.503.503 0 00-.975 0 14.134 14.134 0 01-3.679 6.452 14.155 14.155 0 01-4.45 3.001c-.65.28-1.318.505-2.002.678a.502.502 0 000 .975c.684.172 1.35.397 2.002.677a14.147 14.147 0 014.45 3.001 14.112 14.112 0 013.679 6.453.502.502 0 00.975 0c.172-.685.397-1.351.677-2.003a14.145 14.145 0 013.001-4.45 14.113 14.113 0 016.453-3.678.503.503 0 000-.975 13.245 13.245 0 01-2.003-.678z" fill="url(#gem-brand-1)"/><path d="M20.616 10.835a14.147 14.147 0 01-4.45-3.001 14.111 14.111 0 01-3.678-6.452.503.503 0 00-.975 0 14.134 14.134 0 01-3.679 6.452 14.155 14.155 0 01-4.45 3.001c-.65.28-1.318.505-2.002.678a.502.502 0 000 .975c.684.172 1.35.397 2.002.677a14.147 14.147 0 014.45 3.001 14.112 14.112 0 013.679 6.453.502.502 0 00.975 0c.172-.685.397-1.351.677-2.003a14.145 14.145 0 013.001-4.45 14.113 14.113 0 016.453-3.678.503.503 0 000-.975 13.245 13.245 0 01-2.003-.678z" fill="url(#gem-brand-2)"/><defs><linearGradient gradientUnits="userSpaceOnUse" id="gem-brand-0" x1="7" x2="11" y1="15.5" y2="12"><stop stop-color="#08B962"/><stop offset="1" stop-color="#08B962" stop-opacity="0"/></linearGradient><linearGradient gradientUnits="userSpaceOnUse" id="gem-brand-1" x1="8" x2="11.5" y1="5.5" y2="11"><stop stop-color="#F94543"/><stop offset="1" stop-color="#F94543" stop-opacity="0"/></linearGradient><linearGradient gradientUnits="userSpaceOnUse" id="gem-brand-2" x1="3.5" x2="17.5" y1="13.5" y2="12"><stop stop-color="#FABC12"/><stop offset=".46" stop-color="#FABC12" stop-opacity="0"/></linearGradient></defs></svg>';
 
@@ -85,18 +85,435 @@
   };
 
   const CHAT_STARTER_CHIPS = {
-    pure: [
-      { label: '润色文字', prompt: '请帮我把下面这段文字润色得更自然清晰：\n' },
-      { label: '联网查资料', prompt: '请帮我联网检索一下最新资料并总结要点：' },
-      { label: '讲懂概念', prompt: '请用通俗易懂的日常比喻，帮我讲清楚：' },
-      { label: '生成配图', prompt: '请帮我生成一张配图，画面内容与风格要求是：' },
-    ],
-    spark: [
-      { label: '整理工作文件夹', prompt: '请先查看当前工作文件夹里的文件，帮我整理一份清晰目录清单和归类建议。' },
-      { label: '汇总文档要点', prompt: '请读取当前文件夹中的主要文档，帮我提炼核心结论与待办清单。' },
-      { label: '安排日程提醒', prompt: '请帮我安排一个日程或定时提醒：' },
-      { label: '起草结构化文档', prompt: '请在当前工作文件夹里帮我起草一份文档，主题是：' },
-    ],
+    en: {
+      pure: [
+        { label: 'Polish text', prompt: 'Please polish the following text to make it clearer and more natural:\n' },
+        { label: 'Search the web', prompt: 'Please search the web for the latest information and summarize the key points: ' },
+        { label: 'Explain a concept', prompt: 'Please explain this clearly using everyday analogies: ' },
+        { label: 'Generate image', prompt: 'Please generate an image with the following subject and style: ' },
+      ],
+      spark: [
+        { label: 'Organize folder', prompt: 'Please inspect the files in the current workspace folder and suggest a clean directory layout and grouping.' },
+        { label: 'Summarize docs', prompt: 'Please read the main documents in the current folder and extract key conclusions and action items.' },
+        { label: 'Schedule reminder', prompt: 'Please help me schedule a reminder or recurring task: ' },
+        { label: 'Draft document', prompt: 'Please draft a structured document in the current workspace folder about: ' },
+      ],
+    },
+    ar: {
+      pure: [
+        { label: 'تحسين النص', prompt: 'يرجى تحسين صياغة النص التالي ليكون أكثر وضوحاً وسلاسة:\n' },
+        { label: 'البحث على الويب', prompt: 'يرجى البحث على الويب عن أحدث المعلومات وتلخيص النقاط الرئيسية حول: ' },
+        { label: 'تبسيط مفهوم', prompt: 'يرجى شرح هذا المفهوم بأسلوب مبسط مع أمثلة يومية: ' },
+        { label: 'توليد صورة', prompt: 'يرجى توليد صورة بالموضوع والأسلوب التاليين: ' },
+      ],
+      spark: [
+        { label: 'تنظيم المجلد', prompt: 'يرجى فحص الملفات في مجلد العمل الحالي واقتراح هيكل منظم وتصنيف واضح لها.' },
+        { label: 'تلخيص المستندات', prompt: 'يرجى قراءة المستندات الرئيسية في المجلد الحالي واستخلاص أهم النتائج وقائمة المهام.' },
+        { label: 'جدولة تذكير', prompt: 'يرجى مساعدتي في جدولة تذكير أو مهمة دورية: ' },
+        { label: 'مسودة مستند', prompt: 'يرجى إعداد مسودة مستند منظم في مجلد العمل الحالي حول: ' },
+      ],
+    },
+  };
+
+  const SB_I18N = {
+    en: {
+      geminiModels: 'Gemini Models',
+      thinkingEffort: 'Thinking Effort',
+      switchedToModel: (id) => `Switched to ${id}`,
+      currentTag: 'Current',
+      sharedTag: 'Shared',
+      chooseLocalFolder: 'Choose local folder...',
+      newWorkspaceFolder: 'New workspace folder',
+      policyZeroTools: 'Plain text (no tools)',
+      policyFileAccess: 'Scoped files',
+      policySchedule: 'Schedules',
+      policyWebSearch: 'Web search',
+      policyImageFiles: 'Images/files',
+      policyPluginsCount: (n) => `${n} plugins`,
+      policyMcpsCount: (n) => `${n} MCPs`,
+      policyNoExtTools: 'No external tools',
+      policyUserRules: 'User rules',
+      policySummary: (isSpark, parts) => `${isSpark ? 'Spark Files' : 'Pure Chat'} · ${parts} (Click to manage capabilities & extensions)`,
+      renameConv: 'Rename conversation',
+      renameConvPh: 'Enter new conversation title...',
+      exportMd: 'Export as Markdown',
+      newConv: 'New chat',
+      pinConv: 'Pin conversation',
+      unpinConv: 'Unpin conversation',
+      pureTextChip: 'Pure · Text only',
+      policyModalTitle: 'Chat Capabilities & Extensions',
+      policyModalSub: 'Pure and Spark are configured independently; changes only affect Chat and never touch your Code environment.',
+      close: 'Close',
+      pureTab: 'Pure (Daily Chat)',
+      sparkTab: 'Spark (Files & Tasks)',
+      pureCoreTitle: 'Pure Daily Chat Capabilities',
+      sparkCoreTitle: 'Spark Files & Task Capabilities',
+      capWebLabel: 'Web search & webpage reading',
+      capWebDescPure: 'Allow searching the web for fresh information and reading webpages on demand',
+      capWebDescSpark: 'Search the web, verify latest webpage information, and compile summaries',
+      capImgLabel: 'Image generation & attachment analysis',
+      capImgDescPure: 'Generate images and understand images or files you upload',
+      capImgDescSpark: 'Generate images and inspect uploaded documents, spreadsheets, and screenshots',
+      capRulesLabel: 'Keep my language & communication preferences',
+      capRulesDescPure: 'Preserve your preferred language and tone while keeping Chat clean',
+      capRulesDescSpark: 'Preserve your communication style while filtering unrelated dev extensions',
+      capZeroLabel: 'Plain-text chat mode',
+      capZeroDesc: 'Disable all external tools and extensions for pure text conversation',
+      capFilesLabel: 'Read & write current workspace folder',
+      capFilesDesc: 'Allow organizing, editing, and archiving documents inside the selected Spark folder',
+      capSchedLabel: 'Schedules & reminders',
+      capSchedDesc: 'Assist with setting reminders, recurring schedules, and timed tasks',
+      capSandboxLabel: 'Safety confirmation guard',
+      capSandboxDesc: 'Confine work to the selected folder and require your confirmation before risky actions (recommended)',
+      pluginsSecTitle: 'Allowed Extensions & Plugins (off by default)',
+      mcpSecTitle: 'Allowed External Tool Servers (MCP, off by default)',
+      enabledCount: (on, total) => `${on} / ${total} enabled`,
+      loadingPlugins: 'Loading installed plugins...',
+      noPlugins: 'No plugins detected',
+      loadingMcps: 'Loading external tool servers...',
+      noMcps: 'No external tool servers detected',
+      tagBuiltin: 'Built-in',
+      tagDisabled: 'Disabled',
+      tagRules: 'Rules',
+      tagSkills: 'Skills',
+      tagHasTools: 'Tools',
+      tagHooksBlocked: 'Auto-hooks blocked',
+      mcpToolCount: (n) => `${n} tools`,
+      mcpReadyDesc: 'Ready · Available only in this Chat mode when enabled',
+      mcpOnDemandDesc: 'Enable on demand',
+      uiSecTitle: 'Display',
+      showTelemetryLabel: 'Show status pill above composer',
+      showTelemetryDesc: 'Compactly display generation speed and context usage; disable for a cleaner canvas',
+      showStarterLabel: 'Show starter suggestions on home',
+      showStarterDesc: 'Display quick starter chips below the new-chat input; disable for minimal whitespace',
+      resetDefaults: 'Reset defaults',
+      cancel: 'Cancel',
+      saveApply: 'Save & apply',
+      save: 'Save',
+      savedPolicyToast: 'Settings saved; active for new and upcoming chats',
+      fenceSharedNote: 'Shared folder · Protected: This folder is shared with an active Code workspace; non-destructive protection is enabled so Code tasks remain unaffected.',
+      fenceSparkNote: 'Spark Safety Guard: Confines file organization and schedules to the selected workspace folder, requiring confirmation before risky actions.',
+      manageSparkCaps: 'Manage Spark capabilities & extensions...',
+      removeAtt: 'Remove attachment',
+      maxAttToast: 'Up to 6 files or screenshots per message',
+      attTooBigToast: (name) => `"${name}" exceeds 10 MB and was skipped`,
+      sparkFileTooBigToast: (name) => `"${name}" exceeds the 8 MB limit and was skipped`,
+      importedFilesToast: (n, projName, first) => `Imported ${n} file(s) to "${projName}": ${first}`,
+      promptProcessFolderFiles: (refs) => `Please help me work with ${refs} in the folder:`,
+      promptProcessDroppedFiles: (refs) => `Please help me process the newly added ${refs} in the folder:`,
+      promptInspectFile: (name) => `Please inspect and process @${name}:`,
+      selectSparkFirstToast: 'Please select a Spark workspace folder first',
+      workspaceFolderPrefix: (name) => `Workspace Folder · ${name}`,
+      loadingFolderFiles: 'Loading folder files...',
+      importLocalFiles: 'Import local files to this folder...',
+      openInSystemFolder: 'Open in system file manager',
+      cantReadFolder: 'Unable to read folder contents',
+      emptyFolderHint: 'Folder is empty; drop files onto the input box to import',
+      copiedFileRefToast: (name) => `Copied file reference @${name}`,
+      uploadAttMenu: 'Upload images / files (sent with first message)',
+      importToSparkMenu: 'Import local files to current Spark folder...',
+      chatCapsMenu: 'Chat capabilities & extensions...',
+      defaultAttPrompt: 'Please analyze the images or files I attached.',
+      bgTaskTitle: (label, count) => `${label} background tasks (${count})`,
+      searchChats: 'Search chats',
+      batchManage: 'Multi-select & batch manage',
+      searchChatsPh: 'Search Chat conversations...',
+      selectedCount: (n) => `${n} selected`,
+      exitBatch: 'Exit multi-select',
+      batchMove: 'Move',
+      batchArchive: 'Archive',
+      batchDelete: 'Delete',
+      batchMoveTitle: (n) => `Move ${n} conversation(s) to`,
+      pureRoot: 'Pure root',
+      batchDelTitle: (n) => `Permanently delete ${n} conversation(s)`,
+      batchDelBody: 'Selected conversations and their message history will be permanently deleted (running conversations are automatically skipped). This cannot be undone.',
+      batchDelConfirm: (n) => `Delete permanently (${n})`,
+      capsAndExt: 'Capabilities & Extensions',
+      enterNewNamePh: 'Enter new name...',
+      delConvTitle: 'Delete conversation permanently?',
+      delConvBody: (title) => `Permanently delete "${title}"? This cannot be undone. To hide it temporarily, archive it instead.`,
+      archiveInsteadBtn: 'Archive instead (restorable anytime)',
+      archivedConvToast: 'Conversation archived',
+      restoredConvToast: 'Conversation restored',
+      delConvBtn: 'Delete permanently',
+      deletedConvToast: 'Conversation permanently deleted',
+      delFolderToastAll: (n) => `Deleted folder and ${n} conversation(s)`,
+      delFolderToastArch: (n) => `Archived ${n} conversation(s) and deleted folder`,
+      delFolderToastOnly: 'Folder deleted',
+      delFolderTitle: (name) => `Delete folder "${name}"`,
+      delFolderEmptyBody: 'This folder is currently empty. Delete it?',
+      delFolderBtn: 'Delete folder',
+      delFolderNonEmptyBody: (n) => `This folder contains ${n} conversation(s). Choose how to handle them:`,
+      delFolderKeepChats: (n) => `Delete folder only (move ${n} chat(s) to Pure)`,
+      delFolderArchChats: (n) => `Archive all ${n} chat(s) and delete folder`,
+      delFolderDelChats: (n) => `Permanently delete all ${n} chat(s) and folder`,
+      delSparkToastAll: (n) => `Removed workspace and permanently deleted ${n} conversation(s)`,
+      delSparkToastArch: (n) => `Archived ${n} conversation(s) and removed workspace`,
+      delSparkToastOnly: 'Spark workspace removed',
+      delSparkTitle: (name) => `Remove Spark workspace "${name}"`,
+      delSparkEmptyBody: 'This workspace has no linked conversations. Remove it from Spark?',
+      delSparkSafeNoteEmpty: 'Safety note: Only unbinds the workspace; your local files on disk are never deleted.',
+      confirmRemove: 'Remove workspace',
+      delSparkNonEmptyBody: (n) => `This workspace contains ${n} conversation(s). Choose how to handle them:`,
+      delSparkSafeNote: 'Safety note: All options affect chat records and bindings only; files in your local folder on disk are never deleted.',
+      delSparkUnbindChats: (n) => `Unbind workspace (move ${n} chat(s) to Pure)`,
+      delSparkArchChats: (n) => `Archive all ${n} chat(s) and remove workspace`,
+      delSparkDelChats: (n) => `Permanently delete all ${n} chat(s) and remove workspace`,
+      noMdExportToast: 'No Markdown content available to export for this conversation',
+      exportedMdToast: 'Exported Markdown and copied to clipboard',
+      exportMdFailToast: 'Failed to export Markdown',
+      stopRunning: 'Stop running',
+      stopRequestedToast: 'Stop requested for conversation',
+      moveToPureRoot: 'Move to Pure root',
+      moveIntoFolder: (name) => `Move to: ${name}`,
+      archiveConv: 'Archive conversation',
+      restoreConv: 'Restore from archive',
+      deletePermMenu: 'Delete permanently',
+      newChatInFolder: 'New chat in this folder',
+      renameFolder: 'Rename folder',
+      renameFolderPh: 'Enter new folder name...',
+      deleteFolderMenu: 'Delete folder...',
+      newChatInWorkspace: 'New chat in this workspace',
+      renameWorkspace: 'Rename workspace',
+      renameWorkspaceTitle: 'Rename workspace display name',
+      renameWorkspacePh: 'Enter workspace display name...',
+      previewImportFiles: 'Preview / import folder files...',
+      openInFolder: 'Open in folder',
+      removeWorkspaceMenu: 'Remove / unbind workspace...',
+      batchOpToast: (op, okN, skN) => {
+        const verb = op === 'delete' ? 'Deleted' : op === 'archive' ? 'Archived' : 'Moved';
+        return skN > 0
+          ? `${verb} ${okN} conversation(s) (${skN} running or restricted skipped)`
+          : `${verb} ${okN} conversation(s)`;
+      },
+      moreActions: 'More actions',
+      newSubfolder: 'New subfolder',
+      movedToPureRootToast: 'Moved to Pure root',
+      dropToPin: 'Drop here to pin quickly',
+      pinnedToast: 'Conversation pinned',
+      newFolderPh: 'Folder name, press Enter...',
+      grpPinned: 'Pinned',
+      grpToday: 'Today',
+      grpYesterday: 'Yesterday',
+      grpWeek: 'Last 7 days',
+      grpEarlier: 'Earlier',
+      movedToFolderToast: (name) => `Moved to folder "${name}"`,
+      folderActions: 'Folder actions',
+      noChatsEmpty: 'No conversations yet',
+      newBoxPh: 'Workspace folder name, press Enter...',
+      noSparkEmpty: 'Switch to Spark to pick a local folder or create a workspace',
+      workspaceActions: 'Workspace actions',
+      archivedSection: 'Archived',
+      attachAndOptions: 'Attach files & options',
+      workspaceFolder: 'Workspace folder',
+      folderFilesTitle: 'Preview or import files in the workspace folder',
+      folderFiles: 'Folder files',
+      safetyGuard: 'Safety guard',
+      sharedProtected: 'Shared · Protected',
+      inputPhPure: 'Ask anything, or organize an idea...',
+      inputPhSpark: 'Give me a task to work on...',
+      dismissStartersTitle: 'Hide starter suggestions (re-enable in Capabilities & Extensions)',
+      defaultModelDesc: 'Google Gemini conversational and reasoning model',
+    },
+    ar: {
+      geminiModels: 'نماذج Gemini',
+      thinkingEffort: 'مستوى التفكير',
+      switchedToModel: (id) => `تم التبديل إلى ${id}`,
+      currentTag: 'الحالي',
+      sharedTag: 'مشترك',
+      chooseLocalFolder: 'اختيار مجلد محلي…',
+      newWorkspaceFolder: 'إنشاء مجلد عمل جديد',
+      policyZeroTools: 'نص خالص بدون أدوات',
+      policyFileAccess: 'ملفات محددة النطاق',
+      policySchedule: 'الجدولة والتذكير',
+      policyWebSearch: 'البحث على الويب',
+      policyImageFiles: 'الصور والمرفقات',
+      policyPluginsCount: (n) => `${n} إضافات`,
+      policyMcpsCount: (n) => `${n} خوادم MCP`,
+      policyNoExtTools: 'بدون أدوات خارجية',
+      policyUserRules: 'قواعد المستخدم',
+      policySummary: (isSpark, parts) => `${isSpark ? 'Spark للملفات' : 'Pure للدردشة'} · ${parts} (انقر لإدارة القدرات والإضافات)`,
+      renameConv: 'إعادة تسمية المحادثة',
+      renameConvPh: 'أدخل عنواناً جديداً للمحادثة…',
+      exportMd: 'تصدير بصيغة Markdown',
+      newConv: 'محادثة جديدة',
+      pinConv: 'تثبيت المحادثة',
+      unpinConv: 'إلغاء التثبيت',
+      pureTextChip: 'Pure · نص فقط',
+      policyModalTitle: 'قدرات وإضافات الدردشة',
+      policyModalSub: 'إعدادات مستقلة لـ Pure و Spark؛ تؤثر فقط على الدردشة ولا تعدّل بيئة Code البرمجية.',
+      close: 'إغلاق',
+      pureTab: 'Pure (دردشة يومية)',
+      sparkTab: 'Spark (ملفات ومهام)',
+      pureCoreTitle: 'قدرات الدردشة اليومية Pure',
+      sparkCoreTitle: 'قدرات الملفات والمهام Spark',
+      capWebLabel: 'البحث على الويب وقراءة الصفحات',
+      capWebDescPure: 'السماح بالبحث عن أحدث المعلومات وقراءة صفحات الويب عند الحاجة',
+      capWebDescSpark: 'المساعدة في البحث والتحقق من أحدث معلومات الويب وتلخيصها',
+      capImgLabel: 'توليد الصور وتحليل المرفقات',
+      capImgDescPure: 'دعم توليد الصور وفهم الصور والملفات التي ترفعها',
+      capImgDescSpark: 'دعم توليد الصور وتحليل المستندات والجداول ولقطات الشاشة المرفوعة',
+      capRulesLabel: 'الاحتفاظ بتفضيلات اللغة والأسلوب',
+      capRulesDescPure: 'تطبيق أسلوبك وتفضيلات التواصل مع الحفاظ على بيئة دردشة نظيفة',
+      capRulesDescSpark: 'تطبيق أسلوب التواصل مع استبعاد إضافات التطوير غير المرتبطة',
+      capZeroLabel: 'وضع الدردشة النصية الخالصة',
+      capZeroDesc: 'تعطيل جميع الأدوات والإضافات الخارجية لمحادثة نصية بحتة',
+      capFilesLabel: 'قراءة وكتابة مجلد العمل الحالي',
+      capFilesDesc: 'السماح بتنظيم المستندات وتحريرها وأرشفتها داخل مجلد Spark المحدد',
+      capSchedLabel: 'الجداول والتذكيرات',
+      capSchedDesc: 'المساعدة في إعداد التذكيرات والمهام الدورية والجدولة الزمنية',
+      capSandboxLabel: 'حماية التأكيد الأمني',
+      capSandboxDesc: 'حصر العمل داخل المجلد المحدد وطلب تأكيدك قبل أي إجراء عالي الخطورة (موصى به)',
+      pluginsSecTitle: 'الإضافات المسموح بها (معطلة افتراضياً)',
+      mcpSecTitle: 'خوادم الأدوات الخارجية المسموح بها (MCP، معطلة افتراضياً)',
+      enabledCount: (on, total) => `مفعّل ${on} / ${total}`,
+      loadingPlugins: 'جارٍ قراءة الإضافات المثبتة…',
+      noPlugins: 'لم يتم اكتشاف إضافات متاحة',
+      loadingMcps: 'جارٍ قراءة خوادم الأدوات الخارجية…',
+      noMcps: 'لم يتم اكتشاف خوادم أدوات خارجية',
+      tagBuiltin: 'مدمج',
+      tagDisabled: 'معطّل',
+      tagRules: 'قواعد',
+      tagSkills: 'مهارات',
+      tagHasTools: 'أدوات',
+      tagHooksBlocked: 'تم حظر الخطافات التلقائية',
+      mcpToolCount: (n) => `${n} أدوات`,
+      mcpReadyDesc: 'جاهز · متاح فقط في هذا الوضع عند التفعيل',
+      mcpOnDemandDesc: 'تفعيل عند الحاجة',
+      uiSecTitle: 'العرض والواجهة',
+      showTelemetryLabel: 'إظهار شريط الحالة أعلى مربع الإدخال',
+      showTelemetryDesc: 'عرض مختصر لسرعة التوليد واستهلاك السياق؛ أوقفه لواجهة أكثر هدوءاً',
+      showStarterLabel: 'إظهار الاقتراحات السريعة في الرئيسية',
+      showStarterDesc: 'عرض شرائح اقتراح سريعة أسفل مربع الإدخال؛ أوقفها للحفاظ على بساطة الصفحة',
+      resetDefaults: 'استعادة الافتراضي',
+      cancel: 'إلغاء',
+      saveApply: 'حفظ وتطبيق',
+      save: 'حفظ',
+      savedPolicyToast: 'تم حفظ الإعدادات وستُطبّق على المحادثات الجديدة والقادمة',
+      fenceSharedNote: 'مجلد مشترك · محمي: هذا المجلد مشترك مع مشروع Code نشط؛ تم تفعيل الحماية غير الإتلافية لضمان عدم تأثر مهام البرمجة.',
+      fenceSparkNote: 'حماية Spark الأمنية: يحصر تنظيم الملفات والمواعيد داخل مجلد العمل المحدد مع طلب موافقتك قبل الإجراءات الحساسة.',
+      manageSparkCaps: 'إدارة قدرات وإضافات Spark…',
+      removeAtt: 'إزالة المرفق',
+      maxAttToast: 'الحد الأقصى 6 ملفات أو لقطات شاشة لكل رسالة',
+      attTooBigToast: (name) => `يتجاوز «${name}» حد 10 MB وتم تخطيه`,
+      sparkFileTooBigToast: (name) => `يتجاوز «${name}» حد 8 MB وتم تخطيه`,
+      importedFilesToast: (n, projName, first) => `تم استيراد ${n} ملف(ات) إلى «${projName}»: ${first}`,
+      promptProcessFolderFiles: (refs) => `يرجى مساعدتي في التعامل مع ${refs} داخل المجلد:`,
+      promptProcessDroppedFiles: (refs) => `يرجى معالجة الملفات المضافة حديثاً ${refs} في المجلد:`,
+      promptInspectFile: (name) => `يرجى فحص ومعالجة @${name}:`,
+      selectSparkFirstToast: 'يرجى اختيار مجلد عمل Spark أولاً',
+      workspaceFolderPrefix: (name) => `مجلد العمل · ${name}`,
+      loadingFolderFiles: 'جارٍ قراءة ملفات المجلد…',
+      importLocalFiles: 'استيراد ملفات محلية إلى هذا المجلد…',
+      openInSystemFolder: 'فتح في مدير ملفات النظام',
+      cantReadFolder: 'تعذرت قراءة محتويات المجلد',
+      emptyFolderHint: 'المجلد فارغ حالياً؛ يمكنك سحب الملفات وإفلاتها في مربع الإدخال للاستيراد',
+      copiedFileRefToast: (name) => `تم نسخ مرجع الملف @${name}`,
+      uploadAttMenu: 'رفع صور / ملفات (تُرسل مع الرسالة الأولى)',
+      importToSparkMenu: 'استيراد ملفات محلية إلى مجلد Spark الحالي…',
+      chatCapsMenu: 'قدرات وإضافات الدردشة…',
+      defaultAttPrompt: 'يرجى تحليل الصور أو الملفات التي أرفقتها.',
+      bgTaskTitle: (label, count) => `مهام ${label} في الخلفية (${count})`,
+      searchChats: 'البحث في المحادثات',
+      batchManage: 'تحديد متعدد وإدارة جماعية',
+      searchChatsPh: 'البحث في محادثات Chat…',
+      selectedCount: (n) => `تم تحديد ${n}`,
+      exitBatch: 'إنهاء التحديد المتعدد',
+      batchMove: 'نقل',
+      batchArchive: 'أرشفة',
+      batchDelete: 'حذف',
+      batchMoveTitle: (n) => `نقل ${n} محادثة إلى`,
+      pureRoot: 'جذر Pure',
+      batchDelTitle: (n) => `حذف ${n} محادثة نهائياً`,
+      batchDelBody: 'سيتم حذف المحادثات المحددة وسجل رسائلها نهائياً (يتم تخطي المحادثات قيد التشغيل تلقائياً). لا يمكن التراجع عن هذا الإجراء.',
+      batchDelConfirm: (n) => `حذف نهائي (${n})`,
+      capsAndExt: 'القدرات والإضافات',
+      enterNewNamePh: 'أدخل اسماً جديداً…',
+      delConvTitle: 'حذف المحادثة نهائياً؟',
+      delConvBody: (title) => `هل تريد حذف «${title}» نهائياً؟ لا يمكن الاستعادة بعد الحذف؛ إذا أردت إخفاءها مؤقتاً يُنصح بالأرشفة.`,
+      archiveInsteadBtn: 'أرشفة بدلاً من الحذف (قابلة للاستعادة)',
+      archivedConvToast: 'تمت أرشفة المحادثة',
+      restoredConvToast: 'تمت استعادة المحادثة',
+      delConvBtn: 'حذف المحادثة نهائياً',
+      deletedConvToast: 'تم حذف المحادثة نهائياً',
+      delFolderToastAll: (n) => `تم حذف المجلد و${n} محادثة`,
+      delFolderToastArch: (n) => `تمت أرشفة ${n} محادثة وحذف المجلد`,
+      delFolderToastOnly: 'تم حذف المجلد',
+      delFolderTitle: (name) => `حذف المجلد «${name}»`,
+      delFolderEmptyBody: 'هذا المجلد فارغ حالياً. هل تريد حذفه؟',
+      delFolderBtn: 'حذف المجلد',
+      delFolderNonEmptyBody: (n) => `يحتوي هذا المجلد على ${n} محادثة. اختر كيفية التعامل معها:`,
+      delFolderKeepChats: (n) => `حذف المجلد فقط (نقل ${n} محادثة إلى Pure)`,
+      delFolderArchChats: (n) => `أرشفة جميع المحادثات (${n}) وحذف المجلد`,
+      delFolderDelChats: (n) => `حذف جميع المحادثات (${n}) والمجلد نهائياً`,
+      delSparkToastAll: (n) => `تمت إزالة مساحة العمل وحذف ${n} محادثة نهائياً`,
+      delSparkToastArch: (n) => `تمت أرشفة ${n} محادثة وإزالة مساحة العمل`,
+      delSparkToastOnly: 'تمت إزالة مساحة عمل Spark',
+      delSparkTitle: (name) => `إزالة مساحة عمل Spark «${name}»`,
+      delSparkEmptyBody: 'لا توجد محادثات مرتبطة بمساحة العمل هذه. هل تريد إزالتها من Spark؟',
+      delSparkSafeNoteEmpty: 'تنبيه أمان: يتم فك ارتباط مساحة العمل فقط ولن تُحذف ملفاتك الأصلية على القرص أبداً.',
+      confirmRemove: 'تأكيد الإزالة',
+      delSparkNonEmptyBody: (n) => `تحتوي مساحة العمل هذه على ${n} محادثة. اختر كيفية التعامل معها:`,
+      delSparkSafeNote: 'تنبيه أمان: جميع الخيارات تؤثر على سجلات المحادثات والارتباط فقط ولن تُحذف الملفات المحلية على القرص أبداً.',
+      delSparkUnbindChats: (n) => `فك ارتباط مساحة العمل (نقل ${n} محادثة إلى Pure)`,
+      delSparkArchChats: (n) => `أرشفة جميع المحادثات (${n}) وإزالة مساحة العمل`,
+      delSparkDelChats: (n) => `حذف جميع المحادثات (${n}) وإزالة مساحة العمل نهائياً`,
+      noMdExportToast: 'لا يوجد محتوى Markdown متاح للتصدير في هذه المحادثة',
+      exportedMdToast: 'تم تصدير Markdown ونسخه إلى الحافظة',
+      exportMdFailToast: 'فشل تصدير Markdown',
+      stopRunning: 'إيقاف التشغيل',
+      stopRequestedToast: 'تم إرسال طلب إيقاف المحادثة',
+      moveToPureRoot: 'نقل إلى جذر Pure',
+      moveIntoFolder: (name) => `نقل إلى: ${name}`,
+      archiveConv: 'أرشفة المحادثة',
+      restoreConv: 'استعادة من الأرشيف',
+      deletePermMenu: 'حذف نهائي',
+      newChatInFolder: 'محادثة جديدة في هذا المجلد',
+      renameFolder: 'إعادة تسمية المجلد',
+      renameFolderPh: 'أدخل اسم المجلد الجديد…',
+      deleteFolderMenu: 'حذف المجلد…',
+      newChatInWorkspace: 'محادثة جديدة في مساحة العمل هذه',
+      renameWorkspace: 'إعادة تسمية مساحة العمل',
+      renameWorkspaceTitle: 'إعادة تسمية اسم العرض لمساحة العمل',
+      renameWorkspacePh: 'أدخل اسم العرض لمساحة العمل…',
+      previewImportFiles: 'معاينة / استيراد ملفات المجلد…',
+      openInFolder: 'فتح في المجلد',
+      removeWorkspaceMenu: 'إزالة / فك ارتباط مساحة العمل…',
+      batchOpToast: (op, okN, skN) => {
+        const verb = op === 'delete' ? 'حذف' : op === 'archive' ? 'أرشفة' : 'نقل';
+        return skN > 0
+          ? `تم ${verb} ${okN} محادثة (تم تخطي ${skN} قيد التشغيل أو مقيدة)`
+          : `تم ${verb} ${okN} محادثة`;
+      },
+      moreActions: 'المزيد من الإجراءات',
+      newSubfolder: 'مجلد فرعي جديد',
+      movedToPureRootToast: 'تم النقل إلى جذر Pure',
+      dropToPin: 'أفلت هنا للتثبيت السريع',
+      pinnedToast: 'تم تثبيت المحادثة',
+      newFolderPh: 'اسم المجلد، اضغط Enter للإنشاء…',
+      grpPinned: 'مثبّتة',
+      grpToday: 'اليوم',
+      grpYesterday: 'أمس',
+      grpWeek: 'آخر 7 أيام',
+      grpEarlier: 'أقدم',
+      movedToFolderToast: (name) => `تم النقل إلى المجلد «${name}»`,
+      folderActions: 'إجراءات المجلد',
+      noChatsEmpty: 'لا توجد محادثات بعد',
+      newBoxPh: 'اسم مجلد العمل، اضغط Enter للإنشاء…',
+      noSparkEmpty: 'انتقل إلى Spark لاختيار مجلد محلي أو إنشاء مجلد عمل',
+      workspaceActions: 'إجراءات مساحة العمل',
+      archivedSection: 'المؤرشفة',
+      attachAndOptions: 'إرفاق ملفات وخيارات',
+      workspaceFolder: 'مجلد العمل',
+      folderFilesTitle: 'معاينة أو استيراد الملفات داخل مجلد العمل',
+      folderFiles: 'ملفات المجلد',
+      safetyGuard: 'الحماية الأمنية',
+      sharedProtected: 'مشترك · محمي',
+      inputPhPure: 'اسأل أي شيء، أو نظّم فكرة…',
+      inputPhSpark: 'أعطني مهمة للعمل عليها…',
+      dismissStartersTitle: 'إخفاء الاقتراحات السريعة (يمكن إعادة تفعيلها من «القدرات والإضافات»)',
+      defaultModelDesc: 'نموذج Google Gemini للمحادثة والاستدلال',
+    },
   };
 
   const CHAT_PULSE_MINIMAL_STYLE_ID = 'ag-prism-chat-pulse-minimal-css';
@@ -115,40 +532,45 @@
     ':host([data-ag-chat-minimal="1"]) .pv-qt{margin-top:4px!important;padding-top:8px!important;border-top:1px solid var(--ag-chat-pulse-bd,rgba(255,255,255,.08))!important}',
   ].join('');
 
-  // 可用的 5 款 Gemini 对话模型（简洁日常说明）
+  // Available 5 Gemini conversational models (concise bilingual descriptions)
   const DEFAULT_GEMINI_MODELS = [
     {
       id: 'Gemini 4 Neon',
-      desc: '日常主力 · 适合大多数深度思考与复杂问答',
+      desc: 'For most deep reasoning and complex questions',
       descEn: 'For most deep reasoning and complex questions',
+      descAr: 'الأساسي اليومي · مناسب لمعظم مهام التفكير العميق والأسئلة المعقدة',
       efforts: ['Low', 'Medium', 'High', 'XHigh'],
       defaultEffort: 'High',
     },
     {
       id: 'Gemini 4 Carbon',
-      desc: '高难度推理 · 适合复杂分析与长文写作',
+      desc: 'For complex analysis and long-form tasks',
       descEn: 'For complex analysis and long-form tasks',
+      descAr: 'استدلال متقدم · مناسب للتحليل المعقد والكتابة المطوّلة',
       efforts: ['Low', 'Medium', 'High'],
       defaultEffort: 'High',
     },
     {
       id: 'Gemini 4 Argon',
-      desc: '均衡稳健 · 适合综合分析与多步整理',
+      desc: 'Balanced model for multi-step analysis',
       descEn: 'Balanced model for multi-step analysis',
+      descAr: 'متوازن وثابت · مناسب للتحليل الشامل والتنظيم متعدد الخطوات',
       efforts: ['Low', 'Medium', 'High'],
       defaultEffort: 'High',
     },
     {
       id: 'Gemini 4 Hydrogen',
-      desc: '快速响应 · 兼顾响应速度与回答质量',
+      desc: 'Fast and efficient for everyday tasks',
       descEn: 'Fast and efficient for everyday tasks',
+      descAr: 'استجابة سريعة · يوازن بين السرعة وجودة الإجابة للمهام اليومية',
       efforts: ['Low', 'Medium', 'High', 'XHigh'],
       defaultEffort: 'High',
     },
     {
       id: 'Gemini 3.8 Flash',
-      desc: '轻快高效 · 适合日常问答与资料速读',
+      desc: 'Lightweight and fast for daily Q&A and reading',
       descEn: 'Lightweight and fast for daily Q&A and reading',
+      descAr: 'خفيف وسريع · مناسب للأسئلة اليومية والقراءة السريعة للمصادر',
       efforts: ['Low', 'Medium', 'High'],
       defaultEffort: 'Medium',
     },
@@ -157,47 +579,32 @@
   const MODEL_DESC_BY_ID = new Map(DEFAULT_GEMINI_MODELS.map((m) => [m.id.toLowerCase(), m]));
 
   const CHAT_EFFORT_TIERS = [
-    { id: 'Low', label: '低', fullLabel: '低 Low' },
-    { id: 'Medium', label: '中', fullLabel: '中 Medium' },
-    { id: 'High', label: '高', fullLabel: '高 High' },
-    { id: 'XHigh', label: '极高', fullLabel: '极高 XHigh' },
+    { id: 'Low', label: 'Low', labelAr: 'منخفض', fullLabel: 'Low', fullLabelAr: 'منخفض Low' },
+    { id: 'Medium', label: 'Med', labelAr: 'متوسط', fullLabel: 'Medium', fullLabelAr: 'متوسط Medium' },
+    { id: 'High', label: 'High', labelAr: 'مرتفع', fullLabel: 'High', fullLabelAr: 'مرتفع High' },
+    { id: 'XHigh', label: 'XHigh', labelAr: 'فائق', fullLabel: 'XHigh', fullLabelAr: 'فائق XHigh' },
   ];
 
   const EFFORT_RANK = { Low: 0, Medium: 1, High: 2, XHigh: 3 };
 
-  // 5 语开源中性双层居中问候词库（绝不硬编码私密用户名，动态承接宿主登录名）
+  // Bilingual (English / Arabic) neutral two-tier centered greeting pool (never hardcodes private usernames)
   const HERO_GREETINGS = {
-    'zh-CN': {
-      eyeUser: ['你好，{user}', '嗨，{user}', '欢迎回来，{user}', '{user}，很高兴见到你'],
-      eyeAnon: ['你好', '欢迎回来', '随时开始'],
-      heads: ['今天需要我为你做些什么？', '想从哪里开始探索？', '随时聊聊你的新想法。', '有什么我可以帮你的？'],
-    },
-    'zh-TW': {
-      eyeUser: ['你好，{user}', '嗨，{user}', '歡迎回來，{user}'],
-      eyeAnon: ['你好', '歡迎回來', '隨時開始'],
-      heads: ['今天需要我為你做些什麼？', '想從哪裡開始探索？', '隨時聊聊你的新想法。'],
-    },
-    yue: {
-      eyeUser: ['哈囉，{user}', '你好呀，{user}', '歡迎返嚟，{user}'],
-      eyeAnon: ['哈囉', '歡迎返嚟', '隨時開始'],
-      heads: ['今日想我幫你做啲乜？', '想由邊度開始傾起？', '有咩新想法隨時講。'],
-    },
     en: {
       eyeUser: ['Hi, {user}', 'Hello, {user}', 'Welcome back, {user}'],
       eyeAnon: ['Hello', 'Welcome back', 'Ready when you are'],
       heads: ['Where should we start?', 'What can I help you with today?', 'What would you like to explore?'],
     },
-    ja: {
-      eyeUser: ['こんにちは、{user}さん', 'おかえりなさい、{user}さん'],
-      eyeAnon: ['こんにちは', 'おかえりなさい', 'いつでも始められます'],
-      heads: ['今日は何をお手伝いしましょうか？', 'どこから始めましょうか？', 'どんなアイデアでも気軽にどうぞ。'],
+    ar: {
+      eyeUser: ['مرحباً، {user}', 'أهلاً، {user}', 'أهلاً بعودتك، {user}'],
+      eyeAnon: ['مرحباً', 'أهلاً بعودتك', 'جاهز للبدء'],
+      heads: ['من أين نبدأ اليوم؟', 'كيف يمكنني مساعدتك اليوم؟', 'ما الذي تود استكشافه؟'],
     },
   };
 
-  // 严守 7 条性能规范的 Google M3 Expressive 样式表（侧栏仅 contain: style，无重型选择器，完整弹簧动效）
+  // Google M3 Expressive stylesheet following all 7 performance rules (sidebar uses contain: style only, no heavy selectors, full spring motion)
   const CLIENT_CSS = [
     '@property --ag-sb-halo-angle{syntax:"<angle>";inherits:false;initial-value:120deg}',
-    ':root{--ag-sb-font-display:"Google Sans Flex","Google Sans","SF Pro Display","Segoe UI Variable Display","PingFang SC","Microsoft YaHei UI","Noto Sans SC",-apple-system,BlinkMacSystemFont,sans-serif;--ag-sb-spring-spatial:cubic-bezier(0.34,1.24,0.64,1);--ag-sb-spring-effect:cubic-bezier(0.2,0,0,1);--ag-sb-bg:#0e0f12;--ag-sb-canvas:#131314;--ag-sb-container:#1e1f20;--ag-sb-tray:#18191b;--ag-sb-high:#282a2c;--ag-sb-popover:rgba(30,31,32,.96);--ag-sb-hairline:rgba(255,255,255,.05);--ag-sb-specular:rgba(255,255,255,.085);--ag-sb-hover:rgba(255,255,255,.058);--ag-sb-pill-track:rgba(255,255,255,.052);--ag-sb-pill-thumb:rgba(255,255,255,.13);--ag-sb-active-pill:rgba(168,199,250,.12);--ag-sb-active-anchor:#8ab4f8;--ag-sb-active-text:#e8f0fe;--ag-sb-fg:#e3e3e3;--ag-sb-muted:#c4c7c5;--ag-sb-dim:#8e918f;--ag-sb-send-idle-bg:rgba(255,255,255,.08);--ag-sb-send-idle-fg:rgba(227,227,227,.36);--ag-sb-send-ready-bg:#e3e3e3;--ag-sb-send-ready-fg:#131314;--ag-sb-shadow:0 14px 40px rgba(0,0,0,.34),0 2px 10px rgba(0,0,0,.20)}',
+    ':root{--ag-sb-font-display:"Google Sans Flex","Google Sans","SF Pro Display","Segoe UI Variable Display","Noto Sans Arabic","Tahoma",-apple-system,BlinkMacSystemFont,sans-serif;--ag-sb-spring-spatial:cubic-bezier(0.34,1.24,0.64,1);--ag-sb-spring-effect:cubic-bezier(0.2,0,0,1);--ag-sb-bg:#0e0f12;--ag-sb-canvas:#131314;--ag-sb-container:#1e1f20;--ag-sb-tray:#18191b;--ag-sb-high:#282a2c;--ag-sb-popover:rgba(30,31,32,.96);--ag-sb-hairline:rgba(255,255,255,.05);--ag-sb-specular:rgba(255,255,255,.085);--ag-sb-hover:rgba(255,255,255,.058);--ag-sb-pill-track:rgba(255,255,255,.052);--ag-sb-pill-thumb:rgba(255,255,255,.13);--ag-sb-active-pill:rgba(168,199,250,.12);--ag-sb-active-anchor:#8ab4f8;--ag-sb-active-text:#e8f0fe;--ag-sb-fg:#e3e3e3;--ag-sb-muted:#c4c7c5;--ag-sb-dim:#8e918f;--ag-sb-send-idle-bg:rgba(255,255,255,.08);--ag-sb-send-idle-fg:rgba(227,227,227,.36);--ag-sb-send-ready-bg:#e3e3e3;--ag-sb-send-ready-fg:#131314;--ag-sb-shadow:0 14px 40px rgba(0,0,0,.34),0 2px 10px rgba(0,0,0,.20)}',
     'html[data-ag-cs-palette="warm"]{--ag-sb-bg:#110f0e;--ag-sb-canvas:#161412;--ag-sb-container:#211e1b;--ag-sb-tray:#1b1917;--ag-sb-high:#2c2824;--ag-sb-popover:rgba(33,30,27,.96);--ag-sb-hairline:rgba(255,245,235,.06);--ag-sb-active-pill:rgba(232,199,165,.12);--ag-sb-active-anchor:#e6b88a;--ag-sb-active-text:#f5efe8;--ag-sb-fg:#efece7;--ag-sb-muted:#bdb6ae;--ag-sb-dim:#8d867e;--ag-sb-send-ready-bg:#efece7;--ag-sb-send-ready-fg:#161412}',
     'html.light,html[data-theme="light"]{--ag-sb-bg:#f4f7fc;--ag-sb-canvas:#ffffff;--ag-sb-container:#f0f4f9;--ag-sb-tray:#e7edf6;--ag-sb-high:#e2e9f3;--ag-sb-popover:rgba(255,255,255,.97);--ag-sb-hairline:rgba(15,23,42,.068);--ag-sb-specular:rgba(255,255,255,.92);--ag-sb-hover:rgba(15,23,42,.05);--ag-sb-pill-track:rgba(15,23,42,.055);--ag-sb-pill-thumb:#ffffff;--ag-sb-active-pill:rgba(11,87,208,.09);--ag-sb-active-anchor:#0b57d0;--ag-sb-active-text:#0842a0;--ag-sb-fg:#1f1f1f;--ag-sb-muted:#444746;--ag-sb-dim:#747775;--ag-sb-send-idle-bg:rgba(15,23,42,.075);--ag-sb-send-idle-fg:rgba(15,23,42,.34);--ag-sb-send-ready-bg:#1f1f1f;--ag-sb-send-ready-fg:#ffffff;--ag-sb-shadow:0 8px 28px rgba(15,23,42,.065),0 1px 4px rgba(15,23,42,.04)}',
     'html.light[data-ag-cs-palette="warm"],html[data-theme="light"][data-ag-cs-palette="warm"]{--ag-sb-bg:#f3efe8;--ag-sb-canvas:#faf8f5;--ag-sb-container:#f1ede6;--ag-sb-tray:#eae4da;--ag-sb-high:#e5ddd2;--ag-sb-popover:rgba(250,248,245,.97);--ag-sb-hairline:rgba(68,48,30,.075);--ag-sb-active-pill:rgba(180,104,58,.095);--ag-sb-active-anchor:#b4683a;--ag-sb-active-text:#5c2e14;--ag-sb-fg:#1f1d1a;--ag-sb-muted:#524c44;--ag-sb-dim:#80786e;--ag-sb-send-ready-bg:#1f1d1a;--ag-sb-send-ready-fg:#faf8f5}',
@@ -381,7 +788,7 @@
     'html.light .ag-prism-modal-btn[data-variant="danger"],html[data-theme="light"] .ag-prism-modal-btn[data-variant="danger"]{background:rgba(179,38,30,.10);color:#b3261e}',
     '.ag-prism-modal-btn[data-variant="ghost"]{background:transparent;color:var(--ag-sb-dim)}',
     '.ag-prism-modal-btn[data-variant="ghost"]:hover{background:var(--ag-sb-hover);color:var(--ag-sb-fg)}',
-    '/* Google Gemini 官方网页端风格的 Chat 运行会话页布局（严格限定 html[data-ag-prism-mode="chat"]，切回 Code 零污染） */',
+    '/* Google Gemini web-style layout for running Chat sessions (strictly scoped to html[data-ag-prism-mode="chat"]; zero contamination in Code mode) */',
     'html[data-ag-cs-style][data-ag-prism-mode="chat"] [data-ag-cs-conv-seat="1"]:not([data-has-browser-hole="true"]){background-color:var(--ag-sb-canvas)!important}',
     'html[data-ag-cs-style][data-ag-prism-mode="chat"] [data-testid="conversation-view"]::before{display:none!important}',
     'html[data-ag-cs-style][data-ag-prism-mode="chat"] .ag-cs-conv-aura-host,html[data-ag-cs-style][data-ag-prism-mode="chat"] .ag-cs-dual-stage,html[data-ag-cs-style][data-ag-prism-mode="chat"] .ag-cs-crab,html[data-ag-cs-style][data-ag-prism-mode="chat"] .ag-cs-prism-rim-cv{display:none!important}',
@@ -395,11 +802,15 @@
     'html[data-ag-cs-style][data-ag-prism-mode="chat"] #antigravity\\.agentSidePanelInputBox .surface-composer-card::before{display:none!important;content:none!important}',
     'html[data-ag-cs-style][data-ag-prism-mode="chat"] #antigravity\\.agentSidePanelInputBox .surface-composer-card:focus-within{border-color:color-mix(in srgb,var(--ag-sb-active-anchor) 42%,transparent)!important;box-shadow:0 12px 36px rgba(0,0,0,.32),0 0 0 1px color-mix(in srgb,var(--ag-sb-active-anchor) 20%,transparent),inset 0 1px 0 var(--ag-sb-specular)!important}',
     'html[data-ag-cs-style][data-ag-prism-mode="chat"] #antigravity\\.agentSidePanelInputBox .surface-composer-card [data-lexical-editor="true"]{min-height:44px!important;font-size:15px!important;line-height:1.56!important;padding-top:2px!important}',
-    'html[data-ag-cs-style][data-ag-prism-mode="chat"] #antigravity\\.agentSidePanelInputBox .surface-composer-card p[data-ag-cs-placeholder]::before{content:"问点什么…"!important;color:var(--ag-sb-dim)!important;font-size:15px!important;font-family:var(--ag-sb-font-display)!important}',
-    'html[data-ag-cs-style][data-ag-prism-mode="chat"][data-ag-prism-chat-kind="spark"] #antigravity\\.agentSidePanelInputBox .surface-composer-card p[data-ag-cs-placeholder]::before{content:"交给我一件要处理的事务…"!important}',
+    'html[data-ag-cs-style][data-ag-prism-mode="chat"] #antigravity\\.agentSidePanelInputBox .surface-composer-card p[data-ag-cs-placeholder]::before{content:"Ask anything..."!important;color:var(--ag-sb-dim)!important;font-size:15px!important;font-family:var(--ag-sb-font-display)!important}',
+    'html[data-ag-cs-style][data-ag-prism-mode="chat"][data-ag-prism-chat-kind="spark"] #antigravity\\.agentSidePanelInputBox .surface-composer-card p[data-ag-cs-placeholder]::before{content:"Give me a task to work on..."!important}',
+    'html[data-ag-cs-style][data-ag-prism-mode="chat"][data-ag-prism-lang="ar"] #antigravity\\.agentSidePanelInputBox .surface-composer-card p[data-ag-cs-placeholder]::before{content:"اسأل أي شيء…"!important}',
+    'html[data-ag-cs-style][data-ag-prism-mode="chat"][data-ag-prism-lang="ar"][data-ag-prism-chat-kind="spark"] #antigravity\\.agentSidePanelInputBox .surface-composer-card p[data-ag-cs-placeholder]::before{content:"أعطني مهمة للعمل عليها…"!important}',
     'html[data-ag-cs-style][data-ag-prism-mode="chat"] #antigravity\\.agentSidePanelInputBox .surface-composer-card p.pointer-events-none.absolute:not([data-ag-cs-placeholder]){color:transparent!important}',
-    'html[data-ag-cs-style][data-ag-prism-mode="chat"] #antigravity\\.agentSidePanelInputBox .surface-composer-card p.pointer-events-none.absolute:not([data-ag-cs-placeholder])::before{content:"问点什么…";color:var(--ag-sb-dim);font-size:15px;font-family:var(--ag-sb-font-display)}',
-    'html[data-ag-cs-style][data-ag-prism-mode="chat"][data-ag-prism-chat-kind="spark"] #antigravity\\.agentSidePanelInputBox .surface-composer-card p.pointer-events-none.absolute:not([data-ag-cs-placeholder])::before{content:"交给我一件要处理的事务…"}',
+    'html[data-ag-cs-style][data-ag-prism-mode="chat"] #antigravity\\.agentSidePanelInputBox .surface-composer-card p.pointer-events-none.absolute:not([data-ag-cs-placeholder])::before{content:"Ask anything...";color:var(--ag-sb-dim);font-size:15px;font-family:var(--ag-sb-font-display)}',
+    'html[data-ag-cs-style][data-ag-prism-mode="chat"][data-ag-prism-chat-kind="spark"] #antigravity\\.agentSidePanelInputBox .surface-composer-card p.pointer-events-none.absolute:not([data-ag-cs-placeholder])::before{content:"Give me a task to work on..."}',
+    'html[data-ag-cs-style][data-ag-prism-mode="chat"][data-ag-prism-lang="ar"] #antigravity\\.agentSidePanelInputBox .surface-composer-card p.pointer-events-none.absolute:not([data-ag-cs-placeholder])::before{content:"اسأل أي شيء…"}',
+    'html[data-ag-cs-style][data-ag-prism-mode="chat"][data-ag-prism-lang="ar"][data-ag-prism-chat-kind="spark"] #antigravity\\.agentSidePanelInputBox .surface-composer-card p.pointer-events-none.absolute:not([data-ag-cs-placeholder])::before{content:"أعطني مهمة للعمل عليها…"}',
     'html[data-ag-cs-style][data-ag-prism-mode="chat"] .z-10[data-ag-cs-input-layer="1"]{z-index:60!important}',
     'html[data-ag-cs-style][data-ag-prism-mode="chat"] [data-testid="toggle-overview-panel"],html[data-ag-cs-style][data-ag-prism-mode="chat"] [data-testid="titlebar-more-actions"]{display:none!important}',
     'html[data-ag-cs-style][data-ag-prism-mode="chat"][data-ag-prism-chat-kind="pure"] [data-testid="conversation-view"] button.tabular-nums{font-size:12.5px!important;min-height:26px!important;padding:2px 8px!important;color:var(--ag-sb-dim)!important;opacity:.84!important;border-radius:999px!important;transition:opacity 160ms ease,color 160ms ease,background-color 160ms ease!important}',
@@ -484,6 +895,20 @@
     '.ag-prism-switch[data-checked="1"]::after{transform:translate3d(16px,0,0);background:#0f172a}',
     'html.light .ag-prism-switch[data-checked="1"]::after,html[data-theme="light"] .ag-prism-switch[data-checked="1"]::after{background:#ffffff}',
     '.ag-prism-policy-empty{font-size:11.5px;color:var(--ag-sb-dim);padding:4px}',
+    '[dir="rtl"] .ag-prism-sb-slider,[dir="rtl"] .ag-prism-subslider{left:auto;right:3px}',
+    '[dir="rtl"] .ag-prism-sb-seg[data-mode="chat"] .ag-prism-sb-slider,[dir="rtl"] .ag-prism-subseg[data-submode="spark"] .ag-prism-subslider{transform:translate3d(-100%,0,0)}',
+    '[dir="rtl"] .ag-prism-sb-dot{right:auto;left:6px}',
+    '[dir="rtl"] .ag-prism-sb-cnt{margin-left:0;margin-right:auto;padding-left:0;padding-right:6px}',
+    '[dir="rtl"] .ag-prism-sb-group-head,[dir="rtl"] .ag-prism-sb-row,[dir="rtl"] .ag-prism-menu-btn,[dir="rtl"] .ag-prism-model-opt,[dir="rtl"] .ag-prism-sb-policy-btn{text-align:right}',
+    '[dir="rtl"] .ag-prism-sb-group-head[data-collapsed="1"] .ag-prism-sb-chev{transform:rotate(180deg)}',
+    '[dir="rtl"] .ag-prism-sb-folder-over{padding-left:0;padding-right:10px}',
+    '[dir="rtl"] .ag-prism-sb-row[data-active="1"]::before{left:auto;right:2px}',
+    '[dir="rtl"] .ag-prism-sb-row-wrap .ag-prism-sb-row{padding-right:10px;padding-left:30px}',
+    '[dir="rtl"] .ag-prism-sb-group-wrap .ag-prism-sb-group-head{padding-right:8px;padding-left:48px}',
+    '[dir="rtl"] .ag-prism-sb-row-actions{right:auto;left:4px}',
+    '[dir="rtl"] .ag-prism-switch::after{left:auto;right:2px}',
+    '[dir="rtl"] .ag-prism-switch[data-checked="1"]::after{transform:translate3d(-16px,0,0)}',
+    '[dir="rtl"] .ag-prism-policy-scroll{padding-right:0;padding-left:4px}',
     'html[data-ag-cs-motion="off"] .ag-prism-aura-orb,html[data-ag-cs-motion="off"] .ag-prism-vessel::after,html[data-ag-cs-motion="off"] .ag-prism-sb-spin,html[data-ag-cs-motion="off"] .ag-prism-sb-dot,html[data-ag-cs-motion="off"] .ag-prism-chat-pane,html[data-ag-cs-motion="off"] .ag-prism-hero-head,html[data-ag-cs-motion="off"] .ag-prism-vessel-wrap,html[data-ag-cs-motion="off"] [data-ag-prism-canvas-fade],html[data-ag-cs-motion="off"] .ag-prism-code-returning,html[data-ag-cs-motion="off"] .ag-prism-modal-backdrop,html[data-ag-cs-motion="off"] .ag-prism-modal{animation:none!important;transition:none!important}',
   ].join('');
 
@@ -548,16 +973,13 @@
   }
 
   function normalizeLang(raw) {
-    const s = String(raw || 'zh-CN').trim().toLowerCase();
-    if (s === 'zh-tw' || s === 'zh-hk' || s === 'zh-hant') return 'zh-TW';
-    if (s === 'yue' || s === 'zh-yue') return 'yue';
-    if (s.startsWith('ja')) return 'ja';
-    if (s.startsWith('en')) return 'en';
-    return 'zh-CN';
+    const s = String(raw || 'en').trim().toLowerCase().replace(/_/g, '-');
+    if (s === 'ar' || s.startsWith('ar-') || s === 'arabic') return 'ar';
+    return 'en';
   }
 
   function formatHero(lang, userName, seed) {
-    const pool = HERO_GREETINGS[normalizeLang(lang)] || HERO_GREETINGS['zh-CN'];
+    const pool = HERO_GREETINGS[normalizeLang(lang)] || HERO_GREETINGS.en;
     const cleanUser = typeof userName === 'string' ? userName.trim().slice(0, 40) : '';
     const n = Math.abs(Math.trunc(Number(seed) || 0));
     const eyes = cleanUser ? pool.eyeUser : pool.eyeAnon;
@@ -625,7 +1047,7 @@
     let probeTimer = null;
     let probeAttempts = 0;
 
-    // 动态读取的宿主插件与 MCP 目录（零硬编码私密名称，全部运行时按需拉取）
+    // Dynamically loaded host plugin and MCP catalog (zero hardcoded private names; fetched on demand at runtime)
     let cachedStartCascadeStage = null;
     const hostCapabilities = {
       plugins: [],
@@ -635,7 +1057,7 @@
       lastLoadedAt: 0,
     };
 
-    // 宿主只读上下文（严禁保存或调用任何全局设置 setter！）
+    // Host read-only contexts (strictly never store or call any global settings setter!)
     const host = {
       store: null,
       psp: null,
@@ -683,12 +1105,21 @@
       }
     }
 
+    function applyDir(node) {
+      if (node && typeof node.setAttribute === 'function') {
+        const lang = getCurrentLang();
+        node.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+        node.setAttribute('data-ag-prism-lang', lang);
+      }
+      return node;
+    }
+
     function showToast(msg) {
       if (destroyed) return;
       runGuarded(() => {
         const old = document.querySelector('.ag-prism-sb-toast');
         if (old) old.remove();
-        const t = markOwnedRoot(el('div', 'ag-prism-sb-toast', msg));
+        const t = applyDir(markOwnedRoot(el('div', 'ag-prism-sb-toast', msg)));
         document.body && document.body.appendChild(t);
         if (toastTimer) clearTimeout(toastTimer);
         toastTimer = setTimeout(() => {
@@ -718,10 +1149,10 @@
       closePopover();
       closeModal();
       runGuarded(() => {
-        const backdrop = markOwnedRoot(el('div', 'ag-prism-modal-backdrop'));
+        const backdrop = applyDir(markOwnedRoot(el('div', 'ag-prism-modal-backdrop')));
         backdrop.setAttribute('role', 'dialog');
         backdrop.setAttribute('aria-modal', 'true');
-        const box = el('div', 'ag-prism-modal');
+        const box = applyDir(el('div', 'ag-prism-modal'));
         box.addEventListener('click', (e) => e.stopPropagation());
         backdrop.addEventListener('click', () => closeModal());
         buildFn(box, closeModal);
@@ -748,7 +1179,7 @@
     function mountPopover(pop, anchorEl, preferAbove) {
       closePopover();
       runGuarded(() => {
-        markOwnedRoot(pop);
+        applyDir(markOwnedRoot(pop));
         document.body.appendChild(pop);
         activePopover = pop;
         const vw = W.innerWidth || 1280;
@@ -774,8 +1205,8 @@
       try {
         const greetEl = document.querySelector('[data-testid="home-greeting"]:not(.ag-prism-hero-h1)');
         const txt = greetEl && typeof greetEl.textContent === 'string' ? greetEl.textContent.trim() : '';
-        const mZh = txt.match(/[，,]\s*([^\s？?!！。]{1,32})[？?!！。]?$/);
-        if (mZh && mZh[1]) return mZh[1];
+        const mUser = txt.match(/[,،]\s*([^\s?!؟.]{1,32})[?!؟.]?$/);
+        if (mUser && mUser[1]) return mUser[1];
       } catch {}
       return '';
     }
@@ -783,12 +1214,22 @@
     function getCurrentLang() {
       const cfgLang = currentCfg && (currentCfg.language || currentCfg.lang);
       if (cfgLang && cfgLang !== 'auto') return normalizeLang(cfgLang);
-      const htmlLang = document.documentElement && document.documentElement.getAttribute('data-ag-cs-lang');
+      const htmlLang =
+        document.documentElement &&
+        (document.documentElement.getAttribute('data-ag-cs-lang') ||
+          document.documentElement.getAttribute('data-ag-prism-lang'));
       if (htmlLang) return normalizeLang(htmlLang);
-      return normalizeLang((typeof navigator !== 'undefined' && navigator.language) || 'zh-CN');
+      return normalizeLang((typeof navigator !== 'undefined' && navigator.language) || 'en');
     }
 
-    // 动态读取宿主实时可见纯 Gemini 模型清单与真实模型枚举号（自动剔除 Orchestrator / Claude / GPT-OSS）
+    function tr(key, ...args) {
+      const pack = SB_I18N[getCurrentLang()] || SB_I18N.en;
+      const val = Object.prototype.hasOwnProperty.call(pack, key) ? pack[key] : SB_I18N.en[key];
+      if (typeof val === 'function') return val(...args);
+      return val !== undefined ? val : key;
+    }
+
+    // Dynamically read live pure-Gemini models and real model enum IDs from host store (excludes Orchestrator / Claude / GPT-OSS)
     function refreshLiveGeminiModels() {
       if (!host.store || typeof host.store.getState !== 'function') return;
       try {
@@ -835,8 +1276,9 @@
               const rawDesc = typeof m.tagDescription === 'string' && m.tagDescription.trim() ? m.tagDescription.trim() : '';
               grouped.set(key, {
                 id: preset ? preset.id : baseId,
-                desc: preset ? preset.desc : rawDesc || 'Google Gemini 对话与推理模型',
-                descEn: rawDesc || (preset ? preset.descEn : 'Google Gemini conversational model'),
+                desc: preset ? preset.desc : rawDesc || SB_I18N.en.defaultModelDesc,
+                descEn: rawDesc || (preset ? preset.descEn : SB_I18N.en.defaultModelDesc),
+                descAr: preset ? preset.descAr : rawDesc || SB_I18N.ar.defaultModelDesc,
                 efforts: new Set(),
                 modelEnums: {},
                 defaultEffort: preset ? preset.defaultEffort : 'High',
@@ -865,6 +1307,7 @@
               id: g.id,
               desc: g.desc,
               descEn: g.descEn,
+              descAr: g.descAr,
               efforts: arr,
               modelEnums: g.modelEnums,
               defaultEffort: arr.includes(g.defaultEffort) ? g.defaultEffort : arr[arr.length - 1] || 'High',
@@ -902,7 +1345,7 @@
       return num;
     }
 
-    // 仅探测只读上下文与项目级 projectSettingsProvider（严禁保存或调用全局设置写接口）
+    // Probe only read-only contexts and project-level projectSettingsProvider (strictly never store or call global settings writers)
     function discoverHostContexts() {
       if (destroyed || currentCfg.sidebarStudio !== 'on') return false;
       const rootEl = document.getElementById('root') || (document.body && document.body.firstElementChild) || null;
@@ -997,7 +1440,7 @@
                 }
               }
             }
-            // 路由切换落地后始终同步 Chat 首页容器与运行会话页微标
+            // Always sync the Chat home container and running session chrome after route navigation settles
             renderChatHome();
             syncChatComposerChrome(true);
           });
@@ -1025,7 +1468,7 @@
       const tt = summary.trajectoryType;
       if (tt === 'SIDE_QUESTION' || tt === 'COMMIT_MESSAGE_GENERATION' || tt === 2 || tt === 3) return false;
       if (summary.annotations && summary.annotations.archived === true) {
-        // 仅对明确归属于 Chat 的会话保留归档项，以便 Chat 侧栏“已归档”抽屉展示与恢复；Code 列表仍严格隐藏归档项
+        // Keep archived entries only for sessions explicitly assigned to Chat so the Chat "Archived" drawer can show and restore them; Code list still hides archived items
         return Boolean(cascadeId && snapshot && snapshot.assignments && Object.prototype.hasOwnProperty.call(snapshot.assignments, cascadeId));
       }
       return true;
@@ -1128,7 +1571,7 @@
             parsed.sort((a, b) => {
               if (a.disabled !== b.disabled) return a.disabled ? 1 : -1;
               if (a.isBuiltin !== b.isBuiltin) return a.isBuiltin ? 1 : -1;
-              return a.displayName.localeCompare(b.displayName, 'zh-CN');
+              return a.displayName.localeCompare(b.displayName, getCurrentLang() === 'ar' ? 'ar' : 'en');
             });
             hostCapabilities.plugins = parsed;
           }
@@ -1182,7 +1625,7 @@
       return hostCapabilities.loading;
     }
 
-    // 构造 Chat 专属单会话原生隔离配置（0 全局修改，严格仅作用于 Pure / Spark 会话）
+    // Build per-session native isolation config for Chat (0 global writes; strictly scoped to Pure / Spark sessions)
     function buildChatIsolationBundle(kind, modelEnum, basePlanner, opts) {
       const isPure = kind !== 'spark';
       const policy = getEffectiveChatPolicy();
@@ -1277,42 +1720,64 @@
         }
       }
 
+      const isAr = getCurrentLang() === 'ar';
       const capSummary = [];
       if (zeroTools) {
-        capSummary.push('当前为纯文本零工具对话模式，不调用任何外部工具、插件或本地命令。');
+        capSummary.push(
+          isAr
+            ? 'أنت حالياً في وضع الدردشة النصية الخالصة بدون أدوات، ولا يُسمح باستدعاء أي أدوات خارجية أو إضافات أو أوامر محلية.'
+            : 'You are in plain-text zero-tools chat mode; do not invoke any external tools, plugins, or local commands.'
+        );
       } else {
-        if (allowWeb) capSummary.push('可按需进行联网搜索与网页内容读取');
-        if (allowImage) capSummary.push('支持图片生成以及理解用户主动提供的图片与附件');
-        if (allowFiles) capSummary.push('可在当前绑定的受控工作文件夹内读取、编辑与整理文档');
-        if (allowSchedule) capSummary.push('可协助创建日程提醒或定时任务（schedule）');
-        if (allowMcp) capSummary.push(`已按用户白名单挂载 ${allowedMcpSpecs.length} 个 MCP 服务`);
+        if (allowWeb) capSummary.push(isAr ? 'يمكنك البحث على الويب وقراءة صفحات الويب عند الحاجة' : 'Can search the web and read webpages on demand');
+        if (allowImage) capSummary.push(isAr ? 'يدعم توليد الصور وفهم الصور والمرفقات التي يشاركها المستخدم' : 'Supports generating images and understanding user-provided images and attachments');
+        if (allowFiles) capSummary.push(isAr ? 'يمكنك قراءة المستندات وتحريرها وتنظيمها داخل مجلد العمل المحدد فقط' : 'Can read, edit, and organize documents inside the bound scoped workspace folder');
+        if (allowSchedule) capSummary.push(isAr ? 'يمكنك المساعدة في إنشاء التذكيرات والمهام المجدولة (schedule)' : 'Can assist with creating reminders or scheduled tasks (schedule)');
+        if (allowMcp) capSummary.push(isAr ? `تم تفعيل ${allowedMcpSpecs.length} خادم MCP وفق القائمة المسموح بها للمستخدم` : `${allowedMcpSpecs.length} allowlisted MCP server(s) mounted`);
         if (allowedPluginPaths.length + allowedBuiltinPlugins.length > 0) {
-          capSummary.push(`已按用户白名单放行 ${allowedPluginPaths.length + allowedBuiltinPlugins.length} 个扩展插件`);
+          capSummary.push(
+            isAr
+              ? `تم السماح بـ ${allowedPluginPaths.length + allowedBuiltinPlugins.length} إضافة وفق القائمة المسموح بها`
+              : `${allowedPluginPaths.length + allowedBuiltinPlugins.length} allowlisted plugin(s) enabled`
+          );
         }
-        if (capSummary.length === 0) capSummary.push('当前未开启外部工具，仅通过纯对话直接作答');
+        if (capSummary.length === 0) {
+          capSummary.push(
+            isAr
+              ? 'لا توجد أدوات خارجية مفعّلة حالياً؛ أجب مباشرة عبر المحادثة فقط'
+              : 'No external tools are currently enabled; respond directly through conversation'
+          );
+        }
       }
 
+      const sep = isAr ? '؛ ' : '; ';
       const systemPromptSections = isPure
         ? [
             {
               title: 'identity',
-              content:
-                '你是一个通用日常对话助手，专注于自然交流、知识解答、写作润色、信息梳理与创意讨论。你当前运行在独立纯净的对话模式中，并非本地代码编辑环境；除非当前会话显式启用了对应工具，否则请不要声称可以读写本地代码仓库或执行系统终端命令。',
+              content: isAr
+                ? 'أنت مساعد محادثة يومي عام يركز على الحوار الطبيعي والإجابة عن الأسئلة وتحسين الكتابة وتنظيم المعلومات والعصف الذهني. تعمل حالياً في وضع دردشة مستقل ونظيف وليس في بيئة تحرير شيفرة محلية؛ ما لم يتم تفعيل الأداة المناسبة صراحةً في هذه الجلسة، لا تدّعِ القدرة على قراءة أو كتابة مستودعات الشيفرة المحلية أو تنفيذ أوامر الطرفية.'
+                : 'You are a general everyday conversational assistant focused on natural dialogue, Q&A, writing polish, organizing information, and creative brainstorming. You are running in a clean standalone Chat mode, not a local code-editing environment; unless a tool is explicitly enabled in this session, do not claim you can read/write local code repositories or execute terminal commands.',
             },
             {
               title: 'capabilities',
-              content: `当前会话可用能力：${capSummary.join('；')}。请直接、清晰、真诚地回答问题，不虚构未开启的工具。`,
+              content: isAr
+                ? `القدرات المتاحة في هذه الجلسة: ${capSummary.join(sep)}. أجب بوضوح وصدق ومباشرة ولا تخترع أدوات غير مفعّلة.`
+                : `Capabilities available in this session: ${capSummary.join(sep)}. Answer directly, clearly, and honestly without fabricating unavailable tools.`,
             },
           ]
         : [
             {
               title: 'identity',
-              content:
-                '你是 Spark 文件与事务助手，在用户指定的单个工作文件夹内协助整理文档、归纳资料与规划日程提醒。请严格在工作文件夹范围内协助处理，不访问目录之外的敏感配置，也不自动执行系统命令。',
+              content: isAr
+                ? 'أنت مساعد Spark للملفات والمهام، وتساعد المستخدم داخل مجلد عمل واحد محدد في تنظيم المستندات وتلخيص المواد وتخطيط التذكيرات. التزم بدقة بنطاق مجلد العمل، ولا تصل إلى الإعدادات الحساسة خارجه ولا تنفذ أوامر النظام تلقائياً.'
+                : 'You are the Spark files and tasks assistant, helping organize documents, summarize materials, and plan reminders within a single user-selected workspace folder. Stay strictly within the workspace folder, never access sensitive configs outside it, and never auto-execute system commands.',
             },
             {
               title: 'capabilities',
-              content: `当前会话可用能力：${capSummary.join('；')}。${allowSandbox ? '安全确认模式已开启，高风险操作前须先征得用户同意。' : ''}`,
+              content: isAr
+                ? `القدرات المتاحة في هذه الجلسة: ${capSummary.join(sep)}.${allowSandbox ? ' وضع التأكيد الأمني مفعّل، ويجب طلب موافقة المستخدم قبل الإجراءات عالية الخطورة.' : ''}`
+                : `Capabilities available in this session: ${capSummary.join(sep)}.${allowSandbox ? ' Safety confirmation mode is enabled; ask for user approval before high-risk actions.' : ''}`,
             },
           ];
 
@@ -1791,7 +2256,7 @@
       };
     }
 
-    // 注册受控宿主原语供 Daemon live-host-adapter 安全调用（严格仅操作项目级 projectSettingsProvider 或单会话 lsClient）
+    // Register controlled host primitives for Daemon live-host-adapter (strictly operates on project-level projectSettingsProvider or per-session lsClient)
     function registerHostOps() {
       if (destroyed || currentCfg.sidebarStudio !== 'on') return;
       const invokePspSetter = async (methodName, args) => {
@@ -2080,7 +2545,7 @@
                     payload: { case: 'inlineData', value: att.bytes },
                   });
                 } else if (att && typeof att.textContent === 'string') {
-                  textParts.push(`\n\n[附件：${att.name || 'file'}]\n\`\`\`\n${att.textContent.slice(0, 24000)}\n\`\`\``);
+                  textParts.push(`\n\n[Attachment: ${att.name || 'file'}]\n\`\`\`\n${att.textContent.slice(0, 24000)}\n\`\`\``);
                 }
               }
               const sendBase = {
@@ -2116,7 +2581,7 @@
               const msg = String(err && err.message ? err.message : err);
               const code = err && (err.code ?? err.rawCode);
               W.__agPrismSidebarLastSendError = `sendUserCascadeMessage:${code ?? ''}:${msg}`;
-              // 仅明确前置参数/不存在错误返回 not-received，网络或未知异常保守返回 ambiguous 严禁盲目重发
+              // Return not-received only for explicit pre-validation / not-found errors; conservatively return ambiguous for network/unknown errors to prevent blind resends
               if (code === 3 || code === 5 || code === 'invalid_argument' || code === 'not_found') {
                 return { status: 'not-received', cascadeId };
               }
@@ -2305,7 +2770,7 @@
       }, delay);
     }
 
-    // TanStack Router 对象参数路由（严格修复字符串 navigate 无效问题）+ 原生行激活兜底
+    // TanStack Router object-signature navigation + native row activation fallback
     function navigateHostRoute(viewPath) {
       if (!viewPath || typeof viewPath !== 'string') return;
       lastNavigatedRoute = viewPath;
@@ -2313,7 +2778,7 @@
       const cascadeId = cidMatch ? decodeURIComponent(cidMatch[1]) : '';
 
       if (cascadeId) {
-        // 1) 若原生侧栏虚拟列表中恰好渲染了该会话行，优先触发原生链接以同步全部 Redux 选中态
+        // 1) If the native virtualized sidebar list renders this session row, trigger its native link first to sync all Redux selection state
         try {
           const rows = document.querySelectorAll('[data-testid="conversation-row-sidebar"]');
           for (let i = 0; i < rows.length; i++) {
@@ -2327,7 +2792,7 @@
             }
           }
         } catch {}
-        // 2) 使用 TanStack Router 官方对象签名跳转，并保底尝试同步 Redux 选中态
+        // 2) Navigate using the official TanStack Router object signature as fallback
         if (host.router && typeof host.router.navigate === 'function') {
           try {
             void host.router.navigate({ to: '/c/$cascadeId', params: { cascadeId } });
@@ -2352,7 +2817,7 @@
       cachedSidebarSlots = null;
     }
 
-    // 精准探测原生侧栏容器与内容区（100% 保留原生顶栏、底栏与 Code 列表！）
+    // Accurately detect the native sidebar container and body slots (preserves native header, footer, and Code list 100%)
     function resolveNativeSidebarSlots() {
       const nativeList = document.querySelector('[data-testid="conversation-list-sidebar"]');
       if (!nativeList || !nativeList.parentElement) {
@@ -2400,11 +2865,11 @@
       let headerSlot = null;
       let codeBodySlots = [];
 
-      // 真实宿主布局：6 块（顶栏 40px、导航按钮区、上分割线、列表滚动区、下分割线、底栏 Customizations）
+      // Live host layout: 6 blocks (40px top bar, nav buttons, top divider, scrollable list, bottom divider, Customizations footer)
       if (rawChildren.length >= 4 && rawChildren[0] && !rawChildren[0].contains(nativeList)) {
         headerSlot = rawChildren[0];
         let endIdx = rawChildren.length;
-        // 保留原生底栏（Customizations 按钮及紧邻其上的 1px 分割线）
+        // Preserve native footer (Customizations button and the 1px divider immediately above it)
         const last = rawChildren[endIdx - 1];
         if (last && !last.contains(nativeList)) {
           const lr = last.getBoundingClientRect();
@@ -2419,7 +2884,7 @@
         }
         codeBodySlots = rawChildren.slice(1, endIdx);
       } else {
-        // 兜底结构（例如轻 DOM 测试环境）
+        // Fallback structure (e.g. lightweight DOM test environments)
         codeBodySlots = [nativeList];
       }
 
@@ -2443,7 +2908,7 @@
       const slots = resolveNativeSidebarSlots();
       if (!slots) return false;
 
-      // 防空屏硬熔断：仅在无法读到目录且原生有行时，若切到 Chat 模式保护不盲隐藏
+      // Blank-screen circuit breaker: avoid hiding native rows if catalog cannot be read while native rows exist
       if (snapshot.activeMode === 'code') {
         const nativeRows = slots.nativeList.querySelectorAll('[data-testid="conversation-row-sidebar"], button[data-cascade-id], a[href^="/c/"]');
         if (nativeRows.length > 0 && catalogItems.length === 0) {
@@ -2501,6 +2966,7 @@
           document.documentElement.removeAttribute('data-ag-prism-mode');
           document.documentElement.removeAttribute('data-ag-prism-chat-kind');
           document.documentElement.removeAttribute('data-ag-prism-chat-telemetry');
+          document.documentElement.removeAttribute('data-ag-prism-lang');
         }
         host.engaged = false;
       });
@@ -2524,18 +2990,10 @@
       const runningCid = isRunning && typeof opts.cascadeId === 'string' ? opts.cascadeId : '';
       const models = liveGeminiModels && liveGeminiModels.length ? liveGeminiModels : DEFAULT_GEMINI_MODELS;
       const currentModelId = isRunning ? resolveRunningSessionModelId(runningCid) : selectedModel;
-      const isEn = getCurrentLang() === 'en';
+      const isAr = getCurrentLang() === 'ar';
       const pop = el('div', 'ag-prism-sidebar-popover ag-prism-model-popover');
       pop.setAttribute('data-testid', isRunning ? 'prism-chat-running-model-menu' : 'prism-chat-home-model-menu');
-      pop.appendChild(
-        el(
-          'div',
-          'ag-prism-menu-note',
-          isRunning
-            ? isEn ? 'Gemini Models' : 'Gemini 模型'
-            : isEn ? 'Gemini Models' : 'Gemini 模型'
-        )
-      );
+      pop.appendChild(el('div', 'ag-prism-menu-note', tr('geminiModels')));
 
       for (let i = 0; i < models.length; i++) {
         const m = models[i];
@@ -2552,7 +3010,7 @@
 
         const txt = el('span', 'ag-prism-model-text');
         txt.appendChild(el('span', 'ag-prism-model-name', m.id));
-        txt.appendChild(el('span', 'ag-prism-model-desc', isEn ? m.descEn || m.desc : m.desc));
+        txt.appendChild(el('span', 'ag-prism-model-desc', isAr ? m.descAr || m.desc : m.descEn || m.desc));
         lead.appendChild(txt);
         opt.appendChild(lead);
 
@@ -2581,7 +3039,7 @@
               }
             }
             closePopover();
-            showToast(`已切换为 ${m.id}`);
+            showToast(tr('switchedToModel', m.id));
           } else {
             selectedModel = m.id;
             const allowed = Array.isArray(m.efforts) && m.efforts.length ? m.efforts : ['Low', 'Medium', 'High'];
@@ -2597,7 +3055,7 @@
 
       if (!isRunning) {
         pop.appendChild(el('div', 'ag-prism-menu-sep'));
-        pop.appendChild(el('div', 'ag-prism-menu-note', isEn ? 'Thinking Effort' : '思考强度'));
+        pop.appendChild(el('div', 'ag-prism-menu-note', tr('thinkingEffort')));
 
         const curObj = models.find((x) => x.id === selectedModel) || models[0];
         const allowedEfforts = Array.isArray(curObj.efforts) && curObj.efforts.length ? curObj.efforts : ['Low', 'Medium', 'High'];
@@ -2607,7 +3065,7 @@
         for (let i = 0; i < CHAT_EFFORT_TIERS.length; i++) {
           const tier = CHAT_EFFORT_TIERS[i];
           if (!allowedEfforts.includes(tier.id)) continue;
-          const b = el('button', 'ag-prism-effort-pill', isEn ? tier.id : tier.fullLabel);
+          const b = el('button', 'ag-prism-effort-pill', isAr ? tier.fullLabelAr : tier.fullLabel);
           b.type = 'button';
           b.setAttribute('data-active', selectedEffort === tier.id ? '1' : '0');
           b.addEventListener('click', (e) => {
@@ -2631,8 +3089,8 @@
         const btn = el('button', 'ag-prism-menu-btn');
         btn.type = 'button';
         btn.appendChild(el('span', '', p.name));
-        if (snapshot.chatDraft?.sparkProjectId === p.id) btn.appendChild(el('span', 'ag-prism-sb-row-tag', '当前'));
-        else if (p.sharedWithCode) btn.appendChild(el('span', 'ag-prism-sb-row-tag', '共享'));
+        if (snapshot.chatDraft?.sparkProjectId === p.id) btn.appendChild(el('span', 'ag-prism-sb-row-tag', tr('currentTag')));
+        else if (p.sharedWithCode) btn.appendChild(el('span', 'ag-prism-sb-row-tag', tr('sharedTag')));
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
           closePopover();
@@ -2645,7 +3103,7 @@
         pop.appendChild(btn);
       }
       if (projects.length) pop.appendChild(el('div', 'ag-prism-menu-sep'));
-      const pickBtn = el('button', 'ag-prism-menu-btn', '选择本地目录…');
+      const pickBtn = el('button', 'ag-prism-menu-btn', tr('chooseLocalFolder'));
       pickBtn.type = 'button';
       pickBtn.addEventListener('click', async (e) => {
         e.stopPropagation();
@@ -2660,7 +3118,7 @@
         }
       });
       pop.appendChild(pickBtn);
-      const boxBtn = el('button', 'ag-prism-menu-btn', '新建工作文件夹');
+      const boxBtn = el('button', 'ag-prism-menu-btn', tr('newWorkspaceFolder'));
       boxBtn.type = 'button';
       boxBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -2691,20 +3149,20 @@
       const mp = isSpark ? policy.spark : policy.pure;
       const parts = [];
       if (!isSpark && mp.zeroTools) {
-        parts.push('纯文本零工具');
+        parts.push(tr('policyZeroTools'));
       } else {
-        if (isSpark && mp.fileAccess) parts.push('受控文件');
-        if (isSpark && mp.schedule) parts.push('日程定时');
-        if (mp.webSearch) parts.push('联网搜索');
-        if (mp.imageAndFiles) parts.push('生图/附件');
+        if (isSpark && mp.fileAccess) parts.push(tr('policyFileAccess'));
+        if (isSpark && mp.schedule) parts.push(tr('policySchedule'));
+        if (mp.webSearch) parts.push(tr('policyWebSearch'));
+        if (mp.imageAndFiles) parts.push(tr('policyImageFiles'));
         const pCnt = (mp.allowedPlugins || []).length;
         const mCnt = (mp.allowedMcps || []).length;
-        if (pCnt > 0) parts.push(`${pCnt} 项插件`);
-        if (mCnt > 0) parts.push(`${mCnt} 项工具服务`);
-        if (parts.length === 0) parts.push('无外部工具');
+        if (pCnt > 0) parts.push(tr('policyPluginsCount', pCnt));
+        if (mCnt > 0) parts.push(tr('policyMcpsCount', mCnt));
+        if (parts.length === 0) parts.push(tr('policyNoExtTools'));
       }
-      if (mp.keepUserRules) parts.push('通用规则');
-      return `${isSpark ? 'Spark 文件整理' : 'Pure 日常对话'} · ${parts.join(' / ')}（点击管理能力与扩展）`;
+      if (mp.keepUserRules) parts.push(tr('policyUserRules'));
+      return tr('policySummary', isSpark, parts.join(' / '));
     }
 
     function countPolicyWhitelistTotal() {
@@ -2756,7 +3214,7 @@
         } else if (st.textContent !== CHAT_PULSE_MINIMAL_SHADOW_CSS) {
           st.textContent = CHAT_PULSE_MINIMAL_SHADOW_CSS;
         }
-        // 确保 Chat 极简卡内始终展示 Gemini 额度，不停留在 Claude 标签
+        // Ensure the minimal Chat pulse card always displays Gemini quota rather than staying on the Claude tab
         try {
           const qtabs = pulse.shadowRoot.querySelector('[data-ag-pulse-qtabs]');
           if (qtabs) {
@@ -2799,7 +3257,7 @@
       let bar = host.topbarActsEl;
       if (!bar || !bar.isConnected || bar.parentElement !== anchor) {
         if (bar) bar.remove();
-        bar = markOwnedRoot(el('div', 'ag-prism-chat-topbar-acts'));
+        bar = applyDir(markOwnedRoot(el('div', 'ag-prism-chat-topbar-acts')));
         bar.setAttribute('data-testid', 'prism-chat-topbar-acts');
 
         const pinBtn = el('button', 'ag-prism-chat-topbar-btn');
@@ -2807,15 +3265,15 @@
         pinBtn.appendChild(makeMonoSvg('pin', 14));
         const renameBtn = el('button', 'ag-prism-chat-topbar-btn');
         renameBtn.type = 'button';
-        renameBtn.title = '重命名对话';
+        renameBtn.title = tr('renameConv');
         renameBtn.appendChild(makeMonoSvg('edit', 13.5));
         const expBtn = el('button', 'ag-prism-chat-topbar-btn');
         expBtn.type = 'button';
-        expBtn.title = '导出为 Markdown';
+        expBtn.title = tr('exportMd');
         expBtn.appendChild(makeMonoSvg('download', 13.5));
         const newBtn = el('button', 'ag-prism-chat-topbar-btn');
         newBtn.type = 'button';
-        newBtn.title = '新建对话';
+        newBtn.title = tr('newConv');
         newBtn.appendChild(makeMonoSvg('plus', 14.5));
 
         bar._refs = { pinBtn, renameBtn, expBtn, newBtn };
@@ -2829,7 +3287,7 @@
           e.stopPropagation();
           const curItem = findSidebarChatItemById(bar._cid);
           if (!curItem) return;
-          openRenameModal('重命名对话', curItem.title || '', '输入新对话标题…', (newTitle) => {
+          openRenameModal(tr('renameConv'), curItem.title || '', tr('renameConvPh'), (newTitle) => {
             void callDaemonRpc('rename-chat-session', { cascadeId: curItem.cascadeId, title: newTitle });
           });
         });
@@ -2852,10 +3310,14 @@
         anchor.appendChild(bar);
         host.topbarActsEl = bar;
       }
+      applyDir(bar);
       bar._cid = activeCid;
       const item = findSidebarChatItemById(activeCid);
       bar._refs.pinBtn.setAttribute('data-active', item && item.pinned ? '1' : '0');
-      bar._refs.pinBtn.title = item && item.pinned ? '取消置顶' : '置顶对话';
+      bar._refs.pinBtn.title = item && item.pinned ? tr('unpinConv') : tr('pinConv');
+      bar._refs.renameBtn.title = tr('renameConv');
+      bar._refs.expBtn.title = tr('exportMd');
+      bar._refs.newBtn.title = tr('newConv');
     }
 
     function syncChatComposerChrome(scheduleRetry) {
@@ -2867,6 +3329,7 @@
         if (document.documentElement) {
           if (isChat) {
             document.documentElement.setAttribute('data-ag-prism-chat-kind', chatKind);
+            document.documentElement.setAttribute('data-ag-prism-lang', getCurrentLang());
             document.documentElement.setAttribute(
               'data-ag-prism-chat-telemetry',
               policy.showTelemetryAboveComposer ? 'on' : 'off'
@@ -2929,6 +3392,7 @@
           host.composerChipEl = chip;
         }
 
+        applyDir(chip);
         chip.setAttribute('data-kind', chatKind);
         const mp = chatKind === 'spark' ? policy.spark : policy.pure;
         const wlCount = (mp.allowedPlugins || []).length + (mp.allowedMcps || []).length;
@@ -2936,7 +3400,7 @@
           chatKind === 'spark'
             ? wlCount > 0 ? `Spark · +${wlCount}` : 'Spark'
             : mp.zeroTools
-              ? 'Pure · 纯文本'
+              ? tr('pureTextChip')
               : wlCount > 0 ? `Pure · +${wlCount}` : 'Pure';
         if (chip._lbl.textContent !== labelText) chip._lbl.textContent = labelText;
         chip.title = formatPolicySummary(chatKind);
@@ -3001,15 +3465,13 @@
         const head = el('div', 'ag-prism-modal-head');
         const headText = el('div', '');
         const titleWrap = el('div', 'ag-prism-switch-label');
-        titleWrap.appendChild(el('h3', 'ag-prism-modal-title', 'Chat 能力与扩展'));
+        titleWrap.appendChild(el('h3', 'ag-prism-modal-title', tr('policyModalTitle')));
         titleWrap.appendChild(el('span', 'ag-prism-sb-beta-pill', 'Beta'));
         headText.appendChild(titleWrap);
-        headText.appendChild(
-          el('p', 'ag-prism-modal-sub', 'Pure 与 Spark 独立配置；仅影响 Chat 对话，不会修改你的 Code 编程环境。')
-        );
+        headText.appendChild(el('p', 'ag-prism-modal-sub', tr('policyModalSub')));
         const closeBtn = el('button', 'ag-prism-sb-icon-btn');
         closeBtn.type = 'button';
-        closeBtn.title = '关闭';
+        closeBtn.title = tr('close');
         closeBtn.appendChild(makeMonoSvg('x', 14));
         closeBtn.addEventListener('click', () => close());
         head.appendChild(headText);
@@ -3017,9 +3479,9 @@
         box.appendChild(head);
 
         const tabs = el('div', 'ag-prism-policy-tabs');
-        const pureTabBtn = el('button', 'ag-prism-policy-tab', 'Pure（日常对话）');
+        const pureTabBtn = el('button', 'ag-prism-policy-tab', tr('pureTab'));
         pureTabBtn.type = 'button';
-        const sparkTabBtn = el('button', 'ag-prism-policy-tab', 'Spark（文件整理）');
+        const sparkTabBtn = el('button', 'ag-prism-policy-tab', tr('sparkTab'));
         sparkTabBtn.type = 'button';
         tabs.appendChild(pureTabBtn);
         tabs.appendChild(sparkTabBtn);
@@ -3039,14 +3501,14 @@
 
           const secCore = el('div', 'ag-prism-policy-sec');
           secCore.appendChild(
-            el('div', 'ag-prism-policy-sec-title', isSpark ? 'Spark 文件与事务能力' : 'Pure 日常对话能力')
+            el('div', 'ag-prism-policy-sec-title', isSpark ? tr('sparkCoreTitle') : tr('pureCoreTitle'))
           );
 
           if (!isSpark) {
             secCore.appendChild(
               makeSwitchRow(
-                '联网搜索与读取网页',
-                '允许按需联网检索最新资料并读取网页内容',
+                tr('capWebLabel'),
+                tr('capWebDescPure'),
                 cur.webSearch,
                 (v) => { cur.webSearch = v; renderBody(); },
                 null,
@@ -3055,8 +3517,8 @@
             );
             secCore.appendChild(
               makeSwitchRow(
-                '图片生成与附件分析',
-                '支持生成配图及理解你上传的图片和文件',
+                tr('capImgLabel'),
+                tr('capImgDescPure'),
                 cur.imageAndFiles,
                 (v) => { cur.imageAndFiles = v; renderBody(); },
                 null,
@@ -3065,16 +3527,16 @@
             );
             secCore.appendChild(
               makeSwitchRow(
-                '保留我的语言与沟通偏好',
-                '沿用你的通用中文表达与交流习惯，同时保持纯净对话环境',
+                tr('capRulesLabel'),
+                tr('capRulesDescPure'),
                 cur.keepUserRules,
                 (v) => { cur.keepUserRules = v; renderBody(); }
               )
             );
             secCore.appendChild(
               makeSwitchRow(
-                '纯文字对话模式',
-                '关闭所有外部工具与扩展，仅进行纯粹的文字聊天问答',
+                tr('capZeroLabel'),
+                tr('capZeroDesc'),
                 cur.zeroTools,
                 (v) => { cur.zeroTools = v; renderBody(); }
               )
@@ -3082,48 +3544,48 @@
           } else {
             secCore.appendChild(
               makeSwitchRow(
-                '读写当前工作文件夹',
-                '允许在当前选定的 Spark 文件夹内整理、编辑与归档文档',
+                tr('capFilesLabel'),
+                tr('capFilesDesc'),
                 cur.fileAccess,
                 (v) => { cur.fileAccess = v; renderBody(); }
               )
             );
             secCore.appendChild(
               makeSwitchRow(
-                '日程与定时提醒',
-                '支持协助安排提醒、周期日程与待办定时任务',
+                tr('capSchedLabel'),
+                tr('capSchedDesc'),
                 cur.schedule,
                 (v) => { cur.schedule = v; renderBody(); }
               )
             );
             secCore.appendChild(
               makeSwitchRow(
-                '联网搜索与读取网页',
-                '协助查资料、核对最新网页信息与整理摘要',
+                tr('capWebLabel'),
+                tr('capWebDescSpark'),
                 cur.webSearch,
                 (v) => { cur.webSearch = v; renderBody(); }
               )
             );
             secCore.appendChild(
               makeSwitchRow(
-                '图片生成与附件分析',
-                '支持生成配图及解析上传的文档、表格与截图',
+                tr('capImgLabel'),
+                tr('capImgDescSpark'),
                 cur.imageAndFiles,
                 (v) => { cur.imageAndFiles = v; renderBody(); }
               )
             );
             secCore.appendChild(
               makeSwitchRow(
-                '保留我的语言与沟通偏好',
-                '沿用你的交流风格偏好，同时屏蔽无关开发扩展',
+                tr('capRulesLabel'),
+                tr('capRulesDescSpark'),
                 cur.keepUserRules,
                 (v) => { cur.keepUserRules = v; renderBody(); }
               )
             );
             secCore.appendChild(
               makeSwitchRow(
-                '安全确认保护',
-                '限制在选定文件夹内工作，高风险操作前须由你确认（推荐开启）',
+                tr('capSandboxLabel'),
+                tr('capSandboxDesc'),
                 cur.sandbox,
                 (v) => { cur.sandbox = v; renderBody(); }
               )
@@ -3133,26 +3595,26 @@
 
           const secPlugins = el('div', 'ag-prism-policy-sec');
           const pHead = el('div', 'ag-prism-policy-sec-title');
-          pHead.appendChild(el('span', '', '允许的扩展插件（默认全部关闭）'));
+          pHead.appendChild(el('span', '', tr('pluginsSecTitle')));
           pHead.appendChild(
-            el('span', 'ag-prism-policy-sec-cnt', `已开启 ${cur.allowedPlugins.length} / ${hostCapabilities.plugins.length}`)
+            el('span', 'ag-prism-policy-sec-cnt', tr('enabledCount', cur.allowedPlugins.length, hostCapabilities.plugins.length))
           );
           secPlugins.appendChild(pHead);
           if (catalogLoading) {
-            secPlugins.appendChild(el('div', 'ag-prism-policy-empty', '正在读取已安装插件…'));
+            secPlugins.appendChild(el('div', 'ag-prism-policy-empty', tr('loadingPlugins')));
           } else if (hostCapabilities.plugins.length === 0) {
-            secPlugins.appendChild(el('div', 'ag-prism-policy-empty', '未检测到可用插件'));
+            secPlugins.appendChild(el('div', 'ag-prism-policy-empty', tr('noPlugins')));
           } else {
             const pSet = new Set(cur.allowedPlugins.map((x) => x.toLowerCase()));
             for (let i = 0; i < hostCapabilities.plugins.length; i++) {
               const p = hostCapabilities.plugins[i];
               const tags = [];
-              if (p.isBuiltin) tags.push({ text: '内置' });
-              if (p.disabled) tags.push({ text: '已停用' });
-              if (p.hasRules) tags.push({ text: '规则' });
-              if (p.hasSkills) tags.push({ text: '技能' });
-              if (p.hasMcp) tags.push({ text: '含工具' });
-              if (p.hasHooks) tags.push({ text: '自动触发已拦截', tone: 'warn' });
+              if (p.isBuiltin) tags.push({ text: tr('tagBuiltin') });
+              if (p.disabled) tags.push({ text: tr('tagDisabled') });
+              if (p.hasRules) tags.push({ text: tr('tagRules') });
+              if (p.hasSkills) tags.push({ text: tr('tagSkills') });
+              if (p.hasMcp) tags.push({ text: tr('tagHasTools') });
+              if (p.hasHooks) tags.push({ text: tr('tagHooksBlocked'), tone: 'warn' });
               secPlugins.appendChild(
                 makeSwitchRow(
                   p.displayName,
@@ -3172,25 +3634,25 @@
 
           const secMcp = el('div', 'ag-prism-policy-sec');
           const mHead = el('div', 'ag-prism-policy-sec-title');
-          mHead.appendChild(el('span', '', '允许的外部工具服务（MCP，默认关闭）'));
+          mHead.appendChild(el('span', '', tr('mcpSecTitle')));
           mHead.appendChild(
-            el('span', 'ag-prism-policy-sec-cnt', `已开启 ${cur.allowedMcps.length} / ${hostCapabilities.mcps.length}`)
+            el('span', 'ag-prism-policy-sec-cnt', tr('enabledCount', cur.allowedMcps.length, hostCapabilities.mcps.length))
           );
           secMcp.appendChild(mHead);
           if (catalogLoading) {
-            secMcp.appendChild(el('div', 'ag-prism-policy-empty', '正在读取外部工具服务…'));
+            secMcp.appendChild(el('div', 'ag-prism-policy-empty', tr('loadingMcps')));
           } else if (hostCapabilities.mcps.length === 0) {
-            secMcp.appendChild(el('div', 'ag-prism-policy-empty', '未检测到外部工具服务'));
+            secMcp.appendChild(el('div', 'ag-prism-policy-empty', tr('noMcps')));
           } else {
             const mSet = new Set(cur.allowedMcps.map((x) => x.toLowerCase()));
             for (let i = 0; i < hostCapabilities.mcps.length; i++) {
               const m = hostCapabilities.mcps[i];
-              const tags = [{ text: `${m.toolCount} 个工具` }];
+              const tags = [{ text: tr('mcpToolCount', m.toolCount) }];
               if (m.pluginName) tags.push({ text: m.pluginName });
               secMcp.appendChild(
                 makeSwitchRow(
                   m.serverName,
-                  m.status === 2 ? '已就绪 · 勾选后仅在本模式对话中可用' : '按需启用',
+                  m.status === 2 ? tr('mcpReadyDesc') : tr('mcpOnDemandDesc'),
                   mSet.has(m.serverName.toLowerCase()),
                   (v) => {
                     cur.allowedMcps = toggleInList(cur.allowedMcps, m.serverName, v);
@@ -3205,19 +3667,19 @@
           scrollBody.appendChild(secMcp);
 
           const secUi = el('div', 'ag-prism-policy-sec');
-          secUi.appendChild(el('div', 'ag-prism-policy-sec-title', '界面显示'));
+          secUi.appendChild(el('div', 'ag-prism-policy-sec-title', tr('uiSecTitle')));
           secUi.appendChild(
             makeSwitchRow(
-              '输入框上方显示状态小条',
-              '简洁显示生成速度与上下文占用，关闭后界面更干净',
+              tr('showTelemetryLabel'),
+              tr('showTelemetryDesc'),
               draft.showTelemetryAboveComposer,
               (v) => { draft.showTelemetryAboveComposer = v; renderBody(); }
             )
           );
           secUi.appendChild(
             makeSwitchRow(
-              '首页显示快捷建议',
-              '在新建对话输入框下方提供常用起手建议，关闭后保持纯留白',
+              tr('showStarterLabel'),
+              tr('showStarterDesc'),
               draft.showStarterChips,
               (v) => { draft.showStarterChips = v; renderBody(); }
             )
@@ -3229,7 +3691,7 @@
         sparkTabBtn.addEventListener('click', () => { activeTab = 'spark'; renderBody(); });
 
         const foot = el('div', 'ag-prism-modal-actions-row');
-        const resetBtn = el('button', 'ag-prism-modal-btn', '恢复默认');
+        const resetBtn = el('button', 'ag-prism-modal-btn', tr('resetDefaults'));
         resetBtn.type = 'button';
         resetBtn.setAttribute('data-variant', 'ghost');
         resetBtn.addEventListener('click', () => {
@@ -3239,11 +3701,11 @@
           draft.showStarterChips = true;
           renderBody();
         });
-        const cancelBtn = el('button', 'ag-prism-modal-btn', '取消');
+        const cancelBtn = el('button', 'ag-prism-modal-btn', tr('cancel'));
         cancelBtn.type = 'button';
         cancelBtn.setAttribute('data-variant', 'ghost');
         cancelBtn.addEventListener('click', () => close());
-        const saveBtn = el('button', 'ag-prism-modal-btn', '保存并生效');
+        const saveBtn = el('button', 'ag-prism-modal-btn', tr('saveApply'));
         saveBtn.type = 'button';
         saveBtn.setAttribute('data-variant', 'primary');
         saveBtn.addEventListener('click', async () => {
@@ -3252,7 +3714,7 @@
           close();
           if (r && r.ok) {
             syncChatComposerChrome(false);
-            showToast('已保存设置，将在新建与后续对话中生效');
+            showToast(tr('savedPolicyToast'));
           }
         });
         foot.appendChild(resetBtn);
@@ -3275,14 +3737,12 @@
         el(
           'div',
           'ag-prism-menu-note',
-          proj && proj.sharedWithCode
-            ? '共享目录 · 已保护：该文件夹与当前编程项目共用，已自动采用兼容保护，不会影响正在进行的编程任务。'
-            : 'Spark 安全保护：仅在选定的工作文件夹内协助整理文档与日程，高风险操作前需经你确认。'
+          proj && proj.sharedWithCode ? tr('fenceSharedNote') : tr('fenceSparkNote')
         )
       );
       pop.appendChild(el('div', 'ag-prism-menu-sep'));
       pop.appendChild(
-        makeMenuItem('sliders', '管理 Spark 能力与扩展…', () => {
+        makeMenuItem('sliders', tr('manageSparkCaps'), () => {
           openChatPolicyModal('spark');
         })
       );
@@ -3335,7 +3795,7 @@
         chip.appendChild(el('span', 'ag-prism-att-name', att.name));
         const rm = el('button', 'ag-prism-att-rm');
         rm.type = 'button';
-        rm.title = '移除附件';
+        rm.title = tr('removeAtt');
         rm.appendChild(makeMonoSvg('x', 11));
         rm.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -3361,12 +3821,12 @@
       let added = 0;
       for (let i = 0; i < files.length; i++) {
         if (pendingAttachments.length >= 6) {
-          showToast('单条消息最多附加 6 个文件或截图');
+          showToast(tr('maxAttToast'));
           break;
         }
         const f = files[i];
         if (f.size > 10 * 1024 * 1024) {
-          showToast(`「${f.name}」超过 10 MB，已跳过`);
+          showToast(tr('attTooBigToast', f.name));
           continue;
         }
         const mime = f.type || '';
@@ -3427,7 +3887,7 @@
       for (let i = 0; i < files.length; i++) {
         const f = files[i];
         if (f.size > 8 * 1024 * 1024) {
-          showToast(`「${f.name}」超过 8 MB 大小限制，已跳过`);
+          showToast(tr('sparkFileTooBigToast', f.name));
           continue;
         }
         try {
@@ -3447,7 +3907,7 @@
       }
       if (imported.length > 0) {
         const proj = (snapshot?.sparkProjects || []).find((p) => p.id === sparkProjectId);
-        showToast(`已导入 ${imported.length} 个文件到「${proj ? proj.name : 'Spark'}」：${imported[0]}`);
+        showToast(tr('importedFilesToast', imported.length, proj ? proj.name : 'Spark', imported[0]));
       }
       return imported;
     }
@@ -3468,7 +3928,7 @@
           const names = await importFilesToSpark(fl, importToSparkId);
           if (names.length && host.chatHomeEl && host.chatHomeEl._refs) {
             const refStr = names.map((n) => `@${n}`).join(' ');
-            composerText = composerText ? `${composerText} ${refStr}` : `请帮我处理文件夹中的 ${refStr}：`;
+            composerText = composerText ? `${composerText} ${refStr}` : tr('promptProcessFolderFiles', refStr);
             host.chatHomeEl._refs.input.textContent = composerText;
             renderChatHome();
           }
@@ -3482,23 +3942,23 @@
 
     function openSparkFilesPopover(anchorEl, sparkProjectId) {
       if (!sparkProjectId) {
-        showToast('请先选择一个 Spark 工作文件夹');
+        showToast(tr('selectSparkFirstToast'));
         return;
       }
       const pop = el('div', 'ag-prism-sidebar-popover ag-prism-spark-files-pop');
       const proj = (snapshot?.sparkProjects || []).find((p) => p.id === sparkProjectId);
-      pop.appendChild(el('div', 'ag-prism-menu-note', `工作文件夹 · ${proj ? proj.name : 'Spark'}`));
+      pop.appendChild(el('div', 'ag-prism-menu-note', tr('workspaceFolderPrefix', proj ? proj.name : 'Spark')));
       const listWrap = el('div', 'ag-prism-spark-files-list');
-      listWrap.appendChild(el('div', 'ag-prism-policy-empty', '正在读取目录文件…'));
+      listWrap.appendChild(el('div', 'ag-prism-policy-empty', tr('loadingFolderFiles')));
       pop.appendChild(listWrap);
       pop.appendChild(el('div', 'ag-prism-menu-sep'));
       pop.appendChild(
-        makeMenuItem('upload', '导入本地文件到此文件夹…', () => {
+        makeMenuItem('upload', tr('importLocalFiles'), () => {
           openChatFilePicker(sparkProjectId);
         })
       );
       pop.appendChild(
-        makeMenuItem('external', '在系统文件夹中打开', () => {
+        makeMenuItem('external', tr('openInSystemFolder'), () => {
           void callDaemonRpc('reveal-spark-project', { sparkProjectId });
         })
       );
@@ -3508,12 +3968,12 @@
         if (!pop.isConnected) return;
         clearNode(listWrap);
         if (!res || !res.ok || !res.result) {
-          listWrap.appendChild(el('div', 'ag-prism-policy-empty', '暂无法读取目录内容'));
+          listWrap.appendChild(el('div', 'ag-prism-policy-empty', tr('cantReadFolder')));
           return;
         }
         const files = Array.isArray(res.result.files) ? res.result.files : [];
         if (files.length === 0) {
-          listWrap.appendChild(el('div', 'ag-prism-policy-empty', '文件夹目前为空，可直接拖文件进输入框导入'));
+          listWrap.appendChild(el('div', 'ag-prism-policy-empty', tr('emptyFolderHint')));
           return;
         }
         for (let i = 0; i < files.length; i++) {
@@ -3529,7 +3989,7 @@
             e.stopPropagation();
             closePopover();
             if (host.chatHomeEl && host.chatHomeEl._refs && host.chatHomeEl.getAttribute('data-visible') === '1') {
-              composerText = composerText ? `${composerText} @${f.name} ` : `请查看并处理 @${f.name}：`;
+              composerText = composerText ? `${composerText} @${f.name} ` : tr('promptInspectFile', f.name);
               host.chatHomeEl._refs.input.textContent = composerText;
               renderChatHome();
               try { host.chatHomeEl._refs.input.focus(); } catch {}
@@ -3537,7 +3997,7 @@
               if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
                 void navigator.clipboard.writeText(`@${f.name}`).catch(() => {});
               }
-              showToast(`已复制文件名引用 @${f.name}`);
+              showToast(tr('copiedFileRefToast', f.name));
             }
           });
           listWrap.appendChild(row);
@@ -3548,20 +4008,20 @@
     function openChatPlusPopover(anchorEl) {
       const pop = el('div', 'ag-prism-sidebar-popover');
       pop.appendChild(
-        makeMenuItem('paperclip', '上传图片 / 文件（随首条消息发送）', () => {
+        makeMenuItem('paperclip', tr('uploadAttMenu'), () => {
           openChatFilePicker(null);
         })
       );
       if (snapshot?.chatDraft?.kind === 'spark' && snapshot?.chatDraft?.sparkProjectId) {
         pop.appendChild(
-          makeMenuItem('upload', '导入本地文件到当前 Spark 文件夹…', () => {
+          makeMenuItem('upload', tr('importToSparkMenu'), () => {
             openChatFilePicker(snapshot.chatDraft.sparkProjectId);
           })
         );
       }
       pop.appendChild(el('div', 'ag-prism-menu-sep'));
       pop.appendChild(
-        makeMenuItem('sliders', 'Chat 能力与扩展…', () => {
+        makeMenuItem('sliders', tr('chatCapsMenu'), () => {
           openChatPolicyModal(resolveActiveChatKind());
         })
       );
@@ -3572,7 +4032,7 @@
       if (!snapshot || sendingFirst) return;
       const text = composerText.trim();
       if (!text && pendingAttachments.length === 0) return;
-      const sendText = text || '请结合我附上的图片或文件内容帮我分析。';
+      const sendText = text || tr('defaultAttPrompt');
       sendingFirst = true;
       host.pendingFirstAttachments = pendingAttachments.slice();
       if (host.chatHomeEl && host.chatHomeEl._refs) {
@@ -3611,13 +4071,13 @@
       }
     }
 
-    // 持久化顶栏 [ </> Code | ○ Chat ] 切换胶囊（绝不重建，保证失重弹簧横滑 100% 流畅触发）
+    // Persistent top dock [ </> Code | Chat ] pill (never rebuilt so spring slide animation stays 100% smooth)
     function ensureModeDock(slots) {
       const { nav, headerSlot } = slots;
       const insertBeforeNode = headerSlot ? headerSlot.nextSibling : nav.firstChild;
       if (!host.modeDockEl || host.modeDockEl.parentElement !== nav) {
         if (host.modeDockEl) host.modeDockEl.remove();
-        const dock = markOwnedRoot(el('div', 'ag-prism-mode-dock'));
+        const dock = applyDir(markOwnedRoot(el('div', 'ag-prism-mode-dock')));
         dock.setAttribute('data-testid', 'prism-bipolar-mode-dock');
 
         const seg = el('div', 'ag-prism-sb-seg');
@@ -3674,6 +4134,7 @@
         host.modeDockRefs = { seg, codeBtn: codePair.btn, codeDot: codePair.dot, chatBtn: chatPair.btn, chatDot: chatPair.dot };
       }
 
+      applyDir(host.modeDockEl);
       const r = host.modeDockRefs;
       const mode = snapshot.activeMode === 'chat' ? 'chat' : 'code';
       r.seg.setAttribute('data-mode', mode);
@@ -3685,7 +4146,7 @@
         if (badge && badge.targetMode === targetMode) {
           dotEl.style.display = '';
           dotEl.setAttribute('data-status', badge.status);
-          dotEl.title = `${label} 后台任务 (${badge.count})`;
+          dotEl.title = tr('bgTaskTitle', label, badge.count);
         } else {
           dotEl.style.display = 'none';
         }
@@ -3694,13 +4155,13 @@
       updateDot(r.chatDot, 'chat', 'Chat');
     }
 
-    // 持久化 Chat 侧栏容器（头部与搜索框永不销毁，仅局部更新 list 区）
+    // Persistent Chat sidebar container (header & search input are never destroyed; only list section updates incrementally)
     function ensureChatPane(slots) {
       const { nav } = slots;
       const anchorAfterDock = host.modeDockEl ? host.modeDockEl.nextSibling : nav.firstChild;
       if (!host.chatPaneEl || host.chatPaneEl.parentElement !== nav) {
         if (host.chatPaneEl) host.chatPaneEl.remove();
-        const pane = markOwnedRoot(el('div', 'ag-prism-chat-pane'));
+        const pane = applyDir(markOwnedRoot(el('div', 'ag-prism-chat-pane')));
         pane.setAttribute('data-testid', 'prism-bipolar-chat-pane');
         pane.setAttribute('data-active', '0');
 
@@ -3708,7 +4169,8 @@
         const newBtn = el('button', 'ag-prism-sb-new-btn');
         newBtn.type = 'button';
         newBtn.appendChild(makeMonoSvg('plus', 14));
-        newBtn.appendChild(el('span', '', '新建对话'));
+        const newBtnLbl = el('span', '', tr('newConv'));
+        newBtn.appendChild(newBtnLbl);
         newBtn.addEventListener('click', () => {
           greetingSeed = Math.floor(Math.random() * 100);
           void callDaemonRpc('navigate', { mode: 'chat', view: '/', navRev: snapshot.navRev });
@@ -3718,7 +4180,7 @@
 
         const searchBtn = el('button', 'ag-prism-sb-icon-btn');
         searchBtn.type = 'button';
-        searchBtn.title = '搜索对话';
+        searchBtn.title = tr('searchChats');
         searchBtn.appendChild(makeMonoSvg('search', 14));
         searchBtn.addEventListener('click', () => {
           searchOpen = !searchOpen;
@@ -3737,7 +4199,7 @@
 
         const batchBtn = el('button', 'ag-prism-sb-icon-btn');
         batchBtn.type = 'button';
-        batchBtn.title = '多选批量管理';
+        batchBtn.title = tr('batchManage');
         batchBtn.setAttribute('data-testid', 'prism-sb-batch-toggle');
         batchBtn.appendChild(makeMonoSvg('checklist', 14));
         batchBtn.addEventListener('click', () => {
@@ -3756,7 +4218,7 @@
         searchBox.appendChild(makeMonoSvg('search', 12.5));
         const searchInput = el('input', 'ag-prism-sb-search-input');
         searchInput.type = 'text';
-        searchInput.placeholder = '搜索 Chat 对话…';
+        searchInput.placeholder = tr('searchChatsPh');
         searchInput.addEventListener('compositionstart', () => { searchComposing = true; });
         searchInput.addEventListener('compositionend', () => {
           searchComposing = false;
@@ -3779,10 +4241,10 @@
         batchBar.setAttribute('data-testid', 'prism-sb-batch-bar');
         batchBar.style.display = 'none';
         const batchTop = el('div', 'ag-prism-sb-batch-top');
-        const batchCountLbl = el('span', '', '已选 0 项');
+        const batchCountLbl = el('span', '', tr('selectedCount', 0));
         const batchExitBtn = el('button', 'ag-prism-sb-act-btn');
         batchExitBtn.type = 'button';
-        batchExitBtn.title = '退出多选';
+        batchExitBtn.title = tr('exitBatch');
         batchExitBtn.appendChild(makeMonoSvg('x', 13));
         batchExitBtn.addEventListener('click', () => {
           multiSelectMode = false;
@@ -3795,11 +4257,11 @@
         batchBar.appendChild(batchTop);
 
         const batchBtns = el('div', 'ag-prism-sb-batch-btns');
-        const bMove = el('button', 'ag-prism-sb-batch-btn', '移入');
+        const bMove = el('button', 'ag-prism-sb-batch-btn', tr('batchMove'));
         bMove.type = 'button';
-        const bArch = el('button', 'ag-prism-sb-batch-btn', '归档');
+        const bArch = el('button', 'ag-prism-sb-batch-btn', tr('batchArchive'));
         bArch.type = 'button';
-        const bDel = el('button', 'ag-prism-sb-batch-btn', '删除');
+        const bDel = el('button', 'ag-prism-sb-batch-btn', tr('batchDelete'));
         bDel.type = 'button';
         bDel.setAttribute('data-danger', '1');
 
@@ -3808,9 +4270,9 @@
           const ids = Array.from(selectedBatchIds);
           if (ids.length === 0) return;
           const pop = el('div', 'ag-prism-sidebar-popover');
-          pop.appendChild(el('div', 'ag-prism-menu-note', `批量移动 ${ids.length} 条对话至`));
+          pop.appendChild(el('div', 'ag-prism-menu-note', tr('batchMoveTitle', ids.length)));
           pop.appendChild(
-            makeMenuItem('folderMove', 'Pure 根目录', () => {
+            makeMenuItem('folderMove', tr('pureRoot'), () => {
               void runBatchChatOp('move', ids, { folderId: null });
             })
           );
@@ -3834,16 +4296,14 @@
           const ids = Array.from(selectedBatchIds);
           if (ids.length === 0) return;
           openModal((box, close) => {
-            box.appendChild(el('h3', 'ag-prism-modal-title', `批量永久删除 ${ids.length} 条对话`));
-            box.appendChild(
-              el('p', 'ag-prism-modal-body', '将彻底删除所选对话及其消息记录（运行中的对话会自动跳过保护），删除后不可恢复。')
-            );
+            box.appendChild(el('h3', 'ag-prism-modal-title', tr('batchDelTitle', ids.length)));
+            box.appendChild(el('p', 'ag-prism-modal-body', tr('batchDelBody')));
             const row = el('div', 'ag-prism-modal-actions-row');
-            const cBtn = el('button', 'ag-prism-modal-btn', '取消');
+            const cBtn = el('button', 'ag-prism-modal-btn', tr('cancel'));
             cBtn.type = 'button';
             cBtn.setAttribute('data-variant', 'ghost');
             cBtn.addEventListener('click', () => close());
-            const dBtn = el('button', 'ag-prism-modal-btn', `永久删除 (${ids.length})`);
+            const dBtn = el('button', 'ag-prism-modal-btn', tr('batchDelConfirm', ids.length));
             dBtn.type = 'button';
             dBtn.setAttribute('data-variant', 'danger');
             dBtn.addEventListener('click', () => {
@@ -3867,7 +4327,8 @@
         policyBtn.type = 'button';
         policyBtn.setAttribute('data-testid', 'prism-sb-policy-btn');
         policyBtn.appendChild(makeMonoSvg('sliders', 13.5));
-        policyBtn.appendChild(el('span', 'ag-prism-sb-row-title', '能力与扩展'));
+        const policyLbl = el('span', 'ag-prism-sb-row-title', tr('capsAndExt'));
+        policyBtn.appendChild(policyLbl);
         const policyCnt = el('span', 'ag-prism-sb-cnt', '');
         policyBtn.appendChild(policyCnt);
         policyBtn.addEventListener('click', () => {
@@ -3878,7 +4339,23 @@
 
         nav.insertBefore(pane, anchorAfterDock);
         host.chatPaneEl = pane;
-        host.chatPaneRefs = { list, searchWrap, searchInput, policyCnt, batchBtn, batchBar, batchCountLbl, bMove, bArch, bDel };
+        host.chatPaneRefs = {
+          list, searchWrap, searchInput, searchBtn, newBtnLbl, policyLbl, policyCnt,
+          batchBtn, batchBar, batchCountLbl, batchExitBtn, bMove, bArch, bDel,
+        };
+      }
+      applyDir(host.chatPaneEl);
+      if (host.chatPaneRefs) {
+        const cr = host.chatPaneRefs;
+        if (cr.newBtnLbl) cr.newBtnLbl.textContent = tr('newConv');
+        if (cr.searchBtn) cr.searchBtn.title = tr('searchChats');
+        if (cr.batchBtn) cr.batchBtn.title = tr('batchManage');
+        if (cr.searchInput) cr.searchInput.placeholder = tr('searchChatsPh');
+        if (cr.batchExitBtn) cr.batchExitBtn.title = tr('exitBatch');
+        if (cr.bMove) cr.bMove.textContent = tr('batchMove');
+        if (cr.bArch) cr.bArch.textContent = tr('batchArchive');
+        if (cr.bDel) cr.bDel.textContent = tr('batchDelete');
+        if (cr.policyLbl) cr.policyLbl.textContent = tr('capsAndExt');
       }
     }
 
@@ -3904,7 +4381,7 @@
         const inp = el('input', 'ag-prism-modal-input');
         inp.type = 'text';
         inp.value = initialValue || '';
-        inp.placeholder = placeholder || '输入新名称…';
+        inp.placeholder = placeholder || tr('enterNewNamePh');
         box.appendChild(inp);
         const submit = () => {
           const v = inp.value.trim();
@@ -3917,11 +4394,11 @@
           else if (e.key === 'Escape') { e.preventDefault(); close(); }
         });
         const row = el('div', 'ag-prism-modal-actions-row');
-        const cancelBtn = el('button', 'ag-prism-modal-btn', '取消');
+        const cancelBtn = el('button', 'ag-prism-modal-btn', tr('cancel'));
         cancelBtn.type = 'button';
         cancelBtn.setAttribute('data-variant', 'ghost');
         cancelBtn.addEventListener('click', () => close());
-        const okBtn = el('button', 'ag-prism-modal-btn', '保存');
+        const okBtn = el('button', 'ag-prism-modal-btn', tr('save'));
         okBtn.type = 'button';
         okBtn.setAttribute('data-variant', 'primary');
         okBtn.addEventListener('click', submit);
@@ -3948,18 +4425,12 @@
 
     function openDeleteSessionModal(item) {
       openModal((box, close) => {
-        box.appendChild(el('h3', 'ag-prism-modal-title', '永久删除对话？'));
-        box.appendChild(
-          el(
-            'p',
-            'ag-prism-modal-body',
-            `确认彻底删除「${item.title || item.cascadeId}」吗？删除后无法恢复；若只是暂时收起，建议改为“归档”。`
-          )
-        );
+        box.appendChild(el('h3', 'ag-prism-modal-title', tr('delConvTitle')));
+        box.appendChild(el('p', 'ag-prism-modal-body', tr('delConvBody', item.title || item.cascadeId)));
         const actions = el('div', 'ag-prism-modal-actions');
         if (!item.archived) {
           actions.appendChild(
-            buildModalBtn('改为归档（可随时恢复）', {
+            buildModalBtn(tr('archiveInsteadBtn'), {
               variant: 'primary',
               icon: 'archive',
               onClick: async () => {
@@ -3967,14 +4438,14 @@
                 const r = await callDaemonRpc('archive-chat-session', { cascadeId: item.cascadeId, archived: true });
                 if (r && r.ok) {
                   if (r.result?.navigatedFallback) navigateHostRoute('/');
-                  showToast('已归档该对话');
+                  showToast(tr('archivedConvToast'));
                 }
               },
             })
           );
         }
         actions.appendChild(
-          buildModalBtn('永久删除对话', {
+          buildModalBtn(tr('delConvBtn'), {
             variant: 'danger',
             icon: 'trash',
             onClick: async () => {
@@ -3982,13 +4453,13 @@
               const r = await callDaemonRpc('delete-chat-session', { cascadeId: item.cascadeId });
               if (r && r.ok) {
                 if (r.result?.navigatedFallback) navigateHostRoute('/');
-                showToast('已永久删除对话');
+                showToast(tr('deletedConvToast'));
                 scheduleCatalogSync();
               }
             },
           })
         );
-        actions.appendChild(buildModalBtn('取消', { variant: 'ghost', onClick: () => close() }));
+        actions.appendChild(buildModalBtn(tr('cancel'), { variant: 'ghost', onClick: () => close() }));
         box.appendChild(actions);
       });
     }
@@ -4001,22 +4472,22 @@
           if (r.result?.navigatedFallback) navigateHostRoute('/');
           showToast(
             childAction === 'delete'
-              ? `已删除文件夹及 ${count} 条对话`
+              ? tr('delFolderToastAll', count)
               : childAction === 'archive'
-              ? `已归档 ${count} 条对话并删除文件夹`
-              : '已删除文件夹'
+              ? tr('delFolderToastArch', count)
+              : tr('delFolderToastOnly')
           );
           scheduleCatalogSync();
         }
       };
       openModal((box, close) => {
-        box.appendChild(el('h3', 'ag-prism-modal-title', `删除文件夹「${folder.name}」`));
+        box.appendChild(el('h3', 'ag-prism-modal-title', tr('delFolderTitle', folder.name)));
         if (count === 0) {
-          box.appendChild(el('p', 'ag-prism-modal-body', '该文件夹目前为空，确认删除吗？'));
+          box.appendChild(el('p', 'ag-prism-modal-body', tr('delFolderEmptyBody')));
           const row = el('div', 'ag-prism-modal-actions-row');
-          row.appendChild(buildModalBtn('取消', { variant: 'ghost', onClick: () => close() }));
+          row.appendChild(buildModalBtn(tr('cancel'), { variant: 'ghost', onClick: () => close() }));
           row.appendChild(
-            buildModalBtn('删除文件夹', {
+            buildModalBtn(tr('delFolderBtn'), {
               variant: 'danger',
               onClick: () => {
                 close();
@@ -4027,12 +4498,10 @@
           box.appendChild(row);
           return;
         }
-        box.appendChild(
-          el('p', 'ag-prism-modal-body', `该文件夹内包含 ${count} 条对话，请选择如何处理这些对话：`)
-        );
+        box.appendChild(el('p', 'ag-prism-modal-body', tr('delFolderNonEmptyBody', count)));
         const actions = el('div', 'ag-prism-modal-actions');
         actions.appendChild(
-          buildModalBtn(`仅删文件夹（${count} 条对话移回 Pure）`, {
+          buildModalBtn(tr('delFolderKeepChats', count), {
             variant: 'primary',
             icon: 'folderMove',
             onClick: () => {
@@ -4042,7 +4511,7 @@
           })
         );
         actions.appendChild(
-          buildModalBtn(`归档全部 ${count} 条对话并删除文件夹`, {
+          buildModalBtn(tr('delFolderArchChats', count), {
             icon: 'archive',
             onClick: () => {
               close();
@@ -4051,7 +4520,7 @@
           })
         );
         actions.appendChild(
-          buildModalBtn(`永久删除全部 ${count} 条对话与文件夹`, {
+          buildModalBtn(tr('delFolderDelChats', count), {
             variant: 'danger',
             icon: 'trash',
             onClick: () => {
@@ -4060,7 +4529,7 @@
             },
           })
         );
-        actions.appendChild(buildModalBtn('取消', { variant: 'ghost', onClick: () => close() }));
+        actions.appendChild(buildModalBtn(tr('cancel'), { variant: 'ghost', onClick: () => close() }));
         box.appendChild(actions);
       });
     }
@@ -4073,23 +4542,23 @@
           if (r.result?.navigatedFallback) navigateHostRoute('/');
           showToast(
             childAction === 'delete'
-              ? `已移除工作区并永久删除 ${count} 条对话`
+              ? tr('delSparkToastAll', count)
               : childAction === 'archive'
-              ? `已归档 ${count} 条对话并移除工作区`
-              : '已移除 Spark 工作区'
+              ? tr('delSparkToastArch', count)
+              : tr('delSparkToastOnly')
           );
           scheduleCatalogSync();
         }
       };
       openModal((box, close) => {
-        box.appendChild(el('h3', 'ag-prism-modal-title', `删除 Spark 工作区「${project.name}」`));
+        box.appendChild(el('h3', 'ag-prism-modal-title', tr('delSparkTitle', project.name)));
         if (count === 0) {
-          box.appendChild(el('p', 'ag-prism-modal-body', '该工作区目前没有关联对话，确认从 Spark 移除吗？'));
-          box.appendChild(el('div', 'ag-prism-modal-note', '安全提示：仅解除工作区绑定，绝不会删除你本地磁盘上的原始文件。'));
+          box.appendChild(el('p', 'ag-prism-modal-body', tr('delSparkEmptyBody')));
+          box.appendChild(el('div', 'ag-prism-modal-note', tr('delSparkSafeNoteEmpty')));
           const row = el('div', 'ag-prism-modal-actions-row');
-          row.appendChild(buildModalBtn('取消', { variant: 'ghost', onClick: () => close() }));
+          row.appendChild(buildModalBtn(tr('cancel'), { variant: 'ghost', onClick: () => close() }));
           row.appendChild(
-            buildModalBtn('确认移除', {
+            buildModalBtn(tr('confirmRemove'), {
               variant: 'danger',
               onClick: () => {
                 close();
@@ -4100,13 +4569,11 @@
           box.appendChild(row);
           return;
         }
-        box.appendChild(
-          el('p', 'ag-prism-modal-body', `该工作区内包含 ${count} 条对话，请选择如何处理这些对话：`)
-        );
-        box.appendChild(el('div', 'ag-prism-modal-note', '安全提示：所有选项均仅处理对话记录与绑定关系，绝不会删除本地磁盘文件夹中的文件。'));
+        box.appendChild(el('p', 'ag-prism-modal-body', tr('delSparkNonEmptyBody', count)));
+        box.appendChild(el('div', 'ag-prism-modal-note', tr('delSparkSafeNote')));
         const actions = el('div', 'ag-prism-modal-actions');
         actions.appendChild(
-          buildModalBtn(`解绑工作区（${count} 条对话移回 Pure）`, {
+          buildModalBtn(tr('delSparkUnbindChats', count), {
             variant: 'primary',
             icon: 'folderMove',
             onClick: () => {
@@ -4116,7 +4583,7 @@
           })
         );
         actions.appendChild(
-          buildModalBtn(`归档全部 ${count} 条对话并移除工作区`, {
+          buildModalBtn(tr('delSparkArchChats', count), {
             icon: 'archive',
             onClick: () => {
               close();
@@ -4125,7 +4592,7 @@
           })
         );
         actions.appendChild(
-          buildModalBtn(`永久删除全部 ${count} 条对话并移除工作区`, {
+          buildModalBtn(tr('delSparkDelChats', count), {
             variant: 'danger',
             icon: 'trash',
             onClick: () => {
@@ -4134,7 +4601,7 @@
             },
           })
         );
-        actions.appendChild(buildModalBtn('取消', { variant: 'ghost', onClick: () => close() }));
+        actions.appendChild(buildModalBtn(tr('cancel'), { variant: 'ghost', onClick: () => close() }));
         box.appendChild(actions);
       });
     }
@@ -4151,7 +4618,7 @@
         }
         const md = typeof res === 'string' ? res : typeof res?.markdown === 'string' ? res.markdown : '';
         if (!md) {
-          showToast('当前对话暂无可导出的 Markdown 内容');
+          showToast(tr('noMdExportToast'));
           return;
         }
         if (typeof navigator !== 'undefined' && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
@@ -4167,9 +4634,9 @@
           a.click();
           setTimeout(() => { try { URL.revokeObjectURL(url); } catch {} }, 1500);
         }
-        showToast('已导出 Markdown 并复制到剪贴板');
+        showToast(tr('exportedMdToast'));
       } catch {
-        showToast('导出 Markdown 失败');
+        showToast(tr('exportMdFailToast'));
       }
     }
 
@@ -4177,9 +4644,9 @@
       const pop = el('div', 'ag-prism-sidebar-popover');
       if (item.status === 'running') {
         pop.appendChild(
-          makeMenuItem('stop', '停止运行', () => {
+          makeMenuItem('stop', tr('stopRunning'), () => {
             void callDaemonRpc('cancel-chat-session', { cascadeId: item.cascadeId }).then((r) => {
-              if (r && r.ok) showToast('已请求停止对话');
+              if (r && r.ok) showToast(tr('stopRequestedToast'));
             });
           })
         );
@@ -4187,14 +4654,14 @@
       }
       if (!item.archived) {
         pop.appendChild(
-          makeMenuItem('pin', item.pinned ? '取消置顶' : '置顶对话', () => {
+          makeMenuItem('pin', item.pinned ? tr('unpinConv') : tr('pinConv'), () => {
             void callDaemonRpc('pin-chat-session', { cascadeId: item.cascadeId, pinned: !item.pinned });
           })
         );
       }
       pop.appendChild(
-        makeMenuItem('edit', '重命名对话', () => {
-          openRenameModal('重命名对话', item.title || '', '输入新对话标题…', (newTitle) => {
+        makeMenuItem('edit', tr('renameConv'), () => {
+          openRenameModal(tr('renameConv'), item.title || '', tr('renameConvPh'), (newTitle) => {
             void callDaemonRpc('rename-chat-session', { cascadeId: item.cascadeId, title: newTitle });
           });
         })
@@ -4205,7 +4672,7 @@
           pop.appendChild(el('div', 'ag-prism-menu-sep'));
           if (item.placement?.folderId) {
             pop.appendChild(
-              makeMenuItem('folderMove', '移回 Pure 根目录', () => {
+              makeMenuItem('folderMove', tr('moveToPureRoot'), () => {
                 void callDaemonRpc('move-chat-session', {
                   cascadeId: item.cascadeId,
                   placement: { kind: 'knowledge', folderId: null },
@@ -4217,7 +4684,7 @@
             const f = folders[i];
             if (item.placement?.folderId === f.id) continue;
             pop.appendChild(
-              makeMenuItem('folder', `移入：${f.name}`, () => {
+              makeMenuItem('folder', tr('moveIntoFolder', f.name), () => {
                 void callDaemonRpc('move-chat-session', {
                   cascadeId: item.cascadeId,
                   placement: { kind: 'knowledge', folderId: f.id },
@@ -4229,25 +4696,25 @@
       }
       pop.appendChild(el('div', 'ag-prism-menu-sep'));
       pop.appendChild(
-        makeMenuItem('download', '导出为 Markdown', () => {
+        makeMenuItem('download', tr('exportMd'), () => {
           void exportChatMarkdown(item);
         })
       );
       pop.appendChild(
-        makeMenuItem(item.archived ? 'restore' : 'archive', item.archived ? '从归档恢复' : '归档对话', () => {
+        makeMenuItem(item.archived ? 'restore' : 'archive', item.archived ? tr('restoreConv') : tr('archiveConv'), () => {
           void callDaemonRpc('archive-chat-session', {
             cascadeId: item.cascadeId,
             archived: !item.archived,
           }).then((r) => {
             if (r && r.ok) {
               if (r.result?.navigatedFallback) navigateHostRoute('/');
-              showToast(item.archived ? '已恢复该对话' : '已归档该对话');
+              showToast(item.archived ? tr('restoredConvToast') : tr('archivedConvToast'));
             }
           });
         })
       );
       pop.appendChild(
-        makeMenuItem('trash', '永久删除', () => {
+        makeMenuItem('trash', tr('deletePermMenu'), () => {
           openDeleteSessionModal(item);
         }, true)
       );
@@ -4257,7 +4724,7 @@
     function openKnowledgeFolderMenu(folder, anchorEl) {
       const pop = el('div', 'ag-prism-sidebar-popover');
       pop.appendChild(
-        makeMenuItem('plus', '在此文件夹新建对话', () => {
+        makeMenuItem('plus', tr('newChatInFolder'), () => {
           greetingSeed = Math.floor(Math.random() * 100);
           void callDaemonRpc('navigate', { mode: 'chat', view: '/', navRev: snapshot.navRev }).then(() => {
             void callDaemonRpc('set-chat-draft', {
@@ -4270,15 +4737,15 @@
         })
       );
       pop.appendChild(
-        makeMenuItem('edit', '重命名文件夹', () => {
-          openRenameModal('重命名文件夹', folder.name, '输入新文件夹名…', (newName) => {
+        makeMenuItem('edit', tr('renameFolder'), () => {
+          openRenameModal(tr('renameFolder'), folder.name, tr('renameFolderPh'), (newName) => {
             void callDaemonRpc('rename-knowledge-folder', { folderId: folder.id, name: newName });
           });
         })
       );
       pop.appendChild(el('div', 'ag-prism-menu-sep'));
       pop.appendChild(
-        makeMenuItem('trash', '删除文件夹…', () => {
+        makeMenuItem('trash', tr('deleteFolderMenu'), () => {
           openDeleteFolderModal(folder);
         }, true)
       );
@@ -4288,7 +4755,7 @@
     function openSparkWorkspaceMenu(project, anchorEl) {
       const pop = el('div', 'ag-prism-sidebar-popover');
       pop.appendChild(
-        makeMenuItem('plus', '在此工作区新建对话', () => {
+        makeMenuItem('plus', tr('newChatInWorkspace'), () => {
           greetingSeed = Math.floor(Math.random() * 100);
           void callDaemonRpc('navigate', { mode: 'chat', view: '/', navRev: snapshot.navRev }).then(() => {
             void callDaemonRpc('set-chat-draft', {
@@ -4301,25 +4768,25 @@
         })
       );
       pop.appendChild(
-        makeMenuItem('edit', '重命名工作区', () => {
-          openRenameModal('重命名工作区显示名', project.name, '输入工作区显示名…', (newName) => {
+        makeMenuItem('edit', tr('renameWorkspace'), () => {
+          openRenameModal(tr('renameWorkspaceTitle'), project.name, tr('renameWorkspacePh'), (newName) => {
             void callDaemonRpc('rename-spark-project', { sparkProjectId: project.id, name: newName });
           });
         })
       );
       pop.appendChild(
-        makeMenuItem('file', '预览 / 导入目录文件…', () => {
+        makeMenuItem('file', tr('previewImportFiles'), () => {
           openSparkFilesPopover(anchorEl, project.id);
         })
       );
       pop.appendChild(
-        makeMenuItem('external', '在文件夹中打开', () => {
+        makeMenuItem('external', tr('openInFolder'), () => {
           void callDaemonRpc('reveal-spark-project', { sparkProjectId: project.id });
         })
       );
       pop.appendChild(el('div', 'ag-prism-menu-sep'));
       pop.appendChild(
-        makeMenuItem('trash', '删除 / 解绑工作区…', () => {
+        makeMenuItem('trash', tr('removeWorkspaceMenu'), () => {
           openDeleteSparkModal(project);
         }, true)
       );
@@ -4339,8 +4806,7 @@
         selectedBatchIds.clear();
         multiSelectMode = false;
         if (host.chatPaneRefs && host.chatPaneRefs.batchBtn) host.chatPaneRefs.batchBtn.style.color = '';
-        const verb = op === 'delete' ? '删除' : op === 'archive' ? '归档' : '移动';
-        showToast(skN > 0 ? `已批量${verb} ${okN} 条对话（跳过 ${skN} 条运行中或受限项）` : `已批量${verb} ${okN} 条对话`);
+        showToast(tr('batchOpToast', op, okN, skN));
         scheduleCatalogSync();
         renderChatSidebarList();
       }
@@ -4389,7 +4855,7 @@
       const refs = host.chatPaneRefs;
       refs.batchBar.style.display = multiSelectMode ? 'flex' : 'none';
       const n = selectedBatchIds.size;
-      refs.batchCountLbl.textContent = `已选 ${n} 项`;
+      refs.batchCountLbl.textContent = tr('selectedCount', n);
       refs.bMove.disabled = n === 0;
       refs.bArch.disabled = n === 0;
       refs.bDel.disabled = n === 0;
@@ -4462,7 +4928,7 @@
       if (!multiSelectMode) {
         const moreBtn = el('button', 'ag-prism-sb-act-btn');
         moreBtn.type = 'button';
-        moreBtn.title = '更多操作';
+        moreBtn.title = tr('moreActions');
         moreBtn.appendChild(makeMonoSvg('more', 13));
         moreBtn.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -4478,7 +4944,7 @@
 
     let lastChatListRenderSig = '';
 
-    function buildChatListRenderSig(activeCid, q, proj, dayKey) {
+    function buildChatListRenderSig(activeCid, q, proj, dayKey, lang) {
       const fmtItem = (it) =>
         `${it.cascadeId}|${it.title || ''}|${it.status || ''}|${it.statusStartedAt || 0}|${it.pinned ? 1 : 0}|${it.archived ? 1 : 0}|${it.unread ? 1 : 0}|${it.updatedAt || 0}|${it.workspace || ''}|${it.workspacePath || ''}`;
       const selIds = multiSelectMode ? [...selectedBatchIds].sort().join(',') : '';
@@ -4491,7 +4957,7 @@
         .join(';');
       const archCount = Number(proj.archived?.totalCount ?? 0);
       const archSig = ((proj.archived && proj.archived.items) || []).map(fmtItem).join(';');
-      return `${dayKey}#${activeCid}#${q}#${multiSelectMode ? 1 : 0}#${selIds}#${inlineFolderOpen ? 1 : 0}#${inlineBoxOpen ? 1 : 0}#${archivedOpen ? 1 : 0}#${draggingCid || ''}#${kRootSig}#${kFoldersSig}#${sProjSig}#${archCount}:${archSig}`;
+      return `${lang || 'en'}#${dayKey}#${activeCid}#${q}#${multiSelectMode ? 1 : 0}#${selIds}#${inlineFolderOpen ? 1 : 0}#${inlineBoxOpen ? 1 : 0}#${archivedOpen ? 1 : 0}#${draggingCid || ''}#${kRootSig}#${kFoldersSig}#${sProjSig}#${archCount}:${archSig}`;
     }
 
     function renderChatSidebarList() {
@@ -4510,7 +4976,7 @@
         const proj = snapshot.chatSidebar || { knowledge: { rootItems: [], folders: [] }, spark: { projects: [] }, archived: { items: [], totalCount: 0 } };
         const nowDate = new Date();
         const dayKey = `${nowDate.getFullYear()}-${nowDate.getMonth()}-${nowDate.getDate()}`;
-        const renderSig = buildChatListRenderSig(activeCid, q, proj, dayKey);
+        const renderSig = buildChatListRenderSig(activeCid, q, proj, dayKey, getCurrentLang());
         if (renderSig === lastChatListRenderSig && list.childElementCount > 0) {
           updateBatchBarUi();
           return;
@@ -4534,7 +5000,7 @@
         kRight.appendChild(el('span', 'ag-prism-sb-cnt', String(kTotal)));
         const addF = el('button', 'ag-prism-sb-icon-btn');
         addF.type = 'button';
-        addF.title = '新建子文件夹';
+        addF.title = tr('newSubfolder');
         addF.appendChild(makeMonoSvg('plus', 12));
         addF.addEventListener('click', () => {
           inlineFolderOpen = !inlineFolderOpen;
@@ -4544,18 +5010,18 @@
         kSec.appendChild(kRight);
         bindChatDropZone(kSec, (cid) => {
           void callDaemonRpc('move-chat-session', { cascadeId: cid, placement: { kind: 'knowledge', folderId: null } });
-          showToast('已移回 Pure 根目录');
+          showToast(tr('movedToPureRootToast'));
         });
         list.appendChild(kSec);
 
-        // 拖拽时浮现的快捷置顶落点区
+        // Quick-pin drop zone revealed while dragging a conversation
         const pinDropEl = el('div', 'ag-prism-sb-pin-drop');
         pinDropEl.style.display = draggingCid ? 'flex' : 'none';
         pinDropEl.appendChild(makeMonoSvg('pin', 11));
-        pinDropEl.appendChild(el('span', '', '拖到此处快速置顶'));
+        pinDropEl.appendChild(el('span', '', tr('dropToPin')));
         bindChatDropZone(pinDropEl, (cid) => {
           void callDaemonRpc('pin-chat-session', { cascadeId: cid, pinned: true });
-          showToast('已置顶该对话');
+          showToast(tr('pinnedToast'));
         });
         host.chatPaneRefs.pinDropEl = pinDropEl;
         list.appendChild(pinDropEl);
@@ -4564,7 +5030,7 @@
           const box = el('div', 'ag-prism-sb-inline-box');
           const inp = el('input', 'ag-prism-sb-inline-input');
           inp.type = 'text';
-          inp.placeholder = '输入文件夹名回车创建…';
+          inp.placeholder = tr('newFolderPh');
           inp.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && inp.value.trim()) {
               inlineFolderOpen = false;
@@ -4583,11 +5049,11 @@
         if (kRoot.length > 0) {
           const nowMs = Date.now();
           const groupMeta = [
-            { key: 'pinned', label: '置顶' },
-            { key: 'today', label: '今天' },
-            { key: 'yesterday', label: '昨天' },
-            { key: 'week', label: '7 天内' },
-            { key: 'earlier', label: '更早' },
+            { key: 'pinned', label: tr('grpPinned') },
+            { key: 'today', label: tr('grpToday') },
+            { key: 'yesterday', label: tr('grpYesterday') },
+            { key: 'week', label: tr('grpWeek') },
+            { key: 'earlier', label: tr('grpEarlier') },
           ];
           const buckets = { pinned: [], today: [], yesterday: [], week: [], earlier: [] };
           for (let i = 0; i < kRoot.length; i++) {
@@ -4603,7 +5069,7 @@
             if (gm.key === 'pinned') {
               bindChatDropZone(lbl, (cid) => {
                 void callDaemonRpc('pin-chat-session', { cascadeId: cid, pinned: true });
-                showToast('已置顶该对话');
+                showToast(tr('pinnedToast'));
               });
             }
             list.appendChild(lbl);
@@ -4620,7 +5086,7 @@
           const gw = el('div', 'ag-prism-sb-group-wrap');
           bindChatDropZone(gw, (cid) => {
             void callDaemonRpc('move-chat-session', { cascadeId: cid, placement: { kind: 'knowledge', folderId: f.id } });
-            showToast(`已移入文件夹「${f.name}」`);
+            showToast(tr('movedToFolderToast', f.name));
           });
           const gh = el('button', 'ag-prism-sb-group-head');
           gh.type = 'button';
@@ -4655,7 +5121,7 @@
           const fActs = el('div', 'ag-prism-sb-row-actions');
           const fNew = el('button', 'ag-prism-sb-act-btn');
           fNew.type = 'button';
-          fNew.title = '在此文件夹新建对话';
+          fNew.title = tr('newChatInFolder');
           fNew.appendChild(makeMonoSvg('plus', 12));
           fNew.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -4671,7 +5137,7 @@
           });
           const fMore = el('button', 'ag-prism-sb-act-btn');
           fMore.type = 'button';
-          fMore.title = '文件夹操作';
+          fMore.title = tr('folderActions');
           fMore.appendChild(makeMonoSvg('more', 13));
           fMore.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -4686,7 +5152,7 @@
           list.appendChild(fGrid);
         }
         if (kRoot.length === 0 && kFolders.length === 0) {
-          list.appendChild(el('div', 'ag-prism-sb-empty', '暂无对话'));
+          list.appendChild(el('div', 'ag-prism-sb-empty', tr('noChatsEmpty')));
         }
 
         const sProjects = proj.spark.projects || [];
@@ -4699,7 +5165,7 @@
         sRight.appendChild(el('span', 'ag-prism-sb-cnt', String(sProjects.length)));
         const addBox = el('button', 'ag-prism-sb-icon-btn');
         addBox.type = 'button';
-        addBox.title = '新建工作文件夹';
+        addBox.title = tr('newWorkspaceFolder');
         addBox.appendChild(makeMonoSvg('plus', 12));
         addBox.addEventListener('click', () => {
           inlineBoxOpen = !inlineBoxOpen;
@@ -4713,7 +5179,7 @@
           const box = el('div', 'ag-prism-sb-inline-box');
           const inp = el('input', 'ag-prism-sb-inline-input');
           inp.type = 'text';
-          inp.placeholder = '输入工作文件夹名回车创建…';
+          inp.placeholder = tr('newBoxPh');
           inp.addEventListener('keydown', async (e) => {
             if (e.key === 'Enter' && inp.value.trim()) {
               const nm = inp.value.trim();
@@ -4737,7 +5203,7 @@
         }
 
         if (sProjects.length === 0) {
-          list.appendChild(el('div', 'ag-prism-sb-empty', '切至 Spark 选择本地目录或新建工作文件夹'));
+          list.appendChild(el('div', 'ag-prism-sb-empty', tr('noSparkEmpty')));
         } else {
           for (let i = 0; i < sProjects.length; i++) {
             const p = sProjects[i];
@@ -4751,7 +5217,7 @@
             gh.appendChild(ch);
             gh.appendChild(makeMonoSvg('folder', 12.5));
             gh.appendChild(el('span', 'ag-prism-sb-row-title', p.name));
-            if (p.sharedWithCode) gh.appendChild(el('span', 'ag-prism-sb-row-tag', '共享'));
+            if (p.sharedWithCode) gh.appendChild(el('span', 'ag-prism-sb-row-tag', tr('sharedTag')));
             gh.appendChild(el('span', 'ag-prism-sb-cnt', String(pItems.length)));
 
             const pGrid = el('div', 'ag-prism-sb-folder-grid');
@@ -4777,7 +5243,7 @@
             const pActs = el('div', 'ag-prism-sb-row-actions');
             const pNew = el('button', 'ag-prism-sb-act-btn');
             pNew.type = 'button';
-            pNew.title = '在此工作区新建对话';
+            pNew.title = tr('newChatInWorkspace');
             pNew.appendChild(makeMonoSvg('plus', 12));
             pNew.addEventListener('click', (e) => {
               e.stopPropagation();
@@ -4793,7 +5259,7 @@
             });
             const pMore = el('button', 'ag-prism-sb-act-btn');
             pMore.type = 'button';
-            pMore.title = '工作区操作';
+            pMore.title = tr('workspaceActions');
             pMore.appendChild(makeMonoSvg('more', 13));
             pMore.addEventListener('click', (e) => {
               e.stopPropagation();
@@ -4821,7 +5287,7 @@
           ach.appendChild(makeMonoSvg('chevron', 11));
           ah.appendChild(ach);
           ah.appendChild(makeMonoSvg('archive', 12));
-          ah.appendChild(el('span', 'ag-prism-sb-row-title', '已归档'));
+          ah.appendChild(el('span', 'ag-prism-sb-row-title', tr('archivedSection')));
           ah.appendChild(el('span', 'ag-prism-sb-cnt', String(archivedItems.length)));
 
           const aGrid = el('div', 'ag-prism-sb-folder-grid');
@@ -4848,7 +5314,7 @@
     }
 
     function resolveMainCanvasHost() {
-      // 优先挂到 [data-testid="sidebar-split"] 的右侧常驻主内容面板：它在 '/' <-> '/c/xxx' 路由切换时永远不会被 React 卸载！
+      // Prefer mounting on the persistent right main-content pane of [data-testid="sidebar-split"] so React never unmounts it during '/' <-> '/c/xxx' route switches
       const split = document.querySelector('[data-testid="sidebar-split"]');
       if (split && split.children && split.children.length >= 2) {
         const rightPane = split.children[split.children.length - 1];
@@ -4875,7 +5341,7 @@
         const detached = Boolean(host.chatHomeEl && host.chatHomeEl.isConnected === false);
         if (!host.chatHomeEl || detached || host.chatHomeHostEl !== mainHost) {
           if (host.chatHomeEl) host.chatHomeEl.remove();
-          const container = markOwnedRoot(el('div', 'ag-prism-chat-home'));
+          const container = applyDir(markOwnedRoot(el('div', 'ag-prism-chat-home')));
           container.setAttribute('data-testid', 'prism-live-chat-home');
           container.setAttribute('data-visible', '0');
 
@@ -4937,7 +5403,7 @@
                 const names = await importFilesToSpark(docs, spkId);
                 if (names.length > 0) {
                   const refsTxt = names.map((n) => `@${n}`).join(' ');
-                  composerText = composerText ? `${composerText} ${refsTxt}` : `请帮我处理刚放入文件夹的 ${refsTxt}：`;
+                  composerText = composerText ? `${composerText} ${refsTxt}` : tr('promptProcessDroppedFiles', refsTxt);
                   input.textContent = composerText;
                   renderChatHome();
                 }
@@ -4996,7 +5462,7 @@
           const left = el('div', 'ag-prism-chat-bar-g');
           const plusBtn = el('button', 'ag-prism-sb-icon-btn');
           plusBtn.type = 'button';
-          plusBtn.title = '附加文件与选项';
+          plusBtn.title = tr('attachAndOptions');
           plusBtn.appendChild(makeMonoSvg('plus', 15));
           plusBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -5055,7 +5521,7 @@
           bar.appendChild(right);
           vessel.appendChild(bar);
 
-          // Spark 一体延展底座（0px 垂直跳动）
+          // Integrated Spark extension tray (0px vertical jump)
           const trayGrid = el('div', 'ag-prism-tray-grid');
           const trayOver = el('div', 'ag-prism-tray-over');
           const trayBar = el('div', 'ag-prism-tray-bar');
@@ -5064,7 +5530,7 @@
           const projBtn = el('button', 'ag-prism-ghost-btn');
           projBtn.type = 'button';
           projBtn.appendChild(makeMonoSvg('folder', 13));
-          const projLbl = el('span', '', '工作文件夹');
+          const projLbl = el('span', '', tr('workspaceFolder'));
           projBtn.appendChild(projLbl);
           projBtn.appendChild(makeMonoSvg('chevronDown', 11));
           projBtn.addEventListener('click', (e) => {
@@ -5075,9 +5541,10 @@
 
           const filesBtn = el('button', 'ag-prism-ghost-btn');
           filesBtn.type = 'button';
-          filesBtn.title = '预览或导入工作文件夹内的文件';
+          filesBtn.title = tr('folderFilesTitle');
           filesBtn.appendChild(makeMonoSvg('file', 13));
-          filesBtn.appendChild(el('span', '', '目录文件'));
+          const filesLbl = el('span', '', tr('folderFiles'));
+          filesBtn.appendChild(filesLbl);
           filesBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             openSparkFilesPopover(filesBtn, snapshot?.chatDraft?.sparkProjectId);
@@ -5087,7 +5554,7 @@
           const fenceBtn = el('button', 'ag-prism-ghost-btn');
           fenceBtn.type = 'button';
           fenceBtn.appendChild(makeMonoSvg('shield', 13));
-          const fenceLbl = el('span', '', '安全保护');
+          const fenceLbl = el('span', '', tr('safetyGuard'));
           fenceBtn.appendChild(fenceLbl);
           fenceBtn.appendChild(makeMonoSvg('chevronDown', 11));
           fenceBtn.addEventListener('click', (e) => {
@@ -5118,8 +5585,8 @@
           container.appendChild(inner);
 
           container._refs = {
-            aura, mark, eyeTxt, h1, wrap, attStrip, input, subSeg, kBtn, sBtn,
-            modelLbl, sendBtn, projLbl, fenceLbl, filesBtn, starterRow,
+            aura, mark, eyeTxt, h1, wrap, attStrip, input, plusBtn, subSeg, kBtn, sBtn,
+            modelLbl, sendBtn, projLbl, fenceLbl, filesBtn, filesLbl, starterRow,
           };
           if (host.chatHomeHostEl && host.chatHomeHostPrevPos !== null) {
             host.chatHomeHostEl.style.position = host.chatHomeHostPrevPos;
@@ -5141,7 +5608,10 @@
           return;
         }
 
-        // 原地增量热更（保证 Knowledge <-> Spark 切换 0px 跳动且所有 CSS 过渡自然执行）
+        // In-place incremental update (guarantees 0px vertical jump between Knowledge <-> Spark with smooth CSS transitions)
+        const lang = getCurrentLang();
+        const isAr = lang === 'ar';
+        applyDir(host.chatHomeEl);
         const isSpark = snapshot.chatDraft && snapshot.chatDraft.kind === 'spark';
         const paused = document.hidden || currentCfg.motionLevel === 'off';
         host.chatHomeEl.setAttribute('data-visible', '1');
@@ -5163,11 +5633,14 @@
           }
         }
 
-        const hero = formatHero(getCurrentLang(), getUserDisplayName(), greetingSeed);
+        const hero = formatHero(lang, getUserDisplayName(), greetingSeed);
         if (refs.eyeTxt.textContent !== hero.eyebrow) refs.eyeTxt.textContent = hero.eyebrow;
         if (refs.h1.textContent !== hero.headline) refs.h1.textContent = hero.headline;
 
-        refs.input.setAttribute('data-placeholder', isSpark ? '交给我一件要处理的事务…' : '问点什么，或整理一份想法…');
+        refs.input.setAttribute('data-placeholder', isSpark ? tr('inputPhSpark') : tr('inputPhPure'));
+        if (refs.plusBtn) refs.plusBtn.title = tr('attachAndOptions');
+        if (refs.filesBtn) refs.filesBtn.title = tr('folderFilesTitle');
+        if (refs.filesLbl) refs.filesLbl.textContent = tr('folderFiles');
         if (document.activeElement !== refs.input && refs.input.textContent !== composerText) {
           refs.input.textContent = composerText;
         }
@@ -5175,25 +5648,28 @@
         refs.kBtn.setAttribute('data-active', isSpark ? '0' : '1');
         refs.sBtn.setAttribute('data-active', isSpark ? '1' : '0');
 
-        const effShort = (CHAT_EFFORT_TIERS.find((t) => t.id === selectedEffort) || CHAT_EFFORT_TIERS[2]).label;
+        const effTier = CHAT_EFFORT_TIERS.find((t) => t.id === selectedEffort) || CHAT_EFFORT_TIERS[2];
+        const effShort = isAr ? effTier.labelAr : effTier.label;
         refs.modelLbl.textContent = `${selectedModel} · ${effShort}`;
         const ready = Boolean(composerText.trim() || pendingAttachments.length > 0);
         refs.sendBtn.setAttribute('data-ready', ready ? '1' : '0');
         refs.sendBtn.disabled = !ready;
 
         const proj = (snapshot.sparkProjects || []).find((p) => p.id === snapshot.chatDraft?.sparkProjectId) || null;
-        refs.projLbl.textContent = proj ? proj.name : '工作文件夹';
-        refs.fenceLbl.textContent = proj && proj.sharedWithCode ? '共享目录 · 已保护' : '安全保护';
+        refs.projLbl.textContent = proj ? proj.name : tr('workspaceFolder');
+        refs.fenceLbl.textContent = proj && proj.sharedWithCode ? tr('sharedProtected') : tr('safetyGuard');
 
-        // 淡雅起手灵感胶囊（按 Pure / Spark 切换，可一键关闭持久化）
+        // Subtle starter suggestion chips (switched by Pure / Spark & language, dismissible and persisted)
         const policy = getEffectiveChatPolicy();
         const showChips = Boolean(policy.showStarterChips && !composerText.trim() && pendingAttachments.length === 0);
         refs.starterRow.setAttribute('data-hidden', showChips ? '0' : '1');
         const chipsKind = isSpark ? 'spark' : 'pure';
-        if (refs.starterRow.getAttribute('data-chips-kind') !== chipsKind) {
-          refs.starterRow.setAttribute('data-chips-kind', chipsKind);
+        const chipsKey = `${chipsKind}:${lang}`;
+        if (refs.starterRow.getAttribute('data-chips-kind') !== chipsKey) {
+          refs.starterRow.setAttribute('data-chips-kind', chipsKey);
           clearNode(refs.starterRow);
-          const preset = CHAT_STARTER_CHIPS[chipsKind] || CHAT_STARTER_CHIPS.pure;
+          const langChips = CHAT_STARTER_CHIPS[lang] || CHAT_STARTER_CHIPS.en;
+          const preset = langChips[chipsKind] || langChips.pure;
           for (let i = 0; i < preset.length; i++) {
             const item = preset[i];
             const cb = el('button', 'ag-prism-starter-chip', item.label);
@@ -5218,7 +5694,7 @@
           }
           const dismissBtn = el('button', 'ag-prism-starter-dismiss');
           dismissBtn.type = 'button';
-          dismissBtn.title = '隐藏快捷建议（可在「能力与扩展」中重新开启）';
+          dismissBtn.title = tr('dismissStartersTitle');
           dismissBtn.appendChild(makeMonoSvg('x', 11.5));
           dismissBtn.addEventListener('click', () => {
             void callDaemonRpc('set-prefs', { patch: { chatPolicy: { showStarterChips: false } } });
@@ -5262,13 +5738,14 @@
 
         if (document.documentElement) {
           document.documentElement.setAttribute('data-ag-prism-mode', mode);
+          document.documentElement.setAttribute('data-ag-prism-lang', getCurrentLang());
         }
 
         if (mode === 'code') {
           if (modeJustChanged) {
             try { W.__agPrism?.suppressEntryMotion?.(950); } catch {}
           }
-          // Code 模式：100% 原封不动释放原生侧边栏（保留全部工作区分组、运行态动画、Swarm 与子代理标识）
+          // Code mode: release native sidebar completely untouched (preserves workspace groups, running animations, Swarm & subagent badges)
           const returningNodes = host.parkedNativeNodes.slice();
           restoreNativeSidebarVisibility();
           if (modeJustChanged && currentCfg.motionLevel !== 'off') {
@@ -5291,7 +5768,7 @@
             host.chatPaneEl.setAttribute('data-entering', '0');
           }
         } else {
-          // Chat 模式：仅柔和收起原生列表区（保留原生顶栏与底栏），平滑展开 Chat 面板
+          // Chat mode: gently collapse native list slots (preserving native header and footer) and expand Chat pane smoothly
           const nextParked = [];
           for (let i = 0; i < slots.codeBodySlots.length; i++) {
             const node = slots.codeBodySlots[i];
@@ -5353,7 +5830,7 @@
     const onDocModelPointerCapture = (e) => {
       const hit = matchChatRunningModelTrigger(e);
       if (!hit) return;
-      // Radix DropdownMenu 在 pointerdown/mousedown 阶段就会打开原生菜单，必须在捕获阶段直接拦截
+      // Radix DropdownMenu opens its native menu on pointerdown/mousedown, so intercept in the capture phase
       e.preventDefault();
       e.stopPropagation();
       if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();

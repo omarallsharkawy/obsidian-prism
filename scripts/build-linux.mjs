@@ -30,7 +30,7 @@ function generateInstallSh(version = cdp.PLUGIN_VERSION) {
     '',
     'if ! command -v node >/dev/null 2>&1; then',
     '  printf \'[Obsidian Prism] Node.js >= 22 is required. Please install Node.js 22+ and retry.\\n\' >&2',
-    '  printf \'[Obsidian Prism] 需要 Node.js >= 22，请先安装 Node.js 22+ 后重试。\\n\' >&2',
+    '  printf \'[Obsidian Prism] يتطلب Node.js >= 22. يرجى تثبيت Node.js 22+ ثم إعادة المحاولة.\\n\' >&2',
     '  exit 1',
     'fi',
     '',

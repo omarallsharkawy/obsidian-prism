@@ -56,7 +56,7 @@
     homeRipple: S_T,
     convRipple: mkSp(['off', 'subtle', 'medium', 'full'], 'off', { on: 'medium', true: 'medium', false: 'off' }),
     logoInk: mkSp(['accent', 'foreground']),
-    language: mkSp(['zh-CN', 'zh-TW', 'en', 'ja', 'ko', 'es', 'fr', 'de'], 'zh-CN', { yue: 'zh-CN', 'zh-HK': 'zh-TW', 'zh-MO': 'zh-TW' }),
+    language: mkSp(['en', 'ar'], 'en', { arabic: 'ar', english: 'en' }),
     hostLocalization: S_AUTO,
     composerRestyle: S_T,
     placeholderStyle: mkSp(['studio', 'host']),
@@ -158,7 +158,7 @@
     return 'r:' + parts.join(',') + (minis ? '+m' : '');
   };
 
-  // ── 紧凑同源 16×10 像素精灵兜底引擎（当 mascot='off' 未注入 Ch10 时依然 100% 真实高清像素渲染）──
+  // -- Compact 16x10 pixel sprite fallback engine (renders crisp sprites even when mascot='off' and Ch10 is not injected) --
   const FALLBACK_MASCOT_ART = (() => {
     const decPal = (s, base) => {
       const o = base ? { ...base } : {};
@@ -320,7 +320,7 @@
     '<ellipse cx="8" cy="14" rx="5.2" ry="1.1" fill="currentColor" opacity="0.45"/>' +
     '</svg>';
 
-  // ── 《八方旅人》黑曜石星辰酒馆 HD-2D WebGL2 3D 视差选角子面板（仅打开且可见时渲染，关闭/隐藏/脱离 DOM 立即停帧并 0×0 + WEBGL_lose_context 回收显存）──
+  // -- Obsidian Starlit Tavern HD-2D WebGL2 3D parallax mascot cast picker (renders only while open & visible; immediately halts and frees VRAM via 0x0 + WEBGL_lose_context on close/hide/detach) --
   const STAGE_SLOTS = O.freeze([
     { key: 'c', toggleId: 'c', kind: 'clawd', cx: 72, i18nKey: 'mascotSpeciesCrab', fb: 'Claude Crab', hex: '#d97757', rayA: '249,115,22', rayB: '251,146,60', cheerPose: 'happy', cheerSym: 'spark' },
     { key: 'k', toggleId: 'k', kind: 'cat', cx: 196, i18nKey: 'mascotSpeciesCat', fb: 'Gemini Cat', hex: '#947fd6', rayA: '139,92,246', rayB: '56,189,248', cheerPose: 'happy', cheerSym: 'heart' },
@@ -345,7 +345,7 @@
   }) => {
     const STAGE_W = 640;
     const STAGE_H = 360;
-    const FRAME_GAP_MS = 33; // WebGL2 丝滑 30fps / 2.5D 轻量降级
+    const FRAME_GAP_MS = 33; // Smooth 30fps WebGL2 / lightweight 2.5D fallback
     const win = doc.defaultView || getWin();
     const sa = (e, k, v = '') => e.setAttribute(k, String(v));
     const ra = (e, k) => e.removeAttribute(k);
@@ -381,7 +381,7 @@
       });
     }
 
-    // 1. 顶栏：「← 返回设置」+ 舞台标题 + 实时计数/迷你蟹状态
+    // 1. Top bar: Back to Settings + stage title + live count / mini-crab status
     const hdr = mk('div');
     sa(hdr, 'data-ag-stage-header', '1');
     if (hdr.style) O.assign(hdr.style, { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' });
@@ -441,7 +441,7 @@
     sa(hintEl, 'data-ag-stage-hint', '1');
     if (hintEl.style) O.assign(hintEl.style, { fontSize: '11.5px', opacity: '0.72', lineHeight: '1.4' });
 
-    // 2. 16:9 电影画幅 HD-2D 微缩酒馆舞台容器
+    // 2. 16:9 cinematic HD-2D miniature tavern stage container
     const stageFrame = mk('div');
     sa(stageFrame, 'data-ag-stage-frame', '1');
     if (stageFrame.style) {
@@ -479,7 +479,7 @@
     let canvas = createStageCanvas();
     ap(stageFrame, canvas);
 
-    // 3. 与 5 站位严格垂直对齐的 5 张精致像素阵营名牌开关按钮
+    // 3. 5 pixel camp nameplate toggle buttons vertically aligned with the 5 stage slots
     const dockGrid = mk('div');
     sa(dockGrid, 'data-ag-stage-dock', '1');
     if (dockGrid.style) {
@@ -490,7 +490,7 @@
       });
     }
 
-    // 4. 底部 4 枚快捷预设胶囊（双宠经典 / 四宠同台 / 全员上场 / 全员休息）
+    // 4. Bottom 4 quick-preset pills (Classic Duo / Fab Four / Full Cast / Rest All)
     const presetRow = mk('div');
     sa(presetRow, 'data-ag-stage-presets', '1');
     if (presetRow.style) {
@@ -506,7 +506,7 @@
 
     ap(view, hdr, hintEl, stageFrame, dockGrid, presetRow);
 
-    // ── 舞台实时物理、3D 视差与光影状态（5 个固定单只纯开关站位）──
+    // -- Live stage physics, 3D parallax, and lighting state (5 fixed single-actor toggle slots) --
     let isOpen = false;
     let disposed = false;
     let rafId = 0;
@@ -594,7 +594,7 @@
       applyRosterChange(next, ev);
     };
 
-    // 构建 5 张精致像素阵营名牌开关按钮（零步进器、零 ×2 徽章，一键点亮/熄灯）
+    // Build 5 pixel camp nameplate toggle buttons (no steppers or x2 badges; one-click spotlight toggle)
     STAGE_SLOTS.forEach((sl, idx) => {
       const btn = mk('button', BTN);
       btn.type = 'button';
@@ -671,7 +671,7 @@
       ap(dockGrid, btn);
     });
 
-    // 构建底部 4 枚快捷预设胶囊（双宠经典 / 四宠同台 / 全员上场 / 全员休息）
+    // Build bottom 4 quick-preset pills (Classic Duo / Fab Four / Full Cast / Rest All)
     const STAGE_PRESETS = [
       ['crab', 'mascotStagePresetDual', 'Classic Dual'],
       ['quad', 'mascotStagePresetQuad', 'All Four'],
@@ -703,7 +703,7 @@
       ap(presetRow, pb);
     }
 
-    // 同步舞台所有 DOM 文本、阵营名牌开关态与预设高亮
+    // Sync all stage DOM labels, camp toggle states, and active preset highlights
     const syncStageControls = () => {
       const l = getLang();
       const u = uiText(l) || {};
@@ -759,7 +759,7 @@
       }
     };
 
-    // Canvas 鼠标归一化坐标映射（WebGL2 3D 精确射线拾取 + 2.5D 区域拾取双兼容）
+    // Normalized canvas pointer mapping (compatible with both WebGL2 3D ray picking and 2.5D region hit-testing)
     const pointerToNdc = (ev) => {
       if (!ev || !isFn(canvas.getBoundingClientRect)) return null;
       const rect = canvas.getBoundingClientRect();
@@ -868,7 +868,7 @@
       return null;
     };
 
-    // ── HD-2D 像素剧场单帧渲染管线（优先 WebGL2 3D 视差引擎，自动无损降级 2.5D Canvas）──
+    // -- HD-2D pixel theater single-frame pipeline (prefers WebGL2 3D parallax engine, falls back to 2.5D Canvas) --
     const ensureCanvasBacking = () => {
       const dpr = Math.min((win?.devicePixelRatio) || 1, 1.5);
       const tw = Math.round(STAGE_W * dpr);
@@ -898,7 +898,7 @@
       const art = resolveMascotArt();
       lastArtSource = art?.source || 'unknown';
 
-      // 1. 统一推进 5 槽位聚光灯插值、欢呼/告别/涟漪与姿态状态
+      // 1. Advance spotlight interpolation, cheer/wave/ripple timers, and pose states across all 5 slots
       const smoothK = Math.min(1, dt / 110);
       const slotInfos = [];
       for (let i = 0; i < STAGE_SLOTS.length; i++) {
@@ -943,7 +943,7 @@
         });
       }
 
-      // 2. 优先走 WebGL2 HD-2D 3D 视差像素舞台引擎
+      // 2. Prefer WebGL2 HD-2D 3D parallax pixel stage engine
       const glInst = ensureWebglStage();
       if (glInst && !glInst.isContextLost()) {
         const ok = glInst.render(now, { dt, light, reducedMotion: reduced, art, tickIdx, slotInfos });
@@ -955,7 +955,7 @@
         return;
       }
 
-      // 3. 优雅降级：16:9 多层视差 2.5D 星夜酒馆 Canvas 引擎（兼容无 WebGL2 / Mock 测试环境）
+      // 3. Graceful fallback: 16:9 multi-layer parallax 2.5D Starlit Tavern Canvas engine (WebGL2-less / mock test compatible)
       renderBackend = 'canvas2d';
       const dpr = ensureCanvasBacking();
       const ctx = canvas.getContext?.('2d');
@@ -971,7 +971,7 @@
 
       const parX = reduced || !ptrInside ? 0 : Math.round(ptrNormX * 8);
 
-      // 3a) HD-2D 黑曜石星夜酒馆后墙（拱窗星月 + 书架 + 壁炉微光）
+      // 3a) HD-2D Obsidian Starlit Tavern back wall (arched starry window + shelves + hearth glow)
       if (hasGrad) {
         const bg = ctx.createLinearGradient(0, 0, 0, 248);
         if (light) {
@@ -989,7 +989,7 @@
       }
       ctx.fillRect(0, 0, STAGE_W, 248);
 
-      // 石砖纹理 + 哥特拱窗星月
+      // Stone brick texture + Gothic arched starry window
       ctx.fillStyle = light ? 'rgba(138,108,72,0.06)' : 'rgba(255,255,255,0.025)';
       for (let y = 32; y < 238; y += 20) ctx.fillRect(0, y, STAGE_W, 1);
       for (const wx of [146, 494]) {
@@ -1004,7 +1004,7 @@
         ctx.fillRect(x0 - 16, 108, 3, 3);
       }
 
-      // 居中暖光壁炉
+      // Centered warm-glow hearth
       const hx = 320 + Math.round(parX * 0.5);
       ctx.fillStyle = light ? '#a58d70' : '#2e3246';
       ctx.fillRect(hx - 40, 152, 80, 96);
@@ -1015,7 +1015,7 @@
       ctx.fillStyle = '#ffbc42';
       ctx.fillRect(hx - 10, 200 + (tickIdx % 2) * 3, 20, 34);
 
-      // 散景暖光点
+      // Warm bokeh light motes
       const bokeh = [[52, 72, 16], [164, 54, 12], [274, 82, 18], [392, 60, 14], [510, 74, 16], [596, 56, 12]];
       for (let i = 0; i < bokeh.length; i++) {
         const [bx, by, br] = bokeh[i];
@@ -1029,13 +1029,13 @@
         }
       }
 
-      // 顶部木石横梁
+      // Overhead timber and stone beams
       ctx.fillStyle = light ? '#8c6d4f' : '#0f1320';
       ctx.fillRect(0, 0, STAGE_W, 14);
       ctx.fillStyle = light ? '#b08e68' : '#232c44';
       ctx.fillRect(0, 14, STAGE_W, 3);
 
-      // 3b) 透视拼花木石舞台地板 + 阶梯台沿厚度
+      // 3b) Perspective parquet wood-and-stone stage floor + stepped apron thickness
       if (hasGrad) {
         const fl = ctx.createLinearGradient(0, 244, 0, 330);
         if (light) {
@@ -1069,7 +1069,7 @@
         ctx.restore();
       }
 
-      // 立体舞台前缘与台阶深影
+      // 3D stage front edge and deep step shadow
       ctx.fillStyle = light ? '#b59971' : '#322b3e';
       ctx.fillRect(0, 328, STAGE_W, 4);
       ctx.fillStyle = light ? '#8d704c' : '#120f18';
@@ -1077,7 +1077,7 @@
       ctx.fillStyle = light ? 'rgba(72,52,32,0.22)' : 'rgba(0,0,0,0.55)';
       ctx.fillRect(0, 348, STAGE_W, 12);
 
-      // 第 5 站位（右侧抬高苔藓迷你蟹专属双层石台）
+      // Slot 5 (elevated right mossy two-tier stone dais for mini crabs)
       const mPlatX = 502;
       const mPlatW = 126;
       const mPlatY = 232;
@@ -1094,19 +1094,19 @@
       ctx.fillStyle = light ? '#9d7f57' : '#181421';
       ctx.fillRect(mPlatX - 12, mPlatY + 70, 12, 6);
 
-      // 3c) 逐站位绘制地板光环/涟漪、单只主角像素精灵与体积聚光灯（零分身！）
+      // 3c) Draw floor rings/ripples, single hero pixel sprite, and volumetric spotlight per slot
       for (let i = 0; i < slotInfos.length; i++) {
         const info = slotInfos[i];
         const { sl, st, cnt, isHov, cheering, farewell, pose, sym, jumpPx, breath, blink, clipTick } = info;
         const floorY = sl.key === 'm' ? 276 : 292;
 
-        // 顶梁聚光灯罩
+        // Overhead spotlight hood
         ctx.fillStyle = light ? '#5e4934' : '#283148';
         ctx.fillRect(sl.cx - 10, 14, 20, 6);
         ctx.fillStyle = st.light > 0.05 ? `rgba(${sl.rayB}, ${0.35 + st.light * 0.65})` : (light ? '#9c8a74' : '#1b2030');
         ctx.fillRect(sl.cx - 7, 20, 14, 4);
 
-        // 地板柔边投影 + 阵营光环
+        // Soft floor shadow + camp halo
         if (hasRad) {
           const sh = ctx.createRadialGradient(sl.cx, floorY + 2, 5, sl.cx, floorY + 2, 44);
           sh.addColorStop(0, light ? 'rgba(72,52,32,0.22)' : 'rgba(0,0,0,0.52)');
@@ -1129,7 +1129,7 @@
           ctx.restore();
         }
 
-        // 激活瞬间地板扩散双光环涟漪
+        // Expanding dual floor ripple rings on activation
         if (info.rippleProg > 0 && info.rippleProg < 1 && isFn(ctx.ellipse) && isFn(ctx.stroke)) {
           const rp = info.rippleProg;
           ctx.save();
@@ -1154,7 +1154,7 @@
         if (shadeAlpha < 1) ctx.globalAlpha = shadeAlpha;
 
         if (sl.key !== 'm') {
-          // 单只高清主角 (PX = 4)，无多只分身
+          // Single crisp hero sprite (PX = 4), no duplicates
           const mainPx = 4;
           const oxGrid = Math.round(sl.cx / mainPx) - 8;
           const oyGrid = Math.round((floorY + jumpPx) / mainPx) - 10;
@@ -1166,7 +1166,7 @@
             noShadow: true,
           });
         } else {
-          // 站位 5：3 只迷你小蟹立于苔藓石台（pxSize = 2.5 -> 整格 2）
+          // Slot 5: 3 mini crabs perched on mossy stone dais (pxSize = 2.5 -> integer grid 2)
           const mPx = 2;
           const crabDefs = [
             { id: 'cowboy', dx: -26, dy: 0, phase: 0 },
@@ -1193,7 +1193,7 @@
         }
         ctx.restore();
 
-        // 体积感丁达尔聚光灯 + 上升星尘
+        // Volumetric Tyndall spotlight cone + rising stardust
         if (st.light > 0.03 && hasPoly) {
           ctx.save();
           if (!light) ctx.globalCompositeOperation = 'lighter';
@@ -1256,7 +1256,7 @@
         }
       }
 
-      // 3d) 电影级暗角 (Vignette)
+      // 3d) Cinematic vignette
       if (hasRad) {
         const vig = ctx.createRadialGradient(STAGE_W / 2, STAGE_H * 0.52, STAGE_W * 0.28, STAGE_W / 2, STAGE_H * 0.52, STAGE_W * 0.64);
         vig.addColorStop(0, 'rgba(0,0,0,0)');
@@ -1450,21 +1450,7 @@
         val = normFn(nav, 'en');
       } else {
         const low = String(nav || '').toLowerCase().replace(/_/g, '-');
-        val = /^ja\b/.test(low)
-          ? 'ja'
-          : /^ko\b/.test(low)
-            ? 'ko'
-            : /^es\b/.test(low)
-              ? 'es'
-              : /^fr\b/.test(low)
-                ? 'fr'
-                : /^de\b/.test(low)
-                  ? 'de'
-                  : /^zh-(?:tw|hk|mo|hant)\b/.test(low)
-                    ? 'zh-TW'
-                    : /^zh\b/.test(low)
-                      ? 'zh-CN'
-                      : 'en';
+        val = /^ar\b/.test(low) ? 'ar' : 'en';
       }
     }
     if ((key === 'periodicModelPicker' || key === 'omniModule' || key === 'sidebarStudio' || key === 'autoUpdate' || key === 'sidebarNavFold') && typeof val === 'boolean') val = val ? 'on' : 'off';
@@ -1558,7 +1544,7 @@
   const UPSTREAM_CREDITS = [
     ['0DNANCY/agy-claude-style', 'MIT · 0DNANCY'],
     ['ATtacK030130/antigrative-dashboard', 'MIT · AG Pulse'],
-    ['LLYSH-HANNARI/antigravity-Codex-Claude-effort-slider', 'MIT · 月上寒'],
+    ['LLYSH-HANNARI/antigravity-Codex-Claude-effort-slider', 'MIT · Yueshanghan (LLYSH-HANNARI)'],
     ['yiheng8023/antigravity-chinese', 'MIT · yiheng8023'],
     ['Nwflower/dsh-claude-style', 'Inspiration'],
     ['Microqian2th/dsh-codex-effort-slider', 'Upstream'],
@@ -1581,43 +1567,15 @@
     'Preserved Upstream Component Notices (MIT License — GPL-3.0 Compatible):',
     '  - Copyright (c) 2026 0DNANCY (agy-claude-style)',
     '  - Copyright (c) 2026 AG Pulse contributors (antigrative-dashboard)',
-    '  - Copyright (c) 2026 月上寒 / LLYSH-HANNARI (antigravity-Codex-Claude-effort-slider)',
+    '  - Copyright (c) 2026 Yueshanghan / LLYSH-HANNARI (antigravity-Codex-Claude-effort-slider)',
     '  - Copyright (c) 2026 Antigravity Chinese Localization Contributors (yiheng8023/antigravity-chinese)',
     '  - Copyright (c) 2026 chimney / @wp3171216237 (dsh-TUI / Deepy mascot reference)',
     '',
     'See LICENSE, NOTICE, CITATION.cff, and THIRD_PARTY_NOTICES.md in the repository.',
   ].join('\n');
 
-  // Channel 9 内置 8 语种存储明细与归档工作台文案（0 B 进 Ch1，完整 8 语、无废弃 yue、未知语种回退 en）
+  // Channel 9 bilingual storage details & lossless archive workbench strings (en / ar)
   const STORAGE_WB_UI = O.freeze({
-    'zh-CN': O.freeze({
-      summary: '存储明细与无损归档工作台',
-      oldMainBtn: '含 >14 天旧主对话',
-      oldMainConfirmDesc:
-        '确认后将生成独立的离线归档脚本（archive-old-main，不覆盖默认子代理脚本），除已结束子代理外还将移动超过 14 天且在最近 20 条之外的旧主对话（只移动不删除，随时可按批次无损还原）。请先退出 Antigravity 再运行脚本。',
-      oldMainConfirmBtn: '确认生成旧主对话脚本',
-      oldMainReadyTpl: '旧主对话归档脚本就绪（可归档 {0} 项 / {1}），退出 Antigravity 后运行：{2}',
-      refreshBtn: '刷新',
-      loading: '正在扫描存储明细…',
-      batchSelectLabel: '选择还原批次：',
-      restoreSelectedDescTpl: '将温和关闭 Antigravity，把所选批次（{0}）全部文件无损移回对话库并自动重启。',
-      restoreScriptBtn: '生成离线还原脚本',
-      restoreScriptReadyTpl: '还原脚本就绪（{0}），退出 Antigravity 后运行：{1}',
-    }),
-    'zh-TW': O.freeze({
-      summary: '儲存明細與無損封存工作台',
-      oldMainBtn: '含 >14 天舊主對話',
-      oldMainConfirmDesc:
-        '確認後將產生獨立的離線封存腳本（archive-old-main，不覆蓋預設子代理腳本），除已結束子代理外還會移動超過 14 天且在最近 20 筆之外的舊主對話（只移動不刪除，隨時可按批次無損還原）。請先退出 Antigravity 再執行腳本。',
-      oldMainConfirmBtn: '確認產生舊主對話腳本',
-      oldMainReadyTpl: '舊主對話封存腳本就緒（可封存 {0} 項 / {1}），退出 Antigravity 後執行：{2}',
-      refreshBtn: '重新整理',
-      loading: '正在掃描儲存明細…',
-      batchSelectLabel: '選擇還原批次：',
-      restoreSelectedDescTpl: '將溫和關閉 Antigravity，把所選批次（{0}）全部檔案無損移回對話庫並自動重啟。',
-      restoreScriptBtn: '產生離線還原腳本',
-      restoreScriptReadyTpl: '還原腳本就緒（{0}），退出 Antigravity 後執行：{1}',
-    }),
     en: O.freeze({
       summary: 'Storage Details & Lossless Archive Workbench',
       oldMainBtn: 'Include >14d Main',
@@ -1632,87 +1590,25 @@
       restoreScriptBtn: 'Offline Restore Script',
       restoreScriptReadyTpl: 'Restore script ready ({0}). Quit Antigravity & run: {1}',
     }),
-    ja: O.freeze({
-      summary: 'ストレージ詳細・無損失アーカイブ管理',
-      oldMainBtn: '>14日前の主会話も含む',
+    ar: O.freeze({
+      summary: 'تفاصيل التخزين ومنصة الأرشفة الآمنة',
+      oldMainBtn: 'تضمين الرئيسية >14 يوماً',
       oldMainConfirmDesc:
-        '専用のオフラインスクリプト（archive-old-main、既定のサブエージェント用スクリプトは上書きしません）を生成します。完了済みサブエージェントに加え、最新20件を除く14日超の主会話を削除せず移動します（バッチ別復元可）。Antigravity 終了後に実行してください。',
-      oldMainConfirmBtn: '旧主会話スクリプトを生成',
-      oldMainReadyTpl: '旧主会話アーカイブスクリプト準備完了（{0} 件 / {1}）。Antigravity 終了後に実行：{2}',
-      refreshBtn: '更新',
-      loading: 'ストレージ詳細をスキャン中…',
-      batchSelectLabel: '復元バッチ：',
-      restoreSelectedDescTpl: 'Antigravity を安全終了し、選択したバッチ（{0}）を無損失で復元して再起動します。',
-      restoreScriptBtn: 'オフライン復元スクリプト',
-      restoreScriptReadyTpl: '復元スクリプト準備完了（{0}）。Antigravity 終了後に実行：{1}',
-    }),
-    ko: O.freeze({
-      summary: '저장소 상세 및 무손실 아카이브 작업대',
-      oldMainBtn: '14일 초과 기본 대화 포함',
-      oldMainConfirmDesc:
-        '별도의 오프라인 스크립트(archive-old-main, 기본 서브에이전트 스크립트를 덮어쓰지 않음)를 생성합니다. 종료된 서브에이전트와 함께 최근 20개를 제외한 14일 초과 기본 대화를 삭제 없이 이동합니다(배치별 무손실 복원 가능). Antigravity 종료 후 실행하세요.',
-      oldMainConfirmBtn: '이전 기본 대화 스크립트 생성',
-      oldMainReadyTpl: '이전 기본 대화 스크립트 준비됨 ({0}건 / {1}). Antigravity 종료 후 실행: {2}',
-      refreshBtn: '새로고침',
-      loading: '저장소 상세 정보 스캔 중…',
-      batchSelectLabel: '복원할 배치:',
-      restoreSelectedDescTpl: 'Antigravity를 정상 종료하고 선택한 배치({0})를 무손실 복원한 뒤 자동 재시작합니다.',
-      restoreScriptBtn: '오프라인 복원 스크립트',
-      restoreScriptReadyTpl: '복원 스크립트 준비됨 ({0}). Antigravity 종료 후 실행: {1}',
-    }),
-    es: O.freeze({
-      summary: 'Detalles de almacenamiento y archivo sin pérdida',
-      oldMainBtn: 'Incluir chats >14 d',
-      oldMainConfirmDesc:
-        'Genera un script sin conexión independiente (archive-old-main, sin sobrescribir el script predeterminado de subagentes) para mover subagentes finalizados y chats principales de más de 14 días fuera de los 20 más recientes (solo mover, sin borrar y restaurable por lote). Cierra Antigravity antes de ejecutarlo.',
-      oldMainConfirmBtn: 'Confirmar script (>14 d)',
-      oldMainReadyTpl: 'Script para chats >14 d listo ({0} elem. / {1}). Cierra Antigravity y ejecuta: {2}',
-      refreshBtn: 'Actualizar',
-      loading: 'Escaneando detalles de almacenamiento…',
-      batchSelectLabel: 'Lote a restaurar:',
-      restoreSelectedDescTpl: 'Cerrará Antigravity de forma segura, restaurará el lote seleccionado ({0}) sin pérdidas y reiniciará.',
-      restoreScriptBtn: 'Script de restauración',
-      restoreScriptReadyTpl: 'Script de restauración listo ({0}). Cierra Antigravity y ejecuta: {1}',
-    }),
-    fr: O.freeze({
-      summary: 'Détails de stockage et archivage sans perte',
-      oldMainBtn: 'Inclure chats >14 j',
-      oldMainConfirmDesc:
-        'Génère un script hors ligne distinct (archive-old-main, sans écraser le script sous-agents par défaut) qui déplace les sous-agents terminés ainsi que les discussions principales de plus de 14 jours hors des 20 plus récentes (déplacement seul, sans suppression, restaurable par lot). Fermez Antigravity avant exécution.',
-      oldMainConfirmBtn: 'Confirmer le script (>14 j)',
-      oldMainReadyTpl: 'Script chats >14 j prêt ({0} élém. / {1}). Fermez Antigravity puis exécutez : {2}',
-      refreshBtn: 'Actualiser',
-      loading: 'Analyse des détails de stockage…',
-      batchSelectLabel: 'Lot à restaurer :',
-      restoreSelectedDescTpl: 'Fermera Antigravity proprement, restaurera le lot sélectionné ({0}) sans perte puis redémarrera.',
-      restoreScriptBtn: 'Script de restauration',
-      restoreScriptReadyTpl: 'Script de restauration prêt ({0}). Fermez Antigravity puis exécutez : {1}',
-    }),
-    de: O.freeze({
-      summary: 'Speicherdetails & verlustfreie Archiv-Werkbank',
-      oldMainBtn: 'Hauptchats >14 T. einschließen',
-      oldMainConfirmDesc:
-        'Erstellt ein separates Offline-Skript (archive-old-main, überschreibt nicht das Standard-Subagenten-Skript), das beendete Subagenten sowie Hauptchats älter als 14 Tage außerhalb der letzten 20 verschiebt (kein Löschen, stapelweise wiederherstellbar). Vor dem Ausführen Antigravity schließen.',
-      oldMainConfirmBtn: 'Skript (>14 T.) erstellen',
-      oldMainReadyTpl: 'Archivskript >14 T. bereit ({0} Einträge / {1}). Antigravity schließen & ausführen: {2}',
-      refreshBtn: 'Aktualisieren',
-      loading: 'Speicherdetails werden gescannt…',
-      batchSelectLabel: 'Archivstapel:',
-      restoreSelectedDescTpl: 'Beendet Antigravity sauber, stellt den ausgewählten Stapel ({0}) verlustfrei wieder her und startet neu.',
-      restoreScriptBtn: 'Offline-Wiederherstellungsskript',
-      restoreScriptReadyTpl: 'Wiederherstellungsskript bereit ({0}). Antigravity schließen & ausführen: {1}',
+        'يُنشئ هذا سكربت أرشفة منفصلاً (archive-old-main دون استبدال سكربت الوكلاء الفرعيين الافتراضي) لنقل الوكلاء المنتهين والمحادثات الرئيسية الأقدم من 14 يوماً خارج أحدث 20 محادثة (نقل فقط دون حذف ويمكن استعادة كل دفعة). أغلق Antigravity قبل تشغيله.',
+      oldMainConfirmBtn: 'تأكيد إنشاء سكربت المحادثات القديمة',
+      oldMainReadyTpl: 'سكربت أرشفة المحادثات القديمة جاهز ({0} عنصر / {1}). أغلق Antigravity ثم شغّل: {2}',
+      refreshBtn: 'تحديث',
+      loading: 'جارٍ فحص تفاصيل التخزين…',
+      batchSelectLabel: 'دفعة الاستعادة:',
+      restoreSelectedDescTpl: 'سيُغلق Antigravity بأمان، ويستعيد الدفعة المحددة ({0}) دون فقدان، ثم يعيد التشغيل تلقائياً.',
+      restoreScriptBtn: 'سكربت الاستعادة اليدوي',
+      restoreScriptReadyTpl: 'سكربت الاستعادة جاهز ({0}). أغلق Antigravity ثم شغّل: {1}',
     }),
   });
 
   const getStorageWbUi = (lang) => {
     const s = String(lang || '').trim().toLowerCase().replace(/_/g, '-');
-    if (s === 'zh-tw' || s === 'zh-hk' || s === 'zh-mo' || s.startsWith('zh-hant')) return STORAGE_WB_UI['zh-TW'];
-    if (s === 'zh' || s === 'zh-cn' || s === 'zh-sg' || s.startsWith('zh-hans') || s === 'yue' || s.startsWith('yue-')) return STORAGE_WB_UI['zh-CN'];
-    if (s === 'ja' || s.startsWith('ja-')) return STORAGE_WB_UI.ja;
-    if (s === 'ko' || s.startsWith('ko-')) return STORAGE_WB_UI.ko;
-    if (s === 'es' || s.startsWith('es-')) return STORAGE_WB_UI.es;
-    if (s === 'fr' || s.startsWith('fr-')) return STORAGE_WB_UI.fr;
-    if (s === 'de' || s.startsWith('de-')) return STORAGE_WB_UI.de;
+    if (s === 'ar' || s.startsWith('ar-') || s === 'arabic') return STORAGE_WB_UI.ar;
     return STORAGE_WB_UI.en;
   };
 
@@ -1792,7 +1688,7 @@
     if (isFn(syncChrome)) syncChrome(doc, runGuardedMut);
     const lang = getLang();
     const ui = uiText(lang);
-    const targetTitles = ['Appearance', '外观', '外觀', '外観', '외관', '모양', 'Apariencia', 'Apparence', 'Darstellung', 'Erscheinungsbild'];
+    const targetTitles = ['Appearance', 'المظهر'];
     let panel = null;
     for (const h2 of doc.querySelectorAll('[role="dialog"] h2')) {
       if (targetTitles.includes((h2.textContent || '').trim())) {
@@ -2058,7 +1954,7 @@
       const hiDescEl = hiRow ? qs(hiRow, '[data-k="d"]') : null;
       if (hiDescEl) {
         const hiModeNow = effVal('hostLocalization', l);
-        const hiDisabledNow = hiModeNow === 'off' || (hiModeNow === 'auto' && l !== 'zh-CN');
+        const hiDisabledNow = hiModeNow === 'off' || (hiModeNow === 'auto' && l !== 'ar');
         let extZhActive = false;
         if (hiDisabledNow) {
           try {
@@ -2071,7 +1967,7 @@
               extZhActive = true;
             } else {
               for (const hn of qa(doc, '[data-testid="new-conversation-button"], [role="dialog"] h1, [role="dialog"] h2, [data-ag-cs-settings-dlg="1"] [data-ag-cs-settings-nav="1"]')) {
-                if (hn && !hn.closest?.('#' + SETTINGS_SEC_ID) && /[\u4e00-\u9fff]/.test(String(hn.textContent || ''))) {
+                if (hn && !hn.closest?.('#' + SETTINGS_SEC_ID) && /[\u0600-\u06ff\u4e00-\u9fff]/.test(String(hn.textContent || ''))) {
                   extZhActive = true;
                   break;
                 }
@@ -2184,6 +2080,7 @@
         ['data-agy-no-translate', 'true'],
         ['data-antigravity-zh-skip', '1'],
         ['data-ag-cs-lang', lang],
+        ['dir', lang === 'ar' ? 'rtl' : 'ltr'],
         ['data-open', initOpen ? '1' : '0'],
         ['data-ag-cs-open', initOpen ? '1' : '0'],
       ]) {
@@ -2340,14 +2237,8 @@
         runGuardedMut(() => {
           const langOpts = (
             i18nCore?.LANG_OPTIONS || [
-              { id: 'zh-CN', label: '简体中文' },
-              { id: 'zh-TW', label: '繁體中文' },
               { id: 'en', label: 'English' },
-              { id: 'ja', label: '日本語' },
-              { id: 'ko', label: '한국어' },
-              { id: 'es', label: 'Español' },
-              { id: 'fr', label: 'Français' },
-              { id: 'de', label: 'Deutsch' },
+              { id: 'ar', label: 'العربية' },
             ]
           ).map((o) => [o.id, o.label]);
 
@@ -2463,7 +2354,7 @@
                 if (ev && typeof ev === 'object' && handledGroupClicks) handledGroupClicks.add(ev);
                 const prevBtn = Array.from(group.children).find((s) => s.tagName === 'BUTTON' && (ga(s, 'aria-pressed') === 'true' || s.hasAttribute('data-pressed')));
                 if (prevBtn === b && matchBtn(r.key, valJson, effVal(r.key, getLang()))) return;
-                // Read-then-Write: 在任何 DOM 写入与 saveSetting 之前仅读取当前行的 prevBtn 与 b，其余 29 行 0 次回流！
+                // Read-then-Write: read only current row prevBtn and b before any DOM write or saveSetting, keeping 0 reflows on the other 29 rows
                 const needGlide = !isSwitch && !!(prevBtn && prevBtn !== b && typeof runSettingsGroupGlide === 'function');
                 const prevRect = needGlide ? rc(prevBtn) : null;
                 const nextRect = needGlide ? rc(b) : null;
@@ -2724,7 +2615,7 @@
           ap(aboutBox, updNote, ap(mkEl('div', CARD_CLS), buildRow(rowDefs.autoUpdate), buildRow(rowDefs.updateChannel)));
 
           let updBusy = false;
-          const isSafeGhUrl = (u) => typeof u === 'string' && /^https:\/\/github\.com\/RMvdesi\/obsidian-prism(?:\/|$)/i.test(u.trim());
+          const isSafeGhUrl = (u) => typeof u === 'string' && /^https:\/\/github\.com\/omarallsharkawy\/obsidian-prism\/releases(?:\/|$)/i.test(u.trim());
           const applyUpdateView = (st) => {
             if (!updChip[K_IC] || !st || st.offline || st.timeout) return;
             const u = uiText(getLang()) || ui;
@@ -2846,7 +2737,7 @@
             ap(mkEl('div', 'ag-cs-thought-actions'), ap(mkEl('div', 'ag-cs-thought-btn-group'), restoreCancel, restoreScriptBtn, restoreConfirmOk))
           );
 
-          // 懒加载存储明细与归档工作台抽屉（展开前 0 storage-detail 请求；>14d 预设必须经二次确认且与其它确认框互斥）
+          // Lazy-load storage breakdown and archive workbench drawer (0 storage-detail requests before expanding; >14d preset requires confirmation mutually exclusive with other prompts)
           const stWb = mkEl('details', 'ag-cs-thought-cfg-box');
           sa(stWb, 'data-ag-cs-storage-wb', '1');
           const stSum = mkEl('summary', '', wbInitUi.summary);
@@ -3103,7 +2994,7 @@
               try { saveSetting('autoArchiveOnExit', enabled); } catch {}
               return;
             }
-            // 无 CDP setting 绑定（纯内存状态/单测环境）时同步本地状态；真运行态仅走 storage-auto-exit 单路写盘与广播
+            // Sync local state when no CDP setting binding exists (in-memory/unit test); live runtime writes and broadcasts via storage-auto-exit
             if (!hasSettingBinding) {
               try { saveSetting('autoArchiveOnExit', enabled); } catch {}
             }

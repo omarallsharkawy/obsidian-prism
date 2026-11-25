@@ -310,7 +310,7 @@ function createPulseMockEnv({ cascadeId = '11111111-2222-4333-8444-555555555555'
     cacheChip.appendChild(createNode('svg'));
     cacheChip.appendChild(createNode('span', { class: 'cache-total', id: 'cache-total', text: '181.3M tok' }));
     cacheChip.appendChild(createNode('span', { class: 'dim', text: '·' }));
-    cacheChip.appendChild(createNode('span', { 'data-i18n': 'cache', text: '缓存命中' }));
+    cacheChip.appendChild(createNode('span', { 'data-i18n': 'cache', text: 'Cache hit' }));
     cacheChip.appendChild(createNode('strong', { id: 'cache-rate', text: '86.9%' }));
     const ctxChip = createNode('button', { class: 'chip', 'data-card': 'context' });
     ctxChip.appendChild(createNode('span', { class: 'context-ring', id: 'context-ring' }));
@@ -573,7 +573,7 @@ test('peaceful coexistence: preserves #ag-pulse-status-bar, __agPulseRuntimeVers
 
 test('true 0fps sleep & 0ms wake: pauses requestAnimationFrame when vial.isSettled() === true and wakes immediately on pointer/data/poll activity', async () => {
   const env = createPulseMockEnv();
-  // 静态非流式快照（sampledAt 为旧时间戳，latestTps = 0 => streaming = false）
+  // Static non-streaming snapshot (old sampledAt timestamp, latestTps = 0 => streaming = false)
   env.win.agPulseHost = {
     getMetrics: async () => ({
       connection: 'live',
@@ -608,10 +608,10 @@ test('true 0fps sleep & 0ms wake: pauses requestAnimationFrame when vial.isSettl
     });
     await bridge.sync();
 
-    // 初始入场未满 1.1s，rAF 活跃运行
+    // Initial entry under 1.1s keeps rAF active
     assert.equal(bridge.getDebugState().rafActive, true, 'rAF must run during initial entry convergence');
 
-    // 推进帧跨过 1.1s 静止收敛窗口（每次 +45ms，跑 35 帧 = 1.57s）
+    // Step frames past the 1.1s settle convergence window (+45ms/frame, 35 frames = 1.57s)
     let tNow = 1000;
     for (let i = 0; i < 40 && env.win.getPendingRafCount() > 0; i++) {
       tNow += 45;
@@ -623,12 +623,12 @@ test('true 0fps sleep & 0ms wake: pauses requestAnimationFrame when vial.isSettl
     assert.equal(slept.rafActive, false, 'tickR must stop scheduling rAF (0fps true sleep!)');
     assert.equal(env.win.getPendingRafCount(), 0, 'Pending rAF queue must be completely empty (0fps)');
 
-    // 鼠标划入卡片 -> 0ms 立即唤醒 tickR！
+    // Pointer entering card wakes tickR in 0ms
     const card = env.getPulseHost().shadowRoot.getElementById('context-card');
     card.dispatchEvent({ type: 'pointerenter' });
     assert.equal(bridge.getDebugState().rafActive, true, 'Pointer enter on card must wake tickR in 0ms');
 
-    // 验证卡片关闭且无活动时轮询自动拉长至 3000ms，且 document.hidden / telemetry="off" 时 100% 挂起
+    // Verify closed idle card stretches poll interval to 3000ms, and document.hidden / telemetry="off" suspends polling completely
     card.hidden = true;
     env.win.__agPulseExternalBridge({ event: 'card' });
     assert.equal(bridge.getDebugState().rafActive, false, 'Closing card must immediately stop rAF');
@@ -683,7 +683,7 @@ test('dual daylight presets: syncs data-ag-cs-light-preset="crystal|alabaster" t
     assert.equal(css.includes('undefined'), false, 'Macro expansion must not emit undefined');
     assert.equal(css.includes('$'), false, 'All $ macros must be fully expanded');
 
-    // 默认浅色预设为 crystal，纯白 #FFFFFF 底色 + 微凹冷瓷底衬 #EEF3FA + 暖白亚麻底衬 #F2EFE7 + 刻度 rgba(30,41,59,.62)
+    // Default light preset is crystal: pure #FFFFFF card + #EEF3FA cold porcelain well + #F2EFE7 warm linen well + slate rgba(30,41,59,.62) scale text
     assert.equal(host.getAttribute('data-pv-light'), '1');
     assert.equal(host.getAttribute('data-pv-preset'), 'crystal');
     assert.ok(css.includes('--c:#FFFFFF'), 'Light mode card must use crisp pure white #FFFFFF background');
@@ -691,13 +691,13 @@ test('dual daylight presets: syncs data-ag-cs-light-preset="crystal|alabaster" t
     assert.ok(css.includes('#F2EFE7'), 'Warm Alabaster well must feature #F2EFE7 warm linen recess');
     assert.ok(css.includes('rgba(30,41,59,.62)'), 'Light mode telemetry/scale text must use crisp slate rgba(30,41,59,.62)');
 
-    // 切换至 alabaster 暖白画册
+    // Switch to Warm Alabaster preset
     env.doc.documentElement.setAttribute('data-ag-cs-light-preset', 'alabaster');
     for (const rec of observerRecords) rec.cb([]);
     assert.equal(host.getAttribute('data-pv-preset'), 'alabaster');
     assert.equal(bridge.getDebugState().lightPreset, 'alabaster');
 
-    // 切回 crystal
+    // Switch back to crystal
     env.doc.documentElement.setAttribute('data-ag-cs-light-preset', 'crystal');
     for (const rec of observerRecords) rec.cb([]);
     assert.equal(host.getAttribute('data-pv-preset'), 'crystal');
@@ -797,7 +797,7 @@ test('cross-closure hot re-injection idempotence: purges legacy legacy-style orp
   const card = sr.getElementById('context-card');
   const heading = card.querySelector('.heading');
 
-  // 1. 模拟旧版 legacy-style 遗留在 shadowRoot 里的孤儿 style、.pv-btn 与 .pv-rail（无当前闭包句柄）
+  // 1. Simulate legacy orphaned style, .pv-btn, and .pv-rail left in shadowRoot (without current closure handle)
   const legacyStyle = env.doc.createElement('style');
   legacyStyle.setAttribute('data-ag-cs-pulse-style', '1');
   sr.appendChild(legacyStyle);
@@ -826,7 +826,7 @@ test('cross-closure hot re-injection idempotence: purges legacy legacy-style orp
   delete globalThis.document;
   let lastInst = null;
   try {
-    // 2. 连续 3 次在全新 IIFE 闭包中重跑脚本并挂载单例（模拟真机热更新 / 多次注入）
+    // 2. Re-run script 3 consecutive times in fresh IIFE closures and mount singleton (simulating live hot-reload / repeated injection)
     for (let run = 0; run < 3; run++) {
       vm.runInNewContext(src, sandbox);
       lastInst = env.win.__agCsPulseVialBridge.mountPulseVialBridge({
@@ -1028,7 +1028,7 @@ test('v0.9.1 live compatibility: [data-ag-pulse-bar="true"][data-scope="main"] h
   hero.className = 'heading context-hero';
   const heroLabel = env.doc.createElement('span');
   heroLabel.className = 'hero-label';
-  heroLabel.textContent = '上下文窗口';
+  heroLabel.textContent = 'Context Window';
   const heroModel = env.doc.createElement('span');
   heroModel.id = 'context-model';
   heroModel.textContent = 'Gemini 4 Carbon (High)';
@@ -1168,7 +1168,7 @@ test('v0.9.1 live compatibility: [data-ag-pulse-bar="true"][data-scope="main"] h
   }
 });
 
-test('OP-5.2 / HS-8.3 / UX-9 & <31,000B gate: light+warm alabaster alignment, targetFps=60 rAF throttling, and live 8-language switching', async () => {
+test('OP-5.2 / HS-8.3 / UX-9 & <31,000B gate: light+warm alabaster alignment, targetFps=60 rAF throttling, and live bilingual en/ar switching', async () => {
   const rawSrc = fs.readFileSync(BRIDGE_PATH, 'utf8');
   assert.equal(rawSrc.includes('\r'), false, 'pulse-vial-bridge.js must use LF line endings');
   assert.ok(Buffer.byteLength(rawSrc, 'utf8') < 31000, `pulse-vial-bridge.js must stay < 31,000B, got ${Buffer.byteLength(rawSrc, 'utf8')}`);
@@ -1263,26 +1263,21 @@ test('OP-5.2 / HS-8.3 / UX-9 & <31,000B gate: light+warm alabaster alignment, ta
     assert.equal(host.getAttribute('data-pv-preset'), 'alabaster');
     assert.equal(bridge.getDebugState().lightPreset, 'alabaster');
 
-    // 2. UX-9: Unset/auto defaults cleanly to English (zero Chinese leak), plus live 8-language switching & yue->zh-CN migration
+    // 2. UX-9: Unset/auto defaults cleanly to English, plus live bilingual en/ar switching with unknown fallback to en
     const toggleBtn = sr.querySelector('[data-ag-pulse-vial-toggle="1"]');
     const segs = sr.querySelectorAll('[data-layer-slice]');
     const taskSplit = sr.querySelector('[data-ag-pulse-qtask="1"]');
-    assert.equal(toggleBtn.textContent, 'Vial', 'Unset language must default to English without Chinese leak');
+    assert.equal(toggleBtn.textContent, 'Vial', 'Unset language must default to English');
     env.doc.documentElement.setAttribute('data-ag-cs-lang', 'auto');
     for (const rec of observerRecords) rec.cb([]);
-    assert.equal(toggleBtn.textContent, 'Vial', 'auto without Chinese navigator.language must stay clean English');
+    assert.equal(toggleBtn.textContent, 'Vial', 'auto without Arabic navigator.language must stay clean English');
 
     for (const [langAttr, expToggle, expSplitRe, expToolRe] of [
-      ['zh-CN', '实体试管', /主会话 .* Swarm\/子代理\(3\)/, /工具输出/],
-      ['yue', '实体试管', /主会话 .* Swarm\/子代理\(3\)/, /工具输出/],
-      ['zh-TW', '實體試管', /主會話 .* Swarm\/子代理\(3\)/, /工具輸出/],
-      ['zh-HK', '實體試管', /主會話 .* Swarm\/子代理\(3\)/, /工具輸出/],
       ['en', 'Vial', /Main .* Swarm\/Sub\(3\)/, /Tool Output/],
-      ['ja', '試験管', /メイン .* Swarm\/サブ\(3\)/, /ツール出力/],
-      ['ko', '시험관', /메인 .* Swarm\/서브\(3\)/, /도구 출력/],
-      ['es', 'Tubo', /Principal .* Swarm\/Sub\(3\)/, /Salida/],
-      ['fr', 'Fiole', /Principal .* Swarm\/Sous\(3\)/, /Outils/],
-      ['de', 'Gefäß', /Haupt .* Swarm\/Sub\(3\)/, /Ausgabe/],
+      ['en-US', 'Vial', /Main .* Swarm\/Sub\(3\)/, /Tool Output/],
+      ['ar', 'أنبوب', /رئيسي .* Swarm\/فرعي\(3\)/, /مخرجات الأدوات/],
+      ['ar-SA', 'أنبوب', /رئيسي .* Swarm\/فرعي\(3\)/, /مخرجات الأدوات/],
+      ['fr', 'Vial', /Main .* Swarm\/Sub\(3\)/, /Tool Output/],
     ]) {
       env.doc.documentElement.setAttribute('data-ag-cs-lang', langAttr);
       for (const rec of observerRecords) rec.cb([]);
@@ -1499,7 +1494,7 @@ test('inline-fallback mounts isolated #ag-prism-pulse-bar invisible to external 
 
   const ctrl = inlineMod.createTelemetryController({ window: env.win, document: env.doc });
   try {
-    const st = ctrl.sync({ telemetryModule: 'on', language: 'zh-CN' });
+    const st = ctrl.sync({ telemetryModule: 'on', language: 'ar' });
     assert.equal(st.mountedFallback, true);
     assert.equal(extBar.getAttribute('data-ag-prism-hidden'), '1', 'telemetryModule=on must hide external bar');
 
@@ -1530,8 +1525,8 @@ test('inline-fallback mounts isolated #ag-prism-pulse-bar invisible to external 
       shadowStyle.includes('.card{position:absolute;right:0;left:auto;bottom:calc(100% + 10px);width:min(304px'),
       'Fallback .card must anchor right:0 inward above the trigger bar instead of viewport right:18px'
     );
-    assert.equal(prismBar.shadowRoot.getElementById('context-card')?.querySelector('[data-fb-i18n="ctxHeading"]')?.textContent, '上下文窗口');
-    assert.equal(prismBar.shadowRoot.getElementById('context-note')?.hidden, true, '#256: meaningless "Prism 实时遥测同步" footnote must stay hidden');
+    assert.equal(prismBar.shadowRoot.getElementById('context-card')?.querySelector('[data-fb-i18n="ctxHeading"]')?.textContent, 'نافذة السياق');
+    assert.equal(prismBar.shadowRoot.getElementById('context-note')?.hidden, true, '#256: meaningless Prism live telemetry sync footnote must stay hidden');
 
     // Switch route to New Conversation ('/' + .agy-home) -> must unmount #ag-prism-pulse-bar & suppress external bar
     const homeEl = env.doc.createElement('div');

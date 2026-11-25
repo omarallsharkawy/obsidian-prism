@@ -16,16 +16,16 @@
       'M20.562 10.188c.25-.688.313-1.376.25-2.063c-.062-.687-.312-1.375-.625-2c-.562-.937-1.375-1.687-2.312-2.125c-1-.437-2.063-.562-3.125-.312c-.5-.5-1.063-.938-1.688-1.25S11.687 2 11 2a5.17 5.17 0 0 0-3 .938c-.875.624-1.5 1.5-1.813 2.5c-.75.187-1.375.5-2 .875c-.562.437-1 1-1.375 1.562c-.562.938-.75 2-.625 3.063a5.44 5.44 0 0 0 1.25 2.874a4.7 4.7 0 0 0-.25 2.063c.063.688.313 1.375.625 2c.563.938 1.375 1.688 2.313 2.125c1 .438 2.062.563 3.125.313c.5.5 1.062.937 1.687 1.25S12.312 22 13 22a5.17 5.17 0 0 0 3-.937c.875-.625 1.5-1.5 1.812-2.5a4.54 4.54 0 0 0 1.938-.875c.562-.438 1.062-.938 1.375-1.563c.562-.937.75-2 .625-3.062c-.125-1.063-.5-2.063-1.188-2.876m-7.5 10.5c-1 0-1.75-.313-2.437-.875c0 0 .062-.063.125-.063l4-2.312a.5.5 0 0 0 .25-.25a.57.57 0 0 0 .062-.313V11.25l1.688 1v4.625a3.685 3.685 0 0 1-3.688 3.813M5 17.25c-.438-.75-.625-1.625-.438-2.5c0 0 .063.063.125.063l4 2.312a.56.56 0 0 0 .313.063c.125 0 .25 0 .312-.063l4.875-2.812v1.937l-4.062 2.375A3.7 3.7 0 0 1 7.312 19c-1-.25-1.812-.875-2.312-1.75M3.937 8.563a3.8 3.8 0 0 1 1.938-1.626v4.751c0 .124 0 .25.062.312a.5.5 0 0 0 .25.25l4.875 2.813l-1.687 1l-4-2.313a3.7 3.7 0 0 1-1.75-2.25c-.25-.937-.188-2.062.312-2.937M17.75 11.75l-4.875-2.812l1.687-1l4 2.312c.625.375 1.125.875 1.438 1.5s.5 1.313.437 2.063a3.7 3.7 0 0 1-.75 1.937c-.437.563-1 1-1.687 1.25v-4.75c0-.125 0-.25-.063-.312c0 0-.062-.126-.187-.188m1.687-2.5s-.062-.062-.125-.062l-4-2.313c-.125-.062-.187-.062-.312-.062s-.25 0-.313.062L9.812 9.688V7.75l4.063-2.375c.625-.375 1.312-.5 2.062-.5c.688 0 1.375.25 2 .688c.563.437 1.063 1 1.313 1.625s.312 1.375.187 2.062m-10.5 3.5l-1.687-1V7.063c0-.688.187-1.438.562-2C8.187 4.438 8.75 4 9.375 3.688a3.37 3.37 0 0 1 2.062-.313c.688.063 1.375.375 1.938.813c0 0-.063.062-.125.062l-4 2.313a.5.5 0 0 0-.25.25c-.063.125-.063.187-.063.312zm.875-2L12 9.5l2.187 1.25v2.5L12 14.5l-2.188-1.25z',
   };
 
-  const PANEL_MODEL_ROW_RE = /orchestrator|编排|调度|gemini|claude|sonnet|opus|haiku|gpt|openai|\bo[134]\b|deepseek/i;
-  const ZH_EFFORT_PAREN_RE = /\s*[（(]\s*(超高|极高|超深|高思考|中思考|低思考|极低|最低|深度思考|思考中?|中等|高|中|低|自动)\s*[)）]/g;
+  const PANEL_MODEL_ROW_RE = /orchestrator|المنسق|gemini|claude|sonnet|opus|haiku|gpt|openai|\bo[134]\b|deepseek/i;
+  const AR_EFFORT_PAREN_RE = /\s*\(\s*(فائق|عالي جداً|عميق|عالي|متوسط|منخفض|أدنى|تلقائي|ثابت)\s*\)/g;
 
   const stripTranslatedEffortSuffix = (rawText) => {
-    return String(rawText || '').replace(ZH_EFFORT_PAREN_RE, '').trim();
+    return String(rawText || '').replace(AR_EFFORT_PAREN_RE, '').trim();
   };
 
   const normalizeModelEffortLabel = (rawText) =>
-    String(rawText || '').replace(ZH_EFFORT_PAREN_RE, (_, t) =>
-      /超高|极高|超深/.test(t) ? ' (xhigh)' : t[0] === '中' ? ' (medium)' : t.includes('低') ? ' (low)' : t === '自动' ? ' (auto)' : ' (high)'
+    String(rawText || '').replace(AR_EFFORT_PAREN_RE, (_, t) =>
+      /فائق|عالي جداً/.test(t) ? ' (xhigh)' : t === 'متوسط' ? ' (medium)' : /منخفض|أدنى/.test(t) ? ' (low)' : t === 'تلقائي' ? ' (auto)' : t === 'ثابت' ? ' (fixed)' : ' (high)'
     );
 
   const readButtonLabelWithoutGlyph = (el) => {
@@ -54,24 +54,24 @@
   const parseModelLabelInfo = (rawText) => {
     const norm = normalizeModelEffortLabel(rawText).toLowerCase();
     const base = stripTranslatedEffortSuffix(rawText).toLowerCase();
-    const isOrchestrator = /\borchestrator\b|编排|调度器/.test(base);
+    const isOrchestrator = /\borchestrator\b|المنسق/.test(base);
     let brand = 'gemini';
     if (RE_CL.test(base)) brand = 'claude';
     else if (RE_GPT.test(base) || RE_DS.test(base)) brand = 'openai';
     else if (isOrchestrator || (/\bantigravity\b/.test(base) && !/\b(gemini|neon|argon|carbon|hydrogen|flash)\b/.test(base))) brand = 'antigravity';
 
-    const tier = /\b(gpt-oss|fixed)\b|固定/.test(norm) ? 'fixed'
-      : /\b(xhigh|extra)\b|超高|极高|超深/.test(norm) ? 'xhigh'
-      : /\b(high|max|thinking)\b|深度思考|高思考|思考|高/.test(norm) ? 'high'
-      : /\b(low|lite|minimal)\b|低思考|极低|最低|低/.test(norm) ? 'low'
-      : /\b(medium|med)\b|中思考|中等|中/.test(norm) ? 'medium'
+    const tier = /\b(gpt-oss|fixed)\b|ثابت/.test(norm) ? 'fixed'
+      : /\b(xhigh|extra)\b|فائق|عالي جداً/.test(norm) ? 'xhigh'
+      : /\b(high|max|thinking)\b|عميق|عالي/.test(norm) ? 'high'
+      : /\b(low|lite|minimal)\b|منخفض|أدنى/.test(norm) ? 'low'
+      : /\b(medium|med)\b|متوسط/.test(norm) ? 'medium'
       : isOrchestrator ? 'auto' : 'medium';
     return { brand, tier, isOrchestrator, camp: brand === 'claude' ? 'claude' : 'gemini' };
   };
 
   const resolveMascotCamp = (rawText) => {
     const b = stripTranslatedEffortSuffix(rawText).toLowerCase();
-    return RE_CL.test(b) ? 'claude' : RE_DS.test(b) || b.includes('深度求索') ? 'deepseek' : RE_GPT.test(b) ? 'gpt' : 'gemini';
+    return RE_CL.test(b) ? 'claude' : RE_DS.test(b) ? 'deepseek' : RE_GPT.test(b) ? 'gpt' : 'gemini';
   };
 
   const createModelGlyphCrystalController = ({
@@ -415,7 +415,7 @@
       stopCrystalOnPanel(p); clearPanelRowGlyphs(); syncModelMenuAttrs(null); mOv = null;
     };
 
-    const ORCH_LBL_RE = /\borchestrator\b|编排|调度器/i;
+    const ORCH_LBL_RE = /\borchestrator\b|المنسق/i;
     const isOrchRowLbl = (el) => ORCH_LBL_RE.test(stripTranslatedEffortSuffix(readButtonLabelWithoutGlyph(el)));
     const detectPanelIsOrchestrator = (panel, fallbackModelInfo) => {
       if (panel) {
@@ -441,7 +441,7 @@
       }
       const dt = mLastMs > 0 ? Math.min(0.05, Math.max(0.002, (now - mLastMs) / 1000)) : 0.016;
       mLastMs = now;
-      // 先读布局（fillRatio 与缓存宽度/滑块引用），再写 CSS 变量，消除同帧写后读回流
+      // Read layout first (fillRatio and cached width/slider refs) before writing CSS variables to avoid same-frame write-then-read reflow
       mStepFillRatio = mHideLock ? readTrackFillRatio(mTrk) : -1;
       const ptrNow = getLastPointerPos?.() || null;
       if (ptrNow) syncKnobPrismPointer(ptrNow.x, ptrNow.y);
@@ -476,7 +476,8 @@
         bar = markNoTr(mk('div', 'ces-ag-effort-row ag-cs-orch-row'));
         sa(bar, 'data-testid', 'orchestrator-effort-bar'); sa(bar, 'data-ag-no-i18n'); sa(bar, 'data-ag-owned', '1');
         const head = markNoTr(mk('div', 'ces-ag-effort-head ag-cs-orch-head'));
-        head.appendChild(markNoTr(mk('span', 'ces-ag-effort-title', isZh() ? '推理等级' : 'Reasoning Effort')));
+        const isArLang = docOf()?.documentElement?.getAttribute?.('data-ag-cs-lang') === 'ar';
+        head.appendChild(markNoTr(mk('span', 'ces-ag-effort-title', isArLang ? 'مستوى التفكير' : 'Reasoning Effort')));
         head.appendChild(markNoTr(mk('span', 'ces-ag-effort-value ag-cs-orch-value', 'Auto')));
         const inline = markNoTr(mk('div', 'ces-inline')), track = mk('div', 'ag-cs-orch-track'), cv = mk('canvas', 'ag-cs-orch-canvas');
         sa(track, 'role', 'status'); sa(track, 'aria-label', 'Orchestrator Auto');

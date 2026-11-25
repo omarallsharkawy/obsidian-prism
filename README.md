@@ -2,232 +2,237 @@
 
 <img src="assets/logo.svg" width="96" height="96" alt="Obsidian Prism Logo" />
 
-# Obsidian Prism · 黑曜棱镜
+# Obsidian Prism (English & Arabic Edition)
 
-**为 Google Antigravity 打造的原生光学界面套件**
+**A native optical UI suite for Google Antigravity — Bilingual English (`en`) & Arabic (`ar`, RTL)**
 
-四套深浅配色 · 会呼吸的 512K 上下文试管 · 推理等级滑块 · 像素伙伴 · 自定义动静态壁纸（Beta）· Chat 对话模式（Beta）
+Four dark & daylight themes · A living 512K context vial · Reasoning effort slider · Pixel companions · Custom Static / Video Wallpaper (Beta) · Chat Mode (Beta)
 
-[**简体中文**](./README.md) · [**English**](./README.en.md) · [**更新日志 (CHANGELOG)**](./CHANGELOG.md) · [**下载安装包 (Releases)**](https://github.com/RMvdesi/obsidian-prism/releases) · [**问题反馈 (Issues)**](https://github.com/RMvdesi/obsidian-prism/issues)
+[**English**](./README.md) · [**العربية**](./README.ar.md) · [**Changelog**](./CHANGELOG.md) · [**Releases**](https://github.com/omarallsharkawy/obsidian-prism/releases) · [**Issues**](https://github.com/omarallsharkawy/obsidian-prism/issues)
 
 <p>
-  <a href="https://github.com/RMvdesi/obsidian-prism/releases"><img src="https://img.shields.io/github/v/release/RMvdesi/obsidian-prism?style=flat-square&color=3186ff&label=Release" alt="Latest Release" /></a>
-  <img src="https://img.shields.io/badge/Version-1.0.8--beta.1-0f172a?style=flat-square" alt="Version 1.0.8-beta.2" />
-  <img src="https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20Universal-1e293b?style=flat-square" alt="Platform" />
-  <a href="https://github.com/RMvdesi/obsidian-prism/actions"><img src="https://img.shields.io/github/actions/workflow/status/RMvdesi/obsidian-prism/ci.yml?branch=main&style=flat-square&label=CI" alt="CI Status" /></a>
+  <a href="https://github.com/omarallsharkawy/obsidian-prism/releases"><img src="https://img.shields.io/github/v/release/omarallsharkawy/obsidian-prism?style=flat-square&color=3186ff&label=Release" alt="Latest Release" /></a>
+  <img src="https://img.shields.io/badge/Version-1.0.8--beta.2-0f172a?style=flat-square" alt="Version 1.0.8-beta.2" />
+  <img src="https://img.shields.io/badge/Languages-English%20%7C%20Arabic%20(RTL)-0ea5e9?style=flat-square" alt="Languages: English and Arabic" />
+  <img src="https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20Universal%20%7C%20Linux-1e293b?style=flat-square" alt="Platform" />
   <a href="./LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-2563eb?style=flat-square" alt="License: GPL-3.0" /></a>
   <a href="./NOTICE"><img src="https://img.shields.io/badge/Attribution-Required%20(NOTICE)-8b5cf6?style=flat-square" alt="Attribution Required" /></a>
 </p>
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/hero-dark.webp" />
-  <source media="(prefers-color-scheme: light)" srcset="assets/screenshots/hero-light.webp" />
-  <img src="assets/screenshots/hero-dark.webp" width="100%" alt="Obsidian Prism v1.0.8-beta.2 界面演示" />
-</picture>
-
-<sub>以上画面由离线渲染舞台直接运行本仓库前端源码逐帧录制，示例工作区与对话内容均为虚构。</sub>
+<sub>Footage is rendered frame by frame by an offline stage that runs this repository's front-end source directly. All workspaces and conversations shown are fictional.</sub>
 
 </div>
 
-> **非官方社区项目与商标免责声明 (Non-Affiliation Disclaimer)**
+> **Fork & Upstream Attribution Notice (`GPL-3.0-only` + `NOTICE`)**
+>
+> This repository (`omarallsharkawy/obsidian-prism`) is a community fork of [**Obsidian Prism**](https://github.com/RMvdesi/obsidian-prism) by [@RMvdesi](https://github.com/RMvdesi), licensed under **[GPL-3.0](./LICENSE)**.
+> This fork streamlines the entire suite — UI, settings, host localization, thought translator, desktop installers, workbench, and documentation — to **bilingual English (`en`) and Arabic (`ar`, with full RTL layout support)**. All original upstream copyright notices and credits are preserved in [`NOTICE`](./NOTICE) and [`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md).
+
+> **Non-Affiliation & Trademark Disclaimer**
 >
 > **Obsidian Prism is an independent open-source project and is not affiliated with or endorsed by Google LLC.**
-> 本项目为独立的开源社区工程，与 Google LLC 无任何隶属、赞助或官方背书关系；文中提及的 “Antigravity” 与 “Google” 仅作兼容性说明用途。
+> References to “Antigravity” and “Google” are strictly for compatibility and descriptive purposes.
 
 ---
 
-## 亮点
+## Highlights
 
-- **四套配色，一键换装**：深空黑曜、暖炭玄岩两套深色，白昼冷晶、暖白画册两套浅色，可跟随系统亮暗自动切换。
-- **看得见的上下文**：输入框旁的小试管实时显示 512K 上下文用量，点开就能看到用量拆分和配额剩余预测。
-- **推理等级，一拨就换**：模型菜单里内置星空滑块；选中 Orchestrator 时，滑块会变成一条会折射光线的切工水晶。
-- **读得懂的思考过程与标题**：模型的思考内容支持实时转译成中文（沉浸 / 双语对照）与一键诊断，支持手动 HTTP/SOCKS5 代理、可选工具摘要与会话标题自动翻译。
-- **自定义动静态背景壁纸（Beta）**：位于设置「Beta 内容」分类，默认关闭零占用，支持纯本机只读加载自定义图片与 MP4/WebM 动态视频背景（实验性功能，交互与表现可能随版本持续调整）。
-- **桌面上的像素伙伴**：Clawd、小紫猫和三只迷你蟹会在输入框上方玩叠叠乐，还藏着一个彩虹彩蛋。
-- **更顺手的工作台**：内置浏览器和大文件检视台、右键快捷菜单、长代码块折叠、会话大纲快速跳转。
-- **Chat 对话模式（Beta）**：在写代码之外，多了一个专门聊天、整理资料的空间，和工程设置互不干扰。
-- **轻、快、守规矩**：动画空闲时自动降到 0fps；本地服务只监听本机；设置改动 10 毫秒内生效，随时一键卸载还原。
+- **Bilingual English & Arabic (RTL)**: Full English (`en`) and Arabic (`ar`) localization with native Right-to-Left (`dir="rtl"`) styling across the settings panel, installers, workbench, and optional host UI localization.
+- **Four themes, one click**: Obsidian Dark and Warm Charcoal, plus Daylight Crystal and Warm Alabaster — with automatic light/dark following.
+- **Context you can see**: A tiny vial next to the composer shows live 512K context usage; click it for a usage breakdown and quota forecasts.
+- **Reasoning effort at your fingertips**: A starfield slider lives in the model menu; pick Orchestrator and it turns into a light-refracting cut-crystal bar.
+- **Thinking & titles you can read**: Translate the model's thinking in real time into English or Arabic (Immersive or Stacked Bilingual) with 1-Click Diagnose, manual HTTP/SOCKS5 proxy, and optional tool-summary & session-title translation.
+- **Custom Static / Live Video Wallpaper (Beta)**: Located under Settings → **Beta**, off by default with zero overhead; loads local images and MP4/WebM videos read-only (experimental feature that may evolve across versions).
+- **Pixel companions**: Clawd, a little purple cat, a white dragon, a blue whale, and three mini crabs stack into a tower above the composer — with a hidden rainbow easter egg.
+- **A friendlier workbench**: Built-in side-pane browser and large-file viewer, right-click actions, long code-block folding, and conversation outline jumps.
+- **Chat Mode (Beta)**: A dedicated space for everyday chats and notes, kept separate from your coding workspace and its settings.
+- **Light, fast and well-behaved**: Animations idle down to 0fps, local services listen on loopback only, settings apply in under 10 ms, and everything uninstalls cleanly.
 
 ---
 
-## 界面预览
+## Visual Overview
 
-### 1. 四套配色
+### 1. Four Themes
 
-<p align="center">
-  <img src="assets/screenshots/palettes.webp" width="100%" alt="四套深浅配色方案" />
-</p>
-
-| 主题预设 | 配置键值 | 侧栏底色 | 主画布 | 说明 |
+| Theme Preset | Config Key | Sidebar | Canvas | Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| **深空黑曜** | `palette: "obsidian"` | `#09090B` | `#0E0E11` | 冷调深灰底色，高对比度代码阅读配色 |
-| **暖炭玄岩** | `palette: "warm"` | `#10100F` | `#141413` | 暖炭褐底色，低蓝光夜间配色 |
-| **白昼冷晶** | `lightPreset: "crystal"` | `#E8EEF6` | `#F4F7FB` | 冷调浅灰蓝侧栏与高明度工作区 |
-| **暖白画册** | `lightPreset: "alabaster"` | `#EBE6DC` | `#F6F4EE` | 暖白纸色背景，柔和对比度浅色配色 |
+| **Obsidian Dark** | `palette: "obsidian"` | `#09090B` | `#0E0E11` | Cool dark slate palette tuned for high-contrast code reading |
+| **Warm Charcoal** | `palette: "warm"` | `#10100F` | `#141413` | Warm charcoal dark palette with reduced blue-light glare |
+| **Daylight Crystal** | `lightPreset: "crystal"` | `#E8EEF6` | `#F4F7FB` | Cool slate-blue sidebar paired with a bright workspace canvas |
+| **Warm Alabaster** | `lightPreset: "alabaster"` | `#EBE6DC` | `#F6F4EE` | Warm paper-tinted daylight palette with softer contrast |
 
-### 2. 光学细节：上下文试管 · 推理滑块 · 切工水晶
+### 2. Optical Details: Context Vial · Effort Slider · Cut Crystal
 
-点击底部试管可展开用量浮窗，查看上下文切片、5 小时配额与模型池余量；模型菜单里的推理等级滑块随档位点亮星辰，Orchestrator 则显示为切工水晶条。
+Click the vial to open the usage popover with context slices, 5-hour quota, and model-pool headroom. The effort slider lights up its starfield as you climb tiers, and Orchestrator appears as a cut-crystal bar.
 
-<p align="center">
-  <img src="assets/screenshots/optics.webp" width="100%" alt="512K 上下文试管、推理等级滑块与 Orchestrator 切工水晶" />
-</p>
+### 3. Pixel Companions
 
-### 3. 像素伙伴
+Drag the companions above the composer and stack them five high; under the right conditions the purple cat dons a rainbow aurora cape. They doze off when idle and can be turned off in settings.
 
-输入框上方的像素伙伴可以拖拽、叠成 5 层高塔；满足特定条件时，小紫猫会披上彩虹极光（无操作时自动休眠，可在设置中关闭）。
+### 4. Chat Mode (Beta)
 
-<p align="center">
-  <img src="assets/screenshots/companions.webp" width="100%" alt="像素伙伴叠叠乐与彩虹彩蛋" />
-</p>
+Off by default — enable it under **Settings → Appearance → Beta**. A switcher at the top of the sidebar flips between Code and Chat, with folders for everyday conversations and project-scoped permissions that never touch global Code settings.
 
-### 4. Chat 对话模式（Beta）
+### 5. More Capabilities
 
-默认关闭，可在 **设置 → 外观 → Beta 内容** 中开启。开启后侧栏顶部可在 Code 与 Chat 之间切换，用文件夹整理日常对话，权限按项目隔离，不改动全局工程设置。
-
-<p align="center">
-  <img src="assets/screenshots/chat-mode.webp" width="100%" alt="Chat 对话模式（Beta）" />
-</p>
-
-### 5. 更多能力
-
-- **外观设置中心**：集成在 **设置 → 外观**，双栏光学布局、**8 种界面语言**（简中/繁中/英/日/韩/西/法/德）、**36 项**端到端可校验配置（含侧栏导航折叠 `sidebarNavFold`、滚底动效 `scrollBottomMotion` 与「正式版 / Beta 尝鲜版」双更新通道）、三档场景预设（完整光效 / 专注编码 / 静默省电）、配置备份恢复与面板内一键更新。
-- **思考转译与标题翻译**：按需加载模块，关闭态默认零注入并支持热插拔；内置免配置机器翻译与本地/兼容模型流式转译，支持 OS 系统代理自动检测与手动 HTTP/SOCKS5 代理、可选工具摘要与会话标题自动翻译、卡片顶部「一键诊断」及源码路径/行号跳转。
-- **自定义静态 / 动态视频壁纸（Beta）**：实验性按需加载模块，默认关闭零占用；纯本机只读加载图片（JPG/PNG/WebP/GIF/AVIF）与动态视频（MP4/WebM），支持透明度/模糊/护眼遮罩调节、Browser Hole 自动避让及失焦/隐藏自动 `0fps` 暂停。
-- **Omni 检视台与行内 Diff 预览**：裸链接、本地路径一键在侧栏打开，文件变更支持行内 Diff 预览；超大视频、音频、PDF、表格、字体流式预览，右键菜单复制路径、定位文件、插入引用。
-- **Smoked Obsidian 切面与工作台增强**：统一烟熏黑曜消息气泡、变更条、Artifact 卡片与石墨键帽；代码块顶栏吸顶、长代码块手动折叠、左侧会话导轨独立大纲入口与悬停大纲、`Alt+↑` / `Alt+↓` 上下轮跳转，以及会话区右键 `/btw` 侧边提问与 `/compact`、`/plan`、`/learn`、`/grill-me` 原生斜杠快捷指令。
+- **Appearance Control Center**: Lives in **Settings → Appearance** — redesigned two-column modal, **bilingual English (`en`) & Arabic (`ar`, RTL)** UI, **36** end-to-end validated settings (including `sidebarNavFold`, `scrollBottomMotion`, and Stable / Beta update channels), three scene presets (Full Visuals / Deep Focus / Silent Eco), backup/restore, and one-click updates.
+- **Thought & Title Translator**: On-demand module that injects `0 B` by default when disabled with hot-plug support; zero-config machine translation or streaming local/compatible endpoints (English & Arabic targets), OS proxy auto-detection + manual HTTP/SOCKS5 proxy, optional tool-summary & conversation-title translation, 1-Click Diagnose bar, and clickable source paths/line numbers.
+- **Custom Static / Live Video Wallpaper (Beta)**: Experimental on-demand module, off by default (zero overhead); 100% local read-only streaming for images (JPG/PNG/WebP/GIF/AVIF) and videos (MP4/WebM) with opacity/blur/dim controls, Browser Hole avoidance, and automatic `0fps` pause on blur/hide.
+- **Omni Browser, File Viewer & Inline Diff Preview**: Open bare links and local paths in the side pane, preview inline file diffs directly in conversation turns, stream huge videos/audio/PDFs/tables/fonts, and right-click to copy paths, reveal files, or insert references.
+- **Smoked Obsidian Surfaces & Workbench Enhancements**: Unified faceted message bubbles, file-change strips, Artifact cards, and graphite keycaps; sticky code-block headers, manual folding for long code blocks, dedicated outline trigger and hover outlines on the conversation rail, `Alt+↑` / `Alt+↓` turn navigation, and conversation right-click `/btw` + native `/compact`, `/plan`, `/learn`, `/grill-me` slash commands.
 
 <details>
-<summary><strong>技术细节：性能、安全边界、遥测与配置（点击展开）</strong></summary>
+<summary><strong>Technical details: performance, security, telemetry & configuration (click to expand)</strong></summary>
 
-**Obsidian Prism (`v1.0.8-beta.2`)** 在不改动宿主业务逻辑、不触碰外部插件锁文件的前提下，通过模块化按需加载插件架构为 Antigravity 桌面端提供 Smoked Obsidian 视觉界面、工作台交互与行内 Diff 增强、侧边栏内置浏览器与多格式流式检视台、模型配额遥测、思考过程转译及实验性动静态壁纸（Beta）：
+**Obsidian Prism (`v1.0.8-beta.2`)** provides Smoked Obsidian dark/daylight themes, host workbench & inline diff enhancements, a built-in side-pane browser and streaming multi-format file viewer, live quota telemetry, chain-of-thought translation, and experimental static/video wallpapers (Beta) for the Antigravity desktop client through a modular on-demand local plugin architecture — without altering host business logic or conflicting with external plugins:
 
-- **四套深浅配色与细节微调**：内置深色（`obsidian` 深空黑曜、`warm` 暖炭玄岩）与浅色（`crystal` 白昼冷晶、`alabaster` 暖白画册）共四套主题，支持跟随系统/宿主亮暗切换；统一 Smoked Obsidian 烟熏黑曜切面（用户消息气泡、文件变更条、Artifact 卡片、石墨键帽与单层行内文件芯片）；提供 5 档工业强调色（跟随模型 / 钴蓝 `cobalt` / 鸢尾紫 `iris` / 琥珀金 `amber` / 纯银钛单色 `mono`）、3 档全局圆角、4 档代码等宽字体与连字开关、环境光浓度调节。
-- **300Hz 高刷分频、五级水墨流式淡入与 `0fps` 语义余晖**：移除常驻大面积 `backdrop-filter` 模糊开销，休眠时 Canvas VRAM 主动回收至 `0x0`；对话流式吐字采用基于 `CSS.highlights` 的**五级水墨流式淡入**（零 DOM 节点包裹、零强制同步回流），在超长会话（`34k+` DOM 节点）与高刷屏下保持流畅零卡顿；推理稳态期背景极光自动限频至 `~30fps` 降低 GPU 占用，空闲 `1.2s` 后进入 `0fps` 休眠；支持「待用户决策 / 异常中止 / 长任务后台完成」三态无弹窗边缘余晖提示，静态定格后维持 `0fps` 零重绘。
-- **工作台与扩展面板集成**：通过宿主原生 `preload` 协议向 `plugin://*` 扩展面板（Swarm、Pulse 等）按需同步 24 项主题色彩变量，消除跨源 `iframe` 浅色闪白；Markdown 与 Artifacts 代码块顶栏支持 Sticky 吸顶，已完成且 `>= 48` 行的长代码块提供手动折叠/展开（不做自动截断，收起时自动补偿滚动位置）；左侧原生会话导轨支持长会话章节刻度、悬停提问大纲与关键词过滤、一键折叠历史步骤及非编辑焦点下 `Alt+↑` / `Alt+↓` 上下轮跳转；统一底部终端与后台任务卡片的控制台凹槽（Console Well）样式。
-- **Omni 宿主原生内置浏览器联动、右键菜单与流式检视台**：支持开关控制（`omniModule: "on" | "off"`）与链接打开位置配置（`linkTarget: "builtin" | "external"`）。全面贯彻**官方优先礼让**：对宿主原生 `<a href="http...">` 链接、页内搜索、外链确认弹窗及原生 `<= 200MB` 音视频/CSV/PDF/HTML 预览 100% 礼让官方能力；仅通过 `CSS.highlights`（Custom Highlight API）零 DOM 篡改激活纯文本裸 URL、`localhost` 端口与本地路径（左键链接可直达右侧多标签内置 Browser Tab），并在宿主右侧栏报体积超限（`> 20MB` / `> 200MB`）或无预览时原位接管为流式检视台（切回正常文件自动卸载）。日常阅读保持**零悬停浮窗干扰**，仅在右键点击裸链接、文件药丸、Artifact 卡片或 Mermaid 图表时弹出操作菜单（复制绝对/相对路径、在文件夹中定位选中、作为 `@引用` 填入输入框、内外部浏览器打开、图表缩放）。流式检视台基于仅监听 `127.0.0.1` 的 HTTP `206 Range` 流式网关，支持大体积视频逐帧检视、音频毫秒级波形打点、SVG/透明图棋盘格缩放画布（含 PNG 导出）、本地 HTML 响应式视口沙盒、PDF、`CSV/TSV/JSONL` 冻结表头检索与 `TTF/OTF/WOFF2` 字体样张预览。
-- **纵深安全边界与本地隔离**：CDP 特权绑定（`__agPrism*`）强制校验顶层主 Frame 上下文，拒绝任何子 `<iframe>` 越权调用；本地流式网关与后台守护服务实施 Fail-Closed `Host` 与跨站请求校验、UNC / NT 设备路径拦截、`realpath` 敏感凭据与 Google/Antigravity 核心凭据目录保护，下载更新实施预写内存 SHA-256 校验；行内 Diff RPC 强制校验 Git 仓边界、`.git` gitfile/UNC Fail-Closed、`--literal-pathspecs`、`--no-optional-locks` 与安全 `[filter]` 降级；本地 HTML 预览采用 `HMAC-SHA256` 单目录作用域只读子令牌与受限 `sandbox` 隔离，思考转译防跨源 `apiKey` 复用、禁用重定向并阻断云元数据与高危内网端口。
-- **双窗口配额遥测与 512K 上下文指示**：遥测引擎对齐上游 [`ATtacK030130/antigrative-dashboard`](https://github.com/ATtacK030130/antigrative-dashboard) `v0.9.1`，支持全模型池 **5 小时 + 周度（Weekly）双窗口配额监控与线性耗尽预测**、**主会话与 Swarm/子代理 Token 消耗拆分**、**Cache 命中率**统计，以及基于 CDP 进程族谱的多实例归属识别；Studio 首页看板提供概览、趋势与模型配额三视图及按工作区筛选；遥测目录独立隔离，检测到外部独立插件时自动礼貌避让（Auto-Yield）。
-- **双模思考转译工作台**：独立按需加载模块（关闭态默认零注入），同时支持免配置**机器翻译**与 **OpenAI 兼容接口流式转译**，新增零依赖异步 OS 系统代理自动检测（Windows/macOS），放行本地免密端点（`localhost` / 局域网 Ollama、LM Studio、vLLM 等无需填写 API Key）；基于 `file://` 协议白名单还原思考内容中的源码路径与 `#L` 行号点击跳转；内置服务端并发限流（上限 `3`）与视口优先调度队列、单块失败重试与强制重译，支持「沉浸纯译文 / 双语上下对照」切换及双端缓存清理；API Key 与提示词以 `0600` 权限仅保存在本机配置目录。
-- **Chat 对话模式 (Beta · 默认关闭)**：默认保持关闭，可在 **设置 → 外观 → Beta 内容** 中随时开启或关闭（`sidebarStudio: "on" | "off"`）。开启后可在侧栏顶部切换工程模式与专注日常交流、文档整理的 Chat 空间，提供独立文件夹/项目组织、多轮阅读视图与 Artifacts 侧边栏预览，并实行项目级权限隔离，避免改动全局工程设置。
-- **按需模块化微内核、零-`eval` LZSS 与毫秒级热刷新**：前端拆解为 `ui-runtime.js` 微内核与 6 个高内聚控制器模块，结合零-`eval` 同步 UTF-16 LZSS 压缩严格控制静态主包体积（Omni 检视台、Chat 侧栏、宿主汉化、思考转译、行内 Diff 与动静态壁纸 Beta 均按独立模块按需加载），配合统一磁盘缓存（`.bundle-cache.json`）跨进程冷启动仅 `~26 ms`；设置中心覆盖 **36 项**可校验配置键（支持「正式版 / Beta 尝鲜版」双更新通道），内置三档场景预设、分类子标签页与自动剥离私钥凭据的脱敏 JSON 导入/导出备份，配置变更通过单飞增量广播在 `< 10 ms` 内热刷新生效。
+- **Four Dark/Daylight Themes & Fine-Grained Controls**: Includes two dark palettes (**Obsidian Dark** & **Warm Charcoal**) and two daylight presets (**Daylight Crystal** & **Warm Alabaster**) with automatic host light/dark tracking, unified Smoked Obsidian faceted surfaces (message bubbles, file-change strips, Artifact cards, graphite keycaps, and single-frame inline file chips), plus 5 accent tones (Follow Model, Cobalt, Iris, Amber, and Graphite Monochrome `mono`), 3 corner radius scales, 4 code monospace font stacks with ligature toggle, and ambient glow intensity controls.
+- **300Hz Split-Rate Pipeline, 5-Step Ink Streaming & `0fps` Semantic Afterglow**: Removes persistent multi-layer `backdrop-filter` blur passes and reclaims Canvas VRAM (`0x0`) during sleep; renders streaming responses with a `CSS.highlights`-based **5-step ink fade-in** (zero wrapper nodes, zero forced layout reflow, maintaining smooth high-refresh frame pacing even in `34k+`-node long sessions); caps steady-state background aurora rendering to `~30fps` on 300Hz displays and enters `0fps` idle sleep `1.2s` after activity ends. Provides non-intrusive three-state semantic edge cues (awaiting user decision, error halted, and background long-task completion) that freeze into `0fps` static snapshots.
+- **Host Workbench & Extension Panel Integration**: Synchronizes 24 theme color variables in real time to `plugin://*` extension `iframe` panels (Swarm, Pulse, etc.) via the host `preload` `postMessage` protocol to prevent white flashes; adds sticky headers to Markdown and Artifact code blocks with manual fold/unfold controls for completed blocks (`>= 48` lines, never auto-truncated, with scroll-anchor compensation); enhances the left conversation rail with chapter tick styles, on-hover prompt outline filtering, historical step folding, and `Alt+↑` / `Alt+↓` turn navigation; unifies terminal and background task surfaces with four-theme Console Well styling.
+- **Omni Native Browser Integration, Context Menu & Streaming File Viewer**: Configurable via `omniModule` (`"on" | "off"`) and `linkTarget` (`"builtin" | "external"`). Follows a **stock-first deference** rule: yields 100% of native `<a href="http...">` clicks, in-page search, external confirmation modals, and `<= 200MB` native media/CSV/PDF/HTML previews to Antigravity's built-in handlers. Uses `CSS.highlights` (Custom Highlight API) for zero-DOM-mutation activation of bare URLs, `localhost` ports, and local file paths (routing bare links to native right-pane Browser Tabs), and upgrades the side pane in-place only when the host shows size-limit (`> 20MB` / `> 200MB`) or unsupported-file notices (auto-unmounting when switching back). Backed by a loopback-only (`127.0.0.1`) HTTP `206 Range` streaming gateway supporting frame-stepped large video inspection, millisecond audio waveform markers, checkerboard SVG/transparent-image zoom & PNG export, responsive local HTML sandboxes, PDF viewing, frozen-header `CSV/TSV/JSONL` search/sorting, and `TTF/OTF/WOFF2` font specimen waterfalls.
+- **Defense-in-Depth Security & Local Isolation**: Enforces top-level main-frame verification on all privileged `__agPrism*` CDP bindings (rejecting sub-`<iframe>` RPC calls); hardens the loopback streaming gateway and background daemon with fail-closed `Host` and cross-site request checks, UNC/NT device-path blocking, `realpath` blocking of sensitive credential files and Google/Antigravity core credential directories, and in-memory pre-write SHA-256 verification on updates; enforces Git repo boundaries, fail-closed `.git` gitfile/UNC checks, `--literal-pathspecs`, `--no-optional-locks`, and safe `[filter]` downgrade on Inline Diff RPC; isolates local HTML previews with per-directory `HMAC-SHA256` read-only sub-tokens and restricted `sandbox` attributes (without `allow-same-origin`), while preventing cross-origin `apiKey` reuse, disabling upstream redirects, and blocking cloud-metadata/unsafe ports in thought translation requests.
+- **Dual-Window Quota Telemetry & 512K Context Vial**: Aligns `vendor/pulse-dashboard/` with upstream [`ATtacK030130/antigrative-dashboard`](https://github.com/ATtacK030130/antigrative-dashboard) `v0.9.1` (MIT), supporting **5-hour and weekly quota pool tracking with linear depletion forecasts**, **main session vs. Swarm/subagent token attribution**, **cache hit rate** metrics, and CDP process-lineage multi-instance discovery. Exposes Overview, Trends, and Quotas views with workspace filtering on the Studio home dashboard, stores telemetry in an isolated local data directory, and yields automatically when standalone external plugins are active.
+- **Dual-Mode Thought Translator**: Isolated into an on-demand module (`0 B` injected when off) supporting zero-config **Machine Translation** and **OpenAI-Compatible Streaming Translation** for English (`en`) and Arabic (`ar`), with zero-dependency async Windows/macOS OS system proxy auto-detection and keyless local endpoints (`localhost` / LAN Ollama, LM Studio, vLLM without requiring an API key); safely restores `file://` source paths and `#L` line-number jump pills under a strict `file://`-only protocol allowlist; adds a concurrency-limited (`max = 3`) viewport-priority queue, per-block retry/re-translate controls, **Immersive vs. Stacked Bilingual** view modes, and cache management. API keys and custom prompts are stored locally in `~/.gemini/config/` (`0600` permissions).
+- **Chat Mode (Beta · Off by Default)**: Off by default and toggleable anytime in **Settings → Appearance → Beta** (`sidebarStudio: "on" | "off"`). When enabled, adds a top-sidebar switcher between the Code workspace and a dedicated Chat space for everyday conversations and document organization, complete with folder/project grouping, clean multi-turn reading views, Artifacts preview, and project-scoped permission isolation that preserves global Code settings.
+- **Modular On-Demand Microkernel, Zero-`eval` LZSS & Sub-10ms Config Sync**: Splits the runtime into a lean `ui-runtime.js` microkernel and 6 focused controller modules compiled with zero-`eval` synchronous UTF-16 LZSS compression (Omni viewer, Chat sidebar, Host i18n, Thought Translator, Inline Diff, and Wallpaper Beta load on-demand as separate modules) and a unified disk cache (`.bundle-cache.json`) achieving `~26 ms` cold-start builds. Covers **36** validated configuration keys (including Stable / Beta update channels) with `< 10 ms` single-flight incremental `refreshConfig` broadcast, three scene presets, categorized sub-tabs, and API-key-sanitized JSON export/import.
 
 </details>
 
 ---
 
-## 快速安装指南 (Quick Start)
+## Quick Start
 
-Obsidian Prism 提供 **「免环境图形安装包」** 与 **「源码部署原生插件」** 两种安装方式，原生兼容 **`Antigravity v2.33.0+`**（自动维护启动入口 `--remote-debugging-port=0` 并在客户端在线更新后支持一键带参重开恢复），刷新或重启客户端均自动生效，随时可无痕卸载还原：
+Obsidian Prism provides **standalone GUI installers** (no Node.js required) and **source-based native plugin deployment**, natively compatible with **`Antigravity v2.33.0+`** (automatically maintaining `--remote-debugging-port=0` on launch shortcuts and offering one-click relaunch recovery after in-app updates), persisting cleanly across reloads and restarts:
 
-### 方式一：图形化独立安装包（推荐普通用户 · 零外部依赖，免预装 Node.js）
-点击下方直链下载对应系统安装包（或前往 [**GitHub Releases**](https://github.com/RMvdesi/obsidian-prism/releases) 查看历史版本与 Beta 预发布版）：
-1. **Windows (`x64`)**：下载 [**`obsidian-prism-installer.exe`**](https://github.com/RMvdesi/obsidian-prism/releases/latest/download/obsidian-prism-installer.exe) 并双击运行，点击安装即可一键部署完整本地插件至 `~/.gemini/config/plugins/obsidian-prism`，自动复用 Antigravity 客户端内置运行时（无需系统预装 Node.js）无窗拉起全套功能与后台守护服务并注册开机自启；再次运行同一程序可一键干净卸载还原。
-2. **macOS (`Apple Silicon & Intel Universal`)**：下载 [**`Obsidian-Prism-macOS-universal.dmg`**](https://github.com/RMvdesi/obsidian-prism/releases/latest/download/Obsidian-Prism-macOS-universal.dmg)，挂载镜像并将 `Obsidian Prism.app` 拖入 `/Applications`（应用程序）文件夹，随后**双击运行一次 `Obsidian Prism.app`** 即可完成全套本地插件部署与 `LaunchAgent` 自启配置（同一应用亦提供一键卸载还原）。
+### Option A: Standalone GUI Installer (Recommended · Zero External Dependencies, No Node.js Required)
+Use the [release page](https://github.com/omarallsharkawy/obsidian-prism/releases) when installer builds are available. The source installation below works directly from this repository.
+1. **Windows (`x64`)**: Download [**`obsidian-prism-installer.exe`**](https://github.com/omarallsharkawy/obsidian-prism/releases/latest/download/obsidian-prism-installer.exe) and run it. With zero external runtime dependencies (no system Node.js installation needed), it deploys the complete local plugin to `~/.gemini/config/plugins/obsidian-prism`, reuses the bundled Antigravity runtime headlessly to activate the background daemon immediately, and registers background startup protection (re-run the same `.exe` anytime for a one-click clean uninstall).
+2. **macOS (`Apple Silicon & Intel Universal`)**: Download [**`Obsidian-Prism-macOS-universal.dmg`**](https://github.com/omarallsharkawy/obsidian-prism/releases/latest/download/Obsidian-Prism-macOS-universal.dmg), mount the disk image, drag `Obsidian Prism.app` into `/Applications`, and **double-click `Obsidian Prism.app` once** to complete local plugin deployment and `LaunchAgent` setup (the same app also provides one-click clean uninstall).
+3. **Linux (`Portable Archive`)**: Download `obsidian-prism-linux-portable.tar.gz`, extract it, and run `./install.sh` (use `./uninstall.sh` to remove cleanly).
 
-> **首次打开系统安全提示（未签名开源构建说明）**
-> - **Windows SmartScreen**：首次运行安装器若弹出「Windows 已保护你的电脑」，请点击 **「更多信息」→「仍要运行」**。
-> - **macOS 15+ Gatekeeper**：由于安装包采用开源 Ad-hoc 签名（未申请商业 Apple Developer ID 公证），首次打开若提示「未打开 / 无法验证开发者」，请打开 **「系统设置 → 隐私与安全性」** 滑至底部点击 **「仍要打开」**，或在终端执行以下命令清除浏览器下载隔离属性后重新双击：
+> **First-Launch OS Security Prompt (Open-Source Build Note)**
+> - **Windows SmartScreen**: Because the installer is built independently without a commercial EV code-signing certificate, if Windows shows *"Windows protected your PC"*, click **More info → Run anyway**.
+> - **macOS 15+ Gatekeeper**: Because the Universal `.app` uses open-source ad-hoc signing (not notarized under a paid Apple Developer ID), if macOS blocks first launch due to browser quarantine, open **System Settings → Privacy & Security**, scroll down and click **Open Anyway**, or strip the quarantine attribute once in Terminal before launching:
 >   ```bash
 >   xattr -cr "/Applications/Obsidian Prism.app"
 >   ```
 
-### 方式二：源码部署为 Antigravity 原生插件（推荐开发者，支持面板内一键拉取 Git 更新）
+### Option B: Linux Installation (Native Rootless Support)
+Obsidian Prism provides first-class **native Linux support** with zero `root` privileges required — automatically creating rootless XDG `.desktop` shadow overrides (`~/.local/share/applications/`) and a managed launcher (`antigravity-prism.desktop`), detecting AppImage / `/proc` / `~/.local/bin/antigravity` installs, and offering clean lossless rollback on uninstall:
+
+1. **Portable Archive (Zero-Dependency `.tar.gz`)**: Download `obsidian-prism-linux-portable.tar.gz` from [**GitHub Releases**](https://github.com/omarallsharkawy/obsidian-prism/releases) (or build locally with `npm run build:linux`), extract, and run:
+   ```bash
+   ./install.sh
+   # For AppImage or custom portable Antigravity binaries:
+   ./install.sh --target-exe /path/to/Antigravity.AppImage
+   # Check status or uninstall cleanly:
+   ./status.sh
+   ./uninstall.sh
+   ```
+2. **From Source on Linux**:
+   ```bash
+   git clone https://github.com/omarallsharkawy/obsidian-prism.git
+   cd obsidian-prism
+   npm run install:plugin
+   # Or specify an AppImage / ~/.local/bin/antigravity binary explicitly:
+   node tools/install-plugin.cjs --target-exe ~/.local/bin/antigravity
+   ```
+
+### Option C: Native Plugin Deployment from Source (Recommended for Developers)
 ```bash
-git clone https://github.com/RMvdesi/obsidian-prism.git
+git clone https://github.com/omarallsharkawy/obsidian-prism.git
 cd obsidian-prism
 
-# 部署至 ~/.gemini/config/plugins/obsidian-prism 并立即连接当前窗口
+# Deploy to ~/.gemini/config/plugins/obsidian-prism and attach to running windows
 npm run install:plugin
 ```
-安装完成后打开 **设置 (Settings) → 外观 (Appearance)**，展开 **「Obsidian Prism · 黑曜棱镜」** 区域即可调整各项参数。
+Then open **Settings → Appearance** in Antigravity to expand the **Obsidian Prism** control panel.
 
-### AI 助手代装标准流程 & 思考翻译排查清单
-如果你使用 AI 助手（Claude Code、Cursor、Antigravity Agent 等）协助从源码安装，请**严格执行以下标准命令**完成部署与验收：
+### Standard AI-Assisted Install Workflow & Thought Translator Checklist
+If you ask an AI coding assistant (Claude Code, Cursor, Antigravity Agent, etc.) to install Obsidian Prism from source, **always run these two commands in order**:
 ```bash
-git clone https://github.com/RMvdesi/obsidian-prism.git
+git clone https://github.com/omarallsharkawy/obsidian-prism.git
 cd obsidian-prism
 
-# 1. 必须执行完整本地插件部署（同步全部模块并启动后台常驻守护进程）
+# 1. Full local plugin deployment (syncs all modules and starts the persistent background daemon)
 npm run install:plugin
 
-# 2. 必须执行安装状态自检，确认后台守护与按需模块均已就绪
+# 2. Verify installation health, background daemon, and on-demand modules
 node tools/install-plugin.cjs --status
 ```
-- **严禁仅执行 `npm run inject` 替代安装**：`npm run inject` 仅做单次临时前端注入，**不会**将插件部署至 `~/.gemini/config/plugins/obsidian-prism`，也**不会**启动常驻后台守护进程——这会导致思考翻译、本地遥测与动态壁纸等后台服务功能离线，且在窗口刷新、重启或更新后立即失效。
-- **核对 `--status` 自检项**：确认返回 JSON 中 `installed: true`、`daemonAlive: true`、`hasThoughtTranslator: true`、`hasWallpaperChannel: true`；若 `bareAntigravityRunning: true`（常见于客户端在线更新后裸启），请关闭 Antigravity 并通过已自动补齐 `--remote-debugging-port=0` 的桌面/开始菜单快捷方式重开一次即可激活。
-- **思考过程翻译排查清单**：
-  1. **出厂默认关闭**：思考过程翻译默认关闭（`thoughtTranslate: "off"`，零注入），安装后需打开 **设置 (Settings) → 外观 (Appearance) → Obsidian Prism**，手动切换为 **机器翻译（免配置）** 或 **AI 模型流式转译**（按需可同时开启「会话标题自动翻译」）。
-  2. **开启后无反应**：点击思考翻译设置卡片顶部的 **「一键诊断」** 按钮，即可一键核验守护桥接在线态、当前模式/模型配置、系统代理与上游网络连通性；也可重新执行 `node tools/install-plugin.cjs --status` 确认 `daemonAlive: true`。
-  3. **更新或裸启后样式暂时回退**：若客户端刚完成在线自动更新且当次裸启无调试端口，接受守护进程弹出的温和重开恢复提示，或直接通过桌面/开始菜单快捷方式重启一次 Antigravity 即可恢复。
+- **Do NOT use `npm run inject` as an installer**: `npm run inject` only performs a one-shot temporary front-end injection. It does **not** install into `~/.gemini/config/plugins/obsidian-prism` and does **not** start the persistent background daemon — leaving Thought Translator, local telemetry, and wallpaper services offline and causing styles to disappear on reload, restart, or client update.
+- **Verify `--status` output**: confirm `installed: true`, `daemonAlive: true`, `hasThoughtTranslator: true`, and `hasWallpaperChannel: true`. If `bareAntigravityRunning: true` (typical right after an in-app update relaunches without flags), close Antigravity and reopen it once via your configured Desktop or Start Menu shortcut (which automatically carries `--remote-debugging-port=0`).
+- **Thought Translator Troubleshooting Checklist**:
+  1. **OFF by default**: Thought Translator ships disabled (`thoughtTranslate: "off"`, `0 B` injected). Open **Settings → Appearance → Obsidian Prism** and explicitly select **Machine Translation (zero-config)** or **AI Streaming** (and optionally toggle automatic session-title translation).
+  2. **No translation after enabling**: click the **1-Click Diagnose** button at the top of the Thought Translator settings card to inspect daemon bridge health, active mode/model configuration, OS proxy detection, and upstream connectivity — or re-run `node tools/install-plugin.cjs --status` to confirm `daemonAlive: true`.
+  3. **UI reverted right after an Antigravity update**: accept the daemon/watcher's single non-repeating relaunch prompt, or simply restart Antigravity once via its configured shortcut.
 
-### 常见问题与 `Antigravity v2.33.0+` 兼容说明 (FAQ)
-- **为什么客户端在线自动更新到 `v2.33.0+` 当次重启后界面暂时回到原生状态？**
-  自 `Antigravity v2.33.0` 起，宿主将本地调试桥接改为显式按需启用（`--remote-debugging-port=0`，仅在本地 `127.0.0.1` 随机分配端口并写入受限鉴权文件），且客户端内置在线更新器（`quitAndInstall`）当次拉起进程时不携带命令行参数。Obsidian Prism 内置双层自动恢复机制：
-  1. **日常启动零感生效**：安装器、插件脚本与后台守护会自动为桌面、开始菜单及任务栏固定栏的 `Antigravity` 快捷方式维护 `--remote-debugging-port=0` 参数（客户端升级重置快捷方式后会自动补回；卸载插件时精准剥离还原）。
-  2. **在线更新裸启一键恢复**：当守护进程检测到运行中的客户端未开启本地桥接端口时，会弹出**单次确认提示框**（同一客户端进程生命周期最多提示 1 次，选择稍后不会重复弹窗），确认后将等待当前实例安全退出并自动带 `--remote-debugging-port=0` 重新打开恢复全套界面；macOS 用户亦可执行 `open -a "/Applications/Antigravity.app" --args --remote-debugging-port=0` 手动带参启动。
+### FAQ & `Antigravity v2.33.0+` Compatibility
+- **Why did the UI temporarily revert to stock right after an in-app update to `Antigravity v2.33.0+`?**
+  Starting in `Antigravity v2.33.0`, the host switched its local DevTools bridge to explicit opt-in (`--remote-debugging-port=0`, binding an ephemeral `127.0.0.1` port with a local token file), and Electron's built-in `quitAndInstall` updater relaunches the app once without command-line arguments. Obsidian Prism handles this automatically in two layers:
+  1. **Zero-Friction Daily Launch**: Both the installer and background daemon automatically maintain `--remote-debugging-port=0` on user Desktop, Start Menu, and Taskbar `Antigravity` shortcuts (silently restoring the flag if an app update overwrites shortcuts, and cleanly stripping it upon uninstall).
+  2. **One-Click Relaunch Recovery**: Whenever the daemon detects a running Antigravity instance launched without a local bridge port, it shows a **single non-repeating confirmation prompt** (at most once per host process lifetime) to gracefully close the current instance and relaunch with `--remote-debugging-port=0`; on macOS you can also launch via `open -a "/Applications/Antigravity.app" --args --remote-debugging-port=0`.
 
 <details>
-<summary><strong>命令行维护工具与仓库目录结构（点击展开）</strong></summary>
+<summary><strong>CLI Utilities & Repository Structure (Click to expand)</strong></summary>
 
-#### 常用开发与维护命令
+#### Common CLI Commands
 ```bash
-npm run inject                 # 单次实时注入当前已打开的 Antigravity 窗口
-npm run remove                 # 移除全部注入样式与组件，立即恢复宿主原生界面
-npm run clean:legacy           # 清理历史旧版 app.asar 遗留块（保留汉化与外部插件）
-npm run archive:conversations  # 检查本地对话库体积并离线安全归档历史子代理会话（支持无损还原）
-npm test                       # 运行跨模块安全、性能与回归测试套件
-npm run build:installer        # 编译 Windows 独立安装器 (.exe)
-npm run build:macos            # 编译 macOS Universal 安装包 (.dmg)
+npm run status                 # Inspect installation health, daemon & module status
+npm run inject                 # One-shot live injection into running Antigravity windows
+npm run remove                 # Cleanly remove all styles/widgets and restore stock UI
+npm run clean:legacy           # Strip legacy blocks from historical app.asar archives
+npm run archive:conversations  # Inspect conversation DB bloat & safely archive old subagent sessions offline (reversible)
+npm test                       # Run cross-module security, bundle & regression tests
+npm run build:installer        # Build standalone Windows installer (.exe)
+npm run build:macos            # Build standalone macOS Universal bundle (.dmg)
+npm run build:linux            # Build zero-dependency portable Linux tarball (.tar.gz)
 ```
 
-#### 仓库核心目录结构
+#### Core Repository Layout
 ```text
 obsidian-prism/
-├── plugin.json                         # Antigravity 原生插件清单 (obsidian-prism@1.0.8-beta.2)
-├── LICENSE / NOTICE / CITATION.cff     # GPL-3.0 许可证、附加署名声明与仓库引用元数据
-├── THIRD_PARTY_NOTICES.md              # 吸收整合的上游 MIT 项目完整版权与许可声明
-├── assets/                             # 插件矢量图标与说明文档截图资源
-├── cdp.js / inject.js / remove.js      # 零-eval LZSS 打包器、按需分块磁盘缓存与注入卸载协议
-├── style.css                           # 四套深浅主题、Smoked Obsidian 切面与宿主表面样式表
-├── i18n-locales.js / i18n-core.js      # 8 语种多语言词条模块（简中/繁中/英/日/韩/西/法/德）
-├── motion-engine.js / animated-icons.js# 4 档二阶阻尼弹簧动画与微动态图标模块
-├── ripple-core.js / conv-aura.js       # 300Hz 分频 WebGL2 地平线着色器与三态 0fps 语义余晖
-├── smooth-caret.js / dual-mascot-rig.js# 读写分离编辑器光标跟随与桌面像素双宠模块
-├── usage-core.js / vial-core.js        # 用量统计/双窗口配额预测纯函数与 512K 浅水波胶囊
-├── pulse-vial-bridge.js                # 上下文切片拆分与 5h/周配额浮窗桥接器
-├── settings-panel.js                   # 外观设置中心（36 项配置、场景预设、脱敏 JSON 备份）
-├── home-studio-panel.js                # 控制器 1：Studio 新建会话看板（概览/趋势/配额三视图）
-├── home-ripple-host.js                 # 控制器 2：首页字符波纹矩阵宿主控制器
-├── model-glyph-crystal.js              # 控制器 3：模型星标与 WebGL2 棱镜状态栏控制器
-├── stream-choreography.js              # 控制器 4：CSS.highlights 五级水墨流式淡入与表格行级防抖控制器
-├── prism-rim-canvas.js                 # 控制器 5：近场指针边框高光控制器
-├── host-workbench-enhancer.js          # 控制器 6：扩展面板主题同步桥、代码折叠与导轨大纲控制器
-├── ui-runtime.js                       # 前端微内核：配置热同步、DOM 观察器与生命周期编排
-├── sidecars/daemon/                    # 本地常驻守护服务 (设置/遥测/用量/Git/归档/思考/Omni/行内Diff/壁纸Beta)
-├── vendor/                             # 遥测 (v0.9.1)、滑块、思考转译、行内Diff、壁纸Beta、omni-viewer、sidebar-studio 与 host-i18n
-└── installer/ & tools/                 # Windows (C#) / macOS (Swift) 原生插件安装器与工具链
+├── plugin.json                         # Antigravity native plugin manifest (obsidian-prism@1.0.8-beta.2)
+├── LICENSE / NOTICE / CITATION.cff     # GPL-3.0 license, attribution terms & citation metadata
+├── THIRD_PARTY_NOTICES.md              # Preserved copyright & license notices for MIT upstreams
+├── assets/                             # Vector plugin icon & documentation screenshots
+├── cdp.js / inject.js / remove.js      # Zero-eval LZSS compiler, on-demand disk cache & attach/removal
+├── style.css                           # Four themes, Smoked Obsidian surfaces & workbench styles
+├── i18n-locales.js / i18n-core.js      # Bilingual English (en) & Arabic (ar, RTL) localization tables
+├── motion-engine.js / animated-icons.js# 4-tier damped spring physics & animated UI icons
+├── ripple-core.js / conv-aura.js       # 300Hz split-rate WebGL2 horizon shader & 0fps semantic cues
+├── smooth-caret.js / dual-mascot-rig.js# Read/write-separated caret tracking & pixel mascot rig
+├── usage-core.js / vial-core.js        # Quota forecast functions & 512K shallow-water vial renderer
+├── pulse-vial-bridge.js                # Context slice breakdown & 5h/weekly quota popover bridge
+├── settings-panel.js                   # Settings UI (36 keys, scene presets, sanitized JSON backup)
+├── home-studio-panel.js                # Controller 1: Studio home dashboard (Overview/Trends/Quotas)
+├── home-ripple-host.js                 # Controller 2: Home glyph ripple matrix host controller
+├── model-glyph-crystal.js              # Controller 3: Model glyph & WebGL2 prism bar controller
+├── stream-choreography.js              # Controller 4: CSS.highlights 5-step ink fade & table row throttle
+├── prism-rim-canvas.js                 # Controller 5: Cursor-reactive border highlight controller
+├── host-workbench-enhancer.js          # Controller 6: Extension panel theme bridge, code fold & rail outline
+├── ui-runtime.js                       # Frontend microkernel: fast config sync & lifecycle orchestration
+├── sidecars/daemon/                    # Persistent local daemon (settings/metrics/usage/repo/archiver/thought/omni/inline-diff/wallpaper-beta)
+├── vendor/                             # Telemetry (v0.9.1), effort-slider, thought-translator, inline-diff, wallpaper-beta, omni-viewer, sidebar-studio & host-i18n
+└── installer/ & tools/                 # Windows (C#) / macOS (Swift) bilingual en/ar installers & scripts
 ```
 </details>
 
 ---
 
-## 开源协议、二次开发规范与引用格式
+## License, Derivative Rules & Citation
 
-### 1. 二次开发与分发协议 (`GPL-3.0-only` + `NOTICE`)
-**Obsidian Prism**（`Copyright (C) 2026 RMvdesi`）采用 **[GNU General Public License v3.0 (`GPL-3.0-only`)](./LICENSE)** 开源发布，并附带基于 GPL-3.0 第 7 条的法定附加归属声明 **[`NOTICE`](./NOTICE)**。
+### 1. Open-Source License & Mandatory Attribution (`GPL-3.0-only` + `NOTICE`)
+**Obsidian Prism** (`Copyright (C) 2026 RMvdesi`) is licensed under the **[GNU General Public License v3.0 (`GPL-3.0-only`)](./LICENSE)** with mandatory Section 7 attribution terms in **[`NOTICE`](./NOTICE)**.
 
-基于本项目进行修改、二次开发、移植或打包再分发时，须遵守以下三项要求：
-1. **同源开源义务（Copyleft）**：任何包含或修改自本项目代码的衍生插件、主题包或安装程序，整体须同样以 **`GPL-3.0`** 免费开放完整对应源代码，禁止闭源打包、代码混淆锁死或商业闭源售卖。
-2. **保留署名与致谢链（Attribution Required）**：须在衍生仓库根目录完整保留 [`LICENSE`](./LICENSE)、[`NOTICE`](./NOTICE) 与 [`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md)，并在 README 或设置界面保留对原作者 `RMvdesi` 及原仓库 `RMvdesi/obsidian-prism` 的来源链接。
-3. **标注修改记录与非官方背书（Mark Modifications）**：修改过的文件须注明修改日期与变更摘要；未经书面许可不得以未修改的 `Obsidian Prism` 官方原版名义发布衍生版本。
+> Built upon [Obsidian Prism](https://github.com/RMvdesi/obsidian-prism) by [@RMvdesi](https://github.com/RMvdesi), licensed under [GPL-3.0](https://www.gnu.org/licenses/gpl-3.0.html). Upstream component notices are preserved in [`NOTICE`](./NOTICE) and [`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md).
 
-#### 下游二次开发 README 署名模板
-```markdown
-> Built upon [Obsidian Prism](https://github.com/RMvdesi/obsidian-prism) by [@RMvdesi](https://github.com/RMvdesi), licensed under [GPL-3.0](https://www.gnu.org/licenses/gpl-3.0.html). Upstream component notices are preserved in `NOTICE` and `THIRD_PARTY_NOTICES.md`.
-```
+Any fork, modification, port, or redistribution must comply with all three requirements:
+1. **Same-License Copyleft**: Any derivative plugin, theme bundle, or installer incorporating code from Obsidian Prism must be distributed under **`GPL-3.0`** with complete corresponding source code disclosed. Proprietary bundling, obfuscation lock-in, or closed-source commercial resale is prohibited.
+2. **Preserve Attribution Chain**: Retain [`LICENSE`](./LICENSE), [`NOTICE`](./NOTICE), and [`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md) intact, and keep visible credit linking back to `@RMvdesi` and `RMvdesi/obsidian-prism` in your README and settings UI.
+3. **Mark Modifications & Non-Endorsement**: Document modification dates and summaries in altered files, and do not distribute modified forks under the unmodified `Obsidian Prism` name as official releases without written permission.
 
-#### 引用格式 (`CITATION.cff` / BibTeX)
+#### Citation (`CITATION.cff` / BibTeX)
 ```bibtex
 @software{rmvdesi_obsidian_prism_2026,
   author       = {RMvdesi},
@@ -241,25 +246,25 @@ obsidian-prism/
 
 ---
 
-### 2. 上游开源项目与致谢 (Upstream Credits)
+### 2. Upstream Open-Source Credits
 
-本项目吸收适配的第三方组件原采用 **MIT License**（与 `GPL-3.0-only` 兼容），完整原始版权声明与许可全文保留于 [`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md)：
+Absorbed and adapted third-party components were originally released under the **MIT License** (compatible with `GPL-3.0-only`), with full copyright and permission notices preserved in [`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md):
 
-1. **[0DNANCY/agy-claude-style](https://github.com/0DNANCY/agy-claude-style)** — `MIT License`, `Copyright (c) 2026 0DNANCY`（基础配色框架、弹簧动画底座、WebGL2 地平线/字符波纹矩阵、像素宠物底座与打包器雏形）。
-2. **[ATtacK030130/antigrative-dashboard](https://github.com/ATtacK030130/antigrative-dashboard)** (`v0.9.1`) — `MIT License`, `Copyright (c) 2026 AG Pulse contributors`（吸收适配于 `vendor/pulse-dashboard/`，用于实时吞吐速率、Cache 命中率、5h/周双窗口模型配额预测、主/子代理消耗拆分与多实例进程血缘归属）。
-3. **[LLYSH-HANNARI/antigravity-Codex-Claude-effort-slider](https://github.com/LLYSH-HANNARI/antigravity-Codex-Claude-effort-slider)** — `MIT License`, `Copyright (c) 2026 月上寒 (LLYSH-HANNARI)`（吸收适配于 `vendor/effort-slider/`，用于模型菜单推理等级滑块与智能共存让位）。
-4. **[yiheng8023/antigravity-chinese](https://github.com/yiheng8023/antigravity-chinese)** (`v3.3.63`) — `MIT License`, `Copyright (c) 2026 Antigravity Chinese Localization Contributors`（参考其 `zh-CN` 词库与前端界面翻译匹配思路；本项目已在 `vendor/host-i18n/` 重构为不修改宿主安装包的按需加载本地化模块，并新增四层未知插件通用自动礼让、防死循环熔断与 `WeakMap` 100% 无损还原）。
-5. **[Nwflower/dsh-claude-style](https://github.com/Nwflower/dsh-claude-style)** — Studio 极简排版、输入框边框结构与暖白浅色配色参考致谢。
-6. **[Microqian2th/dsh-codex-effort-slider](https://github.com/Microqian2th/dsh-codex-effort-slider)** — 轨道刻度分档、迟滞吸附与阻尼运动曲线参考致谢。
-7. **[mobius/dsh-performance-slider](https://github.com/mobius/dsh-performance-slider)** — 性能档位滑块交互与实时反馈设计参考致谢。
-8. **[claudenoshujin/claude-web](https://github.com/claudenoshujin/claude-web)** (by `lulu`) — 桌面宠物堆叠交互设计参考致谢（本项目物理逻辑为净室独立实现）。
-9. **[wp3171216237/dsh-TUI](https://github.com/wp3171216237/dsh-TUI)** — `MIT License`, `Copyright (c) 2026 chimney (@wp3171216237)`（**Deepy** DeepSeek 蓝鲸桌宠轮廓配色与喷水动画设计参考致谢，本项目以 `16×10` 零描边像素语法独立适配于 `dual-mascot-rig.js`）。
+1. **[0DNANCY/agy-claude-style](https://github.com/0DNANCY/agy-claude-style)** — `MIT License`, `Copyright (c) 2026 0DNANCY` (Base palette tokens, spring physics foundation, WebGL2 horizon/glyph wavefield, pixel mascot foundation, and initial bundler).
+2. **[ATtacK030130/antigrative-dashboard](https://github.com/ATtacK030130/antigrative-dashboard)** (`v0.9.1`) — `MIT License`, `Copyright (c) 2026 AG Pulse contributors` (Absorbed and adapted in `vendor/pulse-dashboard/` for live token throughput, cache hit rate, 5h/weekly quota forecasting, main/subagent token attribution, and CDP process-lineage discovery).
+3. **[LLYSH-HANNARI/antigravity-Codex-Claude-effort-slider](https://github.com/LLYSH-HANNARI/antigravity-Codex-Claude-effort-slider)** — `MIT License`, `Copyright (c) 2026 Yueshanghan / LLYSH-HANNARI` (Absorbed and adapted in `vendor/effort-slider/` for model-menu reasoning effort slider and smart coexistence yielding).
+4. **[yiheng8023/antigravity-chinese](https://github.com/yiheng8023/antigravity-chinese)** (`v3.3.63`) — `MIT License`, `Copyright (c) 2026 Antigravity Chinese Localization Contributors` (Upstream UI localization pattern reference; re-architected in `vendor/host-i18n/` as an on-demand runtime localization module without modifying host packages, featuring universal 4-layer auto-yield, ping-pong circuit breaker, and `WeakMap` lossless `destroy()`).
+5. **[Nwflower/dsh-claude-style](https://github.com/Nwflower/dsh-claude-style)** — Minimalist Studio layout, composer framing, and warm alabaster daylight palette reference.
+6. **[Microqian2th/dsh-codex-effort-slider](https://github.com/Microqian2th/dsh-codex-effort-slider)** — Detent track snapping, hysteresis thresholds, and damped motion curve reference.
+7. **[mobius/dsh-performance-slider](https://github.com/mobius/dsh-performance-slider)** — Performance tier slider interaction and live visual feedback reference.
+8. **[claudenoshujin/claude-web](https://github.com/claudenoshujin/claude-web)** (by `lulu`) — Mascot stacking interaction reference (clean-room independent physics implementation).
+9. **[wp3171216237/dsh-TUI](https://github.com/wp3171216237/dsh-TUI)** — `MIT License`, `Copyright (c) 2026 chimney (@wp3171216237)` (Visual silhouette, cobalt-blue + white-belly palette, and water-spout animation concept reference for the **Deepy** DeepSeek pixel whale mascot, cleanly adapted in `dual-mascot-rig.js`).
 
 ---
 
-### 3. 社区贡献者 (Community Contributors)
+### 3. Community Contributors
 
-衷心感谢所有通过 Pull Request、安全加固、性能剖析与一线缺陷定位推动 Obsidian Prism 持续演进的社区伙伴！
+Heartfelt thanks to every community contributor whose Pull Requests, security hardening, performance profiling, and bug reports help shape Obsidian Prism!
 
-- **完整社区贡献者荣誉名录与贡献详情**：请见 [**`CONTRIBUTORS.md`**](./CONTRIBUTORS.md)（永久收录全部 PR 贡献者与核心 Issue 定位反馈者，并同步留档于 [`CHANGELOG.md`](./CHANGELOG.md)）。
-- 欢迎通过 [Issues](https://github.com/RMvdesi/obsidian-prism/issues) 与 [Pull Requests](https://github.com/RMvdesi/obsidian-prism/pulls) 一起参与打磨！
+- **Full Hall of Contributors & Detailed Credits**: See [**`CONTRIBUTORS.md`**](./CONTRIBUTORS.md) (permanently crediting all PR authors and key issue reporters, alongside release notes in [`CHANGELOG.md`](./CHANGELOG.md)).
+- Contributions via [Issues](https://github.com/omarallsharkawy/obsidian-prism/issues) and [Pull Requests](https://github.com/omarallsharkawy/obsidian-prism/pulls) are always welcome!

@@ -18,7 +18,7 @@
   const MAX_DPR = 1.5;
   const DEG2RAD = Math.PI / 180;
 
-  // 5 槽位真实 3D 错落坐标（4 主宠向左舒展与石台留足呼吸间距，杜绝蓝鲸裁切，同时与 5 列名牌视觉对齐）
+  // True 3D staggered coordinates for 5 slots (4 main mascots spaced left of the stone dais to avoid whale clipping and align with 5 nameplates)
   const SLOT_WORLD_POS = Object.freeze([
     Object.freeze({ key: 'c', kind: 'clawd', x: -2.52, y: 0.0, z: 0.24, hitR: 0.62, col: [0.98, 0.48, 0.16], colHi: [1.0, 0.70, 0.34] }),
     Object.freeze({ key: 'k', kind: 'cat', x: -1.42, y: 0.0, z: -0.18, hitR: 0.62, col: [0.58, 0.38, 0.96], colHi: [0.52, 0.76, 1.0] }),
@@ -40,7 +40,7 @@
     'fgPillarLeft', 'fgPillarRight', 'garland', 'rug',
   ];
 
-  // ── 严格 WebGL2 能力嗅探（严防 Mock 2D Canvas 误判）──────────────────────────
+  // ── Strict WebGL2 capability probe (guards against mock 2D canvas false positives) ──
   function isRealWebGL2Context(gl) {
     return Boolean(
       gl &&
@@ -71,7 +71,7 @@
     }
   }
 
-  // ── 轻量 4×4 矩阵数学工具（列主序，零外部依赖）─────────────────────────────
+  // ── Lightweight 4x4 matrix math utilities (column-major, zero external deps) ──
   function mat4Perspective(fovRad, aspect, near, far) {
     const f = 1.0 / Math.tan(fovRad * 0.5);
     const nf = 1.0 / (near - far);
@@ -135,7 +135,7 @@
     return { nx: cx / cw, ny: cy / cw, nz: cz / cw, w: cw };
   }
 
-  // ── GLSL ES 3.00 着色器源码（纯模板字面量，兼容 cdp.js minifyEmbeddedGlslTemplates）──
+  // ── GLSL ES 3.00 shader sources (plain template literals, compatible with cdp.js minifyEmbeddedGlslTemplates) ──
   const VS_SCENE = `#version 300 es
 precision highp float;
 layout(location = 0) in vec3 aPos;
@@ -442,7 +442,7 @@ void main() {
   fragColor = vec4(col, 1.0);
 }`;
 
-  // ── 精细程序化像素纹理工坊（零外部依赖，高精 16-bit 像素画，热插拔图集加载前的零黑屏兜底）──
+  // ── Procedural pixel texture workshop (zero external deps, crisp 16-bit pixel art fallback before hot-swap atlas loads) ──
   function makePixelBuf(w, h) {
     const data = new Uint8Array(w * h * 4);
     const set = (x, y, r, g, b, a = 255) => {
@@ -463,7 +463,7 @@ void main() {
   function buildProceduralWall() {
     const W = 256, H = 144;
     const p = makePixelBuf(W, H);
-    // 1. 黑曜石暗砖壁面
+    // 1. Obsidian dark brick wall
     for (let y = 0; y < H; y++) {
       const row = (y / 8) | 0;
       const off = (row & 1) ? 8 : 0;
@@ -478,7 +478,7 @@ void main() {
         p.set(x, y, baseR, baseG, baseB, 255);
       }
     }
-    // 2. 下部深胡桃木墙裙 + 护墙线
+    // 2. Lower dark walnut wainscoting + chair rail
     p.rect(0, 114, W, 30, 38, 25, 20);
     p.hline(0, 113, W, 72, 50, 36);
     p.hline(0, 114, W, 56, 38, 28);
@@ -487,23 +487,23 @@ void main() {
       p.rect(x + 3, 118, 10, 20, 46, 31, 24);
       p.hline(x + 3, 118, 10, 64, 44, 34);
     }
-    // 3. 顶部深木屋檐横梁与锯齿托架
+    // 3. Upper dark-wood eaves beam and corbel brackets
     p.rect(0, 0, W, 11, 28, 20, 18);
     p.hline(0, 11, W, 62, 46, 35);
     p.hline(0, 12, W, 16, 12, 14);
     for (let x = 8; x < W; x += 32) p.rect(x, 11, 6, 7, 42, 30, 24);
 
-    // 4. 左右对称高耸哥特尖拱彩绘星夜窗（深蓝星空、星辰、弯月、窗格）
+    // 4. Symmetrical tall gothic pointed-arch starry night windows (deep blue sky, stars, crescent moon, mullions)
     const drawArchWindow = (cx, moonSide) => {
       const winW = 34, topY = 20, botY = 92;
       const lx = cx - (winW >> 1);
-      // 石砌外框
+      // Stone masonry frame
       p.rect(lx - 3, topY + 12, winW + 6, botY - topY - 10, 44, 50, 68);
       for (let dy = 0; dy < 14; dy++) {
         const span = Math.min((winW >> 1) + 3, 4 + dy * 2);
         p.rect(cx - span, topY - 2 + dy, span * 2, 1, 44, 50, 68);
       }
-      // 深蓝星夜玻璃内腔
+      // Deep blue starry night glass interior
       for (let y = topY; y < botY; y++) {
         const dy = y - topY;
         const half = dy < 13 ? Math.min(winW >> 1, 2 + ((dy * 15) >> 3)) : (winW >> 1);
@@ -513,7 +513,7 @@ void main() {
         const b = Math.round(74 + grad * 72);
         for (let x = cx - half; x < cx + half; x++) p.set(x, y, r, g, b, 255);
       }
-      // 弯月与星光（高亮度自动进 Emissive Bloom）
+      // Crescent moon and starlight (high luminance automatically feeds Emissive Bloom)
       const mx = cx + moonSide * 6;
       const my = topY + 18;
       p.rect(mx - 3, my - 3, 6, 6, 214, 234, 255);
@@ -521,7 +521,7 @@ void main() {
       p.rect(mx - 1 + moonSide * 2, my - 3, 4, 6, 22, 44, 102);
       const stars = [[-9, 14], [8, 28], [-6, 40], [10, 48], [-11, 56], [4, 62], [-3, 25]];
       for (const [sx, sy] of stars) p.set(cx + sx, topY + sy, 230, 244, 255);
-      // 哥特铁艺十字窗格与石窗台
+      // Gothic wrought-iron cross mullions and stone sill
       p.vline(cx, topY + 2, botY - topY - 2, 20, 24, 36);
       p.hline(lx, topY + 30, winW, 20, 24, 36);
       p.hline(lx, topY + 54, winW, 20, 24, 36);
@@ -531,7 +531,7 @@ void main() {
     drawArchWindow(62, -1);
     drawArchWindow(194, 1);
 
-    // 5. 两侧高耸橡木书架与彩色典籍/卷轴
+    // 5. Tall oak bookshelves on both sides with colorful tomes and scrolls
     const bookCols = [[164, 52, 46], [198, 134, 52], [58, 126, 94], [66, 92, 164], [136, 72, 152], [182, 154, 92]];
     const drawShelf = (sx, sw) => {
       p.rect(sx, 22, sw, 92, 34, 22, 16);
@@ -555,17 +555,17 @@ void main() {
     drawShelf(6, 30);
     drawShelf(220, 30);
 
-    // 6. 中央黑曜石棱镜纹章挂毯 + 酒馆陈列架 + 两盏暖光壁灯
+    // 6. Central obsidian prism crest tapestry + tavern display shelves + two warm sconces
     p.rect(108, 22, 40, 56, 32, 24, 48);
     p.rect(110, 24, 36, 52, 48, 32, 68);
     p.hline(106, 21, 44, 198, 156, 74);
-    // 挂毯菱形棱镜徽章
+    // Diamond prism crest on tapestry
     for (let dy = -12; dy <= 12; dy++) {
       const sp = 12 - Math.abs(dy);
       p.hline(128 - sp, 48 + dy, sp * 2 + 1, 226, 178, 86);
       if (sp > 2) p.hline(128 - (sp - 2), 48 + dy, (sp - 2) * 2 + 1, 96, 148, 230);
     }
-    // 两盏暖光铁艺壁灯
+    // Two warm wrought-iron wall sconces
     const drawSconce = (sx, sy) => {
       p.rect(sx - 2, sy, 5, 8, 36, 34, 40);
       p.rect(sx - 3, sy - 5, 7, 6, 255, 186, 82);
@@ -573,7 +573,7 @@ void main() {
     };
     drawSconce(96, 54);
     drawSconce(160, 54);
-    // 两侧小酒架发光瓶
+    // Side shelf glowing bottles
     for (const bx of [44, 208]) {
       p.rect(bx - 6, 98, 14, 3, 66, 44, 28);
       p.rect(bx - 4, 92, 3, 6, 92, 218, 168);
@@ -586,7 +586,7 @@ void main() {
   function buildProceduralFloor() {
     const W = 128, H = 128;
     const p = makePixelBuf(W, H);
-    // 精致深胡桃木拼花地板 + 黑曜石石砖角嵌
+    // Intricate dark walnut parquet floor + obsidian stone corner inlays
     for (let y = 0; y < H; y++) {
       const plankRow = (y / 16) | 0;
       const offset = (plankRow & 1) ? 32 : 0;
@@ -600,11 +600,11 @@ void main() {
         const baseG = seam ? 18 : 48 + tone * 4 + (grain >> 1);
         const baseB = seam ? 22 : 38 + tone * 3 + (grain >> 1);
         p.set(x, y, baseR, baseG, baseB, 255);
-        // 铜钉细节
+        // Brass stud details
         if ((px === 3 || px === 60) && (py === 4 || py === 12)) p.set(x, y, 128, 96, 62);
       }
     }
-    // 拼花雕纹边框点缀
+    // Parquet carved border accents
     for (let y = 0; y < H; y += 64) {
       p.hline(0, y, W, 34, 26, 32);
       p.hline(0, y + 1, W, 94, 68, 48);
@@ -615,7 +615,7 @@ void main() {
   function buildProceduralStone() {
     const W = 64, H = 64;
     const p = makePixelBuf(W, H);
-    // 深邃暖黑曜石雕花石砖 + 暗金/暖木边沿 + 局部深翡翠青苔点缀
+    // Deep warm obsidian carved stone bricks + dark gold/warm wood rim + subtle emerald moss accents
     for (let y = 0; y < H; y++) {
       const row = (y / 8) | 0;
       const off = (row & 1) ? 8 : 0;
@@ -629,14 +629,14 @@ void main() {
         const g = seam ? 15 : hi ? 60 + (n >> 2) : 40 + (n >> 1);
         const b = seam ? 20 : hi ? 54 + (n >> 2) : 43 + (n >> 1);
         p.set(x, y, r, g, b, 255);
-        // 顶部暗金暖木护沿线
+        // Top dark-gold warm wood trim
         if (y === 0 || y === 1) {
           const gold = ((x >> 2) & 1) === 0;
           p.set(x, y, gold ? 132 : 96, gold ? 98 : 70, gold ? 56 : 44, 255);
         } else if (y === 2) {
           p.set(x, y, 28, 22, 24, 255);
         }
-        // 局部自然深青苔像素点缀（边缘与砖缝）
+        // Natural deep moss pixel accents along edges and mortar lines
         if (y >= 3 && y < 9 && ((x * 7 + y * 13) & 15) < 5) {
           p.set(x, y, 42, 92 + (n & 15), 62, 255);
         }
@@ -646,7 +646,7 @@ void main() {
   }
 
   function buildProceduralPropsAtlas() {
-    // 256×256 划分为 4×4 共 16 个 64×64 格子，与 ATLAS_KEYS 1:1 映射
+    // 256x256 subdivided into a 4x4 grid of 16 64x64 tiles, mapped 1:1 to ATLAS_KEYS
     const S = 256;
     const C = 64;
     const p = makePixelBuf(S, S);
@@ -664,7 +664,7 @@ void main() {
       rects[key] = { x: gx, y: gy, w: C, h: C, anchorY, emissive };
     };
 
-    // 0: chandelier 锻铁多烛暖光吊灯
+    // 0: chandelier wrought-iron multi-candle warm chandelier
     cell(0, 'chandelier', 0, true, (b) => {
       b.rect(30, 0, 4, 22, 46, 48, 60);
       b.rect(12, 22, 40, 5, 52, 54, 68);
@@ -677,7 +677,7 @@ void main() {
       b.rect(24, 28, 16, 5, 186, 144, 68);
       b.rect(29, 33, 6, 5, 248, 196, 86);
     });
-    // 1: lantern 铁链悬吊琥珀提灯
+    // 1: lantern chain-hung amber lantern
     cell(1, 'lantern', 0, true, (b) => {
       b.rect(31, 0, 2, 18, 48, 52, 66);
       b.rect(24, 18, 16, 4, 54, 58, 72);
@@ -687,30 +687,30 @@ void main() {
       b.rect(24, 44, 16, 4, 54, 58, 72);
       b.rect(29, 48, 6, 4, 180, 134, 60);
     });
-    // 2: hearth 石砌温暖壁炉/火盆
+    // 2: hearth stone warm fireplace / brazier
     cell(2, 'hearth', 1, true, (b) => {
       b.rect(6, 14, 52, 50, 62, 64, 78);
       b.rect(4, 10, 56, 6, 86, 88, 104);
       b.hline(4, 10, 56, 126, 128, 148);
       b.rect(14, 24, 36, 38, 18, 14, 18);
-      // 熊熊柴火与内壁暖光
+      // Crackling firewood and warm hearth interior glow
       b.rect(18, 52, 28, 6, 92, 52, 28);
       b.rect(20, 42, 24, 12, 226, 86, 26);
       b.rect(23, 35, 18, 15, 255, 148, 38);
       b.rect(27, 30, 10, 14, 255, 226, 104);
       b.rect(29, 36, 6, 10, 255, 250, 214);
-      // 炉顶小油灯与铜壶
+      // Small oil lamp and copper kettle atop the mantle
       b.rect(12, 4, 8, 6, 188, 122, 56);
       b.rect(44, 4, 6, 6, 255, 198, 92);
     });
-    // 3: booksTable 堆满摊开古书与烛台的橡木桌
+    // 3: booksTable oak table stacked with open tomes and candlesticks
     cell(3, 'booksTable', 1, true, (b) => {
       b.rect(6, 36, 52, 6, 108, 72, 44);
       b.hline(6, 36, 52, 146, 102, 64);
       b.rect(10, 42, 6, 22, 74, 48, 30);
       b.rect(48, 42, 6, 22, 74, 48, 30);
       b.rect(16, 48, 32, 4, 62, 40, 26);
-      // 摊开古书 + 书栈 + 小蜡烛
+      // Open tome + book stack + small candle
       b.rect(12, 28, 18, 8, 232, 218, 186);
       b.vline(21, 28, 8, 142, 118, 88);
       b.rect(34, 24, 12, 4, 168, 56, 48);
@@ -720,7 +720,7 @@ void main() {
       b.rect(50, 18, 4, 6, 255, 186, 68);
       b.rect(51, 19, 2, 4, 255, 246, 206);
     });
-    // 4: astrolabe 古典黄铜星盘
+    // 4: astrolabe vintage brass astrolabe
     cell(4, 'astrolabe', 1, true, (b) => {
       b.rect(20, 56, 24, 8, 82, 54, 34);
       b.rect(29, 44, 6, 12, 186, 142, 62);
@@ -736,7 +736,7 @@ void main() {
       b.rect(29, 25, 6, 6, 124, 214, 255);
       b.rect(30, 26, 4, 4, 224, 248, 255);
     });
-    // 5: barrelStack 铁箍橡木酒桶 + 麦酒杯
+    // 5: barrelStack iron-hooped oak barrels + ale mug
     cell(5, 'barrelStack', 1, false, (b) => {
       b.rect(12, 28, 28, 36, 106, 68, 38);
       b.rect(14, 26, 24, 4, 128, 84, 48);
@@ -746,12 +746,12 @@ void main() {
       b.rect(38, 36, 20, 28, 92, 58, 34);
       b.rect(37, 42, 22, 3, 54, 58, 70);
       b.rect(37, 56, 22, 3, 54, 58, 70);
-      // 桶顶起泡麦酒杯
+      // Foaming ale mug atop the barrel
       b.rect(20, 14, 10, 12, 212, 148, 52);
       b.rect(30, 17, 3, 6, 186, 126, 42);
       b.rect(19, 10, 12, 5, 246, 238, 216);
     });
-    // 6: stoolMug 高脚木凳 + 热茶杯
+    // 6: stoolMug tall wooden stool + hot tea mug
     cell(6, 'stoolMug', 1, false, (b) => {
       b.rect(16, 36, 32, 6, 118, 78, 48);
       b.hline(16, 36, 32, 152, 108, 68);
@@ -763,7 +763,7 @@ void main() {
       b.rect(28, 16, 2, 6, 220, 224, 238, 180);
       b.rect(33, 14, 2, 6, 220, 224, 238, 160);
     });
-    // 7: potionRack 多层发光药水瓶架
+    // 7: potionRack multi-tier glowing potion rack
     cell(7, 'potionRack', 1, true, (b) => {
       b.rect(8, 8, 48, 56, 66, 44, 28);
       b.rect(11, 11, 42, 50, 28, 19, 16);
@@ -782,7 +782,7 @@ void main() {
         }
       }
     });
-    // 8: candelabra 高挑多头锻铁暖光烛台
+    // 8: candelabra tall multi-arm wrought-iron warm candelabra
     cell(8, 'candelabra', 1, true, (b) => {
       b.rect(22, 58, 20, 6, 56, 58, 72);
       b.rect(30, 20, 4, 38, 68, 70, 86);
@@ -794,36 +794,36 @@ void main() {
         b.rect(cx - 1, top - 6, 2, 5, 255, 246, 206);
       }
     });
-    // 9: luggageScrolls 旅人旧皮箱 + 卷轴筒 + 古老地球仪
+    // 9: luggageScrolls traveler leather trunk + scroll tube + antique globe
     cell(9, 'luggageScrolls', 1, false, (b) => {
       b.rect(8, 38, 34, 26, 126, 74, 42);
       b.rect(8, 38, 34, 4, 152, 94, 54);
       b.rect(14, 38, 4, 26, 196, 152, 68);
       b.rect(32, 38, 4, 26, 196, 152, 68);
       b.rect(20, 34, 10, 4, 88, 52, 30);
-      // 地球仪
+      // Antique globe
       b.rect(42, 48, 12, 16, 86, 58, 36);
       b.rect(40, 24, 16, 16, 68, 126, 186);
       b.rect(43, 27, 6, 6, 98, 162, 106);
       b.rect(49, 32, 5, 5, 98, 162, 106);
-      // 羊皮卷轴
+      // Parchment scrolls
       b.rect(12, 28, 22, 8, 228, 206, 158);
       b.rect(10, 28, 3, 8, 162, 62, 52);
       b.rect(33, 28, 3, 8, 162, 62, 52);
     });
-    // 10: mossRock 青苔石块 + 发光蓝绿小蘑菇簇 + 贝壳宝箱
+    // 10: mossRock mossy boulder + glowing teal mushroom cluster + shell chest
     cell(10, 'mossRock', 1, true, (b) => {
       b.rect(10, 38, 44, 26, 72, 78, 94);
       b.rect(16, 30, 32, 12, 84, 92, 110);
       b.rect(14, 32, 34, 8, 62, 146, 96);
-      // 发光青蓝小蘑菇簇
+      // Glowing teal mushroom cluster
       for (const [mx, my, mw] of [[18, 24, 10], [32, 20, 12], [44, 28, 8]]) {
         b.rect(mx + (mw >> 1) - 1, my + 4, 3, 8, 222, 232, 224);
         b.rect(mx, my, mw, 5, 76, 236, 214);
         b.rect(mx + 2, my + 1, mw - 4, 2, 198, 255, 248);
       }
     });
-    // 11: miniLanternPost 系泊小木桩暖光提灯
+    // 11: miniLanternPost mooring wood post warm lantern
     cell(11, 'miniLanternPost', 1, true, (b) => {
       b.rect(24, 18, 8, 46, 98, 64, 38);
       b.rect(24, 18, 22, 5, 86, 56, 34);
@@ -832,13 +832,13 @@ void main() {
       b.rect(37, 32, 8, 10, 255, 182, 68);
       b.rect(39, 34, 4, 6, 255, 246, 202);
     });
-    // 12: fgPillarLeft 前景左侧暗木雕刻立柱 + 常春藤
+    // 12: fgPillarLeft foreground left carved dark-wood pillar + ivy
     cell(12, 'fgPillarLeft', 1, false, (b) => {
       b.rect(0, 0, 28, 64, 30, 20, 18);
       b.rect(4, 0, 20, 64, 44, 30, 24);
       b.vline(24, 0, 64, 72, 52, 38);
       b.rect(0, 52, 34, 12, 38, 26, 22);
-      // 常春藤叶蔓
+      // Ivy vines
       for (let i = 0; i < 9; i++) {
         const ix = 16 + ((i * 7) % 18);
         const iy = 4 + i * 6;
@@ -846,13 +846,13 @@ void main() {
         b.rect(ix + 1, iy + 1, 3, 2, 82, 168, 104);
       }
     });
-    // 13: fgPillarRight 前景右侧暗木立柱 + 暖光玻璃灯笼 + 常春藤
+    // 13: fgPillarRight foreground right dark-wood pillar + warm glass lantern + ivy
     cell(13, 'fgPillarRight', 1, true, (b) => {
       b.rect(36, 0, 28, 64, 30, 20, 18);
       b.rect(40, 0, 20, 64, 44, 30, 24);
       b.vline(39, 0, 64, 72, 52, 38);
       b.rect(30, 52, 34, 12, 38, 26, 22);
-      // 铁艺支架 + 暖灯笼
+      // Wrought-iron bracket + warm lantern
       b.rect(20, 18, 20, 3, 46, 48, 60);
       b.rect(18, 21, 14, 18, 42, 46, 58);
       b.rect(20, 23, 10, 14, 255, 174, 58);
@@ -863,7 +863,7 @@ void main() {
         b.rect(ix, iy, 6, 4, 48, 118, 72);
       }
     });
-    // 14: garland 穹顶干花彩旗串灯
+    // 14: garland ceiling dried-flower bunting and fairy lights
     cell(14, 'garland', 0, true, (b) => {
       for (let x = 0; x < 64; x++) {
         const sag = Math.round(Math.sin((x / 63) * Math.PI) * 14) + 6;
@@ -880,11 +880,11 @@ void main() {
         }
       }
     });
-    // 15: rug 织纹暗金酒馆长地毯
+    // 15: rug woven dark-gold tavern runner rug
     cell(15, 'rug', 0.5, false, (b) => {
       b.rect(2, 10, 60, 44, 118, 34, 44);
       b.rect(4, 12, 56, 40, 142, 42, 52);
-      // 金边织纹
+      // Gold woven border
       b.hline(6, 14, 52, 212, 168, 78);
       b.hline(6, 49, 52, 212, 168, 78);
       b.vline(6, 14, 36, 212, 168, 78);
@@ -898,7 +898,7 @@ void main() {
     return { buf: p, rects };
   }
 
-  // ── 几何缓冲生成工具 ────────────────────────────────────────────────────────
+  // ── Geometry buffer builders ──
   function makeQuadVerts(w, h, anchorY = 1) {
     const hw = w * 0.5;
     const y0 = anchorY === 0 ? -h : anchorY === 0.5 ? -h * 0.5 : 0;
@@ -940,19 +940,19 @@ void main() {
         p3[0], p3[1], p3[2], n[0], n[1], n[2], 0, 0
       );
     };
-    // 顶面
+    // Top face
     pushQuad([-hw, h, hd], [hw, h, hd], [hw, h, -hd], [-hw, h, -hd], [0, 1, 0], repeatXZ, repeatXZ);
-    // 前面
+    // Front face
     pushQuad([-hw, 0, hd], [hw, 0, hd], [hw, h, hd], [-hw, h, hd], [0, 0, 1], repeatXZ, repeatY);
-    // 左面
+    // Left face
     pushQuad([-hw, 0, -hd], [-hw, 0, hd], [-hw, h, hd], [-hw, h, -hd], [-1, 0, 0], repeatXZ, repeatY);
-    // 右面
+    // Right face
     pushQuad([hw, 0, hd], [hw, 0, -hd], [hw, h, -hd], [hw, h, hd], [1, 0, 0], repeatXZ, repeatY);
     return new Float32Array(tris);
   }
 
   function makeBeamConeVerts() {
-    // 3 片互成 60° 交叉的真 3D 锥形体积光片，无论相机视差怎样偏转都饱满立体
+    // 3 intersecting 60-degree 3D volumetric light cone planes for full volume under any camera parallax
     const topR = 0.20;
     const botR = 0.76;
     const topY = 2.95;
@@ -1006,9 +1006,9 @@ void main() {
     ]);
   }
 
-  // ── 极繁 3D 摆件世界布置表（19 个错落 Z 轴立牌/装饰，生活感与空间纵深拉满）──
+  // ── Rich 3D prop world layout (19 staggered Z-depth billboards/decorations for depth and tavern warmth) ──
   const TAVERN_PROPS_LAYOUT = [
-    // 中后景摆件矩阵（注：当外部真实后墙壁炉已加载时自动隐藏 hearth 避免壁炉套壁炉重叠）
+    // Mid/back prop array (hearth is auto-hidden when external back-wall fireplace atlas is loaded to avoid overlap)
     { key: 'hearth', x: -0.04, y: 0.0, z: -2.72, h: 1.48, anchorY: 1, emissive: 1.30, emCol: [1.0, 0.52, 0.16], rim: 0.6, skipWithExternalWall: true },
     { key: 'potionRack', x: -3.28, y: 0.0, z: -2.62, h: 1.52, anchorY: 1, emissive: 0.92, emCol: [0.46, 0.96, 0.84], rim: 0.55 },
     { key: 'astrolabe', x: -2.14, y: 0.0, z: -2.18, h: 1.18, anchorY: 1, emissive: 0.65, emCol: [0.58, 0.88, 1.0], rim: 0.7, sway: 0.03 },
@@ -1019,10 +1019,10 @@ void main() {
     { key: 'luggageScrolls', x: 2.38, y: 0.0, z: -2.06, h: 1.06, anchorY: 1, emissive: 0.0, emCol: [1, 1, 1], rim: 0.55 },
     { key: 'barrelStack', x: 3.48, y: 0.0, z: -2.15, h: 1.08, anchorY: 1, emissive: 0.0, emCol: [1, 1, 1], rim: 0.5 },
     { key: 'stoolMug', x: 1.56, y: 0.0, z: -1.52, h: 0.74, anchorY: 1, emissive: 0.0, emCol: [1, 1, 1], rim: 0.55 },
-    // 右侧抬高迷你小蟹苔藓石台专属摆件
+    // Props dedicated to the raised mossy stone dais for the mini crabs on the right
     { key: 'mossRock', x: 3.24, y: 0.40, z: -0.56, h: 0.74, anchorY: 1, emissive: 1.05, emCol: [0.36, 0.96, 0.84], rim: 0.75 },
     { key: 'miniLanternPost', x: 2.20, y: 0.40, z: -0.56, h: 0.94, anchorY: 1, emissive: 1.22, emCol: [1.0, 0.72, 0.30], rim: 0.75 },
-    // 穹顶多深度悬吊暖灯 + 干花串灯
+    // Multi-depth hanging warm ceiling lights + dried-flower garland
     { key: 'garland', x: -1.65, y: 3.12, z: -2.25, h: 0.74, wScale: 2.4, anchorY: 0, emissive: 0.75, emCol: [1.0, 0.76, 0.36], rim: 0.25 },
     { key: 'garland', x: 1.65, y: 3.12, z: -2.25, h: 0.74, wScale: 2.4, anchorY: 0, emissive: 0.75, emCol: [1.0, 0.76, 0.36], rim: 0.25 },
     { key: 'chandelier', x: 0.0, y: 3.34, z: -1.18, h: 1.15, anchorY: 0, emissive: 1.25, emCol: [1.0, 0.72, 0.28], rim: 0.4, sway: 0.025 },
@@ -1030,12 +1030,12 @@ void main() {
     { key: 'lantern', x: 2.35, y: 3.24, z: -1.52, h: 0.92, anchorY: 0, emissive: 1.18, emCol: [1.0, 0.70, 0.28], rim: 0.4, sway: -0.04 },
     { key: 'lantern', x: -3.28, y: 3.18, z: 0.32, h: 0.88, anchorY: 0, emissive: 1.12, emCol: [1.0, 0.68, 0.26], rim: 0.35, sway: 0.03 },
     { key: 'lantern', x: 3.28, y: 3.18, z: 0.32, h: 0.88, anchorY: 0, emissive: 1.12, emCol: [1.0, 0.68, 0.26], rim: 0.35, sway: -0.03 },
-    // 前景景深左右暗木常春藤立柱（拉入 16:9 视锥最边缘 ~6% 画框，鼠标移过呈现强近景 3D 视差 + Tilt-Shift 景深）
+    // Foreground left/right dark-wood ivy pillars (framing outer ~6% of 16:9 viewport for strong near parallax + tilt-shift DoF)
     { key: 'fgPillarLeft', x: -2.42, y: -0.32, z: 1.82, h: 3.25, anchorY: 1, emissive: 0.0, emCol: [1, 1, 1], rim: 0.35 },
     { key: 'fgPillarRight', x: 2.48, y: -0.32, z: 1.82, h: 3.25, anchorY: 1, emissive: 1.05, emCol: [1.0, 0.72, 0.30], rim: 0.4 },
   ];
 
-  // ── WebGL2 主引擎工厂 ──────────────────────────────────────────────────────
+  // ── WebGL2 main engine factory ──
   function createStage(opts) {
     const canvas = opts && opts.canvas;
     const doc = (opts && opts.doc) || (canvas && canvas.ownerDocument) || (typeof document !== 'undefined' ? document : null);
@@ -1153,7 +1153,7 @@ void main() {
     const emptyVao = gl.createVertexArray();
     if (emptyVao) allVaos.push(emptyVao);
 
-    // ── 纹理创建与热插拔（100% gl.NEAREST 零模糊锐利像素）───────────────────
+    // ── Texture creation & hot-swap (100% gl.NEAREST crisp unblurred pixels) ──
     const createPixelTex = (w, h, data, wrapRepeat = false) => {
       const tex = gl.createTexture();
       if (!tex) return null;
@@ -1184,7 +1184,7 @@ void main() {
     let atlasBoundRef = null;
     const pendingImages = [];
 
-    // 无缝热插拔外部美术图集（globalThis.__agOctopathTavernAtlas）
+    // Seamless hot-swap for external art atlas (globalThis.__agOctopathTavernAtlas)
     const tryBindExternalAtlas = () => {
       const ext = (root && root.__agOctopathTavernAtlas) || (win && win.__agOctopathTavernAtlas) || null;
       if (!ext || ext === atlasBoundRef || typeof Image !== 'function') return;
@@ -1246,10 +1246,10 @@ void main() {
       });
     };
 
-    // ── 桌宠动态精灵离屏微画布（256×96, 1 逻辑像素 = 1 纹素, 零抗锯齿, 脏更新）──
+    // ── Dynamic mascot sprite offscreen micro-canvas (256x96, 1 logical px = 1 texel, no AA, dirty-flag upload) ──
     const SPR_W = 256, SPR_H = 96;
-    const SPR_MAIN_W = 48, SPR_MAIN_H = 44; // 4 主宠槽：x = idx * 48, y = 0
-    const SPR_MINI_W = 24, SPR_MINI_H = 24; // 3 迷你蟹：x = idx * 24, y = 48
+    const SPR_MAIN_W = 48, SPR_MAIN_H = 44; // 4 main mascot slots: x = idx * 48, y = 0
+    const SPR_MINI_W = 24, SPR_MINI_H = 24; // 3 mini crabs: x = idx * 24, y = 48
     const spriteCanvas = doc && typeof doc.createElement === 'function' ? doc.createElement('canvas') : null;
     if (spriteCanvas) {
       spriteCanvas.width = SPR_W;
@@ -1308,7 +1308,7 @@ void main() {
       }
     };
 
-    // ── 4-FBO 后处理管线管理（Scene MRT + 1/4 Bloom A/B + 1/2 Blur A/B）──────
+    // ── 4-FBO post-processing pipeline (Scene MRT + 1/4 Bloom A/B + 1/2 Blur A/B) ──
     let fbW = 0, fbH = 0;
     let sceneFbo = null, sceneTex = null, emissiveTex = null, depthRbo = null;
     let bloomFboA = null, bloomTexA = null, bloomFboB = null, bloomTexB = null;
@@ -1376,7 +1376,7 @@ void main() {
       return true;
     };
 
-    // ── 相机视差平滑状态 + 3D 漂浮星尘与壁炉火星粒子池 ─────────────────────────
+    // ── Smooth camera parallax state + 3D floating stardust & hearth ember particle pools ──
     let ptrNx = 0, ptrNy = 0, ptrInside = false;
     let curYaw = 0, curPitch = -20 * DEG2RAD;
     let lastVp = mat4Mul(
@@ -1387,7 +1387,7 @@ void main() {
     let contextLost = false;
     let drawFrames = 0;
 
-    // 26 颗常驻空间像素光尘 + 前景散景微粒
+    // 26 persistent spatial pixel dust motes + foreground bokeh particles
     const dustMotes = Array.from({ length: 26 }, (_, i) => ({
       x: ((i * 73) % 100 - 50) * 0.082,
       y: 0.25 + ((i * 37) % 100) * 0.028,
@@ -1481,7 +1481,7 @@ void main() {
       const lightMode = state.light ? 1.0 : 0.0;
       const reduced = Boolean(state.reducedMotion);
 
-      // 1. 丝滑阻尼 3D 视差相机（基础 pitch -20°, yaw ±6.5°, pitch ±2.8°）
+      // 1. Smoothly damped 3D parallax camera (base pitch -20 deg, yaw +/-6.5 deg, pitch +/-2.8 deg)
       const tgtYaw = !reduced && ptrInside ? Math.max(-1, Math.min(1, ptrNx)) * 6.5 * DEG2RAD : 0;
       const tgtPitch = (-20 - (!reduced && ptrInside ? Math.max(-1, Math.min(1, ptrNy)) * 2.8 : 0)) * DEG2RAD;
       const damp = reduced ? 1.0 : 1.0 - Math.exp(-dtSec * 7.5);
@@ -1502,11 +1502,11 @@ void main() {
       const vp = mat4Mul(proj, view);
       lastVp = vp;
 
-      // 2. 同步桌宠像素精灵图集
+      // 2. Sync mascot pixel sprite atlas
       const slotInfos = state.slotInfos || [];
       syncMascotSprites(state.art, slotInfos, state.tickIdx || 0);
 
-      // 3. Pass 1: 渲染 3D 场景至 MRT (sceneTex + emissiveTex + DEPTH16)
+      // 3. Pass 1: Render 3D scene to MRT (sceneTex + emissiveTex + DEPTH16)
       gl.bindFramebuffer(gl.FRAMEBUFFER, sceneFbo);
       gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1]);
       gl.viewport(0, 0, fbW, fbH);
@@ -1540,13 +1540,13 @@ void main() {
       gl.uniform4fv(uScene['uSlotPos[0]'], slotPosArr);
       gl.uniform4fv(uScene['uSlotCol[0]'], slotColArr);
 
-      // 3a) 远景黑曜石酒馆星夜后墙 (z = -3.50)
+      // 3a) Distant obsidian tavern starry back wall (z = -3.50)
       drawSceneMesh(meshWall, wallTexInfo, modelMat(0, 0, -3.50, 1, 1, 1), {
         emissive: [0.96, 0.84, 0.70, lightMode > 0.5 ? 0.28 : 0.72],
         flags: [0, 0, 1, 0],
       });
 
-      // 3b) 木石拼花主地板 + 立体前缘厚度 + 织金长地毯（居于 4 主宠脚下，右沿止于 +1.46 不撞石阶）
+      // 3b) Wood-stone parquet floor + 3D front lip + woven gold runner rug (under 4 main mascots, ending at +1.46 clear of steps)
       drawSceneMesh(meshFloor, floorTexInfo, modelMat(0, 0, -0.50, 1, 1, 1), {
         uvBounds: [0, 0, 5.0, 3.0],
         flags: [0, 1, 1, 0],
@@ -1568,7 +1568,7 @@ void main() {
         });
       }
 
-      // 3c) 右侧抬高迷你小蟹专属暖黑曜石双层石台与立体阶梯（左沿 +1.99，最左台阶 +1.65，与蓝鲸留足清晰间距）
+      // 3c) Right raised two-tier warm obsidian stone dais & steps for mini crabs (left edge +1.99, lowest step +1.65, clear of whale)
       drawSceneMesh(meshMiniPlat, stoneTexInfo, modelMat(2.86, 0.0, -0.14, 1, 1, 1), {
         uvBounds: [0, 0, 2, 2],
         tint: [0.96, 0.88, 0.80, 1],
@@ -1585,7 +1585,7 @@ void main() {
         flags: [0, 0.5, 1, 0],
       });
 
-      // 3d) 极繁生活感像素摆件立牌（全 gl.NEAREST + Rim Light + 动态暖发光；外部壁炉墙已载入时自动跳过 hearth 避免重叠）
+      // 3d) Detailed pixel prop billboards (all gl.NEAREST + rim light + warm glow; skips hearth when external wall fireplace is loaded)
       gl.enable(gl.BLEND);
       gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
       const pw = propsTexInfo.w || 256;
@@ -1613,12 +1613,12 @@ void main() {
         });
       }
 
-      // 3e) 贴地 Contact AO 软阴影 + 阵营地板光环（半透明不写深度）
+      // 3e) Ground Contact AO soft shadows + faction floor halos (translucent, no depth write)
       gl.depthMask(false);
       gl.useProgram(progFx);
       gl.uniformMatrix4fv(uFx.uViewProj, false, vp);
 
-      // 普通混合绘 Contact AO 地面阴影
+      // Standard alpha blending for Contact AO ground shadows
       gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
       for (let i = 0; i < 5; i++) {
         const sp = SLOT_WORLD_POS[i];
@@ -1626,7 +1626,7 @@ void main() {
         drawFxMesh(meshFxFloor, modelMat(sp.x, sp.y + 0.016, sp.z, shScale, 1, shScale * 0.68), [0.02, 0.02, 0.05, lightMode > 0.5 ? 0.24 : 0.58], [1.0, timeSec, 1.8, 0.0]);
       }
 
-      // Additive 混合绘地板阵营池光、常驻锐利双环魔法光池与点亮瞬间魔法涟漪
+      // Additive blending for faction pool light, crisp dual-ring magic halos, and activation ripples
       gl.blendFunc(gl.ONE, gl.ONE);
       for (let i = 0; i < 5; i++) {
         const sp = SLOT_WORLD_POS[i];
@@ -1650,7 +1650,7 @@ void main() {
         }
       }
 
-      // 3f) 5 大桌宠 3D 像素立牌（flags[0]=2 原色护色管线，点亮纯正饱满绝不泛白，休息沉入冷靛蓝暗影）
+      // 3f) 5 mascot 3D pixel billboards (flags[0]=2 true-color preservation: vivid when active, cool indigo shadow when resting)
       gl.depthMask(true);
       gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
       gl.useProgram(progScene);
@@ -1672,7 +1672,7 @@ void main() {
         });
       }
 
-      // 第 5 站位：抬高暖黑曜石苔藓石台上的 3 只迷你小蟹立体站位！
+      // Slot 5: 3 mini crabs perched on the raised warm obsidian mossy stone dais
       const spM = SLOT_WORLD_POS[4];
       const infoM = slotInfos[4] || { light: 0, cnt: 0, cheering: false, cheerProg: 0, isHov: false, farewell: false };
       const dimM = infoM.cnt === 0 && !infoM.isHov && !infoM.farewell ? 0.40 : infoM.cnt > 0 ? 1.0 : 0.82;
@@ -1694,18 +1694,18 @@ void main() {
         });
       }
 
-      // 3g) 体积丁达尔光柱（冷月斜射窗光 + 5 束可开关真 3D 阵营体积光柱）+ 3D 金粉星尘与壁炉火星
+      // 3g) Volumetric Tyndall light shafts (cool moonlight through windows + 5 toggleable 3D faction beams) + 3D gold dust & hearth embers
       gl.depthMask(false);
       gl.blendFunc(gl.ONE, gl.ONE);
       gl.useProgram(progFx);
       gl.uniformMatrix4fv(uFx.uViewProj, false, vp);
 
-      // 左右哥特拱窗斜射冷月丁达尔光束（塑造冷暖强对比）
+      // Cool moonlight Tyndall shafts slanting through left/right gothic windows for warm/cool contrast
       const moonA = lightMode > 0.5 ? 0.08 : 0.20;
       drawFxMesh(meshFxCard, modelMat(-2.30, 1.58, -2.98, 1.85, 2.95, 1, 0, -0.26), [0.28, 0.54, 1.0, moonA], [0.0, timeSec, 0, 0.74]);
       drawFxMesh(meshFxCard, modelMat(2.30, 1.58, -2.98, 1.85, 2.95, 1, 0, 0.26), [0.28, 0.54, 1.0, moonA], [0.0, timeSec, 0, 0.74]);
 
-      // 居中壁炉动态炽烈暖光晕与升腾火星粒子（精准落于后墙大壁炉膛口，零重叠穿帮）
+      // Central hearth warm pulsing glow and rising ember particles aligned with the back-wall firebox
       const hearthZ = atlasLoadedFlags.wall ? -3.26 : -2.62;
       const hearthY = atlasLoadedFlags.wall ? 0.64 : 0.46;
       const hGlowA = (lightMode > 0.5 ? 0.20 : 0.58) * (0.85 + 0.15 * Math.sin(timeSec * 9.2));
@@ -1717,7 +1717,7 @@ void main() {
         drawFxMesh(meshFxCard, modelMat(ex, ey, hearthZ + 0.06, 0.055, 0.055, 1), [1.0, 0.74 - ep * 0.36, 0.20, (1.0 - ep) * 0.98], [3.0, timeSec, 0, 1.55]);
       }
 
-      // 精准联动美术图集各摆件发光核 (glowX, glowY) 的 3D 柔暖/荧光 Bloom 呼吸光晕
+      // 3D soft warm/emissive bloom breathing halos linked to each atlas prop glow core (glowX, glowY)
       for (let i = 0; i < TAVERN_PROPS_LAYOUT.length; i++) {
         const item = TAVERN_PROPS_LAYOUT[i];
         if (item.skipWithExternalWall && atlasLoadedFlags.wall) continue;
@@ -1735,16 +1735,16 @@ void main() {
         drawFxMesh(meshFxCard, modelMat(gx, gy, item.z + 0.05, haloSz, haloSz, 1), [item.emCol[0], item.emCol[1], item.emCol[2], haloA], [1.0, timeSec, 2.0, 1.28]);
       }
 
-      // 5 束可开关真 3D 交叉锥形体积光柱（略偏后置 z - 0.10 令高饱和光柱从主角头顶与身后划破暗夜，绝不糊白精灵面部！）
+      // 5 toggleable 3D intersecting cone light shafts (offset z - 0.10 behind mascots so saturated beams never wash out faces)
       for (let i = 0; i < 5; i++) {
         const sp = SLOT_WORLD_POS[i];
         const info = slotInfos[i];
         if (!info || info.light <= 0.02) continue;
         const beamA = info.light * (lightMode > 0.5 ? 0.15 : 0.36);
         drawFxMesh(meshBeamCone, modelMat(sp.x, sp.y, sp.z - 0.10, 1, 1, 1), [sp.col[0], sp.col[1], sp.col[2], beamA], [0.0, timeSec, 1.0, 0.62]);
-        // 顶梁发光灯芯（高 Emissive 进 Bloom）
+        // Overhead glowing emitter core (high emissive into Bloom)
         drawFxMesh(meshFxCard, modelMat(sp.x, sp.y + 2.95, sp.z - 0.08, 0.40, 0.23, 1), [sp.colHi[0], sp.colHi[1], sp.colHi[2], info.light * 0.94], [1.0, timeSec, 1.35, 1.44]);
-        // 槽位上升 3D 像素金粉星尘
+        // Slot rising 3D pixel gold stardust
         for (let k = 0; k < 6; k++) {
           const prog = ((timeSec * (0.18 + (k % 3) * 0.07) + k * 0.17 + i * 0.11) % 1.0);
           const ang = k * 1.15 + timeSec * 0.7;
@@ -1755,7 +1755,7 @@ void main() {
           const tw = (0.45 + 0.55 * Math.sin(timeSec * 4.2 + k * 1.9)) * Math.sin(prog * Math.PI) * info.light;
           drawFxMesh(meshFxCard, modelMat(mx, my, mz, 0.065, 0.065, 1), [sp.colHi[0], sp.colHi[1], sp.colHi[2], tw * 0.92], [3.0, timeSec, 0, 1.32]);
         }
-        // 点亮瞬间 3D 爆发星尘
+        // Activation burst 3D stardust
         if (info.cheerProg > 0 && info.cheerProg < 0.72) {
           const bp = info.cheerProg / 0.72;
           for (let b = 0; b < 8; b++) {
@@ -1768,7 +1768,7 @@ void main() {
         }
       }
 
-      // 空间漫游暖金浮尘 & 前景散景光斑（进入前景 Tilt-Shift 景深虚化）
+      // Ambient floating warm gold dust & foreground bokeh motes (softened by foreground tilt-shift DoF)
       for (let i = 0; i < dustMotes.length; i++) {
         const d = dustMotes[i];
         const yOff = reduced ? 0 : ((timeSec * d.spd + d.ph) % 2.8);
@@ -1784,14 +1784,14 @@ void main() {
       gl.disable(gl.BLEND);
       gl.disable(gl.DEPTH_TEST);
 
-      // 4. Pass 2: 1/4 分辨率 2 轮可分离 9-tap Bloom 泛光
+      // 4. Pass 2: Quarter-res 2-pass separable 9-tap Bloom
       runBlurPass(emissiveTex, bloomFboA, bloomTexA, bloomFboB, bloomTexB, bloomW, bloomH, 1.15);
       runBlurPass(bloomTexB, bloomFboA, bloomTexA, bloomFboB, bloomTexB, bloomW, bloomH, 2.05);
 
-      // 5. Pass 3: 1/2 分辨率移轴景深模糊缓冲
+      // 5. Pass 3: Half-res tilt-shift depth-of-field blur buffer
       runBlurPass(sceneTex, blurFboA, blurTexA, blurFboB, blurTexB, blurW, blurH, 1.45);
 
-      // 6. Pass 4: 最终电影级合成（Tilt-Shift 移轴景深 + Bloom + ACES Filmic + S-Curve + 暗角）
+      // 6. Pass 4: Final cinematic composite (Tilt-Shift DoF + Bloom + ACES Filmic + S-Curve + Vignette)
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       gl.viewport(0, 0, fbW, fbH);
       gl.useProgram(progComp);
@@ -1821,7 +1821,7 @@ void main() {
       ptrInside = Boolean(inside);
     };
 
-    // 3D 精确射线投影拾取（将 5 槽位 3D 中心与高度投影至 NDC，再按距离精确判定）
+    // Exact 3D projection picking (projects 5 slot centers & heights to NDC and tests proximity)
     const pickSlot = (nx, ny) => {
       if (!Number.isFinite(nx) || !Number.isFinite(ny)) return -1;
       let best = -1;

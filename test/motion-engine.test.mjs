@@ -265,7 +265,7 @@ test('bindMicroInteractions explicitly skips .ag-prism-thought-raw-toggle and .a
   const iconSvg = createTestElement('svg', { 'data-anim-icon': 'plus-spin', class: 'ag-anim-icon' });
   iconBtn.appendChild(iconSvg);
 
-  // 中文思考转译组件「原文」按钮与浮层树
+  // Thought translation component "Raw" toggle button and overlay tree
   const thoughtOverlay = createTestElement('div', { class: 'ag-prism-thought-overlay' });
   const thoughtRawBtn = createTestElement('button', { class: 'ag-prism-thought-raw-toggle' });
   const thoughtInnerSvg = createTestElement('svg', { 'data-anim-icon': 'sparkles-pen' });
@@ -311,7 +311,7 @@ test('bindMicroInteractions explicitly skips .ag-prism-thought-raw-toggle and .a
     assert.equal(iconSvg.animateCalls.length, 1);
     assert.equal(iconBtn.animateCalls.length, 1);
 
-    // 验证 .ag-prism-thought-raw-toggle 及其子节点在所有事件与显式调用下 0 动画、0 属性改写
+    // Verify .ag-prism-thought-raw-toggle and its children receive 0 animations and 0 attribute writes across all events and direct calls
     for (const thoughtTarget of [thoughtRawBtn, thoughtInnerSvg, thoughtOverlay, standaloneRawBtn]) {
       root.dispatch('pointerover', { target: thoughtTarget, relatedTarget: root });
       root.dispatch('focusin', { target: thoughtTarget });
@@ -346,7 +346,7 @@ test('bindMicroInteractions explicitly skips .ag-prism-thought-raw-toggle and .a
   }
 });
 
-test('i18n-locales UI_TABLE defines all 6 motionLevel keys across all 5 languages', () => {
+test('i18n-locales UI_TABLE defines all 6 motionLevel keys across bilingual en and ar locales', () => {
   const requiredKeys = [
     'setMotionLevelTitle',
     'setMotionLevelDesc',
@@ -355,7 +355,7 @@ test('i18n-locales UI_TABLE defines all 6 motionLevel keys across all 5 language
     'optMotionStandard',
     'optMotionUltra',
   ];
-  for (const lang of ['zh-CN', 'zh-TW', 'yue', 'en', 'ja']) {
+  for (const lang of ['en', 'ar']) {
     const ui = i18nLocales.getUiStrings(lang);
     for (const k of requiredKeys) {
       assert.ok(typeof ui[k] === 'string' && ui[k].length > 0, `Missing ${k} for ${lang}`);
@@ -495,7 +495,7 @@ test('cdp.REMOVE_EXPRESSION cleanly unwraps stream chunks without losing text, r
     return tn;
   };
 
-  const root = makeNode('html', { 'data-ag-cs-motion': 'ultra', 'data-ag-cs-lang': 'zh-CN', 'data-ag-prism': '1.0.1' });
+  const root = makeNode('html', { 'data-ag-cs-motion': 'ultra', 'data-ag-cs-lang': 'ar', 'data-ag-prism': '1.0.1' });
   const body = makeNode('body');
   root.appendChild(body);
 
@@ -1230,7 +1230,7 @@ test('#257: Velvet stream feathering — Layer A block reveal, Layer B 5-bucket 
     assert.equal(rafMap.size, 0);
 
     // 4. Exclusions: .ag-prism-thought-overlay and agent-input-box mutations never trigger Highlight ranges
-    const ovTxt = mkText('翻译中');
+    const ovTxt = mkText('Translating');
     thoughtOverlay.appendChild(ovTxt);
     const inTxt = mkText('typing');
     inputBox.appendChild(inTxt);

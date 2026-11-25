@@ -16,9 +16,6 @@ const sliderCoexist = require('../vendor/effort-slider/slider-coexist.js');
 const mgc = require('../model-glyph-crystal.js');
 const cdp = require('../cdp.js');
 
-/**
- * 构建支持 CSS 复合选择器、classList、捕获/冒泡事件分发与 React Fiber 挂载的轻量仿真 DOM。
- */
 function createSimEnv(options = {}) {
   const listenersByNode = new WeakMap();
   const winListeners = new Map();
@@ -445,7 +442,7 @@ function createSimEnv(options = {}) {
   };
 }
 
-test('Scenario 1 (Jio / 普通会员): 3.8 Flash 4档(含Minimal)联动保活，Claude (Thinking)/GPT-OSS/二次点击100%放行关闭菜单', () => {
+test('Jio model menu keeps all four Flash tiers active and allows native close for Claude and GPT-OSS', () => {
   const env = createSimEnv();
   const flashMin = { label: 'Gemini 3.8 Flash (Minimal)', modelId: 'gemini-3.8-flash-minimal', value: 1317 };
   const flashLow = { label: 'Gemini 3.8 Flash (Low)', modelId: 'gemini-3.8-flash-low', value: 1320 };
@@ -493,7 +490,6 @@ test('Scenario 1 (Jio / 普通会员): 3.8 Flash 4档(含Minimal)联动保活，
   assert.equal(env.html.getAttribute('data-ces-slider-ready'), '1', 'Valid ctx + open panel must set data-ces-slider-ready="1"');
   assert.ok(panel.querySelector('.ces-ag-section'), 'Must mount effort slider section');
 
-  // 1) 从 Claude Sonnet 4.6 (Thinking) 点击切换到 Gemini 3.8 Flash -> 拦截保持菜单常开，下方滑条联动为 4 档 (Minimal..High)
   const resSwitch = env.simulateNativeClick(flashRow.groupSpan, () => { isOpen = false; });
   assert.equal(resSwitch.pu._stopped, true);
   assert.equal(resSwitch.ck.defaultPrevented, true);
@@ -503,20 +499,17 @@ test('Scenario 1 (Jio / 普通会员): 3.8 Flash 4档(含Minimal)联动保活，
   assert.equal(committed[0].label, 'Gemini 3.8 Flash (Medium)');
   assert.equal(panel.querySelectorAll('.ces-tick').length, 4, '3.8 Flash must show 4 ticks (Minimal/Low/Medium/High)');
 
-  // 键盘切到 Minimal 档验证联动
   const sliderRoot = panel.querySelector('.ces-root');
   sliderRoot.dispatchEvent({ type: 'keydown', key: 'Home' });
   assert.equal(selectedModel.label, 'Gemini 3.8 Flash (Minimal)');
   assert.equal(panel.querySelector('.ces-ag-effort-value').textContent, 'Minimal');
 
-  // 2) 再次点击当前已选中的 Gemini 3.8 Flash -> 100% 放行原生事件让菜单关闭
   const resSecond = env.simulateNativeClick(flashRow.groupSpan, () => { isOpen = false; });
   assert.equal(resSecond.pu._stopped, false);
   assert.equal(resSecond.ck.defaultPrevented, false);
   assert.equal(resSecond.nativeCalled, true, 'Re-clicking already-selected model must pass through to close menu');
   assert.equal(isOpen, false);
 
-  // 3) 重新打开菜单并点击 Claude Opus 4.6 (Thinking) 与 GPT-OSS 120B (Medium) -> 100% 放行原生关闭
   isOpen = true;
   for (const singleRow of [opusRow, gptRow, sonRow]) {
     isOpen = true;
@@ -528,7 +521,6 @@ test('Scenario 1 (Jio / 普通会员): 3.8 Flash 4档(含Minimal)联动保活，
     assert.equal(isOpen, false);
   }
 
-  // 4) 面板关闭后 data-ces-slider-ready 立刻清除
   panel.remove();
   agObs.rescan();
   assert.equal(env.html.hasAttribute('data-ces-slider-ready'), false);
@@ -536,7 +528,7 @@ test('Scenario 1 (Jio / 普通会员): 3.8 Flash 4档(含Minimal)联动保活，
 });
 
 
-test('Scenario 2 (Ultra 20x + v2.34.0): slug effortIndex + 无 eKa.Provider + 可调 Orchestrator 全链路正常', () => {
+test('Ultra 20x resolves slug effort keys and adjustable Orchestrator without eKa.Provider', () => {
   const env = createSimEnv();
   const neonLow = { label: 'Gemini 4 Neon (Low)', modelId: 'gemini-4-neon-low', value: 1534 };
   const neonMed = { label: 'Gemini 4 Neon (Medium)', modelId: 'gemini-4-neon-medium', value: 1533 };
@@ -583,23 +575,20 @@ test('Scenario 2 (Ultra 20x + v2.34.0): slug effortIndex + 无 eKa.Provider + �
   listWrap.appendChild(orchRow);
   const opusRow = env.addGroupRow(listWrap, 'Claude Opus 5.5', 'High');
   env.body.appendChild(panel);
-  env.attachFiberChain(panel, { selectorCtx, popoverProps, convId: 'conv-ultra' }); // 无 globalModelCtx (无 eKa.Provider)
+  env.attachFiberChain(panel, { selectorCtx, popoverProps, convId: 'conv-ultra' });
 
   const agObs = upstreamLib.installAntigravityObserver({ document: env.doc, window: env.win, MutationObserver: env.win.MutationObserver });
   assert.equal(env.html.getAttribute('data-ces-slider-ready'), '1');
   assert.equal(panel.getAttribute('data-ces-orch-tunable'), 'true');
 
-  // 拖动/按键调整 Orchestrator planner 档位
   const sliderRoot = panel.querySelector('.ces-root');
   sliderRoot.dispatchEvent({ type: 'keydown', key: 'Home' });
   assert.equal(orchSelectCalls[0], neonLow.value, 'Orchestrator slider must invoke orchestratorPick.select');
 
-  // 点击 Orchestrator 行本身不吞原生事件
   const rOrch = env.simulateNativeClick(orchRow, () => { isOpen = false; });
   assert.equal(rOrch.ck.defaultPrevented, false);
   assert.equal(rOrch.nativeCalled, true);
 
-  // 点击新多档 Claude Opus 5.5 -> 降级走 unwrappedSetSelectedModel 并保持菜单常开
   isOpen = true;
   const rOpus = env.simulateNativeClick(opusRow.groupSpan);
   assert.equal(rOpus.ck.defaultPrevented, true);
@@ -614,7 +603,7 @@ test('Scenario 2 (Ultra 20x + v2.34.0): slug effortIndex + 无 eKa.Provider + �
 });
 
 
-test('Scenario 3 (Antigravity v2.33 旧版): 展示名键 + eKa.Provider 提交正常，且提交失败时严格 Fail-Open', () => {
+test('Antigravity 2.33 selects by display name through eKa.Provider and allows native recovery on failure', () => {
   const env = createSimEnv();
   const hLow = { label: 'Gemini 4 Hydrogen (Low)', modelId: 'h-low', value: 1 };
   const hHigh = { label: 'Gemini 4 Hydrogen (High)', modelId: 'h-high', value: 2 };
@@ -653,7 +642,6 @@ test('Scenario 3 (Antigravity v2.33 旧版): 展示名键 + eKa.Provider 提交�
   assert.equal(commits.length, 1);
   assert.equal(commits[0].keepOpen, true);
 
-  // 模拟提交失败 -> 切换到另一个未选中行时必须 Fail-Open 放行给原生点击
   shouldFailCommit = true;
   const hRow = env.addGroupRow(listWrap, 'Gemini 4 Hydrogen', 'Low');
   const rFail = env.simulateNativeClick(hRow.groupSpan);
@@ -663,7 +651,7 @@ test('Scenario 3 (Antigravity v2.33 旧版): 展示名键 + eKa.Provider 提交�
 });
 
 
-test('Scenario 4 (未知老版 / 未来新版 Fiber 失效): 零挂载、不设 data-ces-slider-ready、点击 0 拦截 100% 透传', () => {
+test('Unsupported host Fiber leaves the model menu and its clicks native', () => {
   const env = createSimEnv();
   const trigger = env.makeTrigger('Unknown Model');
   env.body.appendChild(trigger);
@@ -671,7 +659,6 @@ test('Scenario 4 (未知老版 / 未来新版 Fiber 失效): 零挂载、不设 
   const gRow = env.addGroupRow(listWrap, 'Future Model X', 'High');
   const sRow = env.addSingleRow(listWrap, 'Future Model Y');
   env.body.appendChild(panel);
-  // 刻意不挂任何 __reactFiber$
 
   const agObs = upstreamLib.installAntigravityObserver({ document: env.doc, window: env.win, MutationObserver: env.win.MutationObserver });
   assert.equal(env.html.hasAttribute('data-ces-slider-ready'), false, 'Native submenu CSS must remain unhidden when Fiber ctx is null');
@@ -689,10 +676,9 @@ test('Scenario 4 (未知老版 / 未来新版 Fiber 失效): 零挂载、不设 
 });
 
 
-test('Scenario 5 (多触发器分屏 + 自定义模型 + 双 Observer 防互激 + 体积红线): 全部契约达成', async () => {
+test('Split-pane triggers and custom models coexist within observer and bundle limits', async () => {
   const env = createSimEnv();
 
-  // 1) 多触发器分屏：子代理触发器在前且被包裹在 [data-testid="subagent-tab-conversation"]，主触发器在后；panel 自带独立 Fiber
   const subWrap = env.makeEl('div', { attrs: { 'data-testid': 'subagent-tab-conversation' } });
   const subTrigger = env.makeTrigger('Subagent Old Model');
   subWrap.appendChild(subTrigger);
@@ -703,7 +689,6 @@ test('Scenario 5 (多触发器分屏 + 自定义模型 + 双 Observer 防互激 
   const pickedTrig = upstreamLib.findAntigravityTrigger(env.doc);
   assert.equal(pickedTrig, mainTrigger, 'findAntigravityTrigger must skip subagent-tab-conversation trigger');
 
-  // panel 拥有与 mainTrigger 不同的独立 Fiber 上下文，验证 getLiveContext 优先读取 panel
   const fLow = { label: 'Gemini 3.8 Flash (Low)', modelId: 'f-low', value: 10 };
   const fHigh = { label: 'Gemini 3.8 Flash (High)', modelId: 'f-high', value: 11 };
   const customOpt = { label: 'My Custom Endpoint', modelId: 'custom-1', isCustom: true, value: 99 };
@@ -713,7 +698,7 @@ test('Scenario 5 (多触发器分屏 + 自定义模型 + 双 Observer 防互激 
   });
   const { panel, listWrap } = env.makePanel();
   const flashRow = env.addGroupRow(listWrap, 'Gemini 3.8 Flash', 'Low');
-  const customRow = env.addSingleRow(listWrap, 'My Custom Endpoint', true); // 缺失 data-model-label
+  const customRow = env.addSingleRow(listWrap, 'My Custom Endpoint', true);
   env.body.appendChild(panel);
   let activeModel = customOpt;
   env.attachFiberChain(panel, {
@@ -727,18 +712,15 @@ test('Scenario 5 (多触发器分屏 + 自定义模型 + 双 Observer 防互激 
     },
   });
 
-  // 2) 通过 slider-coexist 启动，验证菜单打开期间 0ms 首开 + 32ms 合并节流
   const ctl = sliderCoexist.createEffortSliderController({ window: env.win, document: env.doc });
   ctl.sync({ effortSliderModule: 'on' });
   assert.equal(env.html.getAttribute('data-ces-slider-ready'), '1');
 
-  // 自定义模型 & 缺失 data-model-label 行 -> 100% 放行原生点击不吞死，且选中态回退匹配文本生效
   assert.equal(customRow.getAttribute('data-ces-model-selected'), 'true');
   const rCustom = env.simulateNativeClick(customRow);
   assert.equal(rCustom.ck.defaultPrevented, false);
   assert.equal(rCustom.nativeCalled, true);
 
-  // 触发 50 次高频 DOM mutation（含 panel 内变化 + 被忽略的 glyph/caret 节点）-> 32ms 合并窗口内节流
   const mo = env.observers[0];
   const baseScans = ctl.getState().perfStats.executedScans;
   const glyphNode = env.makeEl('span', { className: 'ag-cs-panel-row-glyph' });
@@ -753,13 +735,11 @@ test('Scenario 5 (多触发器分屏 + 自定义模型 + 双 Observer 防互激 
   const afterWindow = ctl.getState().perfStats.executedScans;
   assert.ok(afterWindow <= baseScans + 2, `30 burst mutations inside open menu must coalesce into <=2 scans, got ${afterWindow - baseScans}`);
 
-  // 2b) 菜单刚从 DOM 移除时（仅触发外层 body childList），节流器必须立即放行一次 flush 清理 data-ces-slider-ready
   assert.equal(env.html.getAttribute('data-ces-slider-ready'), '1', 'data-ces-slider-ready must be 1 while panel is mounted');
   panel.remove();
   mo.trigger([{ type: 'childList', target: env.body, addedNodes: [], removedNodes: [panel] }]);
   assert.equal(env.html.hasAttribute('data-ces-slider-ready'), false, 'Closing model panel must immediately clear data-ces-slider-ready without waiting for destroy()');
 
-  // 3) readSettings 内存缓存校验：storage 事件失效后重读 1 次，后续 20 次读取 0 额外 getItem
   const getsBefore = env.localStorage._getCount;
   env.localStorage.setItem('ag.codexEffortSlider.settings.v1', JSON.stringify({ motion: 'fast', ticks: 'highlight' }));
   env.win.dispatchEvent(Object.assign(new env.win.Event('storage'), { key: 'ag.codexEffortSlider.settings.v1' }));
@@ -772,12 +752,10 @@ test('Scenario 5 (多触发器分屏 + 自定义模型 + 双 Observer 防互激 
   assert.equal(upstreamLib.motionMode(env.win, null, env.doc), 'quick', 'storage event must invalidate readSettings cache');
   assert.equal(env.localStorage._getCount - getsBefore, 2);
 
-  // 4) ui-runtime OWN_PLUGIN_SELECTOR & 模型选择器展开保留桌宠交接动画校验
   const uiSrc = fs.readFileSync(path.join(ROOT, 'ui-runtime.js'), 'utf8');
   assert.ok(uiSrc.includes('.ces-ag-section, .ces-set, #ag-codex-effort-slider-styles'));
   assert.equal(uiSrc.includes("document.querySelector?.('[data-testid=\"model-selector-panel\"]')"), false);
 
-  // 5) model-glyph-crystal Orchestrator WebGL2 首帧 rAF 延后挂载与 teardown 取消
   let webglMountCalls = 0;
   const mCtl = mgc.createModelGlyphCrystalController({
     animatedIcons: null,
@@ -820,7 +798,6 @@ test('Scenario 5 (多触发器分屏 + 自定义模型 + 双 Observer 防互激 
     globalThis.cancelAnimationFrame = prevCaf;
   }
 
-  // 6) 体积红线与 REMOVE_EXPRESSION 清理校验
   const expr = cdp.buildInjectExpression(cdp.DEFAULT_CONFIG);
   const bytes = Buffer.byteLength(expr, 'utf8');
   assert.ok(bytes < 690 * 1024, `Default bundle must be strictly < 706,560 B (690 KiB), got ${bytes}`);
@@ -833,7 +810,7 @@ test('Scenario 5 (多触发器分屏 + 自定义模型 + 双 Observer 防互激 
   assert.equal(env.html.hasAttribute('data-ces-slider-ready'), false);
 });
 
-test('Scenario 6 (Pro 会员矩阵): 含 Argon/Flash/Claude/GPT-OSS 与只含 Argon 的 Orchestrator（无 Carbon），禁用态模型绝不误提交且 100% Fail-Open', () => {
+test('Pro model matrix and Argon-only Orchestrator never select disabled models', () => {
   const env = createSimEnv();
   const argLow = { label: 'Gemini 4 Argon (Low)', modelId: 'gemini-4-argon-low', value: 1201 };
   const argMed = { label: 'Gemini 4 Argon (Medium)', modelId: 'gemini-4-argon-medium', value: 1202 };
@@ -848,7 +825,7 @@ test('Scenario 6 (Pro 会员矩阵): 含 Argon/Flash/Claude/GPT-OSS 与只含 Ar
   const proDisabledHigh = { label: 'Gemini 4 Pro Locked (High)', modelId: 'gemini-4-pro-locked-high', value: 1551 };
   const orchArgon = { label: 'Orchestrator (Argon)', modelId: 'gemini-pro-orchestrator-argon', value: 1299 };
 
-  const planners = [argLow, argMed, argHigh]; // 只含 Argon（无 Carbon）
+  const planners = [argLow, argMed, argHigh];
   const modelOptions = [
     argLow, argMed, argHigh, flashLow, flashHigh, claudeSon, gptOss,
     neonLockedLow, neonLockedHigh, proDisabledLow, proDisabledHigh, orchArgon,
@@ -898,13 +875,11 @@ test('Scenario 6 (Pro 会员矩阵): 含 Argon/Flash/Claude/GPT-OSS 与只含 Ar
   const agObs = upstreamLib.installAntigravityObserver({ document: env.doc, window: env.win, MutationObserver: env.win.MutationObserver });
   assert.equal(env.html.getAttribute('data-ces-slider-ready'), '1');
 
-  // 1) 只含 Argon 的 Orchestrator 滑条联动正常，无 Carbon 不触发空引用异常
   const sliderRoot = panel.querySelector('.ces-root');
   assert.equal(panel.querySelectorAll('.ces-tick').length, 3);
   sliderRoot.dispatchEvent({ type: 'keydown', key: 'End' });
   assert.equal(orchPicks[0], argHigh.value);
 
-  // 2) 禁用态行（aria-disabled="true" / targetOption.disabled===true / data-disabled）绝不调用 _commitAgOpt 且 100% 放行原生事件
   const commitsBeforeDisabled = commits.length;
   for (const disTarget of [neonAttrDisabledRow.groupSpan, dataDisabledRow.groupSpan]) {
     const rDis = env.simulateNativeClick(disTarget, () => { isOpen = false; });
@@ -915,7 +890,6 @@ test('Scenario 6 (Pro 会员矩阵): 含 Argon/Flash/Claude/GPT-OSS 与只含 Ar
   }
   assert.equal(commits.length, commitsBeforeDisabled, 'Disabled/restricted models must NEVER call _commitAgOpt');
 
-  // 3) 切到可调 Gemini 4 Argon 与 Gemini 3.8 Flash 正常联动并保持菜单常开
   isOpen = true;
   const rArg = env.simulateNativeClick(argonRow.groupSpan);
   assert.equal(rArg.ck.defaultPrevented, true);
@@ -930,8 +904,7 @@ test('Scenario 6 (Pro 会员矩阵): 含 Argon/Flash/Claude/GPT-OSS 与只含 Ar
   agObs.stop();
 });
 
-test('Scenario 7 (R1~R5 防风控加固): 拖动松手单次提交 + 零原型链篡改 + startCascade stage 缓存 + 零 Google 直连 + 节流/分帧折叠', async () => {
-  // R1: 拖动跨越 4 档 (Low -> Medium -> High -> Extra)，pointerdown/pointermove 期间 0 次提交，pointerup 松手仅提交 1 次
+test('Slider commits once after dragging, preserves prototypes, caches stage state and throttles rendering without contacting Google', async () => {
   const env = createSimEnv();
   const commits = [];
   const rowEl = env.makeEl('div', { className: 'ces-ag-effort-row' });
@@ -980,7 +953,6 @@ test('Scenario 7 (R1~R5 防风控加固): 拖动松手单次提交 + 零原型�
   track.dispatchEvent({ type: 'pointerup', button: 0, clientX: 206, pointerId: 1 });
   assert.deepEqual(commits, ['xhigh'], 'R1: pointerup must commit exactly 1 time with final tier');
 
-  // 拖出又拖回原档位再松手 -> 0 次提交
   track.dispatchEvent({ type: 'pointerdown', button: 0, clientX: 206, pointerId: 2 });
   track.dispatchEvent({ type: 'pointermove', buttons: 1, clientX: 78, pointerId: 2 });
   track.dispatchEvent({ type: 'pointermove', buttons: 1, clientX: 206, pointerId: 2 });
@@ -988,7 +960,6 @@ test('Scenario 7 (R1~R5 防风控加固): 拖动松手单次提交 + 零原型�
   assert.equal(commits.length, 1, 'R1: dragging away and returning to official tier before pointerup must trigger 0 extra commits');
   mountR1.unmount();
 
-  // R2: 源码与运行时零 HTMLElement.prototype.focus / Element.prototype.focus 篡改
   const upSrc = fs.readFileSync(path.join(ROOT, 'vendor', 'effort-slider', 'upstream-client.js'), 'utf8');
   assert.equal(upSrc.includes('HTMLElement.prototype'), false, 'R2: upstream-client.js must not reference HTMLElement.prototype');
   assert.equal(upSrc.includes('Element.prototype'), false, 'R2: upstream-client.js must not reference Element.prototype');
@@ -1049,7 +1020,6 @@ test('Scenario 7 (R1~R5 防风控加固): 拖动松手单次提交 + 零原型�
     if (prevDoc === undefined) delete globalThis.document; else globalThis.document = prevDoc;
   }
 
-  // R3: sidebar-client.js 缓存 startCascade 命中 stage，二次新建会话仅 1 次 RPC（0 次试探报错）
   const sbSrc = fs.readFileSync(path.join(ROOT, 'vendor', 'sidebar-studio', 'sidebar-client.js'), 'utf8');
   assert.ok(sbSrc.includes('cachedStartCascadeStage'), 'R3: sidebar-client.js must cache winning startCascade stage');
   let startStageCalls = 0;
@@ -1057,7 +1027,6 @@ test('Scenario 7 (R1~R5 防风控加固): 拖动松手单次提交 + 零原型�
   const fakeLs = {
     async startCascade(arg) {
       startStageCalls += 1;
-      // 拒绝 stage1 (含 workspace)，只接受 stage2 (无 workspace)
       if (arg.customAgentSpec && 'workspace' in arg.customAgentSpec) {
         throw new Error('unsupported workspace field');
       }
@@ -1114,13 +1083,11 @@ test('Scenario 7 (R1~R5 防风控加固): 拖动松手单次提交 + 零原型�
   assert.equal(startStageCalls, 3, 'R3: second reserveSession must hit cached stage2 directly in 1 call (0 failing probes)');
   sbCtx.__agPrismSidebar.destroy();
 
-  // R4: cdp.js 主编译包零 translate.googleapis.com 直连，Daemon 离线直接提示 offline
   const expr = cdp.buildInjectExpression(cdp.DEFAULT_CONFIG);
   const googleTransRe = new RegExp(['translate', 'googleapis', 'com'].join('\\.'), 'i');
   assert.equal(googleTransRe.test(expr), false, 'R4: compiled bundle must contain zero translate.googleapis.com');
   assert.ok(Buffer.byteLength(expr, 'utf8') <= 704000, 'Default bundle must stay <= 704,000 B (< 690 KiB)');
 
-  // R5: inline-widget.cjs QUOTA_HOVER_COOLDOWN >= 20000 & MANUAL_REFRESH_COOLDOWN >= 5000 + host-workbench-enhancer 分帧折叠
   const iwSrc = fs.readFileSync(path.join(ROOT, 'vendor', 'pulse-dashboard', 'compat', 'inline-widget.cjs'), 'utf8');
   const qm = iwSrc.match(/QUOTA_HOVER_COOLDOWN=(\d+)/);
   assert.ok(qm && Number(qm[1]) >= 20000, 'R5: QUOTA_HOVER_COOLDOWN must be >= 20000ms');
@@ -1164,7 +1131,7 @@ test('Scenario 7 (R1~R5 防风控加固): 拖动松手单次提交 + 零原型�
     isDestroyed: () => false,
     isDarkTheme: () => true,
     isZh: () => true,
-    getLang: () => 'zh-CN',
+    getLang: () => 'ar',
     setAttrIfChanged: (el, k, v) => el.setAttribute(k, v),
     runGuardedMut: (fn) => fn(),
   });
@@ -1178,7 +1145,7 @@ test('Scenario 7 (R1~R5 防风控加固): 拖动松手单次提交 + 零原型�
   assert.equal(foldClicks, 4, 'R5: destroy() must cancel remaining pending foldRafId');
 });
 
-test('Scenario 8 (Orchestrator 集群切入 + 右侧子菜单选型保持常开): 点击集群行与子菜单均不退出选择页且严格 Fail-Open（含中英 L3 与共享外层防误伤）', () => {
+test('Orchestrator keeps model selection open and hides redundant Arabic and English effort menus', () => {
   const env = createSimEnv();
   const neonLow = { label: 'Gemini 4 Neon (Low)', modelId: 'gemini-4-neon-low', value: 1534 };
   const neonMed = { label: 'Gemini 4 Neon (Medium)', modelId: 'gemini-4-neon-medium', value: 1533 };
@@ -1234,7 +1201,6 @@ test('Scenario 8 (Orchestrator 集群切入 + 右侧子菜单选型保持常开)
 
   const agObs = upstreamLib.installAntigravityObserver({ document: env.doc, window: env.win, MutationObserver: env.win.MutationObserver });
 
-  // 校验 SLIDER_CSS 使用标准合法的顶层选择器（不含 Chromium 静默丢弃的 :is(>svg...)）
   const sliderStyle = env.doc.getElementById('ag-codex-effort-slider-styles');
   assert.ok(sliderStyle, 'Slider style tag must be injected');
   assert.equal(sliderStyle.textContent.includes(':is(>svg'), false, 'SLIDER_CSS must NOT contain invalid :is(>svg...) relative selector');
@@ -1244,7 +1210,6 @@ test('Scenario 8 (Orchestrator 集群切入 + 右侧子菜单选型保持常开)
     'SLIDER_CSS must use standard top-level selector to hide L2 chevron arrow'
   );
 
-  // 1) 从普通模型 (Gemini 4 Neon) 初次点击 Orchestrator 行 -> 拦截关闭并保持选择页常开
   const rEnterOrch = env.simulateNativeClick(orchRow, () => { isOpen = false; });
   assert.equal(rEnterOrch.pu._stopped, true);
   assert.equal(rEnterOrch.ck.defaultPrevented, true);
@@ -1255,14 +1220,12 @@ test('Scenario 8 (Orchestrator 集群切入 + 右侧子菜单选型保持常开)
   assert.equal(orchRow.getAttribute('data-ces-model-selected'), 'true');
   assert.equal(neonRow.row.getAttribute('data-ces-model-selected'), 'false');
 
-  // 2) 再次点击已选中的 Orchestrator 行 -> 放行原生事件关闭菜单
   const rSecondOrch = env.simulateNativeClick(orchRow, () => { isOpen = false; });
   assert.equal(rSecondOrch.ck.defaultPrevented, false);
   assert.equal(rSecondOrch.nativeCalled, true);
   assert.equal(isOpen, false);
   isOpen = true;
 
-  // 3) 挂载右侧 Orchestrator Layer 2 规划模型子菜单（sibling portal）+ Layer 3 推理档位子菜单（Low / Medium ✓ / High）+ 无关右键菜单
   const subOverlay = env.makeEl('div', { className: 'agy-overlay' });
   const subMenu = env.makeEl('div', { attrs: { role: 'menu' } });
   const subNeon = env.makeEl('div', { attrs: { role: 'menuitemradio' }, text: 'Gemini 4 Neon Medium' });
@@ -1284,12 +1247,11 @@ test('Scenario 8 (Orchestrator 集群切入 + 右侧子菜单选型保持常开)
   l3Overlay.appendChild(l3Menu);
   env.body.appendChild(l3Overlay);
 
-  // 中文汉化后的 L3 纯档位子菜单，且与 L2 共享同一外层 .agy-overlay 容器 -> 必须仅隐藏中文 L3 菜单，绝不可误藏共享的 subOverlay！
   const zhL3Menu = env.makeEl('div', { attrs: { role: 'menu' } });
-  zhL3Menu.appendChild(env.makeEl('div', { attrs: { role: 'menuitem' }, text: '低' }));
-  zhL3Menu.appendChild(env.makeEl('div', { attrs: { role: 'menuitem' }, text: '中等 ✓' }));
-  zhL3Menu.appendChild(env.makeEl('div', { attrs: { role: 'menuitem' }, text: '高思考' }));
-  zhL3Menu.appendChild(env.makeEl('div', { attrs: { role: 'menuitem' }, text: '超高' }));
+  zhL3Menu.appendChild(env.makeEl('div', { attrs: { role: 'menuitem' }, text: 'منخفض' }));
+  zhL3Menu.appendChild(env.makeEl('div', { attrs: { role: 'menuitem' }, text: 'متوسط ✓' }));
+  zhL3Menu.appendChild(env.makeEl('div', { attrs: { role: 'menuitem' }, text: 'عالي' }));
+  zhL3Menu.appendChild(env.makeEl('div', { attrs: { role: 'menuitem' }, text: 'فائق' }));
   subOverlay.appendChild(zhL3Menu);
 
   const unrelatedMenu = env.makeEl('div', { attrs: { role: 'menu' } });
@@ -1307,12 +1269,11 @@ test('Scenario 8 (Orchestrator 集群切入 + 右侧子菜单选型保持常开)
   assert.equal(subNeon.getAttribute('data-ces-model-selected'), 'true');
   assert.equal(l3Menu.getAttribute('data-ag-cs-orch-l3'), '1', 'Redundant Layer 3 effort submenu must be hidden');
   assert.equal(l3Overlay.getAttribute('data-ag-cs-orch-l3'), '1', 'Layer 3 dedicated overlay must be hidden');
-  assert.equal(zhL3Menu.getAttribute('data-ag-cs-orch-l3'), '1', 'Localized Chinese Layer 3 effort submenu must be hidden');
+  assert.equal(zhL3Menu.getAttribute('data-ag-cs-orch-l3'), '1', 'Localized Arabic Layer 3 effort submenu must be hidden');
   assert.equal(subOverlay.hasAttribute('data-ag-cs-orch-l3'), false, 'Shared overlay containing Layer 2 must NEVER be hidden as Layer 3');
   assert.equal(unrelatedMenu.hasAttribute('data-ag-cs-model-submenu'), false, 'Unrelated context menu must never be touched');
   assert.equal(unrelatedMenu.hasAttribute('data-ag-cs-orch-l3'), false, 'Unrelated context menu must never be hidden as Layer 3');
 
-  // 4) 在 Layer 2 子菜单中点击 Claude Opus 5.5 -> 拦截 pointerdown/mousedown/pointerup/mouseup/click、保持常开并切到 claude 主题
   const pdEv = { type: 'pointerdown', button: 0, bubbles: true };
   const mdEv = { type: 'mousedown', button: 0, bubbles: true };
   subOpus.dispatchEvent(pdEv);
@@ -1331,11 +1292,9 @@ test('Scenario 8 (Orchestrator 集群切入 + 右侧子菜单选型保持常开)
   assert.equal(subNeon.getAttribute('data-ces-model-selected'), 'false');
   assert.equal(panel.querySelector('.ces-root').getAttribute('data-theme'), 'claude');
 
-  // 立即拖动/按键调整刚刚切到的 Claude Opus 5.5 档位 (Home -> Low)
   panel.querySelector('.ces-root').dispatchEvent({ type: 'keydown', key: 'Home' });
   assert.equal(orchPicks[orchPicks.length - 1], opusLow.value);
 
-  // 5) 禁用 planner 与无关菜单 100% Fail-Open
   const picksBeforeDis = orchPicks.length;
   const rDis = env.simulateNativeClick(subDis, () => { isOpen = false; });
   assert.equal(rDis.ck.defaultPrevented, false);
@@ -1347,7 +1306,6 @@ test('Scenario 8 (Orchestrator 集群切入 + 右侧子菜单选型保持常开)
   assert.equal(rCopy.ck.defaultPrevented, false);
   assert.equal(rCopy.nativeCalled, true);
 
-  // 6) 先切回普通模型 Gemini 4 Neon，再直接点无 role="menu" 的 .agy-overlay + <button> 形态 Layer 2 -> 真正拦截冒泡、同时切入 Orchestrator + Carbon 且保持常开
   subOverlay.remove();
   agObs.rescan();
   const btnOverlay = env.makeEl('div', { className: 'agy-overlay' });
@@ -1365,7 +1323,6 @@ test('Scenario 8 (Orchestrator 集群切入 + 右侧子菜单选型保持常开)
   assert.equal(selectedModel.label.startsWith('Gemini 4 Neon'), true);
   assert.equal(isOpen, true);
 
-  // 校验 simulateNativeClick 对 .agy-overlay 真正挂载了冒泡监听，且点击未选中的 btnCarb 会被拦截，再次点击已选中的 btnCarb 会 Fail-Open 触发原生冒泡
   const rDirectCarb = env.simulateNativeClick(btnCarb, () => { isOpen = false; });
   assert.equal(rDirectCarb.ck.defaultPrevented, true);
   assert.equal(rDirectCarb.nativeCalled, false, 'Clicking .agy-overlay button planner must intercept click before bubbling to .agy-overlay');
@@ -1378,7 +1335,6 @@ test('Scenario 8 (Orchestrator 集群切入 + 右侧子菜单选型保持常开)
   assert.equal(rRepeatCarb.ck.defaultPrevented, false, 'Re-clicking already selected planner must Fail-Open');
   assert.equal(rRepeatCarb.nativeCalled, true, 'simulateNativeClick must actually observe bubbling on .agy-overlay when Fail-Open');
 
-  // 7) 面板关闭后自动解绑 Layer 2 监听并清理 Layer 2 / Layer 3 标记
   panel.remove();
   agObs.rescan();
   assert.equal(btnOverlay.hasAttribute('data-ag-cs-model-submenu'), false);
@@ -1387,7 +1343,6 @@ test('Scenario 8 (Orchestrator 集群切入 + 右侧子菜单选型保持常开)
   assert.equal(l3Menu.hasAttribute('data-ag-cs-orch-l3'), false);
   assert.equal(l3Overlay.hasAttribute('data-ag-cs-orch-l3'), false);
 
-  // 8) 残留脏属性时 stop() 必须通过 _clrAgDom 彻底兜底清理
   btnOverlay.setAttribute('data-ag-cs-model-submenu', '1');
   btnOverlay.setAttribute('data-ag-cs-orch-l2', '1');
   l3Menu.setAttribute('data-ag-cs-orch-l3', '1');
@@ -1401,7 +1356,7 @@ test('Scenario 8 (Orchestrator 集群切入 + 右侧子菜单选型保持常开)
   assert.equal(env.html.hasAttribute('data-ces-slider-ready'), false);
 });
 
-test('Scenario 9 (PR #12 + Issue #16): valEl 逻辑档位追踪 + _sameEffTxt 覆盖简繁英别名，首次挂载零闪英文/零 rise 闪烁且卸载清缓存', () => {
+test('Effort aliases preserve localized labels without mount flicker and clear on unmount', () => {
   const env = createSimEnv();
   const rowEl = env.makeEl('div', { className: 'ces-ag-effort-row' });
   const valEl = env.makeEl('span', { className: 'ces-ag-effort-value' });
@@ -1437,7 +1392,7 @@ test('Scenario 9 (PR #12 + Issue #16): valEl 逻辑档位追踪 + _sameEffTxt �
   assert.equal(valEl.classList.contains('ces-text-rise'), false, 'Initial mount must not trigger rise flicker');
 
   // 2) External i18n rewrites (Simplified/Traditional/Parenthesized/Unknown locale) cause 0 overwrites and 0 rise animations
-  for (const localized of ['中', '中等', '（中等）', '中等思考', 'Moyen']) {
+  for (const localized of ['متوسط', 'متوسط', '(متوسط)', 'متوسطتفكير', 'Moyen']) {
     valEl.textContent = localized;
     mount.refresh();
     assert.equal(valEl.textContent, localized, `refresh() must preserve external translation "${localized}"`);
@@ -1451,7 +1406,7 @@ test('Scenario 9 (PR #12 + Issue #16): valEl 逻辑档位追踪 + _sameEffTxt �
   assert.equal(valEl.textContent, 'Medium', 'Empty valEl must be rewritten when logical label is non-empty');
 
   // 4) Genuine tier transition updates text and triggers rise animation once
-  valEl.textContent = '中等';
+  valEl.textContent = 'متوسط';
   official = 'high';
   mount.refresh();
   assert.equal(valEl.textContent, 'High');
@@ -1462,7 +1417,7 @@ test('Scenario 9 (PR #12 + Issue #16): valEl 逻辑档位追踪 + _sameEffTxt �
   assert.equal(valEl.__cesLastLabel, undefined, 'unmount() must clear __cesLastLabel to avoid stale cache on remount');
 
   valEl.classList.remove('ces-text-rise', 'is-claude-changing');
-  valEl.textContent = '（極高思考）';
+  valEl.textContent = '(تفكير فائق)';
   official = 'xhigh';
   const remount = upstreamLib.mountCodexEffortSlider({
     container,
@@ -1483,12 +1438,12 @@ test('Scenario 9 (PR #12 + Issue #16): valEl 逻辑档位追踪 + _sameEffTxt �
       selectEffort() {},
     },
   });
-  assert.equal(valEl.textContent, '（極高思考）', 'Initial mount on pre-localized Traditional Chinese valEl must not flash English');
+  assert.equal(valEl.textContent, '(تفكير فائق)', 'Initial mount on pre-localized Traditional Chinese valEl must not flash English');
   assert.equal(valEl.classList.contains('ces-text-rise'), false, 'Initial mount on pre-localized valEl must not trigger rise');
   remount.unmount();
 });
 
-test('Scenario 10 (PR #12 + Issue #16): 三处统一防乒乓 (valEl / effortSpan / sib) + allInsideSlider 自激抑制 + 关滑块清缓存', () => {
+test('Effort text updates prevent repeated DOM writes and clear cache when the slider is disabled', () => {
   const env = createSimEnv();
   const neonLow = { label: 'Gemini 4 Neon (Low)', modelId: 'gemini-4-neon-low', value: 1534 };
   const neonMed = { label: 'Gemini 4 Neon (Medium)', modelId: 'gemini-4-neon-medium', value: 1533 };
@@ -1537,10 +1492,10 @@ test('Scenario 10 (PR #12 + Issue #16): 三处统一防乒乓 (valEl / effortSpa
   assert.equal(valEl.classList.contains('ces-text-rise'), false, 'Panel mount must not replay ces-text-rise');
 
   // Simulate external Chinese i18n rewriting all three sites simultaneously
-  valEl.textContent = '中等';
-  effortSpan.textContent = ' 中等';
-  neonRow.effortSpan.textContent = '中等';
-  carbRow.effortSpan.textContent = '中思考';
+  valEl.textContent = 'متوسط';
+  effortSpan.textContent = ' متوسط';
+  neonRow.effortSpan.textContent = 'متوسط';
+  carbRow.effortSpan.textContent = 'متوسط';
 
   let valWrites = 0, trigWrites = 0, sibWrites = 0;
   const wrapTextWrite = (el, onWrite) => {
@@ -1560,10 +1515,10 @@ test('Scenario 10 (PR #12 + Issue #16): 三处统一防乒乓 (valEl / effortSpa
   assert.equal(valWrites, 0, 'valEl must have 0 ping-pong overwrites');
   assert.equal(trigWrites, 0, 'trigger effortSpan must have 0 ping-pong overwrites');
   assert.equal(sibWrites, 0, 'menu row sib must have 0 ping-pong overwrites');
-  assert.equal(valEl.textContent, '中等');
-  assert.equal(effortSpan.textContent, ' 中等');
-  assert.equal(neonRow.effortSpan.textContent, '中等');
-  assert.equal(carbRow.effortSpan.textContent, '中思考');
+  assert.equal(valEl.textContent, 'متوسط');
+  assert.equal(effortSpan.textContent, ' متوسط');
+  assert.equal(neonRow.effortSpan.textContent, 'متوسط');
+  assert.equal(carbRow.effortSpan.textContent, 'متوسط');
 
   // allInsideSlider self-trigger guard: mutations strictly inside .ces-ag-section must skip scan()
   const mo = env.observers[env.observers.length - 1];
@@ -1584,10 +1539,10 @@ test('Scenario 10 (PR #12 + Issue #16): 三处统一防乒乓 (valEl / effortSpa
   assert.equal(effortSpan.textContent, ' Extra');
   assert.equal(neonRow.effortSpan.textContent, 'Extra');
 
-  // External i18n translates Extra -> 極高 (Traditional Chinese) -> again 0 ping-pong overwrites
-  valEl.textContent = '極高';
-  effortSpan.textContent = ' 極高';
-  neonRow.effortSpan.textContent = '極高思考';
+  // External i18n translates Extra -> فائق (Traditional Chinese) -> again 0 ping-pong overwrites
+  valEl.textContent = 'فائق';
+  effortSpan.textContent = ' فائق';
+  neonRow.effortSpan.textContent = 'تفكير فائق';
   const w1 = valWrites, w2 = trigWrites, w3 = sibWrites;
   agObs.rescan();
   agObs.rescan();

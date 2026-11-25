@@ -13,7 +13,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const importRel = (rel) => import(pathToFileURL(path.join(ROOT, rel)).href);
 
-// 轻量可运行 Mock DOM，用于真实在 VM 中驱动 workbench-page.mjs 前端脚本
+// Lightweight runnable Mock DOM used to drive workbench-page.mjs frontend scripts inside a VM
 function createWorkbenchMockDom({ fetchImpl, onImageLoad, onCanvasCreate } = {}) {
   let doc = null;
   const createdCanvases = [];
@@ -481,7 +481,7 @@ test('security-sidecar 2: workbench-page /sandbox-init failure renders .wb-empty
         path: '/tmp/untrusted.html',
         baseUrl: 'http://127.0.0.1:43210',
         token: 'tok-test',
-        lang: 'zh-CN',
+        lang: 'ar',
       });
       const scriptSrc = extractInlineWorkbenchScript(html);
       const { win, stage } = createWorkbenchMockDom({
@@ -527,7 +527,7 @@ test('security-sidecar 2: workbench-page /sandbox-init failure renders .wb-empty
       assert.ok(frameWrap, 'Sandbox frame wrapper must exist');
       const emptyErr = frameWrap.querySelector('.wb-empty');
       assert.ok(emptyErr, 'showSandboxFail must render div.wb-empty');
-      assert.equal(emptyErr.textContent, '加载失败');
+      assert.equal(emptyErr.textContent, 'تعذّر تحميل الملف');
       assert.equal(frameWrap.querySelector('iframe'), null, 'Iframe must be replaced on sandbox failure');
     } finally {
       process.off('unhandledRejection', onUnhandled);
@@ -737,7 +737,7 @@ test('security-sidecar 3: sidebar-service disables pick-folder in sandboxMode, r
   ]) {
     const openRes = await realSvc.revealFolder({ path: badPath });
     assert.equal(openRes.ok, false);
-    assert.match(String(openRes.error || ''), /无效/);
+    assert.match(String(openRes.error || ''), /Invalid directory path/i);
   }
 
   // 4) On Windows, _persistState retries transient EBUSY up to 4 attempts (3 retries) with backoff
@@ -787,11 +787,11 @@ test('security-sidecar 4: update-service verifies SHA-256 in memory before disk 
               tag_name: 'v1.0.6',
               draft: false,
               prerelease: false,
-              html_url: 'https://github.com/RMvdesi/obsidian-prism/releases/tag/v1.0.6',
+              html_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/tag/v1.0.6',
               assets: [
                 {
                   name: 'obsidian-prism-installer.exe',
-                  browser_download_url: 'https://github.com/RMvdesi/obsidian-prism/releases/download/v1.0.6/obsidian-prism-installer.exe',
+                  browser_download_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/download/v1.0.6/obsidian-prism-installer.exe',
                   digest: `sha256:${expectedSha}`,
                 },
               ],
@@ -836,15 +836,15 @@ test('security-sidecar 4: update-service verifies SHA-256 in memory before disk 
               tag_name: 'v1.0.6',
               draft: false,
               prerelease: false,
-              html_url: 'https://github.com/RMvdesi/obsidian-prism/releases/tag/v1.0.6',
+              html_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/tag/v1.0.6',
               assets: [
                 {
                   name: 'obsidian-prism-installer.exe',
-                  browser_download_url: 'https://github.com/RMvdesi/obsidian-prism/releases/download/v1.0.6/obsidian-prism-installer.exe',
+                  browser_download_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/download/v1.0.6/obsidian-prism-installer.exe',
                 },
                 {
                   name: 'SHA256SUMS.txt',
-                  browser_download_url: 'https://github.com/RMvdesi/obsidian-prism/releases/download/v1.0.6/SHA256SUMS.txt',
+                  browser_download_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/download/v1.0.6/SHA256SUMS.txt',
                 },
               ],
             }),
@@ -878,11 +878,11 @@ test('security-sidecar 4: update-service verifies SHA-256 in memory before disk 
               tag_name: 'v1.0.6',
               draft: false,
               prerelease: false,
-              html_url: 'https://github.com/RMvdesi/obsidian-prism/releases/tag/v1.0.6',
+              html_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/tag/v1.0.6',
               assets: [
                 {
                   name: 'obsidian-prism-installer.exe',
-                  browser_download_url: 'https://github.com/RMvdesi/obsidian-prism/releases/download/v1.0.6/obsidian-prism-installer.exe',
+                  browser_download_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/download/v1.0.6/obsidian-prism-installer.exe',
                   digest: `sha256:${'b'.repeat(64)}`,
                 },
               ],
@@ -926,15 +926,15 @@ test('security-sidecar 4: update-service verifies SHA-256 in memory before disk 
               tag_name: 'v1.0.6',
               draft: false,
               prerelease: false,
-              html_url: 'https://github.com/RMvdesi/obsidian-prism/releases/tag/v1.0.6',
+              html_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/tag/v1.0.6',
               assets: [
                 {
                   name: 'obsidian-prism-installer.exe',
-                  browser_download_url: 'https://github.com/RMvdesi/obsidian-prism/releases/download/v1.0.6/obsidian-prism-installer.exe',
+                  browser_download_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/download/v1.0.6/obsidian-prism-installer.exe',
                 },
                 {
                   name: 'SHA256SUMS.txt',
-                  browser_download_url: 'https://github.com/RMvdesi/obsidian-prism/releases/download/v1.0.6/SHA256SUMS.txt',
+                  browser_download_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/download/v1.0.6/SHA256SUMS.txt',
                 },
               ],
             }),
@@ -1585,11 +1585,11 @@ test('security-sidecar 6: red-team hardening for NT device/mixed-slash UNC white
               tag_name: 'v1.0.7',
               draft: false,
               prerelease: false,
-              html_url: 'https://github.com/RMvdesi/obsidian-prism/releases/tag/v1.0.7',
+              html_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/tag/v1.0.7',
               assets: [
                 {
                   name: 'obsidian-prism-installer.exe',
-                  browser_download_url: 'https://github.com/RMvdesi/obsidian-prism/releases/download/v1.0.7/obsidian-prism-installer.exe',
+                  browser_download_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/download/v1.0.7/obsidian-prism-installer.exe',
                   digest: `sha256:${sha}`,
                 },
               ],

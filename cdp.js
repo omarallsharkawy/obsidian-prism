@@ -78,8 +78,8 @@ const DEFAULT_CONFIG = {
 };
 
 const VALIDATORS = {
-  language: ['auto', 'zh-CN', 'zh-TW', 'en', 'ja', 'ko', 'es', 'fr', 'de'],
-  lang: ['auto', 'zh-CN', 'zh-TW', 'en', 'ja', 'ko', 'es', 'fr', 'de'],
+  language: ['auto', 'en', 'ar'],
+  lang: ['auto', 'en', 'ar'],
   palette: ['host', 'obsidian', 'warm', 'claude'],
   lightPreset: ['crystal', 'alabaster'],
   motionLevel: ['off', 'subtle', 'standard', 'ultra'],
@@ -190,9 +190,15 @@ function reconcileConfigAliases(raw) {
   }
   if (typeof out.language === 'string') {
     const lowLang = out.language.trim().toLowerCase().replace(/_/g, '-');
-    if (lowLang === 'yue' || lowLang.startsWith('yue-') || lowLang === 'zh-yue' || lowLang.includes('cantonese')) {
-      out.language = 'zh-CN';
-      out.lang = 'zh-CN';
+    if (lowLang === 'ar' || lowLang.startsWith('ar-') || lowLang === 'arabic') {
+      out.language = 'ar';
+      out.lang = 'ar';
+    } else if (lowLang === 'en' || lowLang.startsWith('en-') || lowLang === 'english') {
+      out.language = 'en';
+      out.lang = 'en';
+    } else if (lowLang !== 'auto') {
+      out.language = 'en';
+      out.lang = 'en';
     }
   }
 
@@ -362,7 +368,7 @@ function writeConfig(nextConfig) {
     try { fs.unlinkSync(tmpPath); } catch {}
     throw err;
   }
-  // 写盘成功后立即失效缓存，防止同一毫秒写入后读到陈旧值
+  // Invalidate cache immediately after disk write to prevent stale reads within the same millisecond
   invalidateConfigCache();
   return { ...normalized };
 }
@@ -378,7 +384,7 @@ function readPort() {
   }
 }
 
-// 统一解析纯整数或 JSON {"pid":12345} 锁文件，杜绝 parseInt("{...") -> NaN
+// Parse either plain-integer or JSON {"pid":12345} lock files uniformly, avoiding parseInt("{...") -> NaN
 function readPidFromLockFile(filePath) {
   try {
     if (!filePath || !fs.existsSync(filePath)) return null;
@@ -426,7 +432,7 @@ function findDaemonLockMetaForPid(pid, customLockFile = null) {
   return { matchedPid: false, startedAt: 0 };
 }
 
-// 校验进程映像名、内核启动时间与命令行签名：既精准识别宿主以 Antigravity 二进制拉起的原生 Sidecar，又严防误杀宿主主进程/其他插件
+// Verify process image name, kernel start time, and command-line signature: accurately identifies native Sidecar spawned by Antigravity while preventing accidental kills of host or other plugins
 function matchesExpectedDaemonSignature(imageName, commandLine = '', opts = null) {
   const img = String(imageName || '').trim().toLowerCase();
   const cmd = String(commandLine || '').replace(/\\/g, '/').toLowerCase();
@@ -438,7 +444,7 @@ function matchesExpectedDaemonSignature(imageName, commandLine = '', opts = null
   const lockStartedAt = Number((opts && opts.lockStartedAt) || 0);
   const processStartMs = Number((opts && opts.processStartMs) || 0);
   if (lockStartedAt > 0 && processStartMs > 0) {
-    // 若进程在锁文件写入后 >5s 才创建（PID 复用）或早于锁文件 >120s（老主进程），一律拒绝
+    // Reject if process was created >5s after lock file write (PID reuse) or >120s before it (old host process)
     if (processStartMs > lockStartedAt + 5000 || lockStartedAt - processStartMs > 120000) {
       return false;
     }
@@ -451,7 +457,7 @@ function matchesExpectedDaemonSignature(imageName, commandLine = '', opts = null
     const hasPrismOwner = /(?:obsidian-prism|antigravity-prism|agy-claude-style)/.test(cmd);
     const hasDaemonEntry = /(?:sidecars\/daemon\/main\.mjs|\/daemon\/main\.mjs|\/watch\.js)\b/.test(cmd);
     if (hasPrismOwner && hasDaemonEntry) return true;
-    // 宿主以插件子目录为 cwd 拉起 Sidecar 时命令行为 `Antigravity --import=.../sidecar_sdk/register_loader.js main.mjs`
+    // When host spawns Sidecar with plugin subdir as cwd, cmdline is `Antigravity --import=.../sidecar_sdk/register_loader.js main.mjs`
     if (matchedLockPid && /sidecar_sdk\/register_loader\.js\b/.test(cmd) && /(?:^|\s|\/)main\.mjs(?:\s|"|'|$)/.test(cmd)) {
       return true;
     }
@@ -460,7 +466,7 @@ function matchesExpectedDaemonSignature(imageName, commandLine = '', opts = null
   return false;
 }
 
-// 单次系统探针同时获取进程映像名、启动时间与命令行，消除启动抢锁时连续拉起两次 powershell.exe
+// Single OS probe fetching image name, start time, and cmdline together, eliminating duplicate powershell.exe spawns on lock acquisition
 function inspectProcessSync(pid, opts = null) {
   const n = Number(pid);
   if (!Number.isInteger(n) || n <= 0) return null;
@@ -546,7 +552,7 @@ function inspectProcessSync(pid, opts = null) {
         commandLine,
       };
     }
-    // macOS / 其他 POSIX：使用 ps 单次读取 args 与 comm
+    // macOS / other POSIX: read args and comm in a single ps invocation
     const commOut = execFn('ps', ['-p', String(n), '-o', 'comm='], {
       encoding: 'utf8',
       timeout: 2500,
@@ -575,7 +581,7 @@ function inspectProcessSync(pid, opts = null) {
   }
 }
 
-// 终止旧守护前核验进程映像名与启动时间/命令行，防止系统重启后 PID 复用误杀无关进程或宿主主窗口
+// Verify image name, start time, and cmdline before terminating an old daemon to prevent killing unrelated processes or host after PID reuse
 function isExpectedDaemonProcess(pid, probeOverride = null) {
   const n = Number(pid);
   if (!Number.isInteger(n) || n <= 0 || n === process.pid) return false;
@@ -623,7 +629,7 @@ const CDP_OPT_IN_SWITCH = '--remote-debugging-port=0';
 const RELAUNCH_STATE_FILENAME = '.relaunch-prompt-state.json';
 const PATCHED_SHORTCUTS_FILENAME = '.patched-shortcuts.json';
 
-// 纯线性扫描检测命令行是否已显式携带 --remote-debugging-port（零嵌套正则，杜绝 ReDoS）
+// Linear scan to check whether cmdline explicitly carries --remote-debugging-port (zero nested regex, ReDoS-safe)
 function hasRemoteDebuggingPortSwitch(commandLine) {
   const raw = String(commandLine || '');
   if (!raw) return false;
@@ -644,7 +650,7 @@ function hasRemoteDebuggingPortSwitch(commandLine) {
   return false;
 }
 
-// 无损追加 --remote-debugging-port=0（若已含任意 --remote-debugging-port 则原样保留）
+// Losslessly append --remote-debugging-port=0 (leaves any existing --remote-debugging-port untouched)
 function appendCdpFlagToArguments(rawArgs) {
   const orig = String(rawArgs || '');
   if (hasRemoteDebuggingPortSwitch(orig)) {
@@ -657,7 +663,7 @@ function appendCdpFlagToArguments(rawArgs) {
   return { args: `${trimmed} ${CDP_OPT_IN_SWITCH}`, changed: true };
 }
 
-// 纯线性词法扫描剥离 --remote-debugging-port=0，100% 保留引号内空白与用户其余参数
+// Linear lexical scan to strip --remote-debugging-port=0 while preserving quoted whitespace and all other user arguments
 function stripCdpFlagFromArguments(rawArgs) {
   const s = String(rawArgs || '');
   if (!s) return { args: '', changed: false };
@@ -700,7 +706,7 @@ function stripCdpFlagFromArguments(rawArgs) {
   return { args: tokens.join(' '), changed: true };
 }
 
-// 严格按可执行文件名精确匹配 Antigravity.exe（自动排除 antigravity-tools.exe 与 Uninstall Antigravity.exe）
+// Strictly match executable name Antigravity.exe (excludes antigravity-tools.exe and Uninstall Antigravity.exe)
 function isAntigravityShortcutTarget(targetPath) {
   const cleaned = String(targetPath || '').trim().replace(/^"+|"+$/g, '');
   if (!cleaned) return false;
@@ -709,7 +715,7 @@ function isAntigravityShortcutTarget(targetPath) {
   return base === 'antigravity.exe';
 }
 
-// 严格识别 Linux 下的 Antigravity 主可执行目标（原生二进制、.AppImage，排除 crashpad/language_server/tools/obsidian-prism）
+// Strictly identify Linux Antigravity main executable targets (native binary or .AppImage, excluding crashpad/language_server/tools/obsidian-prism)
 function isAntigravityLinuxTarget(targetPath) {
   const cleaned = String(targetPath || '').trim().replace(/^["']+|["']+$/g, '');
   if (!cleaned) return false;
@@ -732,7 +738,7 @@ function isAntigravityLinuxTarget(targetPath) {
   return false;
 }
 
-// 精准识别真正的 Antigravity 主进程（过滤 --type= 渲染/GPU 子进程、crashpad、language_server、sidecar_sdk 守护进程与第三方 antigravity-tools）
+// Accurately identify the main Antigravity process (filtering --type= renderer/GPU helpers, crashpad, language_server, sidecar_sdk daemons, and third-party antigravity-tools)
 function isMainAntigravityProcessSignature(imageName, commandLine = '') {
   const rawImg = String(imageName || '').trim().replace(/^["']+|["']+$/g, '');
   const normImg = rawImg.replace(/\\/g, '/').toLowerCase();
@@ -1008,7 +1014,7 @@ function getDefaultLinuxDesktopDirs(opts = {}) {
   };
 }
 
-// 线性词法分词器解析 freedesktop Desktop Entry Exec= 值（支持双引号、单引号与反斜杠转义）
+// Linear lexical tokenizer for freedesktop Desktop Entry Exec= values (supports double/single quotes and backslash escapes)
 function tokenizeDesktopExec(execValue) {
   const s = String(execValue || '');
   const tokens = [];
@@ -1064,7 +1070,7 @@ function tokenizeDesktopExec(execValue) {
   return tokens;
 }
 
-// 从 Exec= token 序列提取真正的目标可执行路径（自动跳过前置 env 与 KEY=VAL 环境变量赋值）
+// Extract actual target executable path from Exec= tokens (skipping leading env and KEY=VAL assignments)
 function extractDesktopExecTarget(execValue) {
   const tokens = tokenizeDesktopExec(execValue);
   if (tokens.length === 0) return { target: '', targetIndex: -1, tokens };
@@ -1093,7 +1099,7 @@ function extractDesktopExecTarget(execValue) {
   return { target: tokens[idx].value, targetIndex: idx, tokens };
 }
 
-// 无损修补单条 Desktop Entry Exec= 值：保留已有 --remote-debugging-port，并在 %U/%F 等占位符前精确插入
+// Losslessly patch a single Desktop Entry Exec= value: preserve existing --remote-debugging-port and insert before %U/%F placeholders
 function patchDesktopExecLine(execValue) {
   const orig = String(execValue || '');
   const { target, targetIndex, tokens } = extractDesktopExecTarget(orig);
@@ -1119,7 +1125,7 @@ function patchDesktopExecLine(execValue) {
   return { value: rawTokens.join(' '), changed: true, matched: true, alreadySet: false };
 }
 
-// 精准剥离单条 Desktop Entry Exec= 值中的 --remote-debugging-port=0（保留自定义端口、引号与占位符顺序）
+// Precisely strip --remote-debugging-port=0 from a Desktop Entry Exec= value (preserving custom ports, quotes, and placeholder order)
 function stripDesktopExecLine(execValue) {
   const orig = String(execValue || '');
   const { target, targetIndex, tokens } = extractDesktopExecTarget(orig);
@@ -1157,7 +1163,7 @@ function isManagedPrismDesktopContent(content) {
   return /^\s*X-ObsidianPrism-Managed\s*=\s*true\s*$/im.test(String(content || ''));
 }
 
-// 解析并修补整份 .desktop 内容（支持 [Desktop Entry] 与多个 [Desktop Action ...] 段）
+// Parse and patch full .desktop file content (supports [Desktop Entry] and multiple [Desktop Action ...] sections)
 function patchDesktopEntryContent(rawContent, opts = {}) {
   const lines = String(rawContent || '').replace(/\r\n/g, '\n').split('\n');
   let inSupportedSection = false;
@@ -1204,7 +1210,7 @@ function patchDesktopEntryContent(rawContent, opts = {}) {
   };
 }
 
-// 卸载还原整份 .desktop 内容中的 --remote-debugging-port=0
+// Strip --remote-debugging-port=0 from full .desktop file content during uninstall
 function stripDesktopEntryContent(rawContent) {
   const lines = String(rawContent || '').replace(/\r\n/g, '\n').split('\n');
   let inSupportedSection = false;
@@ -1309,7 +1315,7 @@ function ensureLinuxDesktopShortcutsCdpFlag(opts = {}) {
   const seenFiles = new Set();
   const userBasenames = new Set();
 
-  // 预先记录用户 applications 目录中已有的 .desktop basename，用于识别已存在的 XDG 覆盖
+  // Pre-record existing .desktop basenames in the user applications directory to detect existing XDG overrides
   try {
     if (fs.existsSync(userAppsDir) && !isSymlinkPathSync(userAppsDir)) {
       for (const name of fs.readdirSync(userAppsDir)) {
@@ -1357,7 +1363,7 @@ function ensureLinuxDesktopShortcutsCdpFlag(opts = {}) {
       if (!st.isFile()) continue;
 
       const isSystemOrRo = isLinuxReadOnlyOrSystemDesktopPath(filePath, systemDirs);
-      // 若系统目录的 .desktop 在用户 applications 目录已有同名条目，则遵循 XDG 优先级跳过
+      // Skip system .desktop entries that already have a same-named override in the user applications directory per XDG precedence
       if (isSystemOrRo && userBasenames.has(name) && !isPathInsideDir(filePath, userAppsDir)) {
         continue;
       }
@@ -1522,7 +1528,7 @@ function restoreLinuxDesktopShortcutsCdpFlag(opts = {}) {
   };
 }
 
-// 严格按白名单正则读取 ~/.config/environment.d/90-obsidian-prism-gomemlimit.conf（零 source / eval，拦截 symlink）
+// Read ~/.config/environment.d/90-obsidian-prism-gomemlimit.conf via strict allowlist regex (zero source/eval, blocks symlinks)
 function readLinuxGoMemLimitFromEnvD(opts = {}) {
   const env = opts.env || process.env;
   const home = opts.homeDir ? path.resolve(opts.homeDir) : os.homedir();
@@ -1552,7 +1558,7 @@ function readLinuxGoMemLimitFromEnvD(opts = {}) {
   }
 }
 
-// 异步非阻塞版：供常驻 Daemon 事件循环后台巡检快捷方式，避免 execFileSync 卡死 CDP RPC 与 Omni 流式媒体
+// Async non-blocking variant for background daemon shortcut maintenance without stalling CDP RPC or Omni streaming
 async function ensureAntigravityShortcutsCdpFlagAsync(opts = {}) {
   const effectivePlatform = opts.platformOverride || process.platform;
   if (effectivePlatform === 'linux' && typeof opts.shortcutAdapter !== 'function') {
@@ -1607,7 +1613,7 @@ async function ensureAntigravityShortcutsCdpFlagAsync(opts = {}) {
   }
 }
 
-// 扫描并无损为 Antigravity 快捷方式（Windows .lnk / Linux XDG .desktop）补齐 --remote-debugging-port=0
+// Scan and losslessly add --remote-debugging-port=0 to Antigravity shortcuts (Windows .lnk / Linux XDG .desktop)
 function ensureAntigravityShortcutsCdpFlag(opts = {}) {
   const effectivePlatform = opts.platformOverride || process.platform;
   if (effectivePlatform === 'linux' && typeof opts.shortcutAdapter !== 'function') {
@@ -1662,7 +1668,7 @@ function ensureAntigravityShortcutsCdpFlag(opts = {}) {
   }
 }
 
-// 卸载时精准剥离 Antigravity 快捷方式（Windows .lnk / Linux XDG .desktop + Shadow Copy 撤回）中的 --remote-debugging-port=0
+// Strip --remote-debugging-port=0 from Antigravity shortcuts on uninstall (Windows .lnk / Linux XDG .desktop + revert shadow copies)
 function restoreAntigravityShortcutsCdpFlag(opts = {}) {
   const effectivePlatform = opts.platformOverride || process.platform;
   if (effectivePlatform === 'linux' && typeof opts.shortcutAdapter !== 'function') {
@@ -1743,7 +1749,7 @@ const WIN_HOST_PROBE_PS = [
 
 const WIN_HOST_PROBE_B64 = Buffer.from(WIN_HOST_PROBE_PS, 'utf16le').toString('base64');
 
-// 解析 POSIX `ps -axo pid=,etime=,comm=,args=` 的 BSD/Linux etime（[[dd-]hh:]mm:ss）为毫秒
+// Parse BSD/Linux etime ([[dd-]hh:]mm:ss) from POSIX `ps -axo pid=,etime=,comm=,args=` into milliseconds
 function parsePsElapsedMs(etimeStr) {
   const raw = String(etimeStr || '').trim();
   if (!raw) return 0;
@@ -2034,7 +2040,7 @@ function getRelaunchPromptStatePaths(pluginDir, extraDirs = []) {
   return uniq;
 }
 
-// 与 C# / Swift Watcher 超集双向兼容的单次去重检查（容忍毫秒/秒级精度误差，同时防系统重启后 PID 复用）
+// One-shot dedup check mutually compatible with C#/Swift Watchers (tolerates ms/sec rounding while preventing PID reuse after reboot)
 function hasRelaunchBeenPromptedForHost(pluginDir, hostPid, hostStartMs = 0, extraDirs = []) {
   const pid = Number(hostPid);
   if (!Number.isInteger(pid) || pid <= 0) return false;
@@ -2224,16 +2230,16 @@ function detectSystemUiLocale(opts = null) {
 function buildRelaunchDialogCopy(lang = 'auto') {
   const rawLang = !lang || String(lang).trim().toLowerCase() === 'auto' ? detectSystemUiLocale() : lang;
   const low = String(rawLang || 'en').toLowerCase();
-  const isZh = low.startsWith('zh') || low === 'yue';
-  if (isZh) {
+  const isAr = low === 'ar' || low.startsWith('ar-') || low === 'arabic';
+  if (isAr) {
     return {
       title: 'Obsidian Prism',
       body:
-        '检测到 Antigravity 已启动或完成更新，但未开启本地调试桥接参数（--remote-debugging-port=0），导致 Obsidian Prism 界面无法挂载。\n\n' +
-        '是否立即重新打开 Antigravity 以恢复 Obsidian Prism 界面？\n' +
-        '（若当前正在进行对话或有未保存内容，请选择“否 / 稍后”，下次通过快捷方式启动将自动生效。）',
-      laterBtn: '稍后',
-      relaunchBtn: '立即重开',
+        'بدأ تشغيل Antigravity أو تم تحديثه دون تفعيل خيار التصحيح المحلي (--remote-debugging-port=0)، مما يمنع تحميل واجهة Obsidian Prism.\n\n' +
+        'هل تريد إعادة تشغيل Antigravity الآن لاستعادة واجهة Obsidian Prism؟\n' +
+        '(اختر «لاحقاً» إذا كانت هناك محادثة أو مهمة قيد التشغيل؛ تم تحديث الاختصارات تلقائياً للتشغيل القادم.)',
+      laterBtn: 'لاحقاً',
+      relaunchBtn: 'إعادة التشغيل الآن',
     };
   }
   return {
@@ -2353,7 +2359,7 @@ function promptUserForHostRelaunch(opts = {}) {
   });
 }
 
-// 纯异步顺序控制模型：温和请求退出 -> 轮询确认单实例锁完全释放 -> 带 --remote-debugging-port=0 拉起（供单测与脱离微进程复用）
+// Pure async sequential controller: graceful quit -> poll until single-instance lock releases -> relaunch with --remote-debugging-port=0
 async function executeHostRelaunchSequence(task, hooks = {}) {
   const pid = Number(task && task.hostPid);
   const exePath = String((task && task.exePath) || '').trim();
@@ -2488,7 +2494,7 @@ const MAC_DETACHED_RELAUNCH_SH = [
   'open -na "$app_path" --args --remote-debugging-port=0 >/dev/null 2>&1 &',
 ].join('\n');
 
-// 纯 POSIX sh 脱离重启脚本（所有动态参数经位置参数 "$1" "$2" 传入，零拼接、零 SIGKILL、零 app.asar 修改）
+// Pure POSIX sh detached relaunch script (dynamic args passed via "$1" "$2", zero interpolation, zero SIGKILL, zero app.asar modification)
 const LINUX_DETACHED_RELAUNCH_SH = [
   'target_pid="$1"',
   'exe_path="$2"',
@@ -2548,7 +2554,7 @@ const LINUX_DETACHED_RELAUNCH_SH = [
   'nohup "$launch_exe" --remote-debugging-port=0 >/dev/null 2>&1 </dev/null &',
 ].join('\n');
 
-// 派生物理脱离宿主进程树与 Job Object 的独立微进程执行「温和退出 -> 等单实例锁释放 -> 带参重开」
+// Spawn a detached helper outside the host process tree / Job Object to run graceful quit -> wait for lock release -> relaunch
 function spawnDetachedHostRelaunchHelper(task, opts = {}) {
   const hostPid = Number(task && task.hostPid);
   if (!Number.isInteger(hostPid) || hostPid <= 0) {
@@ -3186,7 +3192,7 @@ const LZSS_SAFE_ASCII = (() => {
   return arr; // 89 unescaped 1-byte JSON ASCII chars (no ", <, >, \)
 })();
 
-// 纯同步零-eval UTF-16 LZSS 压缩器（~2.7ms 解码，支持完整 BMP/CJK/Emoji 与首现受保护字面量原样保留）
+// Synchronous zero-eval UTF-16 LZSS compressor (~2.7ms decode, supports full BMP/Unicode/Emoji with protected first-occurrence literals)
 function packLzssJsExpr(text, protectFirstList = []) {
   if (typeof text !== 'string' || text.length < 1024) return null;
   const n = text.length;
@@ -3195,7 +3201,7 @@ function packLzssJsExpr(text, protectFirstList = []) {
     const cc = text.charCodeAt(i);
     if (cc >= 0x00a1 && cc < 0x0800) usedLow[cc] = 1;
   }
-  // 寻找 0x00A1..0x07FF（全部 2 字节 UTF-8、无转义、无代理项）内最长连续空闲区间
+  // Find longest contiguous unused codepoint range in 0x00A1..0x07FF (all 2-byte UTF-8, no escapes, no surrogates)
   let bestStart = -1;
   let bestLen = 0;
   let curStart = -1;
@@ -3358,7 +3364,7 @@ function packLzssJsExpr(text, protectFirstList = []) {
   }
 
   const encoded = out.join('');
-  // 严格无损往返验证（与运行时解码器逐字节一致）
+  // Strict lossless round-trip verification (byte-for-byte identical to runtime decoder)
   const o = new Uint16Array(n);
   let p = 0;
   const decG = (c) => c - 35 - (c > 60) - (c > 62) - (c > 92);
@@ -6058,7 +6064,7 @@ function minifySingleSource(src) {
   return plainMin;
 }
 
-// 按需独立通道模块（不打入 Channel 1 主包以严控体积 < 550 KB，仍纳入 SYNC_ROOT_FILES 随安装包/热更新同步）
+// On-demand standalone channel modules (kept outside Channel 1 main bundle to stay < 550 KB, still synced via SYNC_ROOT_FILES)
 const DEFERRED_ROOT_MODULES = [
   'i18n-locales.js',
   'dual-mascot-rig.js',
@@ -6880,7 +6886,7 @@ function resolveCurrentBundleCodeHash() {
   return computeHash(readRuntimeBundle());
 }
 
-// Channel 1 自身实际消费的最小运行时 key 集（Omni / InlineDiff 均在各自独立通道内自带完整 8 语表，无需重复打入 Channel 1 bootCfg）
+// Minimal runtime key set actually consumed by Channel 1 (Omni / InlineDiff carry their own locale tables in standalone channels)
 const CH1_RUNTIME_UI_KEYS = Object.freeze([
   'cacheRead', 'cacheShort', 'effortTitle', 'fiveHourLabel',
   'homeLocalOnlyTag', 'homeLocalScopeNote', 'homeScopeActive', 'homeScopeActiveCount', 'homeScopeAll', 'homeScopeArchivedCount',
@@ -6916,15 +6922,8 @@ function loadLocalesModuleFresh() {
 function normalizeLangIdNode(rawLang, fallback = 'en') {
   const raw = typeof rawLang === 'string' ? rawLang.trim().toLowerCase().replace(/_/g, '-') : '';
   if (!raw || raw === 'auto') return fallback;
+  if (raw === 'ar' || raw.startsWith('ar-') || raw === 'arabic') return 'ar';
   if (raw === 'en' || raw.startsWith('en-') || raw === 'english') return 'en';
-  if (raw === 'ja' || raw.startsWith('ja-') || raw === 'jp' || raw === 'japanese') return 'ja';
-  if (raw === 'ko' || raw.startsWith('ko-') || raw === 'kr' || raw === 'korean') return 'ko';
-  if (raw === 'es' || raw.startsWith('es-') || raw === 'spanish') return 'es';
-  if (raw === 'fr' || raw.startsWith('fr-') || raw === 'french') return 'fr';
-  if (raw === 'de' || raw.startsWith('de-') || raw === 'german') return 'de';
-  if (raw === 'yue' || raw.startsWith('yue-') || raw === 'zh-yue' || raw.includes('cantonese')) return 'zh-CN';
-  if (raw === 'zh-tw' || raw === 'zh-hk' || raw.startsWith('zh-hk-') || raw === 'zh-mo' || raw === 'zh-hant' || raw.startsWith('zh-hant-') || raw === 'tw' || raw === 'hant') return 'zh-TW';
-  if (raw === 'zh' || raw === 'zh-cn' || raw === 'zh-hans' || raw.startsWith('zh-')) return 'zh-CN';
   return fallback;
 }
 
@@ -6951,19 +6950,21 @@ function extractSingleLangRuntimeSlice(mod, langId) {
   return out;
 }
 
-// 为 Channel 1 bootCfg 生成当前活跃语言（及 auto 模式下的 en 兜底）迷你运行时词典（列式编码消除双语重复键名），避免打包完整 8 语设置词典
+// Both slices let the renderer resolve its own locale and switch languages before Settings loads.
 function buildRuntimeUiSlicePayload(config) {
   const mod = loadLocalesModuleFresh();
   if (!mod) return null;
   const rawLang = (config && (config.language || config.lang)) || 'auto';
   const isAuto = String(rawLang).trim().toLowerCase() === 'auto';
   const primary = isAuto ? resolveSystemLangNode() : normalizeLangIdNode(rawLang, 'en');
-  const pObj = extractSingleLangRuntimeSlice(mod, primary);
-  const enObj = isAuto && primary !== 'en' ? extractSingleLangRuntimeSlice(mod, 'en') : null;
-  const keys = CH1_RUNTIME_UI_KEYS.filter((k) => typeof pObj[k] === 'string' || typeof enObj?.[k] === 'string');
-  const vals = { [primary]: keys.map((k) => pObj[k] ?? '') };
-  if (enObj) vals.en = keys.map((k) => enObj[k] ?? '');
-  return { active: primary, keys, vals };
+  const en = extractSingleLangRuntimeSlice(mod, 'en');
+  const ar = extractSingleLangRuntimeSlice(mod, 'ar');
+  const keys = CH1_RUNTIME_UI_KEYS.filter((key) => typeof en[key] === 'string' || typeof ar[key] === 'string');
+  return {
+    active: primary,
+    keys,
+    vals: { en: keys.map((key) => en[key] ?? ''), ar: keys.map((key) => ar[key] ?? en[key] ?? '') },
+  };
 }
 
 let _configRefreshTemplate = '';
@@ -7001,7 +7002,7 @@ function getConfigRefreshTemplate() {
         const navL = String((typeof navigator !== 'undefined' && ((navigator.languages && navigator.languages[0]) || navigator.language)) || '').trim();
         if (hiMode === 'off') window.__agPrismHostI18n?.setMode?.('off');
         else if (hiMode === 'on') window.__agPrismHostI18n?.setMode?.('on');
-        else if ((hiLang && hiLang !== 'zh-CN' && hiLang !== 'auto') || ((!hiLang || hiLang === 'auto') && navL && !/^zh(?:$|-(?:cn|hans|sg)(?:-|$))/i.test(navL))) window.__agPrismHostI18n?.destroy?.();
+        else if ((hiLang && hiLang !== 'ar' && hiLang !== 'auto') || ((!hiLang || hiLang === 'auto') && navL && !/^ar(?:-|$)/i.test(navL))) window.__agPrismHostI18n?.destroy?.();
         else window.__agPrismHostI18n?.setMode?.('auto');
       } catch {}
       if (effectiveCfg?.mascot === 'off' || effectiveCfg?.mascot === false) {
@@ -7350,7 +7351,7 @@ function getBundleSourceFiles() {
   const files = [
     { rel: 'cdp.js', fullPath: __filename, optional: false },
     { rel: 'style.css', fullPath: path.join(__dirname, 'style.css'), optional: false },
-    // i18n-locales.js 虽已拆至按需 Settings 通道，但其活跃语言迷你切片会打入 Channel 1 bootCfg.__uiSlice，故纳入源哈希确保缓存强一致
+    // Although i18n-locales.js lives in the on-demand Settings channel, its active slice feeds Channel 1 bootCfg.__uiSlice, so include it in the source hash
     { rel: 'i18n-locales.js', fullPath: path.join(__dirname, 'i18n-locales.js'), optional: true },
   ];
   for (const partName of RUNTIME_PARTS) {
@@ -7366,7 +7367,7 @@ function getBundleSourceFiles() {
   return files;
 }
 
-// 快速 stat 指纹（仅用于同进程热路径配合 _warmBaseCache 毫秒级刷新 config，跨进程冷启一律使用 SHA-256）
+// Fast stat fingerprint (in-process hot path with _warmBaseCache for sub-ms config refresh; cross-process cold starts always verify SHA-256)
 function getBundleSourceStatSig() {
   const parts = [];
   for (const item of getBundleSourceFiles()) {
@@ -7379,7 +7380,7 @@ function getBundleSourceStatSig() {
   return parts.join(';');
 }
 
-// 计算全部打包输入源文件的 SHA-256 内容指纹（100% 免疫 mtime 抖动与 git checkout）
+// Compute SHA-256 content fingerprint across all bundle input files (immune to mtime jitter and git checkout)
 function computeBundleSourceHash() {
   const hash = crypto.createHash('sha256');
   hash.update(`schema:${BUNDLE_CACHE_SCHEMA_VERSION}\0`);
@@ -7399,7 +7400,7 @@ function computeBundleSourceHash() {
   return hash.digest('hex');
 }
 
-// 计算规范化后的有效 bootCfg 指纹（确保缓存命中输出与现场编译逐字节 100% 一致）
+// Compute normalized effective bootCfg fingerprint (ensures cached bundle output matches fresh compilation byte-for-byte)
 function computeBundleConfigHash(config) {
   const uiSlice = buildRuntimeUiSlicePayload(config);
   const effective = {
@@ -8202,8 +8203,8 @@ function buildInjectExpression(customConfig, opts = null) {
   const cachePath = resolveBundleCachePathOption(opts);
   const deferCacheWrite = Boolean(opts && opts.deferCacheWrite === true);
 
-  // 同进程配置热刷新快路径（broadcastConfigRefresh）：源 stat 未变化时直接复用已验签的内存基础模板（< 1ms，零磁盘阻塞）
-  // P2-7a: 延迟对主包字符串计算 exprSha256 至 flushPendingBundleCache() 实际落盘时再执行，避免防抖期内重复白算哈希
+  // In-process config hot-refresh fast path (broadcastConfigRefresh): reuse verified in-memory base template when source stats are unchanged (< 1ms, zero disk I/O)
+  // P2-7a: defer exprSha256 computation until flushPendingBundleCache() writes to disk, avoiding wasted hashes during debounce
   if (cachePath && deferCacheWrite && _warmBaseCache.basePrefix && _warmBaseCache.statSig) {
     try {
       if (getBundleSourceStatSig() === _warmBaseCache.statSig) {
@@ -8413,7 +8414,7 @@ function readCompiledOmniClient(opts = null) {
   });
 }
 
-// 第二通道独立注入：绝不挤占静态主包 680KiB 配额，支持服务端 serverMeta 热同步与 codeHash 快速跳过重挂载
+// Channel 2 standalone injection: stays outside Channel 1 static budget, supports serverMeta hot-sync and codeHash fast-skip
 function buildOmniClientExpression(serverMeta = null, customClientSource = null, opts = null) {
   const resolvedOpts = opts || (customClientSource && typeof customClientSource === 'object' ? customClientSource : null);
   let minCode = '';
@@ -8589,7 +8590,7 @@ let _sidebarClientCache = { sig: '', sourceHash: '', minCode: '', codeHash: '', 
 function isSafeV2SidebarClientSource(src) {
   if (typeof src !== 'string' || !src.trim()) return false;
   if (!src.includes('SIDEBAR_STUDIO_CLIENT_V2')) return false;
-  // 任何出现 setPrefValue / setPrefValues 标识符或字符串字面量的客户端源码一律拒载（含括号属性访问）
+  // Reject any client source containing setPrefValue / setPrefValues identifiers or string literals (including bracket property access)
   if (/setPrefValues?/i.test(src)) return false;
   return true;
 }
@@ -8636,7 +8637,7 @@ function readCompiledSidebarClient(opts = null) {
   });
 }
 
-// 第三通道独立注入（Sidebar Studio）：绝不挤占静态主包 670KiB 配额，支持服务端 meta 热同步、codeHash 快速跳过与热启停卸载
+// Channel 3 standalone injection (Sidebar Studio): stays outside Channel 1 budget, supports server meta hot-sync, codeHash fast-skip, and hot teardown
 function buildSidebarStudioExpression(serverMeta = null, customClientSource = null, opts = null) {
   const resolvedOpts = opts || (customClientSource && typeof customClientSource === 'object' ? customClientSource : null);
   let minCode = '';
@@ -8828,16 +8829,16 @@ let _hostI18nCache = { sig: '', sourceHash: '', minRuntime: '', dictRaw: '', cod
 function shouldEnableHostI18n(config, hostLocaleHint = null) {
   const cfg = config && typeof config === 'object' ? reconcileConfigAliases(config) : readConfig();
   const mode = cfg.hostLocalization || 'auto';
-  // off 模式挂载第四通道进入反向英文还原（温和压制外部运行时 DOM 汉化，零 app.asar 修改）
+  // In off mode, mount Channel 4 in reverse-English restore mode to suppress external overlays without modifying app.asar
   if (mode === 'off') return true;
   if (mode === 'on') return true;
   const lang = cfg.language || cfg.lang || 'auto';
-  if (lang === 'zh-CN') return true;
+  if (lang === 'ar') return true;
   if (lang === 'auto') {
     const sysLocale = hostLocaleHint || detectSystemUiLocale();
     const stripped = String(sysLocale || '').trim().split(/[.@]/)[0];
     const norm = stripped.toLowerCase().replace(/_/g, '-');
-    return norm === 'zh' || /^zh-(?:cn|hans|sg)(?:-|$)/.test(norm);
+    return norm === 'ar' || norm.startsWith('ar-');
   }
   return false;
 }
@@ -8845,7 +8846,7 @@ function shouldEnableHostI18n(config, hostLocaleHint = null) {
 function readCompiledHostI18nAssets(opts = null) {
   const rtPath = path.join(__dirname, 'vendor', 'host-i18n', 'host-i18n-runtime.js');
   const revPath = path.join(__dirname, 'vendor', 'host-i18n', 'reverse-patterns.js');
-  const dictPath = path.join(__dirname, 'vendor', 'host-i18n', 'zh-CN.json');
+  const dictPath = path.join(__dirname, 'vendor', 'host-i18n', 'ar.json');
   if (!fs.existsSync(rtPath) || !fs.existsSync(dictPath)) {
     return { minRuntime: '', dictRaw: '', codeHash: '' };
   }
@@ -8861,7 +8862,7 @@ function readCompiledHostI18nAssets(opts = null) {
   const fileEntries = [];
   if (revBuf) fileEntries.push({ rel: 'vendor/host-i18n/reverse-patterns.js', content: revBuf });
   fileEntries.push({ rel: 'vendor/host-i18n/host-i18n-runtime.js', content: rtBuf });
-  fileEntries.push({ rel: 'vendor/host-i18n/zh-CN.json', content: dictBuf });
+  fileEntries.push({ rel: 'vendor/host-i18n/ar.json', content: dictBuf });
   return resolveChannelAssetsWithDiskCache({
     channelName: 'hostI18n',
     memCache: _hostI18nCache,
@@ -8906,8 +8907,8 @@ const HOST_I18N_REMOVE_EXPRESSION = `(() => {
   return { ok: true, status: 'off' };
 })()`;
 
-// 主帧 Electron Isolated Context 外部汉化器（如 preload 注入版 yiheng8023/antigravity-chinese、yuexps/Antigravity-Hans）可逆协同静音表达式
-// 零 app.asar 修改、绝不修改 Map.prototype、绝不删改词典/缓存条目，退出或切回 auto/on 时 100% 无损恢复
+// Reversible cooperative mute expression for external preload localizers (e.g. antigravity-chinese, Antigravity-Hans) in the main Electron isolated context
+// Zero app.asar edits, never mutates Map.prototype or dictionary/cache entries; 100% lossless restore on exit or when switching back
 const ISOLATED_HOST_I18N_PAUSE_EXPRESSION = `(() => {
   try {
     const g = globalThis;
@@ -9015,7 +9016,7 @@ const ISOLATED_HOST_I18N_RESUME_EXPRESSION = `(() => {
   }
 })()`;
 
-// 第四通道独立注入（Host UI 简体中文按需本地化 + off 态反向英文还原）：绝不打入静态主包，支持 4 层自动礼让、3 层温和压制与 100% 无损卸载
+// Channel 4 standalone injection (on-demand Host UI localization + reverse English restore on off): stays outside Channel 1, with lossless teardown
 function buildHostI18nExpression(config = null, hostLocaleHint = null, opts = null) {
   let resolvedLocaleHint = hostLocaleHint;
   let resolvedOpts = opts;
@@ -9109,7 +9110,7 @@ function buildHostI18nExpression(config = null, hostLocaleHint = null, opts = nu
         } else {
           targetMode = 'auto';
           const liveLang = liveCfg.language || liveCfg.lang || '';
-          if (liveLang && liveLang !== 'zh-CN' && liveLang !== 'auto') {
+          if (liveLang && liveLang !== 'ar' && liveLang !== 'auto') {
             try { window.__agPrismHostI18n?.destroy?.(); document.documentElement?.removeAttribute?.('data-ag-prism-host-i18n'); } catch {}
             return { ok: true, status: 'off', skippedByLiveCfg: true };
           }
@@ -9121,7 +9122,7 @@ function buildHostI18nExpression(config = null, hostLocaleHint = null, opts = nu
               .split(/[.@]/)[0]
               .toLowerCase()
               .replace(/_/g, '-');
-            if (navLang && navLang !== 'zh' && !/^zh-(?:cn|hans|sg)(?:-|$)/.test(navLang)) {
+            if (navLang && navLang !== 'ar' && !navLang.startsWith('ar-')) {
               try { window.__agPrismHostI18n?.destroy?.(); document.documentElement?.removeAttribute?.('data-ag-prism-host-i18n'); } catch {}
               return { ok: true, status: 'off', skippedByLiveCfg: true };
             }
@@ -9187,14 +9188,14 @@ let _swarmI18nCache = { sig: '', sourceHash: '', minRuntime: '', dictRaw: '', co
 function shouldEnableSwarmI18n(config, hostLocaleHint = null) {
   const cfg = config && typeof config === 'object' ? reconcileConfigAliases(config) : readConfig();
   const mode = cfg.hostLocalization || 'auto';
-  // 原生 Swarm 面板本身为英文：off 模式或非简体中文 auto 模式严格 0 附着 / 立即卸载还原英文
+  // Native Swarm board is English: skip in off mode or non-Arabic auto mode
   if (mode === 'off') return false;
   return shouldEnableHostI18n(cfg, hostLocaleHint);
 }
 
 function readCompiledSwarmI18nAssets(opts = null) {
   const rtPath = path.join(__dirname, 'vendor', 'host-i18n', 'swarm-i18n-runtime.js');
-  const dictPath = path.join(__dirname, 'vendor', 'host-i18n', 'swarm-zh-CN.json');
+  const dictPath = path.join(__dirname, 'vendor', 'host-i18n', 'swarm-ar.json');
   if (!fs.existsSync(rtPath) || !fs.existsSync(dictPath)) {
     return { minRuntime: '', dictRaw: '', codeHash: '' };
   }
@@ -9207,7 +9208,7 @@ function readCompiledSwarmI18nAssets(opts = null) {
   const dictBuf = fs.readFileSync(dictPath);
   const fileEntries = [
     { rel: 'vendor/host-i18n/swarm-i18n-runtime.js', content: rtBuf },
-    { rel: 'vendor/host-i18n/swarm-zh-CN.json', content: dictBuf },
+    { rel: 'vendor/host-i18n/swarm-ar.json', content: dictBuf },
   ];
   return resolveChannelAssetsWithDiskCache({
     channelName: 'swarmI18n',
@@ -9249,8 +9250,8 @@ const SWARM_I18N_REMOVE_EXPRESSION = `(() => {
   return { ok: true, status: 'off' };
 })()`;
 
-// Issue #18 层 B：Swarm 独立侧栏 Webview (plugin://swarm--swarm_board-*) 按需纯 CDP 汉化表达式
-// 零 app.asar 修改、0 B Channel 1 增量、支持按需磁盘缓存与 100% 无损英文还原
+// Issue #18 Layer B: on-demand pure-CDP localization expression for standalone Swarm sidebar Webview (plugin://swarm--swarm_board-*)
+// Zero app.asar edits, 0 B Channel 1 overhead, supports on-demand disk cache and 100% lossless English restore
 function buildSwarmI18nExpression(config = null, hostLocaleHint = null, opts = null) {
   let resolvedLocaleHint = hostLocaleHint;
   let resolvedOpts = opts;
@@ -9398,7 +9399,7 @@ const THOUGHT_REMOVE_EXPRESSION = `(() => {
   return { ok: true, status: 'off' };
 })()`;
 
-// 第五通道独立注入（思维链实时转译 + AI 渠道工作台 UI）：默认 off 态 0 B Fail-Closed，支持零刷新热插拔与无损卸载
+// Channel 5 standalone injection (live thought translator + AI provider workbench UI): default off with 0 B fail-closed, hot-pluggable with lossless teardown
 function buildThoughtExpression(config = null, opts = null) {
   const cfg = config && typeof config === 'object' ? reconcileConfigAliases(config) : readConfig();
   if (!shouldEnableThought(cfg)) {
@@ -9624,7 +9625,7 @@ const INLINE_DIFF_REMOVE_EXPRESSION = `(() => {
   return { ok: true, status: 'off' };
 })()`;
 
-// 第六通道独立注入（Inline Diff 展开预览 + 样式与右键菜单）：与 Channel 1 解耦，缺文件时安全返回 ''，支持 codeHash 幂等跳过与热重载
+// Channel 6 standalone injection (Inline Diff expanded preview, styles & context menu): decoupled from Channel 1, returns '' if missing, supports codeHash idempotency and hot reload
 function buildInlineDiffInjectExpression(config = null, opts = null) {
   const cfg = config && typeof config === 'object' ? reconcileConfigAliases(config) : readConfig();
   let minCode = '';
@@ -9865,7 +9866,7 @@ const WALLPAPER_REMOVE_EXPRESSION = `(() => {
   return { ok: true, status: 'off' };
 })()`;
 
-// 第七通道独立注入（本地静态/动态背景壁纸引擎 + 5 语种设置卡片）：完全独立于 Channel 1，缺文件时安全返回 ''，支持 codeHash 幂等复用与零泄漏热卸载
+// Channel 7 standalone injection (local static/animated wallpaper engine + localized settings card): independent of Channel 1, returns '' if missing, supports codeHash reuse and zero-leak teardown
 function buildWallpaperExpression(config = null, opts = null) {
   let minClient = '';
   let minSettingsUi = '';
@@ -10145,7 +10146,7 @@ const PERIODIC_PICKER_REMOVE_EXPRESSION = `(() => {
   return { ok: true, status: 'off' };
 })()`;
 
-// 第八通道独立注入（元素周期表 3D 模型选择器）：绝不打入静态主包，支持 8 模块顺序合并、.bundle-cache.json 磁盘缓存、长按呼出与 100% 对称卸载
+// Channel 8 standalone injection (Periodic Table 3D model picker): stays outside Channel 1, supports 8-module merge, disk cache, long-press trigger, and symmetric teardown
 function buildPeriodicPickerExpression(config = null, opts = null) {
   const cfg = config && typeof config === 'object' ? reconcileConfigAliases(config) : readConfig();
   if (!shouldEnablePeriodicPicker(cfg)) {
@@ -10279,7 +10280,7 @@ function buildPeriodicPickerExpression(config = null, opts = null) {
   })()`;
 }
 
-// ── 第九通道：设置面板 + 全量 8 语言词典 + 八方旅人 WebGL2 选角舞台按需独立注入（不占 Channel 1 体积） ──
+// -- Channel 9: Settings panel + bilingual locale dictionary + HD-2D WebGL2 mascot stage on-demand injection (0 B in Channel 1) --
 let _settingsChannelCache = { sig: '', sourceHash: '', minRuntime: '', codeHash: '', cachedPaths: new Set() };
 
 function readCompiledSettingsChannelAssets(opts = null) {
@@ -10401,7 +10402,7 @@ function buildSettingsChannelExpression(config = null, opts = null) {
   })()`;
 }
 
-// ── 第十通道：双桌宠（dual-mascot-rig.js）配置门控独立注入（mascot === 'off' 时 0 B） ────
+// -- Channel 10: Dual mascot rig (dual-mascot-rig.js) config-gated standalone injection (0 B when mascot === 'off') ----
 let _mascotChannelCache = { sig: '', sourceHash: '', minRuntime: '', codeHash: '', cachedPaths: new Set() };
 
 function shouldEnableMascot(config = null) {
@@ -10517,7 +10518,7 @@ function buildMascotChannelExpression(config = null, opts = null) {
   })()`;
 }
 
-// ── 第十一通道：Prompt Suggester（对话续写幽灵补全 + 8 语种 Beta 设置卡片） ────
+// -- Channel 11: Prompt Suggester (ghost completion + bilingual Beta settings card) ----
 let _suggesterAssetsCache = { sig: '', sourceHash: '', minClient: '', minSettingsUi: '', codeHash: '', cachedPaths: new Set() };
 
 function readCompiledSuggesterAssets(opts = null) {
@@ -10601,7 +10602,7 @@ const SUGGESTER_REMOVE_EXPRESSION = `(() => {
   return { ok: true, status: 'off' };
 })()`;
 
-// 第十一通道独立注入（对话续写幽灵补全 + 8 语种 Beta 设置卡片）：完全独立于 Channel 1，缺文件时安全返回 ''，接入磁盘缓存并支持 codeHash 幂等复用与零泄漏热卸载
+// Channel 11 standalone injection (Prompt Suggester ghost completion + bilingual Beta settings card): independent of Channel 1, disk-cached, codeHash idempotent, zero-leak teardown
 function buildSuggesterExpression(config = null, opts = null) {
   let resolvedOpts = opts;
   if (
@@ -10799,7 +10800,7 @@ function buildSuggesterExpression(config = null, opts = null) {
   })()`;
 }
 
-// ── 第十二通道：Studio 首页仪表盘（home-studio-panel.js）独立延迟注入（剥离 Channel 1 体积） ──
+// -- Channel 12: Studio Home dashboard (home-studio-panel.js) lazy standalone injection (stripped from Channel 1) --
 let _homeStudioChannelCache = { sig: '', sourceHash: '', minRuntime: '', codeHash: '', cachedPaths: new Set() };
 
 function shouldEnableHomeStudio(config = null) {
@@ -10856,7 +10857,7 @@ const HOME_STUDIO_REMOVE_EXPRESSION = `(() => {
   return { ok: true, status: 'off' };
 })()`;
 
-// 第十二通道独立注入（Studio 首页用量仪表盘与缓存控制器）：完全独立于 Channel 1，接入磁盘缓存，支持幂等复用、热替换旧实例与零泄漏卸载
+// Channel 12 standalone injection (Studio Home usage dashboard & cache controller): independent of Channel 1, disk-cached, idempotent hot-swap, zero-leak teardown
 function buildHomeStudioChannelExpression(config = null, opts = null) {
   let resolvedCfg = config;
   let resolvedOpts = opts;

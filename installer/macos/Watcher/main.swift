@@ -159,7 +159,7 @@ final class WatcherApp {
                     outFile: outFile,
                     ok: false,
                     message: InstallerI18n.tr(
-                        "未找到调试端口文件，Antigravity 可能未运行",
+                        "لم يتم العثور على ملف منفذ التصحيح؛ قد لا يكون Antigravity قيد التشغيل",
                         "Debug port file not found; Antigravity may not be running"
                     ),
                     pages: nil
@@ -172,7 +172,7 @@ final class WatcherApp {
                     outFile: outFile,
                     ok: false,
                     message: InstallerI18n.tr(
-                        "未找到 Antigravity 窗口页面",
+                        "لم يتم العثور على صفحات نوافذ Antigravity",
                         "No Antigravity window pages found"
                     ),
                     pages: nil
@@ -324,7 +324,7 @@ final class WatcherApp {
             currentInlineDiffExpr = CdpHelper.buildInlineDiffExpression(baseDir: baseDir, cfg: initCfg)
         } catch {
             log(InstallerI18n.tr(
-                "[!] 初始化加载失败: \(error.localizedDescription)",
+                "[!] فشلت التهيئة الأولية: \(error.localizedDescription)",
                 "[!] Failed to initialize: \(error.localizedDescription)"
             ))
             releasePidFile(selfPid: selfPid)
@@ -334,7 +334,7 @@ final class WatcherApp {
         }
 
         log(InstallerI18n.tr(
-            "[*] Obsidian Prism (obsidian-prism) 守护模式启动 (PID \(selfPid))，每 2 秒检查一次窗口",
+            "[*] تم بدء مراقب Obsidian Prism (PID \(selfPid))، يتم فحص النوافذ كل ثانيتين",
             "[*] Obsidian Prism (obsidian-prism) watcher started (PID \(selfPid)), polling windows every 2s"
         ))
 
@@ -512,7 +512,7 @@ final class WatcherApp {
                     stateLock.unlock()
                     if let removed = removed {
                         self.log(InstallerI18n.tr(
-                            "[-] 窗口已关闭: \(removed.title)",
+                            "[-] تم إغلاق النافذة: \(removed.title)",
                             "[-] Window closed: \(removed.title)"
                         ))
                     }
@@ -567,7 +567,7 @@ final class WatcherApp {
                                 _ = CdpHelper.updateConfigBatch(baseDir: self.pluginDir, manifest: manifestSnap, entries: entriesObj)
                             }
                             self.log(InstallerI18n.tr(
-                                "[⚙] 批量设置已保存 (\(entriesObj.count) 项)",
+                                "[⚙] تم حفظ دفعة الإعدادات (\(entriesObj.count) عناصر)",
                                 "[⚙] Batch settings saved (\(entriesObj.count) items)"
                             ))
                         }
@@ -582,7 +582,7 @@ final class WatcherApp {
                             }
                             let valStr = MiniJson.stringify(value, pretty: false)
                             self.log(InstallerI18n.tr(
-                                "[⚙] 设置已保存: \(key) = \(valStr)",
+                                "[⚙] تم حفظ الإعداد: \(key) = \(valStr)",
                                 "[⚙] Setting saved: \(key) = \(valStr)"
                             ))
                         }
@@ -611,7 +611,7 @@ final class WatcherApp {
                 let evalVal = try applyToEntry(entry, exprSnap, omniSnap, thoughtSnap, inlineDiffSnap)
                 let status = evalVal.objectValue?["status"]?.stringValue ?? "ok"
                 self.log(InstallerI18n.tr(
-                    "[✓] 已注入 obsidian-prism: \(title) (\(status))",
+                    "[✓] تم حقن obsidian-prism: \(title) (\(status))",
                     "[✓] Injected obsidian-prism: \(title) (\(status))"
                 ))
             } catch {
@@ -623,7 +623,7 @@ final class WatcherApp {
                 session?.close()
                 let pageTitle = CdpHelper.shortTitle(page)
                 self.log(InstallerI18n.tr(
-                    "[!] 注入失败，稍后重试: \(pageTitle) — \(error.localizedDescription)",
+                    "[!] فشل الحقن، ستتم إعادة المحاولة: \(pageTitle) — \(error.localizedDescription)",
                     "[!] Injection failed, will retry: \(pageTitle) — \(error.localizedDescription)"
                 ))
             }
@@ -753,12 +753,12 @@ final class WatcherApp {
                     }
                 }
                 self.log(InstallerI18n.tr(
-                    "[↻] \(changedName) 已变更，已热更新 \(n) 个窗口",
+                    "[↻] تم تغيير \(changedName)، جرى التحديث الفوري لـ \(n) نافذة",
                     "[↻] \(changedName) changed, hot-reloaded \(n) window(s)"
                 ))
             } catch {
                 self.log(InstallerI18n.tr(
-                    "[!] 读取文件失败: \(error.localizedDescription)",
+                    "[!] فشلت قراءة الملف: \(error.localizedDescription)",
                     "[!] Failed to read file: \(error.localizedDescription)"
                 ))
             }
@@ -876,7 +876,7 @@ final class WatcherApp {
                     if !yieldingToDaemon {
                         yieldingToDaemon = true
                         log(InstallerI18n.tr(
-                            "[~] 检测到原生 Sidecar Daemon 运行中，Watcher 进入热备避让态",
+                            "[~] تم اكتشاف تشغيل خدمة Sidecar الأصلية؛ دخل المراقب في وضع الاستعداد الاحتياطي",
                             "[~] Native Sidecar Daemon is active; Watcher entering standby mode"
                         ))
                     }
@@ -887,7 +887,7 @@ final class WatcherApp {
             if yieldingToDaemon {
                 yieldingToDaemon = false
                 log(InstallerI18n.tr(
-                    "[+] 原生 Sidecar Daemon 已离线，Watcher 接管实时注入",
+                    "[+] توقفت خدمة Sidecar الأصلية؛ تولّى المراقب الحقن المباشر",
                     "[+] Native Sidecar Daemon went offline; Watcher taking over live injection"
                 ))
             }
@@ -901,7 +901,7 @@ final class WatcherApp {
                 if lastLoggedStalePort != stalePort {
                     lastLoggedStalePort = stalePort
                     log(InstallerI18n.tr(
-                        "[!] 检测到残留无效调试端口 \(stalePort)（连接被拒绝/超时），视作无有效端口并转入裸启恢复检测",
+                        "[!] تم اكتشاف منفذ تصحيح قديم غير صالح \(stalePort) (رُفض الاتصال/انتهت المهلة)؛ يتم الانتقال لفحص الاستعادة",
                         "[!] Detected stale debug port \(stalePort) (connection refused/timed out); treating as inactive and checking for bare host recovery"
                     ))
                 }
@@ -967,7 +967,7 @@ final class WatcherApp {
                         if confirmed {
                             let verLabel = hostVersion.isEmpty ? "unknown" : hostVersion
                             log(InstallerI18n.tr(
-                                "[*] 用户确认带 --remote-debugging-port=0 重新打开 Antigravity (旧 PID \(bare.pid), ver=\(verLabel))",
+                                "[*] أكّد المستخدم إعادة فتح Antigravity باستخدام --remote-debugging-port=0 (PID السابق \(bare.pid), ver=\(verLabel))",
                                 "[*] User confirmed relaunching Antigravity with --remote-debugging-port=0 (old PID \(bare.pid), ver=\(verLabel))"
                             ))
                             _ = CdpHelper.relaunchAntigravityWithCdp(host: bare, waitExitMs: 15000) { m in self.log("[+] \(m)") }
@@ -988,7 +988,7 @@ final class WatcherApp {
                         oldEntry.session.close()
                     }
                     log(InstallerI18n.tr(
-                        "[+] 连接到调试端口 \(port)",
+                        "[+] تم الاتصال بمنفذ التصحيح \(port)",
                         "[+] Connected to debug port \(port)"
                     ))
                     lastPort = port
@@ -1139,7 +1139,7 @@ final class WatcherApp {
             }
             return parsedRows == 0
         } catch {
-            // 进程查询失败一律 fail-closed，绝不冒险移动文件
+            // Fail closed on any process query error; never risk moving files
             return true
         }
     }
@@ -1166,7 +1166,7 @@ final class WatcherApp {
         guard fm.fileExists(atPath: archiveDir) else {
             return false
         }
-        // 归档目录若为符号链接或不安全路径，一律 fail-closed 拦截
+        // Fail closed if archive directory is a symlink or unsafe path
         if CdpHelper.isSymbolicLinkOrUnsafePath(archiveDir) {
             return true
         }
@@ -1179,8 +1179,8 @@ final class WatcherApp {
                 return true
             }
         }
-        // 协调正在静置/等待退出的脱离归档或还原任务（消除 4s vs 5.5s 抢跑竞态）；
-        // 若记录的 auto-exit-archive PID 已死则不让步，立即由 Watcher 接棒兜底
+        // Coordinate with any detached archive/restore task settling on exit (avoids 4s vs 5.5s race);
+        // if the recorded auto-exit-archive PID has already exited, Watcher takes over immediately
         let activePath = (archiveDir as NSString).appendingPathComponent(".archive-task-active.json")
         if fm.fileExists(atPath: activePath) {
             if CdpHelper.isSymbolicLinkOrUnsafePath(activePath) { return true }
@@ -1231,7 +1231,7 @@ final class WatcherApp {
     }
 
     private func runAutoArchiveOnExitFallback(overridePort: Int?, isExiting: () -> Bool) {
-        // 1) 等待 Antigravity 与 language_server 彻底退出（绝不强杀宿主）
+        // 1) Wait for Antigravity and language_server to exit cleanly (never force-kill host)
         for _ in 0..<15 {
             if !isAntigravityOrLanguageServerRunning() { break }
             if sleepInterruptible(seconds: 1.0, isExiting: isExiting) { return }
@@ -1243,10 +1243,10 @@ final class WatcherApp {
         }
         if isAntigravityOrLanguageServerRunning() { return }
 
-        // 2) 静置 4 秒等待 SQLite WAL/SHM 完全释放
+        // 2) Settle for 4 seconds so SQLite WAL/SHM locks release completely
         if sleepInterruptible(seconds: 4.0, isExiting: isExiting) { return }
 
-        // 3) 二次 fail-closed 确认：配置仍开启、无活跃 CDP 端口、原生 Daemon 未运行、宿主与 language_server 均未运行、无锁冲突/刚还原记录
+        // 3) Second fail-closed confirmation: setting enabled, no active CDP port, native daemon stopped, host & language_server exited, no lock/recent restore
         guard isAutoArchiveOnExitEnabled() else { return }
         if !self.pluginDir.isEmpty && CdpHelper.isNativeDaemonAlive(pluginDir: self.pluginDir) { return }
         if let portRecheck = CdpHelper.readPort(overridePort: overridePort),
@@ -1291,13 +1291,13 @@ final class WatcherApp {
             }
             if !proc.isRunning {
                 log(InstallerI18n.tr(
-                    "[storage-guard] Watcher 退出兜底自动归档已执行 (exitCode=\(proc.terminationStatus))",
+                    "[storage-guard] تم تنفيذ الأرشفة التلقائية الاحتياطية عند الخروج (exitCode=\(proc.terminationStatus))",
                     "[storage-guard] Watcher auto-archive on exit finished (exitCode=\(proc.terminationStatus))"
                 ))
             }
         } catch {
             log(InstallerI18n.tr(
-                "[storage-guard] Watcher 退出兜底自动归档异常: \(error.localizedDescription)",
+                "[storage-guard] استثناء في الأرشفة التلقائية الاحتياطية عند الخروج: \(error.localizedDescription)",
                 "[storage-guard] Watcher auto-archive on exit error: \(error.localizedDescription)"
             ))
         }
@@ -1321,7 +1321,7 @@ final class WatcherApp {
     }
 
     private func stateObjMatchesCurrentHost(_ obj: [String: JsonValue], pid: Int32, startTimeMs: Int64, hostVersion: String) -> Bool {
-        // 跨版本更新自动复位：若宿主版本发生变化，旧版本的“稍后”决定不再静音新版本
+        // Auto-reset across host version updates so an older "Later" choice does not silence a new version
         let savedVersion = (obj["hostVersion"]?.stringValue ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         if !hostVersion.isEmpty && !savedVersion.isEmpty && savedVersion != hostVersion {
             return false
@@ -1424,13 +1424,13 @@ final class WatcherApp {
                 matched = true
                 rememberPromptedInMemory(pid: bare.pid, startTimeMs: bare.startTimeMs, hostVersion: hostVersion)
             } else {
-                // 新进程 PID 或新版本出现时自动复位旧的跳过记录，防止旧“稍后”永久静音
+                // Auto-reset stale skip record when a new PID or host version appears
                 try? fm.removeItem(atPath: statePath)
                 if !resetLogged {
                     resetLogged = true
                     let verLabel = hostVersion.isEmpty ? "unknown" : hostVersion
                     log(InstallerI18n.tr(
-                        "[~] 检测到 Antigravity 新进程或版本更新 (PID \(bare.pid), ver=\(verLabel))，已自动复位重开提示状态",
+                        "[~] تم اكتشاف عملية جديدة أو تحديث لـ Antigravity (PID \(bare.pid), ver=\(verLabel))، أُعيد تعيين حالة تنبيه إعادة الفتح",
                         "[~] Detected new Antigravity process or version update (PID \(bare.pid), ver=\(verLabel)); reset relaunch prompt state"
                     ))
                 }
@@ -1441,7 +1441,7 @@ final class WatcherApp {
 
     private func recordPromptedForHostWithVersion(bare: BareHostAppInfo, hostVersion: String, decision: String) {
         guard bare.pid > 0 else { return }
-        // 先记入进程内 Set<String> 兜底，即使磁盘只读/满或写盘失败也绝不每 2s 无限弹窗
+        // Record in in-process Set<String> first so a read-only/full disk never triggers repeated popups every 2s
         rememberPromptedInMemory(pid: bare.pid, startTimeMs: bare.startTimeMs, hostVersion: hostVersion)
         let hostKey = makePromptHostKey(pid: bare.pid, startTimeMs: bare.startTimeMs, hostVersion: hostVersion)
         let nowMs = Int64(Date().timeIntervalSince1970 * 1000.0)
@@ -1466,7 +1466,7 @@ final class WatcherApp {
             do {
                 try fm.createDirectory(atPath: dir, withIntermediateDirectories: true, attributes: nil)
                 try payload.write(toFile: tmpPath, atomically: true, encoding: .utf8)
-                // 写盘前无条件移除旧路径（含 lstat 存在但目标失效的悬空软链，避免 fileExists 为 false 导致 moveItem 报 EEXIST）
+                // Unconditionally remove old path before writing (including dangling symlinks where fileExists is false)
                 removePathIncludingDanglingSymlink(statePath)
                 try? fm.removeItem(atPath: statePath)
                 #if canImport(Darwin)

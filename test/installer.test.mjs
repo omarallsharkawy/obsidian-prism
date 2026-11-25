@@ -662,7 +662,7 @@ test(
         fs.writeFileSync(daemonPidPath, JSON.stringify({ pid: mockDaemonProc.pid }), 'utf8');
         await waitFor(() => {
           const logText = fs.existsSync(watchLogPath) ? fs.readFileSync(watchLogPath, 'utf8') : '';
-          return logText.includes('检测到本地守护服务运行中') ||
+          return logText.includes('Local daemon is running') ||
             logText.includes('Local background daemon detected; Watcher entering standby mode')
             ? true
             : null;
@@ -670,7 +670,7 @@ test(
         fs.unlinkSync(daemonPidPath);
         await waitFor(() => {
           const logText = fs.existsSync(watchLogPath) ? fs.readFileSync(watchLogPath, 'utf8') : '';
-          return logText.includes('本地守护服务已离线') ||
+          return logText.includes('Local daemon is offline') ||
             logText.includes('Local background daemon offline; Watcher taking over live injection')
             ? true
             : null;
@@ -1135,7 +1135,7 @@ test('interactive GUI installers require explicit user confirmation before insta
   );
   assert.match(winInitMatch[0], /PrepareInstallChoiceAsync\s*\(/);
   assert.match(winSrc, /_installBtn\.Click\s*\+=\s*async\s*\(s,\s*e\)\s*=>\s*await\s+ExecuteInstallAsync\(\)/);
-  assert.match(winSrc, /_closeBtn\.Text\s*=\s*InstallerI18n\.Tr\("取消",\s*"Cancel"\)/);
+  assert.match(winSrc, /_closeBtn\.Text\s*=\s*InstallerI18n\.Tr\("إلغاء",\s*"Cancel"\)/);
 
   const macSrc = fs.readFileSync(path.join(ROOT_DIR, 'installer', 'macos', 'Setup', 'main.swift'), 'utf8');
   const macInitMatch = macSrc.match(/private\s+func\s+startInitialAction\(\)[\s\S]*?\n\s{4}\}/);
@@ -1147,7 +1147,7 @@ test('interactive GUI installers require explicit user confirmation before insta
   );
   assert.match(macInitMatch[0], /prepareInstallChoice\s*\(/);
   assert.match(macSrc, /#selector\(handleInstallClick\)/);
-  assert.match(macSrc, /closeBtn\s*=\s*NSButton\(\s*title:\s*(?:"取消"|InstallerI18n\.tr\("取消",\s*"Cancel"\))/);
+  assert.match(macSrc, /closeBtn\s*=\s*NSButton\(\s*title:\s*(?:"إلغاء"|InstallerI18n\.tr\("إلغاء",\s*"Cancel"\))/);
 });
 
 test('Windows InstallerForm configures 96-DPI AutoScaleDimensions with AutoScaleMode.Dpi and safe button margins (#28)', () => {
@@ -1744,10 +1744,10 @@ test('Windows C# installer & watcher bilingual i18n coverage: InstallerI18n cont
 
   // 1. Unified InstallerI18n engine contract
   assert.ok(cdpCs.includes('public static class InstallerI18n'));
-  assert.ok(cdpCs.includes('public static bool IsZhUi'));
+  assert.ok(cdpCs.includes('public static bool IsArUi'));
   assert.ok(cdpCs.includes('public static void SetPreferredLang(string lang)'));
-  assert.ok(cdpCs.includes('public static string Tr(string zh, string en)'));
-  assert.ok(cdpCs.includes('public static string TrFormat(string zhFormat, string enFormat, params object[] args)'));
+  assert.ok(cdpCs.includes('public static string Tr(string ar, string en)'));
+  assert.ok(cdpCs.includes('public static string TrFormat(string arFormat, string enFormat, params object[] args)'));
   assert.ok(cdpCs.includes('public static bool TryParseLangArg('));
   assert.ok(cdpCs.includes('AG_PRISM_LANG'));
   assert.ok(cdpCs.includes('CultureInfo.CurrentUICulture'));
@@ -1755,9 +1755,9 @@ test('Windows C# installer & watcher bilingual i18n coverage: InstallerI18n cont
   assert.ok(cdpCs.includes('GetCdpRelaunchPromptText()'));
 
   // 2. CLI --lang / --help & WinForms UseMnemonic safety
-  assert.ok(setupCs.includes('InstallerI18n.TryParseLangArg('), 'Setup ParseArgs must support --lang en|zh and --lang=en|zh');
+  assert.ok(setupCs.includes('InstallerI18n.TryParseLangArg('), 'Setup ParseArgs must support --lang en|ar and --lang=en|ar');
   assert.ok(setupCs.includes('BuildHelpText()'), 'Setup must provide bilingual --help output');
-  assert.ok(watcherCs.includes('InstallerI18n.TryParseLangArg('), 'Watcher Main must support --lang en|zh and --lang=en|zh');
+  assert.ok(watcherCs.includes('InstallerI18n.TryParseLangArg('), 'Watcher Main must support --lang en|ar and --lang=en|ar');
   assert.ok(watcherCs.includes('BuildHelpText()'), 'Watcher must provide bilingual --help output');
   assert.ok(setupCs.includes('_uninstallBtn.UseMnemonic = false;'), 'WinForms buttons with & must disable mnemonic prefix');
   assert.ok(setupCs.includes('_closeBtn.UseMnemonic = false;'), 'WinForms buttons with & must disable mnemonic prefix');
@@ -1783,11 +1783,11 @@ test('Windows C# installer & watcher bilingual i18n coverage: InstallerI18n cont
   // 4. Static audit: every non-comment CJK string literal in the 3 C# files must be inside InstallerI18n.Tr/TrFormat
   // (except explicit CJK keyword matching in IndexOf), and every Tr/TrFormat call must have a clean non-CJK English second arg.
   const allowedMatchKeywords = new Set([
-    '符号链接',
-    '重解析点',
-    '正由另一进程使用',
-    '拒绝访问',
-    '[✓] 已注入 obsidian-prism:',
+    'رابط رمزي',
+    'نقطة إعادة تحليل',
+    'قيد الاستخدام',
+    'تم رفض الوصول',
+    '[✓] تم حقن obsidian-prism:',
   ]);
 
   function stripCommentsPreserveLines(src) {
@@ -1995,7 +1995,7 @@ test(
           '    res["textEn"] = CdpHelper.GetCdpRelaunchPromptText();',
           '    Thread.CurrentThread.CurrentUICulture = new CultureInfo("ja-JP");',
           '    res["cultureJa"] = InstallerI18n.EffectiveLang;',
-          '    Thread.CurrentThread.CurrentUICulture = new CultureInfo("zh-CN");',
+          '    Thread.CurrentThread.CurrentUICulture = new CultureInfo("ar");',
           '    res["cultureZhCn"] = InstallerI18n.EffectiveLang;',
           '    res["captionZh"] = CdpHelper.GetCdpRelaunchPromptCaption();',
           '    res["textZh"] = CdpHelper.GetCdpRelaunchPromptText();',
@@ -2004,7 +2004,7 @@ test(
           '    Environment.SetEnvironmentVariable("AG_PRISM_LANG", "en");',
           '    res["envEnOverZh"] = InstallerI18n.EffectiveLang;',
           '    Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");',
-          '    Environment.SetEnvironmentVariable("AG_PRISM_LANG", "zh-CN");',
+          '    Environment.SetEnvironmentVariable("AG_PRISM_LANG", "ar");',
           '    res["envZhOverEn"] = InstallerI18n.EffectiveLang;',
           '    InstallerI18n.SetPreferredLang("en");',
           '    res["explicitEnOverEnvZh"] = InstallerI18n.EffectiveLang;',
@@ -2014,10 +2014,10 @@ test(
           '    string parsed1 = null, parsed2 = null;',
           '    string[] a1 = new string[] { "--lang", "en" }; int i1 = 0;',
           '    bool ok1 = InstallerI18n.TryParseLangArg(a1, ref i1, out parsed1);',
-          '    string[] a2 = new string[] { "--lang=zh-CN" }; int i2 = 0;',
+          '    string[] a2 = new string[] { "--lang=ar" }; int i2 = 0;',
           '    bool ok2 = InstallerI18n.TryParseLangArg(a2, ref i2, out parsed2);',
           '    res["parsePairOk"] = ok1 && i1 == 1 && parsed1 == "en";',
-          '    res["parseEqOk"] = ok2 && i2 == 0 && parsed2 == "zh-CN";',
+          '    res["parseEqOk"] = ok2 && i2 == 0 && parsed2 == "ar";',
           '    var widths = new Dictionary<string, object>(StringComparer.Ordinal);',
           '    widths["uninstallEn"] = MeasureNoPrefix("Uninstall & Reset", "Segoe UI", 9.5f, false);',
           '    widths["openDirEn"] = MeasureNoPrefix("Open Config Dir", "Segoe UI", 9.5f, false);',
@@ -2070,7 +2070,7 @@ test(
       assert.equal(/[\u4e00-\u9fa5]/.test(out.textEn), false);
       assert.ok(out.textEn.includes('--remote-debugging-port=0'));
       assert.ok(out.textEn.includes('Obsidian Prism'));
-      assert.ok(out.captionZh.includes('恢复界面连接'));
+      assert.ok(out.captionZh.includes('استعادة اتصال الواجهة'));
       assert.ok(out.textZh.includes('--remote-debugging-port=0'));
 
       // Verify English WinForms button labels fit comfortably inside 96-DPI button widths with >= 12px horizontal padding
@@ -2086,7 +2086,7 @@ test(
 );
 
 test(
-  'Windows installer.exe & watcher.exe E2E bilingual CLI (--lang en|zh, AG_PRISM_LANG, --help, English install/uninstall/watch.log) (#37)',
+  'Windows installer.exe & watcher.exe E2E bilingual CLI (--lang en|ar, AG_PRISM_LANG, --help, English install/uninstall/watch.log) (#37)',
   { skip: process.platform !== 'win32' ? 'Windows-only installer.exe bilingual E2E test' : false },
   async () => {
     const workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ag-prism-i18n-e2e-'));
@@ -2115,7 +2115,7 @@ test(
       assert.equal(/[\u4e00-\u9fa5]/.test(helpEn), false, `English --help must not contain CJK: ${helpEn}`);
       assert.ok(helpEn.includes('Obsidian Prism Installer for Windows'));
       assert.ok(helpEn.includes('--lang <zh|en>'));
-      assert.ok(helpZh.includes('黑曜棱镜') && helpZh.includes('--lang <zh|en>'));
+      assert.ok(helpZh.includes('أوبسيديان بريزم') && helpZh.includes('--lang <zh|en>'));
 
       // 2. Priority check via --status: CLI --lang overrides AG_PRISM_LANG
       await runExe(

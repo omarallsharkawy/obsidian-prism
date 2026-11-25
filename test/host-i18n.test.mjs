@@ -399,37 +399,37 @@ function createTestEnv(initialTime = 1000) {
   };
 }
 
-test('dictionary hygiene: vendor/host-i18n/zh-CN.json has 4763 exact + 405 patterns, zero private terms, compact JSON, and safe regexes', () => {
-  const dictPath = path.join(ROOT, 'vendor', 'host-i18n', 'zh-CN.json');
+test('dictionary hygiene: vendor/host-i18n/ar.json has 4762 exact + 405 patterns, zero private terms, compact JSON, and safe regexes', () => {
+  const dictPath = path.join(ROOT, 'vendor', 'host-i18n', 'ar.json');
   const raw = fs.readFileSync(dictPath, 'utf8');
-  assert.equal(raw.includes('\n  '), false, 'zh-CN.json must be compact JSON without pretty-print indentation');
+  assert.equal(raw.includes('\n  '), false, 'ar.json must be compact JSON without pretty-print indentation');
 
   const dict = JSON.parse(raw);
   const exactKeys = Object.keys(dict.exact || {});
-  assert.equal(exactKeys.length, 4763);
+  assert.equal(exactKeys.length, 4762);
   assert.equal((dict.patterns || []).length, 405);
-  assert.equal(dict.exact['Unlock the power of agent swarms.'], '解锁智能体 Swarm 协作的强大能力。');
+  assert.equal(dict.exact['Unlock the power of agent swarms.'], 'أطلق العنان لقوة أسراب الوكلاء (Swarm).');
   assert.ok(
     dict.exact["Live view of the native swarm board, roster and @mention graph for the current conversation's swarm."]?.includes('Swarm'),
     'Swarm sidecar description must be translated while preserving Swarm'
   );
   // Antigravity v2.35.0 upstream sync spot-checks (yiheng8023/antigravity-chinese v3.3.63)
-  assert.equal(dict.exact['Switch to RTL text direction'], '切换为从右到左的文字方向');
-  assert.equal(dict.exact['Select Environment'], '选择环境');
-  assert.equal(dict.exact['Clone from Remote'], '从远程克隆');
+  assert.equal(dict.exact['Switch to RTL text direction'], 'التبديل إلى اتجاه النص من اليمين إلى اليسار (RTL)');
+  assert.equal(dict.exact['Select Environment'], 'اختر البيئة');
+  assert.equal(dict.exact['Clone from Remote'], 'استنساخ من مصدر بعيد');
   assert.equal(
     dict.exact['Agent finished. Queued messages send after background work finishes.'],
-    '智能体已完成工作。后台工作结束后将发送排队消息。'
+    'انتهى الوكيل. ستُرسل الرسائل المنتظرة في القائمة بعد اكتمال العمل في الخلفية.'
   );
-  assert.equal(dict.exact['System UI'], '系统界面字体');
-  assert.equal(dict.exact['Prevent sleep'], '阻止系统休眠');
+  assert.equal(dict.exact['System UI'], 'واجهة النظام');
+  assert.equal(dict.exact['Prevent sleep'], 'منع وضع السكون');
 
   const eng = runtime.createHostI18nEngine(dict);
-  assert.equal(eng.translate('Select Sidebar Item 3'), '选择侧栏第 3 项');
-  assert.equal(eng.translate('Work locally on main'), '在 main 上本地工作');
-  assert.equal(eng.translate('3 of 8'), '第 3 轮（共 8 轮）');
+  assert.equal(eng.translate('Select Sidebar Item 3'), 'تحديد العنصر 3 في الشريط الجانبي');
+  assert.equal(eng.translate('Work locally on main'), 'العمل محلياً على main');
+  assert.equal(eng.translate('3 of 8'), '3 من 8');
   assert.equal(eng.translate('Created worker alpha'), null, 'Negative lookahead must keep Swarm "Created worker ..." untranslated');
-  assert.equal(eng.translate('Created 2026-11-24'), '创建于 2026-11-24');
+  assert.equal(eng.translate('Created 2026-11-24'), 'أُنشئ 2026-11-24');
 
   const privRe = /ema-persona|emoji_emma|C:\\Users\\Administrator|\/Users\/|\/home\/|\.hermes|obsidian-prism/i;
   for (const k of exactKeys) {
@@ -445,7 +445,7 @@ test('dictionary hygiene: vendor/host-i18n/zh-CN.json has 4763 exact + 405 patte
 
 test('runtime translates exact, pattern, attributes, multi-text merge, inline reorder, and destroy() restores 100% losslessly with zero DOM pollution', () => {
   const env = createTestEnv();
-  const dict = JSON.parse(fs.readFileSync(path.join(ROOT, 'vendor', 'host-i18n', 'zh-CN.json'), 'utf8'));
+  const dict = JSON.parse(fs.readFileSync(path.join(ROOT, 'vendor', 'host-i18n', 'ar.json'), 'utf8'));
 
   const navBtn = env.makeEl('button', {
     text: 'Settings',
@@ -485,13 +485,13 @@ test('runtime translates exact, pattern, attributes, multi-text merge, inline re
   assert.ok(st.translatedCount >= 5);
   assert.equal(env.doc.documentElement.getAttribute('data-ag-prism-host-i18n'), 'active');
 
-  assert.equal(navBtn.textContent, '设置');
-  assert.equal(navBtn.getAttribute('aria-label'), '设置');
-  assert.equal(navBtn.getAttribute('data-tooltip'), '设置');
-  assert.equal(patternDiv.textContent, '5 分钟前');
+  assert.equal(navBtn.textContent, 'الإعدادات');
+  assert.equal(navBtn.getAttribute('aria-label'), 'الإعدادات');
+  assert.equal(navBtn.getAttribute('data-tooltip'), 'الإعدادات');
+  assert.equal(patternDiv.textContent, 'منذ 5 دقيقة');
   assert.notEqual(multiTextDiv.textContent, 'All 3s run as Flash.');
-  assert.equal(i1.nodeValue, '在此项目中工作时，也包含');
-  assert.equal(i2.nodeValue, '。');
+  assert.equal(i1.nodeValue, 'يشمل أيضاً ');
+  assert.equal(i2.nodeValue, ' عند العمل في هذا المشروع.');
 
   // Verify zero private property pollution on DOM nodes
   for (const key of Object.keys(navBtn)) {
@@ -526,8 +526,8 @@ test('runtime translates exact, pattern, attributes, multi-text merge, inline re
   assert.equal(env.winListeners.get('blur:false')?.size || 0, 0);
 });
 
-test('Layer 1 auto-yield: known global flags, root attributes, and html[lang="zh-CN"]', () => {
-  const dict = { exact: { Settings: '设置' }, patterns: [] };
+test('Layer 1 auto-yield: known global flags, root attributes, and html[lang="ar"]', () => {
+  const dict = { exact: { Settings: 'الإعدادات' }, patterns: [] };
 
   for (const flag of ['__AGY_I18N_INITIALIZED__', '__ANTIGRAVITY_CN__', '__I18N_PATCHED__']) {
     const env = createTestEnv();
@@ -548,15 +548,15 @@ test('Layer 1 auto-yield: known global flags, root attributes, and html[lang="zh
     });
     assert.equal(inst.getStatus().status, 'yielded');
     assert.equal(inst.getStatus().yielded, true);
-    assert.equal(inst.getStatus().reason, 'external-ui-zh');
+    assert.equal(inst.getStatus().reason, 'external-ui-ar');
     assert.equal(env.observerInstances.length, 0, 'Must NOT mount MutationObserver when Layer 1 yields');
     assert.equal(btn.textContent, 'Settings');
     assert.equal(env.doc.documentElement.getAttribute('data-ag-prism-host-i18n'), 'yielded');
   }
 
-  // html[lang="zh-CN"]
+  // html[lang="ar"]
   const envLang = createTestEnv();
-  envLang.doc.documentElement.setAttribute('lang', 'zh-CN');
+  envLang.doc.documentElement.setAttribute('lang', 'ar');
   const btnLang = envLang.makeEl('button', { text: 'Settings' });
   envLang.doc.body.append(btnLang);
   const instLang = runtime.mountHostI18n({
@@ -566,20 +566,20 @@ test('Layer 1 auto-yield: known global flags, root attributes, and html[lang="zh
     mode: 'auto',
   });
   assert.equal(instLang.getStatus().status, 'yielded');
-  assert.equal(instLang.getStatus().reason, 'external-ui-zh');
+  assert.equal(instLang.getStatus().reason, 'external-ui-ar');
   assert.equal(envLang.observerInstances.length, 0);
 });
 
 test('Layer 2 zero-signature unknown external plugin auto-yield via Chrome UI sampling & anchor words', () => {
-  const dict = { exact: { Settings: '设置', Cancel: '取消', Save: '保存' }, patterns: [] };
+  const dict = { exact: { Settings: 'الإعدادات', Cancel: 'إلغاء', Save: 'حفظ' }, patterns: [] };
 
   // Case A: >= 3 Chrome UI controls in zh and >= 25% ratio (no global flags, no html[lang])
   const envA = createTestEnv();
   const nav = envA.makeEl('nav');
   nav.append(
-    envA.makeEl('button', { text: '偏好设置' }),
-    envA.makeEl('button', { text: '新建对话' }),
-    envA.makeEl('button', { text: '扩展管理' }),
+    envA.makeEl('button', { text: 'التفضيلات' }),
+    envA.makeEl('button', { text: 'محادثة جديدة' }),
+    envA.makeEl('button', { text: 'إدارة الإضافات' }),
     envA.makeEl('button', { text: 'Save' }),
     envA.makeEl('button', { text: 'Cancel' })
   );
@@ -600,26 +600,26 @@ test('Layer 2 zero-signature unknown external plugin auto-yield via Chrome UI sa
     clearTimeoutFn: envA.clearTimeoutFn,
   });
   assert.equal(instA.getStatus().status, 'yielded');
-  assert.equal(instA.getStatus().reason, 'external-ui-zh');
+  assert.equal(instA.getStatus().reason, 'external-ui-ar');
   assert.equal(envA.observerInstances.length, 0);
 
   // Case B: >= 2 anchor words hit directly even with many English buttons
   const envB = createTestEnv();
   const aside = envB.makeEl('aside');
-  aside.append(envB.makeEl('button', { text: '设置' }), envB.makeEl('button', { text: '工作区' }));
+  aside.append(envB.makeEl('button', { text: 'الإعدادات' }), envB.makeEl('button', { text: 'مساحة العمل' }));
   for (let i = 0; i < 12; i++) {
     aside.append(envB.makeEl('button', { text: `Workspace Item ${i}` }));
   }
   envB.doc.body.append(aside);
   const instB = runtime.mountHostI18n({ root: envB.win, doc: envB.doc, dict, mode: 'auto' });
   assert.equal(instB.getStatus().status, 'yielded');
-  assert.equal(instB.getStatus().reason, 'external-ui-zh');
+  assert.equal(instB.getStatus().reason, 'external-ui-ar');
 
   // Case C: Only 1 Chinese user-name button & rest English -> must NOT false-trigger yield
   const envC = createTestEnv();
   const header = envC.makeEl('header');
   header.append(
-    envC.makeEl('button', { text: '张三' }),
+    envC.makeEl('button', { text: 'أحمد' }),
     envC.makeEl('button', { text: 'Settings' }),
     envC.makeEl('button', { text: 'Save' }),
     envC.makeEl('button', { text: 'Cancel' })
@@ -637,13 +637,13 @@ test('Layer 2 zero-signature unknown external plugin auto-yield via Chrome UI sa
     cancelRafFn: envC.cancelRafFn,
   });
   assert.equal(instC.getStatus().status, 'active');
-  assert.equal(header.children[1].textContent, '设置');
+  assert.equal(header.children[1].textContent, 'الإعدادات');
   instC.destroy();
 });
 
 test('Layer 2b delayed external plugin within 1200ms triggers auto-yield and lossless rollback', () => {
   const env = createTestEnv(1000);
-  const dict = { exact: { Settings: '设置', Save: '保存' }, patterns: [] };
+  const dict = { exact: { Settings: 'الإعدادات', Save: 'حفظ' }, patterns: [] };
 
   const btn1 = env.makeEl('button', { text: 'Settings' });
   const btn2 = env.makeEl('button', { text: 'File' });
@@ -662,36 +662,36 @@ test('Layer 2b delayed external plugin within 1200ms triggers auto-yield and los
     cancelRafFn: env.cancelRafFn,
   });
   assert.equal(inst.getStatus().status, 'active');
-  assert.equal(btn1.textContent, '设置');
+  assert.equal(btn1.textContent, 'الإعدادات');
 
   // External plugin boots 300ms later and writes Chinese to host chrome nodes
   env.advanceTime(300);
-  btn2.firstChild.nodeValue = '文件';
-  btn3.firstChild.nodeValue = '编辑';
+  btn2.firstChild.nodeValue = 'ملف';
+  btn3.firstChild.nodeValue = 'تحرير';
   env.flushObservers();
 
   const st = inst.getStatus();
   assert.equal(st.status, 'yielded');
-  assert.equal(st.reason, 'external-ui-zh');
+  assert.equal(st.reason, 'external-ui-ar');
   assert.equal(st.active, false);
   // Our translated btn1 must be rolled back to its original English!
   assert.equal(btn1.textContent, 'Settings');
   // External plugin's nodes remain untouched
-  assert.equal(btn2.textContent, '文件');
-  assert.equal(btn3.textContent, '编辑');
+  assert.equal(btn2.textContent, 'ملف');
+  assert.equal(btn3.textContent, 'تحرير');
 });
 
 test('Layer 3 Ping-Pong Circuit Breaker: single-node >= 3 conflicts exempts node; global >= 5 nodes triggers conflict-breaker destroy()', () => {
   const env = createTestEnv(5000);
   const dict = {
     exact: {
-      Settings: '设置',
-      Save: '保存',
-      Cancel: '取消',
-      Open: '打开',
-      Close: '关闭',
-      Copy: '复制',
-      Delete: '删除',
+      Settings: 'الإعدادات',
+      Save: 'حفظ',
+      Cancel: 'إلغاء',
+      Open: 'فتح',
+      Close: 'إغلاق',
+      Copy: 'نسخ',
+      Delete: 'حذف',
     },
     patterns: [],
   };
@@ -714,15 +714,15 @@ test('Layer 3 Ping-Pong Circuit Breaker: single-node >= 3 conflicts exempts node
     cancelRafFn: env.cancelRafFn,
   });
   assert.equal(inst.getStatus().status, 'active');
-  assert.equal(nodes[0].textContent, '设置');
+  assert.equal(nodes[0].textContent, 'الإعدادات');
 
   // Normal React update (Settings -> Saved? use Cancel) must NOT count as conflict
   nodes[6].firstChild.nodeValue = 'Save';
   env.advanceTime(50);
-  assert.equal(nodes[6].textContent, '保存');
+  assert.equal(nodes[6].textContent, 'حفظ');
   assert.equal(inst.getStatus().status, 'active');
 
-  // Single-node ping-pong 3 times on nodes[0]: external keeps reverting '设置' -> 'Settings'
+  // Single-node ping-pong 3 times on nodes[0]: external keeps reverting 'الإعدادات' -> 'Settings'
   for (let i = 0; i < 3; i++) {
     nodes[0].firstChild.nodeValue = 'Settings';
     env.advanceTime(100);
@@ -744,13 +744,12 @@ test('Layer 3 Ping-Pong Circuit Breaker: single-node >= 3 conflicts exempts node
   assert.equal(finalSt.reason, 'conflict-breaker');
   assert.equal(finalSt.active, false);
   assert.equal(env.doc.documentElement.getAttribute('data-ag-prism-host-i18n'), 'yielded');
-  // Remaining unaffected nodes like nodes[5] ('Copy' -> '复制') must be cleanly restored to original!
   assert.equal(nodes[5].textContent, 'Copy');
 });
 
 test('strict isolation boundaries: Prism UI, code/editors, inputs, model selector, and chat prose remain untouched', () => {
   const env = createTestEnv();
-  const dict = { exact: { Settings: '设置', Save: '保存', Auto: '自动', Copy: '复制' }, patterns: [] };
+  const dict = { exact: { Settings: 'الإعدادات', Save: 'حفظ', Auto: 'تلقائي', Copy: 'نسخ' }, patterns: [] };
 
   const prismSec = env.makeEl('div', { id: 'ag-cs-settings-sec' });
   prismSec.append(env.makeEl('button', { text: 'Settings' }));
@@ -807,7 +806,7 @@ test('strict isolation boundaries: Prism UI, code/editors, inputs, model selecto
   assert.equal(effortEl.textContent, 'Settings');
   assert.equal(chatProse.textContent, 'Settings');
   assert.equal(chatPara.textContent, 'Settings');
-  assert.equal(chatBtn.textContent, '复制', 'Interactive host action button in conversation chrome still translates');
+  assert.equal(chatBtn.textContent, 'نسخ', 'Interactive host action button in conversation chrome still translates');
 
   inst.destroy();
   assert.equal(chatBtn.textContent, 'Copy');
@@ -815,7 +814,7 @@ test('strict isolation boundaries: Prism UI, code/editors, inputs, model selecto
 
 test('0fps hibernation on document.hidden / window blur and resume scan on focus', () => {
   const env = createTestEnv(1000);
-  const dict = { exact: { Settings: '设置', Save: '保存' }, patterns: [] };
+  const dict = { exact: { Settings: 'الإعدادات', Save: 'حفظ' }, patterns: [] };
 
   const btn1 = env.makeEl('button', { text: 'Settings' });
   env.doc.body.append(btn1);
@@ -831,7 +830,7 @@ test('0fps hibernation on document.hidden / window blur and resume scan on focus
     rafFn: env.rafFn,
     cancelRafFn: env.cancelRafFn,
   });
-  assert.equal(btn1.textContent, '设置');
+  assert.equal(btn1.textContent, 'الإعدادات');
 
   // Hide document -> subsequent mutations must NOT schedule rAF
   env.doc.hidden = true;
@@ -844,7 +843,7 @@ test('0fps hibernation on document.hidden / window blur and resume scan on focus
   // Restore visibility -> automatically catches up
   env.doc.hidden = false;
   env.doc.dispatchEvent({ type: 'visibilitychange' });
-  assert.equal(btn2.textContent, '保存');
+  assert.equal(btn2.textContent, 'حفظ');
 
   // Window blur -> pause, focus -> resume
   env.win.dispatchEvent({ type: 'blur' });
@@ -853,7 +852,7 @@ test('0fps hibernation on document.hidden / window blur and resume scan on focus
   env.advanceTime(100);
   assert.equal(btn3.textContent, 'Settings');
   env.win.dispatchEvent({ type: 'focus' });
-  assert.equal(btn3.textContent, '设置');
+  assert.equal(btn3.textContent, 'الإعدادات');
 
   inst.destroy();
 });
@@ -864,28 +863,28 @@ test('Channel 4 isolation: main bundle < 690 KiB without dict, shouldEnableHostI
   assert.ok(mainBytes <= 704000, `Main bundle must stay <= 704,000 B, got ${mainBytes}`);
   assert.ok(mainBytes < 690 * 1024, `Main bundle must stay < 690 KiB, got ${mainBytes}`);
   assert.equal(mainExpr.includes('mountHostI18n'), false, 'Main bundle must NOT contain Channel 4 runtime');
-  assert.equal(mainExpr.includes('浏览器子智能体已被您的管理员禁用'), false, 'Main bundle must NOT contain zh-CN.json entries');
+  assert.equal(mainExpr.includes('تم تعطيل وكيل المتصفح الفرعي بواسطة المشرف'), false, 'Main bundle must NOT contain zh-CN.json entries');
 
   assert.equal(cdp.DEFAULT_CONFIG.hostLocalization, 'auto');
   assert.deepEqual(cdp.VALIDATORS.hostLocalization, ['auto', 'on', 'off']);
 
-  assert.equal(cdp.shouldEnableHostI18n({ hostLocalization: 'off', language: 'zh-CN' }), true);
+  assert.equal(cdp.shouldEnableHostI18n({ hostLocalization: 'off', language: 'ar' }), true);
   assert.equal(cdp.shouldEnableHostI18n({ hostLocalization: 'off', language: 'en' }), true);
   assert.equal(cdp.shouldEnableHostI18n({ hostLocalization: 'on', language: 'en' }), true);
-  assert.equal(cdp.shouldEnableHostI18n({ hostLocalization: 'auto', language: 'zh-CN' }), true);
+  assert.equal(cdp.shouldEnableHostI18n({ hostLocalization: 'auto', language: 'ar' }), true);
   assert.equal(cdp.shouldEnableHostI18n({ hostLocalization: 'auto', language: 'en' }), false);
   assert.equal(cdp.shouldEnableHostI18n({ hostLocalization: 'auto', language: 'zh-TW' }), false);
-  assert.equal(cdp.shouldEnableHostI18n({ hostLocalization: 'auto', language: 'auto' }, 'zh-CN'), true);
+  assert.equal(cdp.shouldEnableHostI18n({ hostLocalization: 'auto', language: 'auto' }, 'ar'), true);
   assert.equal(cdp.shouldEnableHostI18n({ hostLocalization: 'auto', language: 'auto' }, 'en-US'), false);
 
-  const offExpr = cdp.buildHostI18nExpression({ hostLocalization: 'off', language: 'zh-CN' });
+  const offExpr = cdp.buildHostI18nExpression({ hostLocalization: 'off', language: 'ar' });
   assert.ok(Buffer.byteLength(offExpr, 'utf8') > 100000, 'off mode must mount Channel 4 for reverse English restore');
   assert.doesNotThrow(() => new vm.Script(offExpr));
   assert.equal(cdp.buildHostI18nExpression({ hostLocalization: 'auto', language: 'en' }), '');
   assert.equal(cdp.buildHostI18nExpression({ hostLocalization: 'auto', language: 'zh-TW' }), '');
   assert.equal(cdp.buildHostI18nExpression({ hostLocalization: 'auto', language: 'auto' }, 'en-US'), '');
 
-  const ch4Expr = cdp.buildHostI18nExpression({ hostLocalization: 'auto', language: 'zh-CN' });
+  const ch4Expr = cdp.buildHostI18nExpression({ hostLocalization: 'auto', language: 'ar' });
   assert.ok(Buffer.byteLength(ch4Expr, 'utf8') > 100000);
   assert.doesNotThrow(() => new vm.Script(ch4Expr));
   assert.doesNotThrow(() => new vm.Script(cdp.HOST_I18N_REMOVE_EXPRESSION));
@@ -908,7 +907,7 @@ test('Channel 4 isolation: main bundle < 690 KiB without dict, shouldEnableHostI
   const res = vm.runInNewContext(ch4Expr, sandbox);
   assert.equal(res.ok, true);
   assert.equal(res.status, 'active');
-  assert.equal(btn.textContent, '设置');
+  assert.equal(btn.textContent, 'الإعدادات');
 
   // Remove expression restores DOM cleanly
   vm.runInNewContext(cdp.HOST_I18N_REMOVE_EXPRESSION, sandbox);
@@ -932,11 +931,11 @@ test('settings-panel renders hostLocalization 3-state control and displays yield
   try {
     settingsPanel.mountOrSyncSettingsSection({
       version: '1.0.4',
-      getLang: () => 'zh-CN',
+      getLang: () => 'ar',
       uiText: (l) => i18nLocales.getUiStrings(l),
       isZh: () => true,
       i18nCore,
-      formatSettingsSummary: () => 'Obsidian · 白昼冷晶 · 完整',
+      formatSettingsSummary: () => 'Obsidian · كريستال نهاري · كامل',
       resolveSettingRowActiveValue: (k) => (k === 'hostLocalization' ? 'auto' : undefined),
       isSettingButtonMatch: (k, vJson, cur) => vJson === JSON.stringify(cur),
       saveSetting: (k, v) => saved.push([k, v]),
@@ -954,7 +953,7 @@ test('settings-panel renders hostLocalization 3-state control and displays yield
   const row = env.doc.querySelector('[data-ag-cs-row="hostLocalization"]');
   assert.ok(row, 'hostLocalization row must be rendered in settings-panel');
   const desc = row.querySelector('[data-k="d"]');
-  assert.equal(desc.textContent, '已检测外部汉化并自动礼让', `Expected yielded hint, got: ${desc.textContent}`);
+  assert.equal(desc.textContent, 'تم اكتشاف إضافة تعريب خارجية — تم التنازل تلقائياً', `Expected yielded hint, got: ${desc.textContent}`);
   const buttons = row.querySelectorAll('button[data-ag-cs-key="hostLocalization"]');
   assert.equal(buttons.length, 3);
   assert.deepEqual(
@@ -965,17 +964,17 @@ test('settings-panel renders hostLocalization 3-state control and displays yield
 });
 
 
-test('[P0-1] shouldEnableHostI18n resolves LANG=zh_CN.UTF-8 and skips LC_ALL=C.UTF-8 / POSIX fallback', () => {
+test('[P0-1] shouldEnableHostI18n resolves LANG=ar_EG.UTF-8 and skips LC_ALL=C.UTF-8 / POSIX fallback', () => {
   const prevLcAll = process.env.LC_ALL;
   const prevLcMsg = process.env.LC_MESSAGES;
   const prevLang = process.env.LANG;
   try {
     process.env.LC_ALL = '';
     process.env.LC_MESSAGES = '';
-    process.env.LANG = 'zh_CN.UTF-8';
+    process.env.LANG = 'ar_EG.UTF-8';
     assert.equal(cdp.shouldEnableHostI18n({ hostLocalization: 'auto', language: 'auto' }), true);
 
-    process.env.LANG = 'zh_CN.utf8@hans';
+    process.env.LANG = 'ar_EG.utf8@hans';
     assert.equal(cdp.shouldEnableHostI18n({ hostLocalization: 'auto', language: 'auto' }), true);
 
     process.env.LANG = 'en_US.UTF-8';
@@ -984,7 +983,7 @@ test('[P0-1] shouldEnableHostI18n resolves LANG=zh_CN.UTF-8 and skips LC_ALL=C.U
     // LC_ALL=C.UTF-8 must be ignored so Intl fallback or LANG isn't poisoned by POSIX C locale
     const origIntl = Intl.DateTimeFormat;
     Intl.DateTimeFormat = function () {
-      return { resolvedOptions: () => ({ locale: 'zh-CN' }) };
+      return { resolvedOptions: () => ({ locale: 'ar' }) };
     };
     cdp._setWindowsUiLocaleReaderForTest(() => '');
     try {
@@ -997,7 +996,7 @@ test('[P0-1] shouldEnableHostI18n resolves LANG=zh_CN.UTF-8 and skips LC_ALL=C.U
       cdp._setWindowsUiLocaleReaderForTest(null);
     }
 
-    assert.equal(cdp.shouldEnableHostI18n({ hostLocalization: 'auto', language: 'auto' }, 'zh_CN.UTF-8'), true);
+    assert.equal(cdp.shouldEnableHostI18n({ hostLocalization: 'auto', language: 'auto' }, 'ar_EG.UTF-8'), true);
     assert.equal(cdp.shouldEnableHostI18n({ hostLocalization: 'auto', language: 'auto' }, 'C.UTF-8'), false);
   } finally {
     if (prevLcAll === undefined) delete process.env.LC_ALL; else process.env.LC_ALL = prevLcAll;
@@ -1018,7 +1017,7 @@ test('[PR #50] Windows UI Display Language overrides Intl regional format, prese
 
     // Case 1: Windows Display Language is en-US while Regional Format (Intl) is zh-CN -> auto must NOT enable zh-CN host-i18n
     Intl.DateTimeFormat = function () {
-      return { resolvedOptions: () => ({ locale: 'zh-CN' }) };
+      return { resolvedOptions: () => ({ locale: 'ar' }) };
     };
     cdp._setWindowsUiLocaleReaderForTest(() => 'en-US');
     assert.equal(cdp.readWindowsPreferredUiLanguage(), 'en-US');
@@ -1033,17 +1032,17 @@ test('[PR #50] Windows UI Display Language overrides Intl regional format, prese
     assert.equal(copyEn.relaunchBtn, 'Relaunch Now');
     assert.equal(/[\u4e00-\u9fa5]/.test(copyEn.body), false);
 
-    // Case 2: Windows Display Language is zh-Hans-CN while Intl is en-US -> enables zh-CN host-i18n and Chinese relaunch prompt
+    // Case 2: Windows Display Language is ar-SA while Intl is en-US -> enables zh-CN host-i18n and Chinese relaunch prompt
     Intl.DateTimeFormat = function () {
       return { resolvedOptions: () => ({ locale: 'en-US' }) };
     };
-    cdp._setWindowsUiLocaleReaderForTest(() => 'zh-Hans-CN');
-    assert.equal(cdp.readWindowsPreferredUiLanguage(), 'zh-Hans-CN');
-    assert.equal(cdp.detectSystemUiLocale(), 'zh-Hans-CN');
-    assert.equal(cdp.resolveSystemLangNode(), 'zh-CN');
+    cdp._setWindowsUiLocaleReaderForTest(() => 'ar-SA');
+    assert.equal(cdp.readWindowsPreferredUiLanguage(), 'ar-SA');
+    assert.equal(cdp.detectSystemUiLocale(), 'ar-SA');
+    assert.equal(cdp.resolveSystemLangNode(), 'ar');
     assert.equal(cdp.shouldEnableHostI18n({ hostLocalization: 'auto', language: 'auto' }), true);
     const copyZh = cdp.buildRelaunchDialogCopy('auto');
-    assert.equal(copyZh.relaunchBtn, '立即重开');
+    assert.equal(copyZh.relaunchBtn, 'إعادة التشغيل الآن');
 
     // Case 3: buildConfigRefreshExpression honors navigator.languages[0] for auto non-zh destroy() AND preserves setMode('off')
     const runRefresh = (cfg, nav) => {
@@ -1084,12 +1083,12 @@ test('[PR #50] Windows UI Display Language overrides Intl regional format, prese
       'hostLocalization="off" must invoke setMode("off"), never destroy()'
     );
     assert.deepEqual(
-      runRefresh({ ...cdp.DEFAULT_CONFIG, hostLocalization: 'auto', language: 'auto' }, { language: 'zh-CN', languages: ['en-US', 'zh-CN'] }),
+      runRefresh({ ...cdp.DEFAULT_CONFIG, hostLocalization: 'auto', language: 'auto' }, { language: 'ar', languages: ['en-US', 'ar'] }),
       [['destroy']],
       'auto mode must prioritize navigator.languages[0] and gracefully destroy() hostI18n on non-zh UI'
     );
     assert.deepEqual(
-      runRefresh({ ...cdp.DEFAULT_CONFIG, hostLocalization: 'auto', language: 'auto' }, { language: 'en-US', languages: ['zh-CN', 'en-US'] }),
+      runRefresh({ ...cdp.DEFAULT_CONFIG, hostLocalization: 'auto', language: 'auto' }, { language: 'en-US', languages: ['ar', 'en-US'] }),
       [['setMode', 'auto']],
       'auto mode with zh-CN primary navigator.languages[0] keeps setMode("auto")'
     );
@@ -1219,7 +1218,7 @@ test('[PR #50] Windows UI Display Language overrides Intl regional format, prese
 });
 
 test('[P0-2 & P1-2] buildHostI18nExpression skips subframes, foreign http localhost without DOM markers, and live localStorage English override', () => {
-  const ch4Expr = cdp.buildHostI18nExpression({ hostLocalization: 'auto', language: 'zh-CN' });
+  const ch4Expr = cdp.buildHostI18nExpression({ hostLocalization: 'auto', language: 'ar' });
 
   // Subframe guard: window.self !== window.top
   const subEnv = createTestEnv();
@@ -1288,36 +1287,35 @@ test('[P0-2 & P1-2] buildHostI18nExpression skips subframes, foreign http localh
   assert.equal(liveEnEnv.win.__agPrismHostI18nFactory, undefined);
 
   // buildConfigRefreshExpression includes immediate __agPrismHostI18n destroy on off
-  const refreshExpr = cdp.buildConfigRefreshExpression({ hostLocalization: 'off', language: 'zh-CN' });
+  const refreshExpr = cdp.buildConfigRefreshExpression({ hostLocalization: 'off', language: 'ar' });
   assert.ok(refreshExpr.includes('__agPrismHostI18n'));
 });
 
 test('[P0-3] sidebar Chinese history titles, project names, editor tabs, title tag, and sidebar-split do NOT false-yield Layer 2a/2b', () => {
   const env = createTestEnv(1000);
-  const dict = { exact: { Settings: '设置', Save: '保存', Cancel: '取消' }, patterns: [] };
+  const dict = { exact: { Settings: 'الإعدادات', Save: 'حفظ', Cancel: 'إلغاء' }, patterns: [] };
 
-  const titleEl = env.makeEl('title', { text: '修复前端架构问题 - Antigravity' });
+  const titleEl = env.makeEl('title', { text: 'إصلاح بنية الواجهة - Antigravity' });
   env.doc.head.append(titleEl);
 
   const split = env.makeEl('div', { attrs: { 'data-testid': 'sidebar-split' } });
   const sidebar = env.makeEl('aside');
-  const projBtn = env.makeEl('button', { attrs: { 'data-testid': 'project-header' }, text: '我的中文项目' });
-  const wsSwitch = env.makeEl('button', { attrs: { 'data-testid': 'workspace-switcher' }, text: '测试工作区' });
+  const projBtn = env.makeEl('button', { attrs: { 'data-testid': 'project-header' }, text: 'مشروعي العربي' });
+  const wsSwitch = env.makeEl('button', { attrs: { 'data-testid': 'workspace-switcher' }, text: 'مساحة العمل التجريبية' });
   const convList = env.makeEl('div', { attrs: { 'data-testid': 'conversation-list-sidebar' } });
-  for (const t of ['修复登录逻辑', '优化构建性能', '重构路由系统', '自动模型测试', '账号权限校验']) {
+  for (const t of ['إصلاح تسجيل الدخول', 'تحسين أداء البناء', 'إعادة تنظيم المسارات', 'اختبار النماذج تلقائيًا', 'التحقق من الأذونات']) {
     convList.append(env.makeEl('button', { attrs: { 'data-testid': 'conversation-row-sidebar' }, text: t }));
   }
   const navBtn = env.makeEl('button', { text: 'Settings' });
   const saveBtn = env.makeEl('button', { text: 'Save' });
   const cancelBtn = env.makeEl('button', { text: 'Cancel' });
-  // Generic Chinese words containing "模型"/"自动"/"账号" must not trigger exact anchor false-positives
-  const userTagBtn = env.makeEl('button', { text: '模型测试记录' });
-  const userAutoBtn = env.makeEl('button', { text: '自动生成的标题' });
+  const userTagBtn = env.makeEl('button', { text: 'سجل اختبار النماذج' });
+  const userAutoBtn = env.makeEl('button', { text: 'عنوان مولّد تلقائيًا' });
   sidebar.append(projBtn, wsSwitch, convList, navBtn, saveBtn, cancelBtn, userTagBtn, userAutoBtn);
 
   const tabs = env.makeEl('div', { className: 'tabs-container' });
-  tabs.append(env.makeEl('div', { className: 'tab-label', text: '设计文档.md' }));
-  tabs.append(env.makeEl('div', { className: 'tab-label', text: '架构说明.md' }));
+  tabs.append(env.makeEl('div', { className: 'tab-label', text: 'التصميم.md' }));
+  tabs.append(env.makeEl('div', { className: 'tab-label', text: 'البنية.md' }));
 
   split.append(sidebar, tabs);
   env.doc.body.append(split);
@@ -1335,15 +1333,15 @@ test('[P0-3] sidebar Chinese history titles, project names, editor tabs, title t
   });
 
   assert.equal(inst.getStatus().status, 'active', 'Must NOT yield due to Chinese sidebar/project/tabs');
-  assert.equal(navBtn.textContent, '设置');
-  assert.equal(saveBtn.textContent, '保存');
-  assert.equal(projBtn.textContent, '我的中文项目');
-  assert.equal(titleEl.textContent, '修复前端架构问题 - Antigravity');
+  assert.equal(navBtn.textContent, 'الإعدادات');
+  assert.equal(saveBtn.textContent, 'حفظ');
+  assert.equal(projBtn.textContent, 'مشروعي العربي');
+  assert.equal(titleEl.textContent, 'إصلاح بنية الواجهة - Antigravity');
 
   // Layer 2b: async loaded Chinese conversation rows within 1200ms must NOT trigger yield!
   env.advanceTime(250);
-  const asyncRow1 = env.makeEl('button', { attrs: { 'data-testid': 'conversation-row-sidebar' }, text: '异步加载的中文历史会话一' });
-  const asyncRow2 = env.makeEl('button', { attrs: { 'data-testid': 'conversation-row-sidebar' }, text: '异步加载的中文历史会话二' });
+  const asyncRow1 = env.makeEl('button', { attrs: { 'data-testid': 'conversation-row-sidebar' }, text: 'المحادثة المؤرشفة الأولى' });
+  const asyncRow2 = env.makeEl('button', { attrs: { 'data-testid': 'conversation-row-sidebar' }, text: 'المحادثة المؤرشفة الثانية' });
   convList.append(asyncRow1, asyncRow2);
   env.advanceTime(100);
   assert.equal(inst.getStatus().status, 'active', 'Layer 2b must ignore async conversation rows');
@@ -1353,7 +1351,7 @@ test('[P0-3] sidebar Chinese history titles, project names, editor tabs, title t
 
 test('[P0-4] detached nodes are pruned from WeakRef trackers and excluded from translatedCount', () => {
   const env = createTestEnv(1000);
-  const dict = { exact: { Settings: '设置', Save: '保存', Cancel: '取消' }, patterns: [] };
+  const dict = { exact: { Settings: 'الإعدادات', Save: 'حفظ', Cancel: 'إلغاء' }, patterns: [] };
 
   const buttons = [];
   for (let i = 0; i < 10; i++) {
@@ -1390,7 +1388,7 @@ test('[P0-4] detached nodes are pruned from WeakRef trackers and excluded from t
   env.doc.body.append(detachedBtn, liveBtn);
   env.advanceTime(50);
   assert.equal(detachedBtn.textContent, 'Save');
-  assert.equal(liveBtn.textContent, '取消');
+  assert.equal(liveBtn.textContent, 'إلغاء');
   assert.equal(inst.getStatus().translatedCount, 5);
 
   inst.destroy();
@@ -1398,7 +1396,7 @@ test('[P0-4] detached nodes are pruned from WeakRef trackers and excluded from t
 
 test('[P0-5] React 19 multi-HostText interpolation updates cleanly without tearing sibling text nodes', () => {
   const env = createTestEnv(1000);
-  const dict = JSON.parse(fs.readFileSync(path.join(ROOT, 'vendor', 'host-i18n', 'zh-CN.json'), 'utf8'));
+  const dict = JSON.parse(fs.readFileSync(path.join(ROOT, 'vendor', 'host-i18n', 'ar.json'), 'utf8'));
 
   // Sibling interpolation: "All " + "3" + "s run as Flash."
   const flashDiv = env.makeEl('div');
@@ -1440,7 +1438,7 @@ test('[P0-5] React 19 multi-HostText interpolation updates cleanly without teari
   assert.equal(f2.nodeValue, '5');
   assert.equal(r2.nodeValue, '4');
   assert.ok(flashDiv.textContent.includes('5'), `Expected 5 in ${flashDiv.textContent}`);
-  assert.ok(!resetDiv.textContent.includes('5 分钟后重置4'), `Must not tear into "5 分钟后重置4", got: ${resetDiv.textContent}`);
+  assert.ok(!resetDiv.textContent.includes('يعاد الضبط خلال 5 دقيقة4'), `Must not tear into "يعاد الضبط خلال 5 دقيقة4", got: ${resetDiv.textContent}`);
 
   inst.destroy();
   assert.equal(f1.nodeValue, 'All ');
@@ -1451,7 +1449,7 @@ test('[P0-5] React 19 multi-HostText interpolation updates cleanly without teari
 test('[P1-A] Layer 3 handles childList (textContent) ping-pong and ignores single 5-button React refresh', () => {
   const env = createTestEnv(5000);
   const dict = {
-    exact: { Settings: '设置', Save: '保存', Cancel: '取消', Open: '打开', Close: '关闭', Copy: '复制' },
+    exact: { Settings: 'الإعدادات', Save: 'حفظ', Cancel: 'إلغاء', Open: 'فتح', Close: 'إغلاق', Copy: 'نسخ' },
     patterns: [],
   };
 
@@ -1477,7 +1475,7 @@ test('[P1-A] Layer 3 handles childList (textContent) ping-pong and ignores singl
   }
   env.advanceTime(50);
   assert.equal(inst.getStatus().status, 'active', 'Single refresh of 5 buttons must NOT trip conflict-breaker');
-  assert.equal(buttons[0].textContent, '设置');
+  assert.equal(buttons[0].textContent, 'الإعدادات');
 
   // Genuine childList (textContent) ping-pong 3 times on buttons[0] -> exempts buttons[0] without killing others
   for (let r = 0; r < 2; r++) {
@@ -1486,14 +1484,14 @@ test('[P1-A] Layer 3 handles childList (textContent) ping-pong and ignores singl
   }
   assert.equal(inst.getStatus().status, 'active');
   assert.equal(buttons[0].textContent, 'Settings', '3-time childList ping-pong must exempt element');
-  assert.equal(buttons[5].textContent, '复制');
+  assert.equal(buttons[5].textContent, 'نسخ');
 
   inst.destroy();
 });
 
 test('[P1-B] expanded safety boundaries block pills, thinking trigger, orchestrator selector, ces-/ag-anim-, and deep >128 trees', () => {
   const env = createTestEnv();
-  const dict = { exact: { Settings: '设置', Save: '保存', Copy: '复制', Auto: '自动' }, patterns: [] };
+  const dict = { exact: { Settings: 'الإعدادات', Save: 'حفظ', Copy: 'نسخ', Auto: 'تلقائي' }, patterns: [] };
 
   const convView = env.makeEl('div', { attrs: { 'data-testid': 'conversation-view' } });
   const pillBtn = env.makeEl('button', { attrs: { 'data-testid': 'entity-pill' }, text: 'Settings' });
@@ -1530,14 +1528,14 @@ test('[P1-B] expanded safety boundaries block pills, thinking trigger, orchestra
   assert.equal(cesBox.textContent, 'Settings');
   assert.equal(animBox.textContent, 'Save');
   assert.equal(deepLeaf.textContent, 'Settings', '>128 depth must Fail-Closed');
-  assert.equal(realChromeBtn.textContent, '复制');
+  assert.equal(realChromeBtn.textContent, 'نسخ');
 
   inst.destroy();
 });
 
 test('[P1-C, P1-D, P1-E, P1-F] hover trailing tooltip, post-1200ms observer hibernation, yielded destroy(), and attribute dynamic switch', () => {
   const env = createTestEnv(1000);
-  const dict = { exact: { Settings: '设置', Save: '保存', Expand: '展开', Collapse: '收起', Copy: '复制' }, patterns: [] };
+  const dict = { exact: { Settings: 'الإعدادات', Save: 'حفظ', Expand: 'توسيع', Collapse: 'إظهار أقل', Copy: 'نسخ' }, patterns: [] };
 
   const rootApp = env.makeEl('div', { id: 'root' });
   const bigParent = env.makeEl('div');
@@ -1559,10 +1557,9 @@ test('[P1-C, P1-D, P1-E, P1-F] hover trailing tooltip, post-1200ms observer hibe
     cancelRafFn: env.cancelRafFn,
   });
 
-  // [P1-F] Host dynamically changes attribute from 'Expand' (translated '展开') to 'Collapse' -> '收起'
   hoverBtn.setAttribute('aria-label', 'Collapse');
   inst.scan();
-  assert.equal(hoverBtn.getAttribute('aria-label'), '收起');
+  assert.equal(hoverBtn.getAttribute('aria-label'), 'إظهار أقل');
 
   // [P1-C] Rapid hover within 120ms schedules trailing timer for delayed tooltip
   env.doc.dispatchEvent({ type: 'pointerenter', target: hoverBtn });
@@ -1571,7 +1568,7 @@ test('[P1-C, P1-D, P1-E, P1-F] hover trailing tooltip, post-1200ms observer hibe
   env.doc.body.append(tooltip);
   env.doc.dispatchEvent({ type: 'pointerenter', target: hoverBtn });
   env.advanceTime(200);
-  assert.equal(tooltip.textContent, '复制', 'Trailing hover timer must translate delayed tooltip');
+  assert.equal(tooltip.textContent, 'نسخ', 'Trailing hover timer must translate delayed tooltip');
 
   // [P1-D] After 1200ms Layer 2b window, blur disconnects MutationObserver completely
   env.advanceTime(1500);
@@ -1583,7 +1580,7 @@ test('[P1-C, P1-D, P1-E, P1-F] hover trailing tooltip, post-1200ms observer hibe
   assert.equal(hiddenBtn.textContent, 'Save');
   env.win.dispatchEvent({ type: 'focus' });
   assert.equal(env.observerInstances[0].connected, true, 'Observer must reconnect on focus');
-  assert.equal(hiddenBtn.textContent, '保存');
+  assert.equal(hiddenBtn.textContent, 'حفظ');
 
   // [P1-F] destroy() restores dynamic attribute to 'Collapse', NOT stale 'Expand'
   inst.destroy();
@@ -1620,11 +1617,11 @@ test('[P1-1 & P2-1] settings-panel shows yield hint only when mode=auto, and dae
   try {
     settingsPanel.mountOrSyncSettingsSection({
       version: '1.0.4',
-      getLang: () => 'zh-CN',
+      getLang: () => 'ar',
       uiText: (l) => i18nLocales.getUiStrings(l),
       isZh: () => true,
       i18nCore,
-      formatSettingsSummary: () => 'Obsidian · 白昼冷晶 · 完整',
+      formatSettingsSummary: () => 'Obsidian · كريستال نهاري · كامل',
       resolveSettingRowActiveValue: (k) => (k === 'hostLocalization' ? 'off' : undefined),
       isSettingButtonMatch: (k, vJson, cur) => vJson === JSON.stringify(cur),
       saveSetting: () => {},
@@ -1640,7 +1637,7 @@ test('[P1-1 & P2-1] settings-panel shows yield hint only when mode=auto, and dae
   }
 
   const descOff = env.doc.querySelector('[data-ag-cs-row="hostLocalization"] [data-k="d"]').textContent;
-  assert.equal(descOff.includes('自动礼让'), false, 'Yield hint must NOT appear when hostLocalization=off');
+  assert.equal(descOff.includes('يتوقف تلقائيًا عند وجود إضافة'), false, 'Yield hint must NOT appear when hostLocalization=off');
 
   const daemonSrc = fs.readFileSync(path.join(ROOT, 'sidecars', 'daemon', 'main.mjs'), 'utf8');
   assert.ok(daemonSrc.includes('!probe.hasHostI18n || !entry.hostI18nScriptId'));
@@ -1648,16 +1645,16 @@ test('[P1-1 & P2-1] settings-panel shows yield hint only when mode=auto, and dae
 });
 
 test('[P2-2 & P2-4] ReDoS patterns complete in linear time, English sentences are uncorrupted, and __proto__ text is safe', () => {
-  const dict = JSON.parse(fs.readFileSync(path.join(ROOT, 'vendor', 'host-i18n', 'zh-CN.json'), 'utf8'));
+  const dict = JSON.parse(fs.readFileSync(path.join(ROOT, 'vendor', 'host-i18n', 'ar.json'), 'utf8'));
   const engine = runtime.createHostI18nEngine(dict);
 
   // Ordinary English sentences must not be partially corrupted by anchored patterns #52-#56, #79, #142, #143
   assert.equal(engine.translate('Build takes 5 minutes to finish'), null);
   assert.equal(engine.translate('My task finished'), null);
   assert.equal(engine.translate('When ready, It requires Docker to be installed.'), null);
-  assert.equal(engine.translate('5 minutes'), '5 分钟');
-  assert.equal(engine.translate('Timer has expired'), '定时器已到期');
-  assert.equal(engine.translate('It requires Docker Desktop to be installed.'), '需要安装 Docker Desktop 才能运行。');
+  assert.equal(engine.translate('5 minutes'), '5 دقيقة');
+  assert.equal(engine.translate('Timer has expired'), 'انتهى المؤقت');
+  assert.equal(engine.translate('It requires Docker Desktop to be installed.'), 'يتطلب تثبيت Docker Desktop لكي يعمل.');
 
   // ReDoS adversarial input stress test (< 50ms)
   const t0 = performance.now();
@@ -1728,11 +1725,11 @@ function createBruteForceReferenceTranslator(dictData) {
     const patRes = applyPatternsBrute(normalized);
     if (patRes !== null) return patRes;
 
-    const punctuationMatch = normalized.match(/^([\w\s\-\/]+)([:：…\.？\?!！]+)$/);
+    const punctuationMatch = normalized.match(/^([\w\s\-\/]+)([:…\.؟\?!]+)$/);
     if (punctuationMatch) {
       const base = punctuationMatch[1].trim();
       const punc = punctuationMatch[2];
-      if (hasOwn.call(exactDict, base)) return exactDict[base] + (punc === ':' ? '：' : punc);
+      if (hasOwn.call(exactDict, base)) return exactDict[base] + (punc === '?' ? '؟' : punc);
     }
 
     const hotkeyMatch = normalized.match(
@@ -1768,7 +1765,7 @@ function createBruteForceReferenceTranslator(dictData) {
           (hasOwn.call(exactDict, trimmedPart + '.') ? exactDict[trimmedPart + '.'] : null);
         if (!transPart) transPart = applyPatternsBrute(trimmedPart);
         if (!transPart) {
-          const pMatch = trimmedPart.match(/^([\w\s\-\/]+)([:：…\.？\?!！]+)$/);
+          const pMatch = trimmedPart.match(/^([\w\s\-\/]+)([:…\.؟\?!]+)$/);
           if (pMatch && hasOwn.call(exactDict, pMatch[1].trim())) {
             transPart = exactDict[pMatch[1].trim()] + (pMatch[2] === ':' ? '：' : pMatch[2]);
           }
@@ -1790,7 +1787,7 @@ function createBruteForceReferenceTranslator(dictData) {
 }
 
 test('[Perf-1] pattern precheck index + bounded LRU unitCache (<= 2048) matches 405 brute-force patterns 100% byte-for-byte across full corpus + 250+ edge strings', () => {
-  const dict = JSON.parse(fs.readFileSync(path.join(ROOT, 'vendor', 'host-i18n', 'zh-CN.json'), 'utf8'));
+  const dict = JSON.parse(fs.readFileSync(path.join(ROOT, 'vendor', 'host-i18n', 'ar.json'), 'utf8'));
   const brute = createBruteForceReferenceTranslator(dict);
   const engine = runtime.createHostI18nEngine(dict);
 
@@ -1829,8 +1826,8 @@ test('[Perf-1] pattern precheck index + bounded LRU unitCache (<= 2048) matches 
     'Dec 1, 9:05 PM',
     'Nov 21, 2026',
     'Oct 8',
-    'Jan 15日',
-    'Sep 3日',
+    'Jan 15أح',
+    'Sep 3أح',
     'AM 09:30',
     'PM 11:05',
     '10:45 PM',
@@ -1865,20 +1862,20 @@ test('[Perf-1] pattern precheck index + bounded LRU unitCache (<= 2048) matches 
     'Stopped after 8 steps',
     'Scan the code to open this device in ',
     'to browse the store, or add a custom server via the MCP config.',
-    '了解更多关于 Inherit General',
+    'معرفة المزيد عن Inherit General',
     'Also includes global settings when working in this project',
     'Mode: Inherit General',
     'It requires Docker Desktop to be installed.',
     'Configure browser subagent',
     'Configure the browser subagent.',
-    '配置浏览器子智能体。 It requires Node',
+    'تكوين وكيل المتصفح الفرعي。 It requires Node',
     'Configure the browser subagent. It requires Chrome',
     'It requires',
     'Manage project folders, agent settings, and permissions.',
     'No folders added yet',
     '+ Add Folder',
     'Permanently delete my-workspace?',
-    '快捷键 for quick navigation and control.',
+    'الاختصارات for quick navigation and control.',
     'Shortcuts for quick navigation and control.',
     'for quick navigation and control',
     'LAYOUT CONTROLS',
@@ -1900,7 +1897,7 @@ test('[Perf-1] pattern precheck index + bounded LRU unitCache (<= 2048) matches 
     'Queues after the turn',
     'Sends immediately',
     'Models within this group: Gemini, Claude',
-    'Inherits your General settings 在此项目中工作时。',
+    'Inherits your General settings عند العمل في هذا المشروع。',
     'Inherits default settings.',
     'Inherits your General settings',
     'Your quota for this model is running low.',
@@ -1911,7 +1908,7 @@ test('[Perf-1] pattern precheck index + bounded LRU unitCache (<= 2048) matches 
     'Select Project Ctrl+K',
     'Select Model Cmd+M',
     'Cancel (Ctrl+C)',
-    'Copy 项目名称',
+    'Copy اسم المشروع',
     'Copy Project Name',
     '4 tasks running',
     'Ran npm test',
@@ -1925,7 +1922,7 @@ test('[Perf-1] pattern precheck index + bounded LRU unitCache (<= 2048) matches 
     'Timed 5 minutes',
     '  Timer has expired',
     'Inherits your "General" settings when working in this project.',
-    '继承您的“通用”设置 when working in this project.',
+    'يرث إعداداتك العامة when working in this project.',
     'Browser settings have moved to the Browser section of General settings.',
     'Worked for 1h 5m 9s',
     'Stopped after 2d 3h 4m',
@@ -1939,10 +1936,10 @@ test('[Perf-1] pattern precheck index + bounded LRU unitCache (<= 2048) matches 
     'Add Terminal Ctrl+Shift+P',
     'Add Context @file',
     '2 agents running',
-    '继承您的全局权限，在此项目中工作时。',
+    'يرث أذوناتك العامة，عند العمل في هذا المشروع。',
     'Inherits your global permissions when working in this project.',
     'Also includes Global Permissions when working in this project. Learn more.',
-    '也包含全局权限，在此项目中工作时',
+    'يتضمن أيضاً الأذونات العامة，عند العمل في هذا المشروع',
     'Resets in 2d 5h 12m.',
     'resets in 4h, 20m',
     'Resets in 15 mins, 30 secs',
@@ -1953,7 +1950,7 @@ test('[Perf-1] pattern precheck index + bounded LRU unitCache (<= 2048) matches 
     'refreshes in 10m',
     'Refreshes soon',
     'All scheduled tasks run as Flash.',
-    '全部 plugins run as Pro.',
+    'الكل plugins run as Pro.',
     'All automations run as Carbon.',
     'Search tasks...',
     'Search conversations…',
@@ -1969,15 +1966,15 @@ test('[Perf-1] pattern precheck index + bounded LRU unitCache (<= 2048) matches 
     '5 active conversations',
     '3 archived conversations',
     'Try Remote Control',
-    'Try 远程控制',
+    'Try التحكم عن بُعد',
     '14 tools enabled',
     '2 tools disabled',
     'Disable bash tool for guest',
     'Enable mcp tool for workspace',
     'See less in Sidebar',
-    '收起 in Sidebar',
+    'إظهار أقل in Sidebar',
     'More actions for Agent',
-    '更多操作 for Agent',
+    'المزيد من الإجراءات for Agent',
     'Unnamed agent 3',
     'Unnamed Skill 1',
     'UI Extension 2',
@@ -2053,7 +2050,7 @@ test('[Perf-1] pattern precheck index + bounded LRU unitCache (<= 2048) matches 
 });
 
 test('[Perf-2] 500 unmatched long English descriptions run significantly faster with index + negative cache (0 regex on warm pass) & O(1) boundary depth propagation', () => {
-  const dict = JSON.parse(fs.readFileSync(path.join(ROOT, 'vendor', 'host-i18n', 'zh-CN.json'), 'utf8'));
+  const dict = JSON.parse(fs.readFileSync(path.join(ROOT, 'vendor', 'host-i18n', 'ar.json'), 'utf8'));
   const brute = createBruteForceReferenceTranslator(dict);
   const engine = runtime.createHostI18nEngine(dict);
 
@@ -2150,7 +2147,7 @@ test('[Perf-2] 500 unmatched long English descriptions run significantly faster 
   const inst = runtime.mountHostI18n({
     root: env.win,
     doc: env.doc,
-    dict: { exact: { Settings: '设置' }, patterns: [] },
+    dict: { exact: { Settings: 'الإعدادات' }, patterns: [] },
     mode: 'on',
   });
   assert.equal(inst.getStatus().translatedCount, 80);
@@ -2163,7 +2160,7 @@ test('[Perf-2] 500 unmatched long English descriptions run significantly faster 
 test('[Perf-3] scanFloatingContainers skips [role="dialog"] & dialog portals, performs 0 disconnect/reconnect when empty, and hoverHandler early-exits on dialog body', () => {
   const env = createTestEnv(1000);
   const dict = {
-    exact: { Settings: '设置', Save: '保存', Copy: '复制', Open: '打开', Delete: '删除' },
+    exact: { Settings: 'الإعدادات', Save: 'حفظ', Copy: 'نسخ', Open: 'فتح', Delete: 'حذف' },
     patterns: [],
   };
 
@@ -2196,8 +2193,8 @@ test('[Perf-3] scanFloatingContainers skips [role="dialog"] & dialog portals, pe
     cancelRafFn: env.cancelRafFn,
   });
 
-  assert.equal(dialogLabel.textContent, '保存');
-  assert.equal(innerDialogSpan.textContent, '打开');
+  assert.equal(dialogLabel.textContent, 'حفظ');
+  assert.equal(innerDialogSpan.textContent, 'فتح');
 
   // Quietly reset raw _nodeValue without firing MO to detect if hover/scanFloatingContainers re-scans dialogs
   dialogLabel.firstChild._nodeValue = 'Save';
@@ -2266,7 +2263,7 @@ test('[Perf-3] scanFloatingContainers skips [role="dialog"] & dialog portals, pe
   }
   env.doc.dispatchEvent({ type: 'pointerenter', target: topBtn });
   env.advanceTime(120);
-  assert.equal(lateMenu.textContent, '复制', 'Non-dialog floating portal / menu must still translate on hover');
+  assert.equal(lateMenu.textContent, 'نسخ', 'Non-dialog floating portal / menu must still translate on hover');
 
   inst.destroy();
 });
@@ -2275,7 +2272,7 @@ test('[Perf-4] macOS data-ag-cs-win-blur="1" 0fps hibernation & wake, streaming 
   let perfClock = 1000;
   const env = createTestEnv(1000);
   const dict = {
-    exact: { Settings: '设置', Save: '保存', Cancel: '取消', Copy: '复制', Open: '打开' },
+    exact: { Settings: 'الإعدادات', Save: 'حفظ', Cancel: 'إلغاء', Copy: 'نسخ', Open: 'فتح' },
     patterns: [],
   };
 
@@ -2326,7 +2323,7 @@ test('[Perf-4] macOS data-ag-cs-win-blur="1" 0fps hibernation & wake, streaming 
   env.doc.documentElement.removeAttribute('data-ag-cs-win-blur');
   env.win.dispatchEvent({ type: 'focus' });
   assert.equal(env.observerInstances[0].connected, true, 'MO must reconnect immediately when win-blur clears on focus');
-  assert.equal(sleepBtn.textContent, '保存', 'Missed button during win-blur hibernation must translate on wake');
+  assert.equal(sleepBtn.textContent, 'حفظ', 'Missed button during win-blur hibernation must translate on wake');
 
   // 3. Frame node cap (<= 80 nodes/frame): inserting 180 buttons processes at most 80 in frame 1, finishing across frames
   const bulkBtns = [];
@@ -2338,13 +2335,13 @@ test('[Perf-4] macOS data-ag-cs-win-blur="1" 0fps hibernation & wake, streaming 
   env.flushObservers();
   assert.ok(env.timers.size >= 1, 'Pending rAF scheduled for bulk mutation');
   env.flushRafOnly();
-  const translatedAfterFrame1 = bulkBtns.filter((b) => b.textContent === '复制').length;
+  const translatedAfterFrame1 = bulkBtns.filter((b) => b.textContent === 'نسخ').length;
   assert.ok(
     translatedAfterFrame1 > 0 && translatedAfterFrame1 <= 80,
     `Single frame must cap at <= 80 nodes, got ${translatedAfterFrame1}`
   );
   env.advanceTime(100);
-  assert.equal(bulkBtns.filter((b) => b.textContent === '复制').length, 180, 'All 180 buttons finish across subsequent rAF frames');
+  assert.equal(bulkBtns.filter((b) => b.textContent === 'نسخ').length, 180, 'All 180 buttons finish across subsequent rAF frames');
 
   // 4. Time-slice budget (< 5ms/frame): simulate 1.5ms per 4 nodes so 5ms budget slices a 40-button batch across multiple frames
   const origGetAttr = env.makeEl('div').getAttribute;
@@ -2361,13 +2358,13 @@ test('[Perf-4] macOS data-ag-cs-win-blur="1" 0fps hibernation & wake, streaming 
   }
   env.flushObservers();
   env.flushRafOnly();
-  const slowDoneFrame1 = slowBtns.filter((b) => b.textContent === '打开').length;
+  const slowDoneFrame1 = slowBtns.filter((b) => b.textContent === 'فتح').length;
   assert.ok(
     slowDoneFrame1 >= 1 && slowDoneFrame1 < 40,
     `5ms frame budget must yield mid-batch before 40 slow nodes finish, processed ${slowDoneFrame1}`
   );
   env.advanceTime(200);
-  assert.equal(slowBtns.filter((b) => b.textContent === '打开').length, 40, 'Remaining time-sliced nodes complete cleanly in next frames');
+  assert.equal(slowBtns.filter((b) => b.textContent === 'فتح').length, 40, 'Remaining time-sliced nodes complete cleanly in next frames');
   void origGetAttr;
 
   inst.destroy();
@@ -2391,16 +2388,16 @@ test('[Perf-4] macOS data-ag-cs-win-blur="1" 0fps hibernation & wake, streaming 
     rafFn: bigEnv.rafFn,
     cancelRafFn: bigEnv.cancelRafFn,
   });
-  assert.equal(bigBtns[0].textContent, '设置', 'First-screen header/nav controls translate synchronously on mount');
-  const syncCount = bigBtns.filter((b) => b.textContent === '设置').length;
+  assert.equal(bigBtns[0].textContent, 'الإعدادات', 'First-screen header/nav controls translate synchronously on mount');
+  const syncCount = bigBtns.filter((b) => b.textContent === 'الإعدادات').length;
   assert.ok(syncCount >= 100 && syncCount < 230, `Initial sync scan should stay within budget (~160), got ${syncCount}`);
   bigEnv.advanceTime(100);
-  assert.equal(bigBtns.filter((b) => b.textContent === '设置').length, 230, 'Deferred initial scan nodes complete via rAF');
+  assert.equal(bigBtns.filter((b) => b.textContent === 'الإعدادات').length, 230, 'Deferred initial scan nodes complete via rAF');
   bigInst.destroy();
 });
 
 test('[Coexist-13] Layer 1 detects all Top 13 external localization fingerprints with detectedProvider, exempts external widgets, and resists Map.prototype hijacking', async () => {
-  const dict = { exact: { Settings: '设置', Save: '保存', Cancel: '取消' }, patterns: [] };
+  const dict = { exact: { Settings: 'الإعدادات', Save: 'حفظ', Cancel: 'إلغاء' }, patterns: [] };
 
   const signatureCases = [
     // 1. antigravity-cn-community (1422★)
@@ -2434,7 +2431,7 @@ test('[Coexist-13] Layer 1 detects all Top 13 external localization fingerprints
       label: 'yuexps/Antigravity-Hans localStorage antigravityHansLang',
       expectedProvider: 'yuexps/Antigravity-Hans',
       setup: (env) => {
-        env.win.localStorage = { getItem: (k) => (k === 'antigravityHansLang' ? 'zh-CN' : null) };
+        env.win.localStorage = { getItem: (k) => (k === 'antigravityHansLang' ? 'ar' : null) };
       },
     },
     // 4. yiheng8023 (238★, v3.3.59+)
@@ -2535,7 +2532,7 @@ test('[Coexist-13] Layer 1 detects all Top 13 external localization fingerprints
       expectedProvider: 'LucasvonLiu',
       setup: (env) => {
         env.win.localStorage = {
-          getItem: (k) => (k === 'antigravity_chinese_patch_dict' ? '{"Settings":"设置"}' : null),
+          getItem: (k) => (k === 'antigravity_chinese_patch_dict' ? '{"Settings":"الإعدادات"}' : null),
         };
       },
     },
@@ -2559,10 +2556,10 @@ test('[Coexist-13] Layer 1 detects all Top 13 external localization fingerprints
     // 13. good9527 / zero-marker IIFE via Layer 2a generic DOM sniffing
     {
       label: 'good9527 zero-marker Layer 2a Chrome zh sampling',
-      expectedProvider: 'generic-zh-dom',
+      expectedProvider: 'generic-ar-dom',
       setup: (env) => {
         const nav = env.makeEl('nav');
-        nav.append(env.makeEl('button', { text: '设置' }), env.makeEl('button', { text: '新建对话' }));
+        nav.append(env.makeEl('button', { text: 'الإعدادات' }), env.makeEl('button', { text: 'محادثة جديدة' }));
         env.doc.body.append(nav);
       },
     },
@@ -2588,7 +2585,7 @@ test('[Coexist-13] Layer 1 detects all Top 13 external localization fingerprints
     const st = inst.getStatus();
     assert.equal(st.status, 'yielded', `Case [${sc.label}] must yield`);
     assert.equal(st.yielded, true, `Case [${sc.label}] yielded flag must be true`);
-    assert.equal(st.reason, 'external-ui-zh', `Case [${sc.label}] must preserve reason='external-ui-zh'`);
+    assert.equal(st.reason, 'external-ui-ar', `Case [${sc.label}] must preserve reason='external-ui-ar'`);
     assert.equal(st.detectedProvider, sc.expectedProvider, `Case [${sc.label}] provider mismatch`);
     assert.equal(env.observerInstances.length, 0, `Case [${sc.label}] must mount 0 observers`);
     assert.equal(hostBtn.textContent, 'Settings');
@@ -2609,7 +2606,7 @@ test('[Coexist-13] Layer 1 detects all Top 13 external localization fingerprints
   const safeInst = runtime.mountHostI18n({ root: safeLsEnv.win, doc: safeLsEnv.doc, dict, mode: 'auto' });
   assert.equal(safeInst.getStatus().status, 'active');
   assert.equal(safeInst.getStatus().detectedProvider, null);
-  assert.equal(okBtn.textContent, '设置');
+  assert.equal(okBtn.textContent, 'الإعدادات');
   safeInst.destroy();
 
   // External localization widgets exemption in forced mode='on'
@@ -2629,7 +2626,7 @@ test('[Coexist-13] Layer 1 detects all Top 13 external localization fingerprints
   assert.equal(themeMenu.textContent, 'Cancel', '#agy-theme-menu must be exempted');
   assert.equal(quotaW.textContent, 'Settings', '#antigravity-quota-widget must be exempted');
   assert.equal(auditW.textContent, 'Save', '#antigravity-translation-audit must be exempted');
-  assert.equal(realHostBtn.textContent, '设置', 'Normal host button still translates');
+  assert.equal(realHostBtn.textContent, 'الإعدادات', 'Normal host button still translates');
   exInst.destroy();
 
   // Defense against renkeshui monkey-patching Map.prototype.has / Map.prototype.get
@@ -2664,15 +2661,15 @@ test('[Coexist-13] Layer 1 detects all Top 13 external localization fingerprints
     mpEnv.doc.body.append(mpBtn, mpUnmatched);
 
     const mpInst = runtime.mountHostI18n({ root: mpEnv.win, doc: mpEnv.doc, dict, mode: 'on' });
-    assert.equal(mpBtn.textContent, '保存');
-    assert.equal(mpBtn.getAttribute('title'), '设置');
+    assert.equal(mpBtn.textContent, 'حفظ');
+    assert.equal(mpBtn.getAttribute('title'), 'الإعدادات');
     assert.equal(mpBtn.getAttribute('aria-label'), 'Unmatched English Label');
     assert.equal(mpUnmatched.textContent, 'Unmatched English sentence.');
 
     // Second scan hits unitCache & attrSnapshots without touching Map.prototype
     mpInst.scan();
-    assert.equal(mpBtn.textContent, '保存');
-    assert.equal(mpBtn.getAttribute('title'), '设置');
+    assert.equal(mpBtn.textContent, 'حفظ');
+    assert.equal(mpBtn.getAttribute('title'), 'الإعدادات');
     assert.equal(mpUnmatched.textContent, 'Unmatched English sentence.');
 
     mpInst.destroy();
@@ -2686,20 +2683,20 @@ test('[Coexist-13] Layer 1 detects all Top 13 external localization fingerprints
   // Verify input dict/exact strong references are severed after engine creation (~0.6 MiB/window saved)
   // and no local machine workspace paths exist in host-i18n runtime or test files
   const { inputExactRef, detachedEngine } = (() => {
-    const transientInput = { exact: { Settings: '设置' }, patterns: [{ regex: '^(\\d+)m$', replacement: '$1分钟' }] };
+    const transientInput = { exact: { Settings: 'الإعدادات' }, patterns: [{ regex: '^(\\d+)m$', replacement: '$1 دقيقة' }] };
     const ref = new WeakRef(transientInput.exact);
     const eng = runtime.createHostI18nEngine(transientInput);
     assert.equal(Object.getPrototypeOf(eng.exactDict), null);
     assert.notEqual(eng.exactDict, transientInput.exact);
     transientInput.exact.Settings = 'MUTATED_EXTERNALLY';
-    assert.equal(eng.translate('Settings'), '设置');
+    assert.equal(eng.translate('Settings'), 'الإعدادات');
     return { inputExactRef: ref, detachedEngine: eng };
   })();
   if (typeof globalThis.gc === 'function') {
     await new Promise((r) => setTimeout(r, 0));
     globalThis.gc();
     assert.equal(inputExactRef.deref(), undefined, 'External dict.exact must be reclaimed by GC');
-    assert.equal(detachedEngine.translate('Settings'), '设置');
+    assert.equal(detachedEngine.translate('Settings'), 'الإعدادات');
   }
 
   const localWorkspaceLeak = 'workspace_' + 'program';

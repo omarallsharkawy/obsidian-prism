@@ -1,10 +1,10 @@
 /* ==========================================================================
    AGY Design Workbench v3.5 — Neutral Shell, Split Stage, Matrix & Inspector
-   外壳随明暗主题同步（data-shell-theme），Split 对照左右同等审美
+   Shell follows light/dark theme (data-shell-theme) so Split view preserves equal polish on both sides
    ========================================================================== */
 
 .ag-v2-workbench {
-  /* 暗房外壳（默认） */
+  /* Darkroom shell (default) */
   --wb-bg: #09090b;
   --wb-bar: #0d0d10;
   --wb-panel: #0d0d10;
@@ -38,7 +38,7 @@
   transition: background-color 240ms ease, color 240ms ease;
 }
 
-/* 矿石白外壳 */
+/* Mineral light shell */
 .ag-v2-workbench[data-shell-theme="light"] {
   --wb-bg: #e9e9ed;
   --wb-bar: #f4f4f7;
@@ -70,7 +70,7 @@ body {
   overflow: clip;
   background: #09090b;
   color: #f2f2f5;
-  font-family: 'Google Sans', 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei UI', sans-serif;
+  font-family: 'Google Sans', 'Plus Jakarta Sans', 'Inter', 'IBM Plex Sans Arabic', 'Noto Sans Arabic', 'Cairo', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -106,7 +106,7 @@ body {
   flex-shrink: 0;
 }
 
-/* 顶栏调试壳角标：去掉笨重立体方框底座，改为极简纯单色银白官方双曲星（安静不抢戏） */
+/* Topbar brand mark: minimal monochrome official four-point star without a heavy boxed pedestal */
 .wb-brand-mark {
   width: 16px;
   height: 16px;
@@ -256,7 +256,7 @@ body {
   overflow: clip;
 }
 
-/* Split 角标移到标题栏下方，不再遮挡会话标题 */
+/* Position Split badge below titlebar so it never overlaps session title */
 .wb-split-badge {
   position: absolute;
   top: 50px;
@@ -305,7 +305,7 @@ body {
   gap: 16px;
 }
 
-/* 矩阵标题：无衬线（衬线体仅限首页问候与人文标尺） */
+/* Matrix heading: sans-serif (serif reserved for home greeting and scale callouts) */
 .wb-matrix-title {
   margin: 0;
   font-family: var(--ag-v2-font-sans);
@@ -382,7 +382,7 @@ body {
   text-overflow: ellipsis;
 }
 
-/* ── Right 300px Live Optical Token Inspector（滑出式，不再 display:none 硬切） ── */
+/* ── Right 300px Live Optical Token Inspector (slide-out transition instead of display:none) ── */
 .wb-inspector {
   width: 300px;
   flex: 0 0 300px;
@@ -572,7 +572,7 @@ body {
   }
 }
 
-/* 调音台内的开关脱离了 .ag-v2-stage，补齐外壳作用域下的 Token（修复原先开关不显色） */
+/* Inspector switches sit outside .ag-v2-stage; provide shell-scoped tokens so switches stay visible */
 .wb-inspector .ag-v2-switch {
   --border: var(--wb-line-strong);
   --surface-2: var(--wb-wash-hover);
@@ -584,12 +584,12 @@ body {
   --ag-ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
 }
 
-/* Split 角标与舞台标题栏的主题徽标重复且会压住问候语，统一交给标题栏徽标表达 */
+/* Hide duplicate Split badge that overlaps greeting; stage titlebar badge carries theme state */
 .wb-split-badge {
   display: none;
 }
 
-/* ── v1.0 亮/暗四主题同屏矩阵 (2x2 Quad View) & 0fps 实时休眠遥测卡片 ── */
+/* ── v1.0 Light/Dark 4-Theme Matrix (2x2 Quad View) & Live 0fps Sleep Telemetry Card ── */
 .wb-quad-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -137,7 +137,7 @@ function createMockElement(tagName = 'div', attrs = {}) {
   return el;
 }
 
-test('UMD 双端导出与 < 35KB 零依赖体积契约', () => {
+test('UMD dual export and < 35KB zero-dependency bundle size contract', () => {
   assert.equal(globalThis.__agMotionEngine, motionEngine);
   assert.equal(globalThis.__agAnimatedIcons, animatedIcons);
 
@@ -151,7 +151,7 @@ test('UMD 双端导出与 < 35KB 零依赖体积契约', () => {
   );
 });
 
-test('springLinear 二阶阻尼谐振子物理收敛性（欠阻尼过冲 / 过阻尼无超调 / 精确锚点）', () => {
+test('springLinear second-order damped harmonic oscillator convergence (underdamped overshoot / overdamped no overshoot / exact anchors)', () => {
   const std = motionEngine.springLinear({ stiffness: 380, damping: 26, mass: 1 });
   assert.match(std.easing, /^linear\(0, .*, 1\)$/);
   assert.equal(std.samples[0], 0);
@@ -169,7 +169,7 @@ test('springLinear 二阶阻尼谐振子物理收敛性（欠阻尼过冲 / 过�
   assert.ok(maxOver <= 1.0001, `Expected overdamped no overshoot, got ${maxOver}`);
 });
 
-test('spring / stagger / glideIndicator / drawStroke 与 prefers-reduced-motion 保护', () => {
+test('spring / stagger / glideIndicator / drawStroke with prefers-reduced-motion protection', () => {
   const box = createMockElement('div');
   const h1 = motionEngine.spring(box, [{ opacity: 0 }, { opacity: 1 }], { stiffness: 400, damping: 28 });
   assert.equal(box.animateCalls.length, 1);
@@ -211,7 +211,7 @@ test('spring / stagger / glideIndicator / drawStroke 与 prefers-reduced-motion 
   assert.equal(checkPath.animateCalls.length, 1);
 });
 
-test('renderGoogleSparkOrbitSvg 正统四色高斯柔光单体星：亮暗四色饱满且零固定 ID 冲突', () => {
+test('renderGoogleSparkOrbitSvg authentic 4-color soft-glow star: full light/dark chroma and zero fixed ID collisions', () => {
   const svgColor = animatedIcons.renderGoogleSparkOrbitSvg({ size: 18, tier: 'auto', monochrome: false });
   assert.match(svgColor, /^<svg\b[^>]*viewBox="0 0 24 24"[^>]*>.*<\/svg>$/);
   assert.ok(!svgColor.includes('<linearGradient'), 'Must not contain <linearGradient>');
@@ -237,7 +237,7 @@ test('renderGoogleSparkOrbitSvg 正统四色高斯柔光单体星：亮暗四色
   assert.match(dataUri, /^data:image\/svg\+xml,/);
 });
 
-test('全部 21 枚微动态图标 SVG 合法性、24x24 描边规范与 .ai-part-* 子节点完整性', () => {
+test('all 21 micro-animated icons: valid SVG, 24x24 stroke spec, and .ai-part-* sub-element integrity', () => {
   assert.equal(animatedIcons.ICON_NAMES.length, 21, `Expected all 21 icons, got ${animatedIcons.ICON_NAMES.length}`);
 
   for (const [iconName, requiredSelectors] of REQUIRED_ICONS_WITH_PARTS) {
@@ -259,7 +259,7 @@ test('全部 21 枚微动态图标 SVG 合法性、24x24 描边规范与 .ai-par
   }
 });
 
-test('bindMicroInteractions 幂等事件委托与 triggerIcon(copyBtn, "check") 状态切换', () => {
+test('bindMicroInteractions idempotent event delegation and triggerIcon(copyBtn, "check") state transition', () => {
   const root = createMockElement('div');
   const b1 = motionEngine.bindMicroInteractions(root, { cooldownMs: 120 });
   const b2 = motionEngine.bindMicroInteractions(root, { cooldownMs: 120 });

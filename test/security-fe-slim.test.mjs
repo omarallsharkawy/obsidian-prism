@@ -574,7 +574,7 @@ test('ui-runtime teardownCore cancels healBlockedExternalPulseBar 220ms timer an
   assert.equal(resizeEvents, resizeBeforeDestroy, 'Destroyed guard must prevent late resize dispatch');
 });
 
-test('settings-panel persists Beta sub-tab, localizes Conversation DB Health across all 5 languages, and routes via __agPrismRepoBridge', async () => {
+test('settings-panel persists Beta sub-tab, localizes Conversation DB Health across both bilingual locales (en/ar), and routes via __agPrismRepoBridge', async () => {
   const prevDoc = globalThis.document;
   const prevWin = globalThis.window;
   const prevStorage = globalThis.localStorage;
@@ -770,7 +770,7 @@ test('settings-panel persists Beta sub-tab, localizes Conversation DB Health acr
       version: '1.0.6',
       getLang: () => state.language,
       uiText: (l) => i18nLocales.getUiStrings(l),
-      isZh: () => state.language !== 'en' && state.language !== 'ja',
+      isZh: () => false,
       i18nCore,
       formatSettingsSummary: () => 'summary',
       resolveSettingRowActiveValue: (k) => state[k],
@@ -800,7 +800,7 @@ test('settings-panel persists Beta sub-tab, localizes Conversation DB Health acr
     assert.equal(sec.querySelector('[data-ag-cs-group="beta"]').hidden, false, 'Beta group must remain visible on reopen');
     assert.equal(sec.querySelector('[data-ag-cs-group="appearance"]').hidden, true, 'Non-Beta groups must stay hidden when Beta subtab is restored');
 
-    // 2) Storage health & archive UI uses 5-language i18n-locales entries and __agPrismRepoBridge
+    // 2) Storage health & archive UI uses bilingual en/ar i18n-locales entries and __agPrismRepoBridge
     const requiredStorageKeys = [
       'storageHealthTitle',
       'storageHealthIdle',
@@ -810,7 +810,7 @@ test('settings-panel persists Beta sub-tab, localizes Conversation DB Health acr
       'storageSummaryTpl',
       'storageReadyTpl',
     ];
-    for (const lang of ['zh-CN', 'zh-TW', 'yue', 'en', 'ja']) {
+    for (const lang of ['en', 'ar']) {
       const ui = i18nLocales.getUiStrings(lang);
       for (const k of requiredStorageKeys) {
         assert.ok(typeof ui[k] === 'string' && ui[k].trim().length > 0, `Missing ${k} for ${lang}`);

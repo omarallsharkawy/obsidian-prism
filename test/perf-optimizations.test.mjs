@@ -196,7 +196,7 @@ test('perf guard 4: host-workbench-enhancer pruneUnsubs clears WeakSet so detach
   const ctl = sb.__agPrismHostEnhancer.createHostEnhancerController({
     document: fakeDoc,
     window: sb.window,
-    getLang: () => 'zh-CN',
+    getLang: () => 'ar',
     isDestroyed: () => false,
     isConvRunning: () => false,
     runGuardedMut: (fn) => fn(),
@@ -264,17 +264,17 @@ test('perf guard 5: thought-client CRLF + inner ```foo code lines keep O(1) incr
   vm.runInNewContext(patchedSrc, sb);
 
   const crlfMd = [
-    '第一段分析上下文。',
+    'الفقرة الأولى تشرح السياق.',
     '',
     '```js',
     'const sample = "```foo should NOT close fence";',
     'console.log(sample);',
     '```',
     '',
-    '- 列表项一',
-    '- 列表项二',
+    '- العنصر الأول',
+    '- العنصر الثاني',
     '',
-    '最后一段结论收尾。',
+    'تلخّص الفقرة الأخيرة النتيجة.',
   ].join('\r\n');
 
   const blocks = sb.__agPrismThought.__benchSplit(crlfMd, false);
@@ -288,9 +288,9 @@ test('perf guard 5: thought-client CRLF + inner ```foo code lines keep O(1) incr
     sb.__agPrismThought.__benchRender(panel, body, crlfMd.slice(0, n), 1000 + n, false);
   }
   sb.__agPrismThought.__benchRender(panel, body, crlfMd, 2000, false);
-  assert.ok(body.textContent.includes('第一段分析上下文。'));
+  assert.ok(body.textContent.includes('الفقرة الأولى تشرح السياق.'));
   assert.ok(body.textContent.includes('console.log(sample);'));
-  assert.ok(body.textContent.includes('最后一段结论收尾。'));
+  assert.ok(body.textContent.includes('تلخّص الفقرة الأخيرة النتيجة.'));
 });
 
 test('perf guard 6: upstream-client unbind clears __cesAgBound so reused panel rebinds cleanly', () => {
@@ -429,7 +429,7 @@ test('perf guard 9: thought-client api.sync(cfg) is idempotent on repeated ident
   sb.globalThis = sb;
   vm.runInNewContext(src, sb);
 
-  const cfg = { thoughtTranslate: 'ai', thoughtTrigger: 'expand', thoughtView: 'immersive', language: 'zh-CN' };
+  const cfg = { thoughtTranslate: 'ai', thoughtTrigger: 'expand', thoughtView: 'immersive', language: 'ar' };
   sb.__agPrismThought.sync(cfg);
   const qsaAfterFirst = qsaCount;
   const timersAfterFirst = timerCount;
@@ -1502,7 +1502,7 @@ test('perf guard 20: Host Turbo alert.css dedup+restore, async img, hidden sidec
     addEventListener() {},
     removeEventListener() {},
   };
-  const enhCtl = enhancerMod.createHostEnhancerController({ doc: enhDoc, win: enhWin, getLang: () => 'zh-CN' });
+  const enhCtl = enhancerMod.createHostEnhancerController({ doc: enhDoc, win: enhWin, getLang: () => 'ar' });
   enhCtl.sync();
   assert.equal(hiddenMsgs.length, 0, 'Hidden 0x0 sidecar iframe must receive 0 postMessages');
   assert.equal(enhCtl.getDebugState().themeSampleCount, 0, 'All-hidden sidecar iframes must skip getComputedStyle');
@@ -1661,10 +1661,10 @@ test('perf guard 21: Issues #2/#3/#5/#7/#8 + PR #6 + #35 queued-message 3-gears 
   }
 
   // 3) #36 External zh effort suffix normalization in model-glyph-crystal
-  assert.deepEqual(mgc.parseModelLabelInfo('Claude Opus 4.6 (高思考)'), { brand: 'claude', tier: 'high', isOrchestrator: false, camp: 'claude' });
-  assert.deepEqual(mgc.parseModelLabelInfo('Gemini 3.1 Pro（中等）'), { brand: 'gemini', tier: 'medium', isOrchestrator: false, camp: 'gemini' });
-  assert.deepEqual(mgc.parseModelLabelInfo('GPT-5.2 (低)'), { brand: 'openai', tier: 'low', isOrchestrator: false, camp: 'gemini' });
-  assert.equal(mgc.parseModelLabelInfo('Orchestrator (自动)').isOrchestrator, true);
+  assert.deepEqual(mgc.parseModelLabelInfo('Claude Opus 4.6 (عالي)'), { brand: 'claude', tier: 'high', isOrchestrator: false, camp: 'claude' });
+  assert.deepEqual(mgc.parseModelLabelInfo('Gemini 3.1 Pro (متوسط)'), { brand: 'gemini', tier: 'medium', isOrchestrator: false, camp: 'gemini' });
+  assert.deepEqual(mgc.parseModelLabelInfo('GPT-5.2 ( (low))'), { brand: 'openai', tier: 'low', isOrchestrator: false, camp: 'gemini' });
+  assert.equal(mgc.parseModelLabelInfo('Orchestrator ( (auto))').isOrchestrator, true);
 
   // 4) Live VM check for Issue #5 aux-pane-split guard, #35 queued-message 3-gears fix, #36 external zh UI skip, and Issue #7 zero 600-btn rescan & Read-then-Write settings click
   let moCb = null;
@@ -1831,10 +1831,10 @@ test('perf guard 21: Issues #2/#3/#5/#7/#8 + PR #6 + #35 queued-message 3-gears 
     b.appendChild(makeDomNode('svg', { class: svgCls, width: '15' }));
     return b;
   };
-  const qEdit = makeIconBtn({ 'aria-label': 'Edit queued message: 在设置里可选择模型与动效配置' }, 'lucide lucide-pencil');
+  const qEdit = makeIconBtn({ 'aria-label': 'Edit queued message: اختر النموذج والحركة من الإعدادات' }, 'lucide lucide-pencil');
   const qDel = makeIconBtn({ 'aria-label': 'Delete queued message: Check settings panel' }, 'lucide lucide-trash-2');
   const qSend = makeIconBtn({ 'aria-label': 'Send now: copy settings json' }, 'lucide lucide-send');
-  const extZhBtn = makeIconBtn({ id: 'agy-theme-switcher', 'aria-label': '设置' }, '');
+  const extZhBtn = makeIconBtn({ id: 'agy-theme-switcher', 'aria-label': 'الإعدادات' }, '');
   const realSetBtn = makeIconBtn({ 'data-testid': 'settings-button', 'aria-label': 'Settings' }, 'lucide lucide-settings');
   for (const b of [qEdit, qDel, qSend, extZhBtn, realSetBtn]) bodyEl.appendChild(b);
 
@@ -1842,7 +1842,7 @@ test('perf guard 21: Issues #2/#3/#5/#7/#8 + PR #6 + #35 queued-message 3-gears 
   const dlg = makeDomNode('div', { role: 'dialog' });
   const dlgBody = makeDomNode('div', { class: 'p-6' });
   const h2 = makeDomNode('h2');
-  h2.textContent = '外观';
+  h2.textContent = 'المظهر';
   const hostSec = makeDomNode('div', { class: 'space-y-2' });
   dlgBody.appendChild(h2);
   dlgBody.appendChild(hostSec);
@@ -1891,7 +1891,7 @@ test('perf guard 21: Issues #2/#3/#5/#7/#8 + PR #6 + #35 queued-message 3-gears 
       dispatchEvent() {},
     },
     localStorage: storageObj,
-    navigator: { language: 'zh-CN' },
+    navigator: { language: 'ar' },
     location: { pathname: '/' },
     performance: { now: () => 100 },
     MutationObserver: class {

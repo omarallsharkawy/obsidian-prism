@@ -1,11 +1,11 @@
-// Obsidian Prism 可插拔按需扩展底座 (sidecars/daemon/addon-registry.mjs)
-// 纯 Node 内置零外部 npm 依赖：
-// - 持久化目录默认 ~/.gemini/antigravity/sidecar_data/obsidian-prism/addons/（与 telemetry/ 同级）
-// - 严格白名单 HTTPS 下载 + 逐跳重定向重校验（防 SSRF / 开放重定向劫持）
-// - 先全量内存 SHA-256 验签再临时目录原子 rename 落盘
-// - 100% 拦截路径穿越与 Symlink/Junction 逃逸
-// - 内置声明 periodic-picker (bundled)，本地状态查询严格 0 隐藏网络请求
-// - 受 OBSIDIAN_PRISM_ADDONS_LAB=1 开发者隐藏标志门控，默认对普通用户完全不可见
+// Obsidian Prism Pluggable On-Demand Addon Registry (sidecars/daemon/addon-registry.mjs)
+// Pure Node built-ins with zero external npm dependencies:
+// - Persistent directory defaults to ~/.gemini/antigravity/sidecar_data/obsidian-prism/addons/ (sibling to telemetry/)
+// - Strict HTTPS allowlist downloads + hop-by-hop redirect re-validation (prevents SSRF / open-redirect hijacking)
+// - Full in-memory SHA-256 verification before atomic rename from temporary staging directory
+// - 100% blocks path traversal and Symlink/Junction escapes
+// - Built-in periodic-picker (bundled) declaration; local status queries make strictly 0 hidden network requests
+// - Gated behind hidden developer flag OBSIDIAN_PRISM_ADDONS_LAB=1; invisible to regular users by default
 
 import fs from 'node:fs';
 import os from 'node:os';
@@ -71,7 +71,7 @@ export const BUNDLED_ADDONS = Object.freeze([
 ]);
 
 /**
- * 开发者实验室隐藏标志门禁：仅当环境变量 OBSIDIAN_PRISM_ADDONS_LAB 严格等于 '1' 时放行。
+ * Developer lab hidden flag gate: enabled only when OBSIDIAN_PRISM_ADDONS_LAB === '1'.
  */
 export function isLabEnabled(env = process.env) {
   return Boolean(env && env[ADDONS_LAB_ENV_VAR] === '1');
@@ -80,7 +80,7 @@ export function isLabEnabled(env = process.env) {
 export { isLabEnabled as isAddonsLabEnabled };
 
 /**
- * 校验严格 SemVer 字符串（拒绝空预发布段或非法构建元数据段）。
+ * Validate a strict SemVer string (rejects empty prerelease or invalid build metadata segments).
  */
 export function isValidSemver(raw) {
   if (typeof raw !== 'string') return false;
@@ -192,8 +192,8 @@ function isProtectedRootSelf(resolvedPath, homeDir = os.homedir()) {
 }
 
 /**
- * 检查 targetPath 到 stopRoot 路径链上是否存在任何符号链接或 NTFS Junction。
- * 返回 true 表示存在符号链接/联接点或未能安全到达 stopRoot（Fail-Closed）。
+ * Check whether any symlink or NTFS junction exists along the chain from targetPath to stopRoot.
+ * Returns true if a symlink/junction is found or stopRoot cannot be safely reached (fail-closed).
  */
 export function hasSymlinkInChain(targetPath, stopRoot, lstatSyncFn = fs.lstatSync) {
   if (!targetPath || !stopRoot) return true;
@@ -229,11 +229,11 @@ export function getDefaultAddonsDir(homeDir = os.homedir()) {
 }
 
 /**
- * 校验候选 addonsDir 是否合法：
- * - 必须严格位于 ~/.gemini 或 os.tmpdir() 之下（不得等于根目录或受保护父目录）
- * - 严禁命中红线目录段
- * - requireOwnedSegment=true（用于环境变量覆盖）时，路径段必须包含 addons 或 obsidian-prism
- * - 父链与目标本身不得包含符号链接/联接点
+ * Validate whether a candidate addonsDir is safe:
+ * - Must reside strictly under ~/.gemini or os.tmpdir() (never equal to root or protected parent dirs)
+ * - Must not match any redline directory segment
+ * - When requireOwnedSegment=true (for env var overrides), path segments must include addons or obsidian-prism
+ * - Neither the target nor its parent chain may contain symlinks/junctions
  */
 export function validateAddonsDir(
   candidatePath,
@@ -284,7 +284,7 @@ export function validateAddonsDir(
 }
 
 /**
- * 解析安全的 addons 目录；非法覆盖路径返回 null。
+ * Resolve a safe addons directory; returns null for invalid override paths.
  */
 export function resolveSafeAddonsDir({
   addonsDir = null,
@@ -327,12 +327,12 @@ export function resolveSafeAddonsDir({
 }
 
 /**
- * 严格校验下载 URL 是否满足白名单安全红线：
- * - 仅允许 https:，严禁任何端口（含显式 :443）与 userInfo
- * - Host 严格限定在 TRUSTED_ADDON_HOSTS 6 个域名之内
- * - github.com / raw.githubusercontent.com 路径必须以 /RMvdesi/obsidian-prism/ 开头
- * - api.github.com 路径必须以 /repos/RMvdesi/obsidian-prism/ 开头
- * - 拒绝路径穿越（.. / \ / %2e / %5c / %00）
+ * Strictly validate that a download URL meets allowlist security requirements:
+ * - Only https: is allowed; any port (including explicit :443) and userInfo are forbidden
+ * - Host is strictly limited to the 6 domains in TRUSTED_ADDON_HOSTS
+ * - github.com / raw.githubusercontent.com paths must start with /RMvdesi/obsidian-prism/
+ * - api.github.com paths must start with /repos/RMvdesi/obsidian-prism/
+ * - Rejects path traversal (.. / \ / %2e / %5c / %00)
  */
 export function isTrustedAddonUrl(rawUrl) {
   if (typeof rawUrl !== 'string') return false;
@@ -354,7 +354,7 @@ export function isTrustedAddonUrl(rawUrl) {
   const host = u.hostname.toLowerCase();
   if (!TRUSTED_HOST_SET.has(host)) return false;
 
-  // 提取原始路径部分，防范编码穿越或规范化前含 .. 段
+  // Extract raw path portion to block encoded traversal or pre-normalization .. segments
   const schemeEnd = trimmed.indexOf('://') + 3;
   const pathStart = trimmed.indexOf('/', schemeEnd);
   if (pathStart < 0) return false;
@@ -377,8 +377,8 @@ export function isTrustedAddonUrl(rawUrl) {
 }
 
 /**
- * 校验扩展内部文件相对路径：
- * 100% 拒绝 ..、绝对路径、\0、\、盘符、NTFS ADS、Windows 非法字符与保留文件名。
+ * Validate a relative path inside an addon:
+ * Rejects .., absolute paths, \0, \, drive letters, NTFS ADS, invalid Windows characters, and reserved device names.
  */
 export function validateSafeRelativePath(relPath) {
   if (typeof relPath !== 'string') return { ok: false, error: 'invalid_relative_path' };
@@ -423,7 +423,7 @@ export function validateSafeRelativePath(relPath) {
 }
 
 /**
- * 严格校验 manifest.json Schema（支持远端安装校验与本地加载校验）。
+ * Strictly validate manifest.json schema (supports both remote installation and local loading).
  */
 export function validateAddonManifest(rawManifest, { manifestUrl = null, requireFileUrls = true } = {}) {
   if (!rawManifest || typeof rawManifest !== 'object' || Array.isArray(rawManifest)) {
@@ -825,7 +825,7 @@ export class AddonRegistry {
   }
 
   /**
-   * 列出全部内置模块与已安装扩展（纯本地检测，严格 0 网络请求）。
+   * List all bundled modules and installed addons (local-only check, strictly 0 network requests).
    */
   listAddons() {
     const addons = this._bundledAddons.map((b) => this._checkBundledAddonLocal(b));
@@ -850,7 +850,7 @@ export class AddonRegistry {
   }
 
   /**
-   * 查询单个扩展状态（纯本地检测，严格 0 网络请求）。
+   * Query status for a single addon (local-only check, strictly 0 network requests).
    */
   getAddonStatus(addonId) {
     const id = typeof addonId === 'string' ? addonId.trim() : '';
@@ -912,7 +912,7 @@ export class AddonRegistry {
       if (!loc) {
         throw new Error('redirect_without_location');
       }
-      // 若 Location 为绝对 URL 且携带显式端口，new URL().toString() 可能剥离 :443，需预先拦截
+      // If Location is an absolute URL with an explicit port, new URL().toString() may strip :443, so block it first
       if (/^https?:\/\//i.test(loc) && EXPLICIT_PORT_RE.test(loc)) {
         throw new Error('untrusted_redirect_url');
       }
@@ -936,7 +936,8 @@ export class AddonRegistry {
   }
 
   /**
-   * 仅从白名单仓库拉取 manifest 与文件，全量在内存完成 SHA-256 校验后原子落盘至 addons/<id>/。
+   * Fetch manifest and files only from allowlisted repositories, verify all SHA-256 hashes in memory,
+   * then atomically install into addons/<id>/.
    */
   async install({ manifestUrl, expectedManifestSha256 = null, id: expectedId = null } = {}) {
     if (!isTrustedAddonUrl(manifestUrl)) {
@@ -1000,7 +1001,7 @@ export class AddonRegistry {
       return { ok: false, error: 'cannot_override_bundled_addon' };
     }
 
-    // 第一阶段：全部文件先在内存中拉取并逐一校验 SHA-256，任意失败零磁盘写入
+    // Phase 1: fetch all files into memory and verify each SHA-256; zero disk writes on any failure
     const verifiedBuffers = [];
     let totalBytes = 0;
     for (const fileItem of manifest.files) {
@@ -1035,7 +1036,7 @@ export class AddonRegistry {
       verifiedBuffers.push({ fileItem, buf: fileBuf });
     }
 
-    // 第二阶段：校验目标目录链无符号链接，经隐藏临时 staging 目录写入后原子 rename 落盘
+    // Phase 2: verify target directory chain has no symlinks, write to hidden staging dir, then atomically rename
     let stagingDir = null;
     let backupDir = null;
     let targetDir = null;
@@ -1050,7 +1051,7 @@ export class AddonRegistry {
         throw new Error('path_traversal_detected');
       }
 
-      // 若目标已存在，严格确认其本身不是 symlink/junction 且真实路径在 addonsDir 内
+      // If target already exists, verify it is not a symlink/junction and its real path stays inside addonsDir
       let targetExists = false;
       try {
         const tStat = this.lstatSyncFn(targetDir);
@@ -1135,7 +1136,7 @@ export class AddonRegistry {
         fs.closeSync(mFd);
       }
 
-      // 原子替换前再次复核父链与目标状态
+      // Re-verify parent chain and target state before atomic swap
       if (hasSymlinkInChain(this.addonsDir, stopRoot, this.lstatSyncFn)) {
         throw new Error('refused_symlink_addons_dir');
       }
@@ -1157,7 +1158,7 @@ export class AddonRegistry {
         try { fs.rmSync(backupDir, { recursive: true, force: true }); } catch {}
         backupDir = null;
       } else {
-        // 确保并发下 targetDir 没在此时被替换成 symlink
+        // Ensure targetDir was not concurrently replaced with a symlink
         try {
           const lateStat = this.lstatSyncFn(targetDir);
           if (lateStat && lateStat.isSymbolicLink()) {
@@ -1197,7 +1198,7 @@ export class AddonRegistry {
   }
 
   /**
-   * 安全卸载指定外部扩展（拒绝卸载内置 bundled 模块，拒绝删除 symlink/junction 目标）。
+   * Safely uninstall an external addon (refuses to remove bundled modules or symlink/junction targets).
    */
   remove(addonId) {
     const id = typeof addonId === 'string' ? addonId.trim() : '';

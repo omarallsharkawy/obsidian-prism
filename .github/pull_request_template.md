@@ -1,7 +1,7 @@
-## Summary / 变更概述
+## Summary / ملخص التغييرات
 - 
 
-## Verification Checklist / 自检清单
+## Verification Checklist / قائمة التحقق
 - [ ] `npm test` passes completely (`0 fail`)
 - [ ] Payload budget in `test/bundle.test.mjs` (`< 680KB`) and `pulse-vial-bridge` (`< 19,500B`) verified
 - [ ] Zero plaintext API keys, private URLs, local paths, or personal identifiers included

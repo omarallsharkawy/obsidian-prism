@@ -8,7 +8,7 @@
  *     `AUX_PAGE_SIZE`, `getAuxPageCount`, `getAuxPageSlice`, `findAuxPageForId`)
  *   - Honest 2026Q4 public benchmark lookup (`BENCHMARK_2026Q4_DB`, `resolveBenchmarkMetrics`)
  *     that NEVER borrows Carbon or GPT-OSS scores for unknown/unbenchmarked models
- *   - Strict EN/ZH bilingual display helpers with zero hardcoded Chinese when `zh=false`
+ *   - Strict EN/AR bilingual display helpers with zero hardcoded CJK characters
  *
  * Contract:
  *   globalThis.__agPeriodicModelCatalog = { ... }
@@ -55,160 +55,162 @@
       xhigh: 'Extra',
       max: 'Max',
     };
-    var EFFORT_LABELS_ZH = {
-      off: '关闭',
-      minimal: '极低',
-      low: '低思考',
-      medium: '中思考',
-      high: '高思考',
-      xhigh: '超高',
-      max: '极高',
+    var EFFORT_LABELS_AR = {
+      off: 'إيقاف',
+      minimal: 'أدنى',
+      low: 'منخفض',
+      medium: 'متوسط',
+      high: 'عالي',
+      xhigh: 'فائق',
+      max: 'أقصى',
     };
+    var EFFORT_LABELS_ZH = EFFORT_LABELS_AR;
 
     var MODEL_TRIGGER_TEXT_RE =
-      /(?:gemini|hydrogen|carbon|neon|argon|flash|claude|sonnet|opus|haiku|gpt|openai|o1|o3|o4|codex|orchestrator|编排|调度器)/i;
+      /(?:gemini|hydrogen|carbon|neon|argon|flash|claude|sonnet|opus|haiku|gpt|openai|o1|o3|o4|codex|orchestrator|المنسق|المجدول)/i;
 
     var EXCLUDED_FAMILY_RE =
-      /\b(?:orchestrator|claude|anthropic|sonnet|opus|haiku|gpt|openai|codex|deepseek|llama|mistral|qwen)\b|\bo[134](?:-[a-z0-9]+)?\b|编排|调度器/i;
+      /\b(?:orchestrator|claude|anthropic|sonnet|opus|haiku|gpt|openai|codex|deepseek|llama|mistral|qwen)\b|\bo[134](?:-[a-z0-9]+)?\b|المنسق|المجدول/i;
 
-    var ZH_EFFORT_PAREN_RE =
-      /\s*[（(]\s*(超高|极高|超深|高思考|中思考|低思考|极低|最低|深度思考|思考中?|中等|高|中|低|自动|关闭)\s*[)）]\s*$/;
+    var AR_EFFORT_PAREN_RE =
+      /\s*\(\s*(أقصى|فائق|عالي جدا|عالي جداً|عميق|عالي|متوسط|منخفض|أدنى|تلقائي|إيقاف|مغلق)\s*\)\s*$/;
+    var ZH_EFFORT_PAREN_RE = AR_EFFORT_PAREN_RE;
 
     var EN_EFFORT_PAREN_RE =
       /\s*\(\s*(off|minimal|low|medium|med|high|xhigh|extra|max|auto)(?:\s+thinking)?\s*\)\s*$/i;
 
     /* Compact 90-slot main periodic table (18 cols x 7 rows):
-       [z, symbol, name, zh, mass, row, col, group, numLabel?] */
+       [z, symbol, name, ar, mass, row, col, group, numLabel?] */
     var RAW_SLOTS_90 = [
-      [1, 'H', 'Hydrogen', '氢', '1.008', 1, 1, 'nonmetal'],
-      [2, 'He', 'Helium', '氦', '4.0026', 1, 18, 'noble'],
+      [1, 'H', 'Hydrogen', 'الهيدروجين', '1.008', 1, 1, 'nonmetal'],
+      [2, 'He', 'Helium', 'الهيليوم', '4.0026', 1, 18, 'noble'],
 
-      [3, 'Li', 'Lithium', '锂', '6.94', 2, 1, 'alkali'],
-      [4, 'Be', 'Beryllium', '铍', '9.0122', 2, 2, 'alkaline'],
-      [5, 'B', 'Boron', '硼', '10.81', 2, 13, 'metalloid'],
-      [6, 'C', 'Carbon', '碳', '12.011', 2, 14, 'nonmetal'],
-      [7, 'N', 'Nitrogen', '氮', '14.007', 2, 15, 'nonmetal'],
-      [8, 'O', 'Oxygen', '氧', '15.999', 2, 16, 'nonmetal'],
-      [9, 'F', 'Fluorine', '氟', '18.998', 2, 17, 'halogen'],
-      [10, 'Ne', 'Neon', '氖', '20.180', 2, 18, 'noble'],
+      [3, 'Li', 'Lithium', 'الليثيوم', '6.94', 2, 1, 'alkali'],
+      [4, 'Be', 'Beryllium', 'البيريليوم', '9.0122', 2, 2, 'alkaline'],
+      [5, 'B', 'Boron', 'البورون', '10.81', 2, 13, 'metalloid'],
+      [6, 'C', 'Carbon', 'الكربون', '12.011', 2, 14, 'nonmetal'],
+      [7, 'N', 'Nitrogen', 'النيتروجين', '14.007', 2, 15, 'nonmetal'],
+      [8, 'O', 'Oxygen', 'الأكسجين', '15.999', 2, 16, 'nonmetal'],
+      [9, 'F', 'Fluorine', 'الفلور', '18.998', 2, 17, 'halogen'],
+      [10, 'Ne', 'Neon', 'النيون', '20.180', 2, 18, 'noble'],
 
-      [11, 'Na', 'Sodium', '钠', '22.990', 3, 1, 'alkali'],
-      [12, 'Mg', 'Magnesium', '镁', '24.305', 3, 2, 'alkaline'],
-      [13, 'Al', 'Aluminium', '铝', '26.982', 3, 13, 'post-transition'],
-      [14, 'Si', 'Silicon', '硅', '28.085', 3, 14, 'metalloid'],
-      [15, 'P', 'Phosphorus', '磷', '30.974', 3, 15, 'nonmetal'],
-      [16, 'S', 'Sulfur', '硫', '32.06', 3, 16, 'nonmetal'],
-      [17, 'Cl', 'Chlorine', '氯', '35.45', 3, 17, 'halogen'],
-      [18, 'Ar', 'Argon', '氩', '39.948', 3, 18, 'noble'],
+      [11, 'Na', 'Sodium', 'الصوديوم', '22.990', 3, 1, 'alkali'],
+      [12, 'Mg', 'Magnesium', 'المغنيسيوم', '24.305', 3, 2, 'alkaline'],
+      [13, 'Al', 'Aluminium', 'الألمنيوم', '26.982', 3, 13, 'post-transition'],
+      [14, 'Si', 'Silicon', 'السيليكون', '28.085', 3, 14, 'metalloid'],
+      [15, 'P', 'Phosphorus', 'الفوسفور', '30.974', 3, 15, 'nonmetal'],
+      [16, 'S', 'Sulfur', 'الكبريت', '32.06', 3, 16, 'nonmetal'],
+      [17, 'Cl', 'Chlorine', 'الكلور', '35.45', 3, 17, 'halogen'],
+      [18, 'Ar', 'Argon', 'الأرجون', '39.948', 3, 18, 'noble'],
 
-      [19, 'K', 'Potassium', '钾', '39.098', 4, 1, 'alkali'],
-      [20, 'Ca', 'Calcium', '钙', '40.078', 4, 2, 'alkaline'],
-      [21, 'Sc', 'Scandium', '钪', '44.956', 4, 3, 'transition'],
-      [22, 'Ti', 'Titanium', '钛', '47.867', 4, 4, 'transition'],
-      [23, 'V', 'Vanadium', '钒', '50.942', 4, 5, 'transition'],
-      [24, 'Cr', 'Chromium', '铬', '51.996', 4, 6, 'transition'],
-      [25, 'Mn', 'Manganese', '锰', '54.938', 4, 7, 'transition'],
-      [26, 'Fe', 'Iron', '铁', '55.845', 4, 8, 'transition'],
-      [27, 'Co', 'Cobalt', '钴', '58.933', 4, 9, 'transition'],
-      [28, 'Ni', 'Nickel', '镍', '58.693', 4, 10, 'transition'],
-      [29, 'Cu', 'Copper', '铜', '63.546', 4, 11, 'transition'],
-      [30, 'Zn', 'Zinc', '锌', '65.38', 4, 12, 'transition'],
-      [31, 'Ga', 'Gallium', '镓', '69.723', 4, 13, 'post-transition'],
-      [32, 'Ge', 'Germanium', '锗', '72.630', 4, 14, 'metalloid'],
-      [33, 'As', 'Arsenic', '砷', '74.922', 4, 15, 'metalloid'],
-      [34, 'Se', 'Selenium', '硒', '78.971', 4, 16, 'nonmetal'],
-      [35, 'Br', 'Bromine', '溴', '79.904', 4, 17, 'halogen'],
-      [36, 'Kr', 'Krypton', '氪', '83.798', 4, 18, 'noble'],
+      [19, 'K', 'Potassium', 'البوتاسيوم', '39.098', 4, 1, 'alkali'],
+      [20, 'Ca', 'Calcium', 'الكالسيوم', '40.078', 4, 2, 'alkaline'],
+      [21, 'Sc', 'Scandium', 'السكانديوم', '44.956', 4, 3, 'transition'],
+      [22, 'Ti', 'Titanium', 'التيتانيوم', '47.867', 4, 4, 'transition'],
+      [23, 'V', 'Vanadium', 'الفاناديوم', '50.942', 4, 5, 'transition'],
+      [24, 'Cr', 'Chromium', 'الكروم', '51.996', 4, 6, 'transition'],
+      [25, 'Mn', 'Manganese', 'المنغنيز', '54.938', 4, 7, 'transition'],
+      [26, 'Fe', 'Iron', 'الحديد', '55.845', 4, 8, 'transition'],
+      [27, 'Co', 'Cobalt', 'الكوبالت', '58.933', 4, 9, 'transition'],
+      [28, 'Ni', 'Nickel', 'النيكل', '58.693', 4, 10, 'transition'],
+      [29, 'Cu', 'Copper', 'النحاس', '63.546', 4, 11, 'transition'],
+      [30, 'Zn', 'Zinc', 'الزنك', '65.38', 4, 12, 'transition'],
+      [31, 'Ga', 'Gallium', 'الغاليوم', '69.723', 4, 13, 'post-transition'],
+      [32, 'Ge', 'Germanium', 'الجرمانيوم', '72.630', 4, 14, 'metalloid'],
+      [33, 'As', 'Arsenic', 'الزرنيخ', '74.922', 4, 15, 'metalloid'],
+      [34, 'Se', 'Selenium', 'السيلينيوم', '78.971', 4, 16, 'nonmetal'],
+      [35, 'Br', 'Bromine', 'البروم', '79.904', 4, 17, 'halogen'],
+      [36, 'Kr', 'Krypton', 'الكريبتون', '83.798', 4, 18, 'noble'],
 
-      [37, 'Rb', 'Rubidium', '铷', '85.468', 5, 1, 'alkali'],
-      [38, 'Sr', 'Strontium', '锶', '87.62', 5, 2, 'alkaline'],
-      [39, 'Y', 'Yttrium', '钇', '88.906', 5, 3, 'transition'],
-      [40, 'Zr', 'Zirconium', '锆', '91.224', 5, 4, 'transition'],
-      [41, 'Nb', 'Niobium', '铌', '92.906', 5, 5, 'transition'],
-      [42, 'Mo', 'Molybdenum', '钼', '95.95', 5, 6, 'transition'],
-      [43, 'Tc', 'Technetium', '锝', '98', 5, 7, 'transition'],
-      [44, 'Ru', 'Ruthenium', '钌', '101.07', 5, 8, 'transition'],
-      [45, 'Rh', 'Rhodium', '铑', '102.91', 5, 9, 'transition'],
-      [46, 'Pd', 'Palladium', '钯', '106.42', 5, 10, 'transition'],
-      [47, 'Ag', 'Silver', '银', '107.87', 5, 11, 'transition'],
-      [48, 'Cd', 'Cadmium', '镉', '112.41', 5, 12, 'transition'],
-      [49, 'In', 'Indium', '铟', '114.82', 5, 13, 'post-transition'],
-      [50, 'Sn', 'Tin', '锡', '118.71', 5, 14, 'post-transition'],
-      [51, 'Sb', 'Antimony', '锑', '121.76', 5, 15, 'metalloid'],
-      [52, 'Te', 'Tellurium', '碲', '127.60', 5, 16, 'metalloid'],
-      [53, 'I', 'Iodine', '碘', '126.90', 5, 17, 'halogen'],
-      [54, 'Xe', 'Xenon', '氙', '131.29', 5, 18, 'noble'],
+      [37, 'Rb', 'Rubidium', 'الروبيديوم', '85.468', 5, 1, 'alkali'],
+      [38, 'Sr', 'Strontium', 'السترونشيوم', '87.62', 5, 2, 'alkaline'],
+      [39, 'Y', 'Yttrium', 'الإتريوم', '88.906', 5, 3, 'transition'],
+      [40, 'Zr', 'Zirconium', 'الزركونيوم', '91.224', 5, 4, 'transition'],
+      [41, 'Nb', 'Niobium', 'النيوبيوم', '92.906', 5, 5, 'transition'],
+      [42, 'Mo', 'Molybdenum', 'الموليبدينوم', '95.95', 5, 6, 'transition'],
+      [43, 'Tc', 'Technetium', 'التكنيشيوم', '98', 5, 7, 'transition'],
+      [44, 'Ru', 'Ruthenium', 'الروثينيوم', '101.07', 5, 8, 'transition'],
+      [45, 'Rh', 'Rhodium', 'الروديوم', '102.91', 5, 9, 'transition'],
+      [46, 'Pd', 'Palladium', 'البلاديوم', '106.42', 5, 10, 'transition'],
+      [47, 'Ag', 'Silver', 'الفضة', '107.87', 5, 11, 'transition'],
+      [48, 'Cd', 'Cadmium', 'الكادميوم', '112.41', 5, 12, 'transition'],
+      [49, 'In', 'Indium', 'الإنديوم', '114.82', 5, 13, 'post-transition'],
+      [50, 'Sn', 'Tin', 'القصدير', '118.71', 5, 14, 'post-transition'],
+      [51, 'Sb', 'Antimony', 'الإثمد', '121.76', 5, 15, 'metalloid'],
+      [52, 'Te', 'Tellurium', 'التيلوريوم', '127.60', 5, 16, 'metalloid'],
+      [53, 'I', 'Iodine', 'اليود', '126.90', 5, 17, 'halogen'],
+      [54, 'Xe', 'Xenon', 'الزينون', '131.29', 5, 18, 'noble'],
 
-      [55, 'Cs', 'Caesium', '铯', '132.91', 6, 1, 'alkali'],
-      [56, 'Ba', 'Barium', '钡', '137.33', 6, 2, 'alkaline'],
-      [57, 'La', 'Lanthanum', '镧', '138.91', 6, 3, 'lanthanoid', '57-71'],
-      [72, 'Hf', 'Hafnium', '铪', '178.49', 6, 4, 'transition'],
-      [73, 'Ta', 'Tantalum', '钽', '180.95', 6, 5, 'transition'],
-      [74, 'W', 'Tungsten', '钨', '183.84', 6, 6, 'transition'],
-      [75, 'Re', 'Rhenium', '铼', '186.21', 6, 7, 'transition'],
-      [76, 'Os', 'Osmium', '锇', '190.23', 6, 8, 'transition'],
-      [77, 'Ir', 'Iridium', '铱', '192.22', 6, 9, 'transition'],
-      [78, 'Pt', 'Platinum', '铂', '195.08', 6, 10, 'transition'],
-      [79, 'Au', 'Gold', '金', '196.97', 6, 11, 'transition'],
-      [80, 'Hg', 'Mercury', '汞', '200.59', 6, 12, 'transition'],
-      [81, 'Tl', 'Thallium', '铊', '204.38', 6, 13, 'post-transition'],
-      [82, 'Pb', 'Lead', '铅', '207.2', 6, 14, 'post-transition'],
-      [83, 'Bi', 'Bismuth', '铋', '208.98', 6, 15, 'post-transition'],
-      [84, 'Po', 'Polonium', '钋', '209', 6, 16, 'metalloid'],
-      [85, 'At', 'Astatine', '砹', '210', 6, 17, 'halogen'],
-      [86, 'Rn', 'Radon', '氡', '222', 6, 18, 'noble'],
+      [55, 'Cs', 'Caesium', 'السيزيوم', '132.91', 6, 1, 'alkali'],
+      [56, 'Ba', 'Barium', 'الباريوم', '137.33', 6, 2, 'alkaline'],
+      [57, 'La', 'Lanthanum', 'اللانثانوم', '138.91', 6, 3, 'lanthanoid', '57-71'],
+      [72, 'Hf', 'Hafnium', 'الهافنيوم', '178.49', 6, 4, 'transition'],
+      [73, 'Ta', 'Tantalum', 'التانتالوم', '180.95', 6, 5, 'transition'],
+      [74, 'W', 'Tungsten', 'التنغستن', '183.84', 6, 6, 'transition'],
+      [75, 'Re', 'Rhenium', 'الرينيوم', '186.21', 6, 7, 'transition'],
+      [76, 'Os', 'Osmium', 'الأوزميوم', '190.23', 6, 8, 'transition'],
+      [77, 'Ir', 'Iridium', 'الإيريديوم', '192.22', 6, 9, 'transition'],
+      [78, 'Pt', 'Platinum', 'البلاتين', '195.08', 6, 10, 'transition'],
+      [79, 'Au', 'Gold', 'الذهب', '196.97', 6, 11, 'transition'],
+      [80, 'Hg', 'Mercury', 'الزئبق', '200.59', 6, 12, 'transition'],
+      [81, 'Tl', 'Thallium', 'الثاليوم', '204.38', 6, 13, 'post-transition'],
+      [82, 'Pb', 'Lead', 'الرصاص', '207.2', 6, 14, 'post-transition'],
+      [83, 'Bi', 'Bismuth', 'البزموت', '208.98', 6, 15, 'post-transition'],
+      [84, 'Po', 'Polonium', 'البولونيوم', '209', 6, 16, 'metalloid'],
+      [85, 'At', 'Astatine', 'الأستاتين', '210', 6, 17, 'halogen'],
+      [86, 'Rn', 'Radon', 'الرادون', '222', 6, 18, 'noble'],
 
-      [87, 'Fr', 'Francium', '钫', '223', 7, 1, 'alkali'],
-      [88, 'Ra', 'Radium', '镭', '226', 7, 2, 'alkaline'],
-      [89, 'Ac', 'Actinium', '锕', '227', 7, 3, 'actinoid', '89-103'],
-      [104, 'Rf', 'Rutherfordium', '𬬻', '267', 7, 4, 'transition'],
-      [105, 'Db', 'Dubnium', '𬭊', '268', 7, 5, 'transition'],
-      [106, 'Sg', 'Seaborgium', '𬭳', '269', 7, 6, 'transition'],
-      [107, 'Bh', 'Bohrium', '𬭛', '270', 7, 7, 'transition'],
-      [108, 'Hs', 'Hassium', '𬭶', '277', 7, 8, 'transition'],
-      [109, 'Mt', 'Meitnerium', '鿏', '278', 7, 9, 'transition'],
-      [110, 'Ds', 'Darmstadtium', '𫟼', '281', 7, 10, 'transition'],
-      [111, 'Rg', 'Roentgenium', '𬬭', '282', 7, 11, 'transition'],
-      [112, 'Cn', 'Copernicium', '鎶', '285', 7, 12, 'transition'],
-      [113, 'Nh', 'Nihonium', '鉨', '286', 7, 13, 'post-transition'],
-      [114, 'Fl', 'Flerovium', '𫓧', '289', 7, 14, 'post-transition'],
-      [115, 'Mc', 'Moscovium', '镆', '290', 7, 15, 'post-transition'],
-      [116, 'Lv', 'Livermorium', '𫟷', '293', 7, 16, 'post-transition'],
-      [117, 'Ts', 'Tennessine', '鿬', '294', 7, 17, 'halogen'],
-      [118, 'Og', 'Oganesson', '鿫', '294', 7, 18, 'noble'],
+      [87, 'Fr', 'Francium', 'الفرانسيوم', '223', 7, 1, 'alkali'],
+      [88, 'Ra', 'Radium', 'الراديوم', '226', 7, 2, 'alkaline'],
+      [89, 'Ac', 'Actinium', 'الأكتينيوم', '227', 7, 3, 'actinoid', '89-103'],
+      [104, 'Rf', 'Rutherfordium', 'الرذرفورديوم', '267', 7, 4, 'transition'],
+      [105, 'Db', 'Dubnium', 'الدوبنيوم', '268', 7, 5, 'transition'],
+      [106, 'Sg', 'Seaborgium', 'السيبورغيوم', '269', 7, 6, 'transition'],
+      [107, 'Bh', 'Bohrium', 'البوريوم', '270', 7, 7, 'transition'],
+      [108, 'Hs', 'Hassium', 'الهاسيوم', '277', 7, 8, 'transition'],
+      [109, 'Mt', 'Meitnerium', 'المايتنريوم', '278', 7, 9, 'transition'],
+      [110, 'Ds', 'Darmstadtium', 'الدارمشتاتيوم', '281', 7, 10, 'transition'],
+      [111, 'Rg', 'Roentgenium', 'الرونتجينيوم', '282', 7, 11, 'transition'],
+      [112, 'Cn', 'Copernicium', 'الكوبرنيسيوم', '285', 7, 12, 'transition'],
+      [113, 'Nh', 'Nihonium', 'النيهونيوم', '286', 7, 13, 'post-transition'],
+      [114, 'Fl', 'Flerovium', 'الفليروفيوم', '289', 7, 14, 'post-transition'],
+      [115, 'Mc', 'Moscovium', 'الموسكوفيوم', '290', 7, 15, 'post-transition'],
+      [116, 'Lv', 'Livermorium', 'الليفرموريوم', '293', 7, 16, 'post-transition'],
+      [117, 'Ts', 'Tennessine', 'التينيسين', '294', 7, 17, 'halogen'],
+      [118, 'Og', 'Oganesson', 'الأوغانيسون', '294', 7, 18, 'noble'],
     ];
 
     /* Remaining f-block elements (58..71 -> slot 57, 90..103 -> slot 89) so all 118 IUPAC elements match */
     var RAW_FBLOCK_28 = [
-      [58, 'Ce', 'Cerium', '铈', '140.12', 57, 'lanthanoid'],
-      [59, 'Pr', 'Praseodymium', '镨', '140.91', 57, 'lanthanoid'],
-      [60, 'Nd', 'Neodymium', '钕', '144.24', 57, 'lanthanoid'],
-      [61, 'Pm', 'Promethium', '钷', '145', 57, 'lanthanoid'],
-      [62, 'Sm', 'Samarium', '钐', '150.36', 57, 'lanthanoid'],
-      [63, 'Eu', 'Europium', '铕', '151.96', 57, 'lanthanoid'],
-      [64, 'Gd', 'Gadolinium', '钆', '157.25', 57, 'lanthanoid'],
-      [65, 'Tb', 'Terbium', '铽', '158.93', 57, 'lanthanoid'],
-      [66, 'Dy', 'Dysprosium', '镝', '162.50', 57, 'lanthanoid'],
-      [67, 'Ho', 'Holmium', '钬', '164.93', 57, 'lanthanoid'],
-      [68, 'Er', 'Erbium', '铒', '167.26', 57, 'lanthanoid'],
-      [69, 'Tm', 'Thulium', '铥', '168.93', 57, 'lanthanoid'],
-      [70, 'Yb', 'Ytterbium', '镱', '173.05', 57, 'lanthanoid'],
-      [71, 'Lu', 'Lutetium', '镥', '174.97', 57, 'lanthanoid'],
+      [58, 'Ce', 'Cerium', 'السيريوم', '140.12', 57, 'lanthanoid'],
+      [59, 'Pr', 'Praseodymium', 'البراسوديميوم', '140.91', 57, 'lanthanoid'],
+      [60, 'Nd', 'Neodymium', 'النيوديميوم', '144.24', 57, 'lanthanoid'],
+      [61, 'Pm', 'Promethium', 'البروميثيوم', '145', 57, 'lanthanoid'],
+      [62, 'Sm', 'Samarium', 'الساماريوم', '150.36', 57, 'lanthanoid'],
+      [63, 'Eu', 'Europium', 'اليوروبيوم', '151.96', 57, 'lanthanoid'],
+      [64, 'Gd', 'Gadolinium', 'الغادولينيوم', '157.25', 57, 'lanthanoid'],
+      [65, 'Tb', 'Terbium', 'التيربيوم', '158.93', 57, 'lanthanoid'],
+      [66, 'Dy', 'Dysprosium', 'الديسبروسيوم', '162.50', 57, 'lanthanoid'],
+      [67, 'Ho', 'Holmium', 'الهولميوم', '164.93', 57, 'lanthanoid'],
+      [68, 'Er', 'Erbium', 'الإربيوم', '167.26', 57, 'lanthanoid'],
+      [69, 'Tm', 'Thulium', 'الثوليوم', '168.93', 57, 'lanthanoid'],
+      [70, 'Yb', 'Ytterbium', 'الإيتربيوم', '173.05', 57, 'lanthanoid'],
+      [71, 'Lu', 'Lutetium', 'اللوتيشيوم', '174.97', 57, 'lanthanoid'],
 
-      [90, 'Th', 'Thorium', '钍', '232.04', 89, 'actinoid'],
-      [91, 'Pa', 'Protactinium', '镤', '231.04', 89, 'actinoid'],
-      [92, 'U', 'Uranium', '铀', '238.03', 89, 'actinoid'],
-      [93, 'Np', 'Neptunium', '镎', '237', 89, 'actinoid'],
-      [94, 'Pu', 'Plutonium', '钚', '244', 89, 'actinoid'],
-      [95, 'Am', 'Americium', '镅', '243', 89, 'actinoid'],
-      [96, 'Cm', 'Curium', '锔', '247', 89, 'actinoid'],
-      [97, 'Bk', 'Berkelium', '锫', '247', 89, 'actinoid'],
-      [98, 'Cf', 'Californium', '锎', '251', 89, 'actinoid'],
-      [99, 'Es', 'Einsteinium', '锿', '252', 89, 'actinoid'],
-      [100, 'Fm', 'Fermium', '镄', '257', 89, 'actinoid'],
-      [101, 'Md', 'Mendelevium', '钔', '258', 89, 'actinoid'],
-      [102, 'No', 'Nobelium', '锘', '259', 89, 'actinoid'],
-      [103, 'Lr', 'Lawrencium', '铹', '266', 89, 'actinoid'],
+      [90, 'Th', 'Thorium', 'الثوريوم', '232.04', 89, 'actinoid'],
+      [91, 'Pa', 'Protactinium', 'البروتكتينيوم', '231.04', 89, 'actinoid'],
+      [92, 'U', 'Uranium', 'اليورانيوم', '238.03', 89, 'actinoid'],
+      [93, 'Np', 'Neptunium', 'النبتونيوم', '237', 89, 'actinoid'],
+      [94, 'Pu', 'Plutonium', 'البلوتونيوم', '244', 89, 'actinoid'],
+      [95, 'Am', 'Americium', 'الأمريسيوم', '243', 89, 'actinoid'],
+      [96, 'Cm', 'Curium', 'الكوريوم', '247', 89, 'actinoid'],
+      [97, 'Bk', 'Berkelium', 'البركيليوم', '247', 89, 'actinoid'],
+      [98, 'Cf', 'Californium', 'الكاليفورنيوم', '251', 89, 'actinoid'],
+      [99, 'Es', 'Einsteinium', 'الأينشتاينيوم', '252', 89, 'actinoid'],
+      [100, 'Fm', 'Fermium', 'الفيرميوم', '257', 89, 'actinoid'],
+      [101, 'Md', 'Mendelevium', 'المندليفيوم', '258', 89, 'actinoid'],
+      [102, 'No', 'Nobelium', 'النوبليوم', '259', 89, 'actinoid'],
+      [103, 'Lr', 'Lawrencium', 'اللورنسيوم', '266', 89, 'actinoid'],
     ];
 
     var ELEMENT_BY_NAME = new Map();
@@ -221,7 +223,7 @@
           slotZ: r[0],
           symbol: r[1],
           name: r[2],
-          zh: r[3],
+          ar: r[3],
           mass: r[4],
           row: r[5],
           col: r[6],
@@ -242,7 +244,7 @@
         slotZ: fr[5],
         symbol: fr[1],
         name: fr[2],
-        zh: fr[3],
+        ar: fr[3],
         mass: fr[4],
         row: parentSlot ? parentSlot.row : 6,
         col: parentSlot ? parentSlot.col : 3,
@@ -258,34 +260,34 @@
     ELEMENT_BY_NAME.set('sulphur', SLOT_BY_Z.get(16));
 
     var GROUP_META = {
-      nonmetal: { en: 'Reactive Nonmetal', zh: '活泼非金属' },
-      noble: { en: 'Noble Gas', zh: '稀有气体' },
-      alkali: { en: 'Alkali Metal', zh: '碱金属' },
-      alkaline: { en: 'Alkaline Earth Metal', zh: '碱土金属' },
-      metalloid: { en: 'Metalloid', zh: '类金属' },
-      halogen: { en: 'Halogen', zh: '卤素' },
-      'post-transition': { en: 'Post-Transition Metal', zh: '后过渡金属' },
-      transition: { en: 'Transition Metal', zh: '过渡金属' },
-      lanthanoid: { en: 'Lanthanoid Series', zh: '镧系稀土' },
-      actinoid: { en: 'Actinoid Series', zh: '锕系元素' },
+      nonmetal: { en: 'Reactive Nonmetal', ar: 'لافلز نشط' },
+      noble: { en: 'Noble Gas', ar: 'غاز نبيل' },
+      alkali: { en: 'Alkali Metal', ar: 'فلز قلوي' },
+      alkaline: { en: 'Alkaline Earth Metal', ar: 'فلز قلوي ترابي' },
+      metalloid: { en: 'Metalloid', ar: 'شبه فلز' },
+      halogen: { en: 'Halogen', ar: 'هالوجين' },
+      'post-transition': { en: 'Post-Transition Metal', ar: 'فلز ما بعد انتقالي' },
+      transition: { en: 'Transition Metal', ar: 'فلز انتقالي' },
+      lanthanoid: { en: 'Lanthanoid Series', ar: 'سلسلة اللانثانيدات' },
+      actinoid: { en: 'Actinoid Series', ar: 'سلسلة الأكتينيدات' },
     };
 
     var ELEMENT_LORE = {
       1: {
         en: 'Group 1 · Reactive Nonmetal · Agile High-Throughput Reasoning',
-        zh: '第 1 族 · 活泼非金属 · 轻量疾速高吞吐推理核',
+        ar: 'المجموعة 1 · لافلز نشط · نواة استدلال سريعة وعالية التدفق',
       },
       6: {
         en: 'Group 14 · Tetravalent Carbon Core · Flagship Deep Synthesis',
-        zh: '第 14 族 · 四价碳基核心 · 旗舰深度推理与工程主力',
+        ar: 'المجموعة 14 · نواة الكربون الرباعي · رائد الاستدلال العميق والهندسة',
       },
       10: {
         en: 'Group 18 · Noble Gas · Luminous Low-Latency Multimodal',
-        zh: '第 18 族 · 稀有气体 · 灵动多模态与敏捷响应核',
+        ar: 'المجموعة 18 · غاز نبيل · متعدد الوسائط سريع الاستجابة ومنخفض الكمون',
       },
       18: {
         en: 'Group 18 · Noble Gas · Balanced Precision & Visual Craft',
-        zh: '第 18 族 · 稀有气体 · 视觉审美与均衡分析核',
+        ar: 'المجموعة 18 · غاز نبيل · دقة متوازنة وتحقق بصري متقن',
       },
     };
 
@@ -489,11 +491,11 @@
     var BENCHMARK_SOURCE_CITATION_SHORT = 'AA v5 · TermBench · SWE-bench (2026Q4)';
 
     var RADAR_AXES = [
-      { key: 'aa', zh: 'AA v5', en: 'AA v5', vertexZh: '推理', vertexEn: 'AA' },
-      { key: 'term', zh: 'TermBench', en: 'TermBench', vertexZh: '终端', vertexEn: 'Term' },
-      { key: 'sci', zh: 'HLE-D', en: 'HLE-D', vertexZh: '科学', vertexEn: 'Sci' },
-      { key: 'swe', zh: 'SWE-Pro', en: 'SWE-Pro', vertexZh: '工程', vertexEn: 'SWE' },
-      { key: 'tps', zh: '吞吐极速', en: 'Velocity', vertexZh: '极速', vertexEn: 'Speed' },
+      { key: 'aa', ar: 'AA v5', en: 'AA v5', vertexAr: 'الذكاء', vertexEn: 'AA' },
+      { key: 'term', ar: 'TermBench', en: 'TermBench', vertexAr: 'الطرفية', vertexEn: 'Term' },
+      { key: 'sci', ar: 'HLE-D', en: 'HLE-D', vertexAr: 'العلوم', vertexEn: 'Sci' },
+      { key: 'swe', ar: 'SWE-Pro', en: 'SWE-Pro', vertexAr: 'الهندسة', vertexEn: 'SWE' },
+      { key: 'tps', ar: 'السرعة', en: 'Velocity', vertexAr: 'السرعة', vertexEn: 'Speed' },
     ];
 
     var BENCHMARK_CEILINGS = {
@@ -612,11 +614,11 @@
         secondaryHexLight: '#0EA5E9',
         glowRgba: 'rgba(56, 189, 248, 0.28)',
         roleTag: 'HIGH-THROUGHPUT',
-        switchSpecZh: 'Sky-Ice Crystal',
+        switchSpecAr: 'Sky-Ice Crystal',
         switchSpecEn: 'Sky-Ice Crystal',
-        taglineZh: '第 1 族活泼非金属 · 轻量疾速高吞吐并发推理核',
+        taglineAr: 'المجموعة 1 لافلز نشط · نواة استدلال متوازي سريعة وعالية التدفق',
         taglineEn: 'Group 1 Reactive Nonmetal · Agile High-Throughput Reasoning Core',
-        scenesZh: ['高频检索', '512K 并发', '极速响应'],
+        scenesAr: ['بحث سريع', 'توازي 512K', 'كمون منخفض'],
         scenesEn: ['Fast Search', '512K Shard', 'Low Latency'],
       },
       6: {
@@ -627,11 +629,11 @@
         secondaryHexLight: '#0284C7',
         glowRgba: 'rgba(59, 130, 246, 0.30)',
         roleTag: 'COBALT · PRO',
-        switchSpecZh: 'Cobalt Diamond Prism',
+        switchSpecAr: 'Cobalt Diamond Prism',
         switchSpecEn: 'Cobalt Diamond Prism',
-        taglineZh: '第 14 族四价碳基核心 · 旗舰深度合成与复杂工程主力',
+        taglineAr: 'المجموعة 14 نواة الكربون الرباعي · رائد التركيب العميق والمعمارية المعقدة',
         taglineEn: 'Group 14 Tetravalent Carbon · Flagship Deep Synthesis & Architecture',
-        scenesZh: ['深度推理', '512K 架构', '代码主力'],
+        scenesAr: ['استدلال عميق', 'معمارية 512K', 'برمجة احترافية'],
         scenesEn: ['Reasoning', '512K Arch', 'Code Pro'],
       },
       10: {
@@ -642,11 +644,11 @@
         secondaryHexLight: '#D97706',
         glowRgba: 'rgba(255, 107, 74, 0.30)',
         roleTag: 'CORAL · FLOW',
-        switchSpecZh: 'Coral-Gold Glass',
+        switchSpecAr: 'Coral-Gold Glass',
         switchSpecEn: 'Coral-Gold Glass',
-        taglineZh: '第 18 族稀有气体 · 低延迟流式多模态与创意前端核',
+        taglineAr: 'المجموعة 18 غاز نبيل · متعدد الوسائط منخفض الكمون وتصميم واجهات إبداعي',
         taglineEn: 'Group 18 Noble Gas · Luminous Low-Latency Multimodal & UI Craft',
-        scenesZh: ['流式编码', '多模态', '创意前沿'],
+        scenesAr: ['برمجة فورية', 'متعدد الوسائط', 'تصميم واجهات'],
         scenesEn: ['Live Coding', 'Multimodal', 'UI Craft'],
       },
       18: {
@@ -657,11 +659,11 @@
         secondaryHexLight: '#4338CA',
         glowRgba: 'rgba(124, 92, 255, 0.30)',
         roleTag: 'INDIGO · QA',
-        switchSpecZh: 'Indigo-Violet Prism',
+        switchSpecAr: 'Indigo-Violet Prism',
         switchSpecEn: 'Indigo-Violet Prism',
-        taglineZh: '第 18 族稀有气体 · 高审美多模态视觉质检与精密分析核',
+        taglineAr: 'المجموعة 18 غاز نبيل · تدقيق بصري عالي الجمالية وتحليل دقيق متوازن',
         taglineEn: 'Group 18 Noble Gas · High-Aesthetic Visual QA & Balanced Precision',
-        scenesZh: ['视觉验证', '512K 审校', '精密分析'],
+        scenesAr: ['تدقيق بصري', 'مراجعة 512K', 'تحليل دقيق'],
         scenesEn: ['Visual QA', '512K Audit', 'Precision'],
       },
       fallback: {
@@ -672,11 +674,11 @@
         secondaryHexLight: '#0284C7',
         glowRgba: 'rgba(96, 165, 250, 0.24)',
         roleTag: 'ELEMENT CORE',
-        switchSpecZh: 'Crystal Prism',
+        switchSpecAr: 'Crystal Prism',
         switchSpecEn: 'Crystal Prism',
-        taglineZh: 'Google 化学元素直连序列 · 原生全模态长窗口推理核',
+        taglineAr: 'سلسلة العناصر الكيميائية من Google · نواة أصلية طويلة السياق',
         taglineEn: 'Google Chemical Element Series · Native Long-Context Core',
-        scenesZh: ['通用推理', '代码生成', '512K 长窗'],
+        scenesAr: ['استدلال', 'توليد شيفرة', 'سياق 512K'],
         scenesEn: ['Reasoning', 'Code Gen', '512K Ctx'],
       },
     };
@@ -696,9 +698,9 @@
         secondaryHex: '#F5B942',
         secondaryHexLight: '#B45309',
         glowRgba: 'rgba(139, 92, 246, 0.32)',
-        taglineZh: '星云紫蓝×暖金自锁编排开关 · 主核规划 + 1H 高速卸载',
+        taglineAr: 'مفتاح تنسيق ثنائي النواة بقفل ذاتي · نواة التخطيط + تفريغ سريع إلى 1H',
         taglineEn: 'Dual-Core Latching Mode Switch · Planner Core + 1H Offload',
-        scenesZh: ['双核规划', '512K 路由', '1H 卸载'],
+        scenesAr: ['ثنائي النواة', 'توجيه 512K', 'تفريغ 1H'],
         scenesEn: ['Dual-Core', '512K Route', '1H Offload'],
       },
       {
@@ -715,9 +717,9 @@
         secondaryHex: '#67E8F9',
         secondaryHexLight: '#0891B2',
         glowRgba: 'rgba(0, 212, 255, 0.30)',
-        taglineZh: '电光青蓝亚秒级响应核 · 大规模代码检索与高频分诊主力',
+        taglineAr: 'نواة استجابة فائقة السرعة دون الثانية · استكشاف الشيفرة والفرز السريع',
         taglineEn: 'Sub-Second Hyper-Velocity Core · Rapid Codebase Exploration & Triage',
-        scenesZh: ['极速检索', '日志初筛', '高频并发'],
+        scenesAr: ['بحث فائق', 'فرز السجلات', 'توازي عالٍ'],
         scenesEn: ['Fast Search', 'Log Triage', 'Parallel'],
       },
       {
@@ -734,9 +736,9 @@
         secondaryHex: '#F4A261',
         secondaryHexLight: '#B45309',
         glowRgba: 'rgba(224, 122, 72, 0.30)',
-        taglineZh: 'Anthropic 陶土暖珀晶体旗舰 · 深度审计、架构思辨与细腻写作核',
+        taglineAr: 'نواة استدلال متقنة رائدة · تدقيق شيفرة عميق وتحليل معماري دقيق',
         taglineEn: 'Flagship Artisan Reasoning · Deep Code Audit & Nuanced Synthesis',
-        scenesZh: ['深度审阅', '架构思辨', '精工写作'],
+        scenesAr: ['تدقيق شيفرة', 'تشخيص عميق', 'إتقان'],
         scenesEn: ['Code Audit', 'Deep Debug', 'Craft'],
       },
       {
@@ -753,9 +755,9 @@
         secondaryHex: '#F4B26A',
         secondaryHexLight: '#D97706',
         glowRgba: 'rgba(217, 119, 66, 0.28)',
-        taglineZh: 'Anthropic 陶土暖珀敏捷编码核 · 高频组件构建与工具链协同主力',
+        taglineAr: 'نواة برمجة رشيقة ومتوازنة · بناء سريع للواجهات وتكامل سلس مع الأدوات',
         taglineEn: 'Balanced Agile Coding Core · Rapid UI Engineering & Tool Use',
-        scenesZh: ['前端精工', '敏捷迭代', '工具协同'],
+        scenesAr: ['هندسة واجهات', 'بناء سريع', 'استخدام أدوات'],
         scenesEn: ['UI Craft', 'Fast Build', 'Tool Use'],
       },
       {
@@ -772,9 +774,9 @@
         secondaryHex: '#99F6E4',
         secondaryHexLight: '#0D9488',
         glowRgba: 'rgba(79, 209, 197, 0.28)',
-        taglineZh: '极简银青冰薄荷逻辑矩阵推理核 · 后端逻辑交叉核验与开放权重推理',
+        taglineAr: 'مصفوفة منطق مفتوحة الأوزان · تحقق متقاطع للخلفية واستدلال رياضي',
         taglineEn: 'Silver-Mint Logic Matrix · Backend Cross-Verification & Math',
-        scenesZh: ['算法推演', '后端盲审', '逻辑校验'],
+        scenesAr: ['خوارزميات', 'تدقيق خلفي', 'فحص منطقي'],
         scenesEn: ['Algorithms', 'Audit', 'Logic Check'],
       },
       {
@@ -791,21 +793,33 @@
         secondaryHex: '#475569',
         secondaryHexLight: '#334155',
         glowRgba: 'rgba(100, 116, 139, 0.22)',
-        taglineZh: '定制 CNC 铝合金 2x3 副盘预留扩展键位 · 暗刻阳极盲键',
+        taglineAr: 'مفتاح توسعة محجوز على اللوحة المساعدة 2x3 من الألمنيوم المؤكسد',
         taglineEn: 'Bespoke CNC 2x3 Aux Macro Pad Reserved Anodized Blind Keycap',
-        scenesZh: ['扩展席位', '暗刻盲键', 'AUX-06'],
+        scenesAr: ['محجوز', 'مفتاح خامل', 'AUX-06'],
         scenesEn: ['Reserved', 'Blind Cap', 'AUX-06'],
       },
     ];
 
-    function normalizeZhEffortWord(word) {
-      if (word === '超高' || word === '极高' || word === '超深') return 'xhigh';
-      if (word === '中' || word === '中等' || word === '中思考') return 'medium';
-      if (word === '低' || word === '低思考' || word === '极低' || word === '最低') return 'low';
-      if (word === '关闭') return 'off';
-      if (word === '自动') return 'auto';
+    function isArabicLangFlag(langOrFlag) {
+      if (typeof langOrFlag === 'string') {
+        var s = langOrFlag.trim().toLowerCase().replace(/_/g, '-');
+        return s === 'ar' || s.indexOf('ar-') === 0 || s === 'arabic';
+      }
+      return false;
+    }
+
+    function normalizeArEffortWord(word) {
+      var w = String(word || '').trim();
+      if (w === 'فائق' || w === 'عالي جدا' || w === 'عالي جداً') return 'xhigh';
+      if (w === 'أقصى') return 'max';
+      if (w === 'متوسط') return 'medium';
+      if (w === 'منخفض' || w === 'أدنى') return 'low';
+      if (w === 'إيقاف' || w === 'مغلق') return 'off';
+      if (w === 'تلقائي') return 'auto';
+      if (w === 'عالي' || w === 'عميق') return 'high';
       return 'high';
     }
+    var normalizeZhEffortWord = normalizeArEffortWord;
 
     function normalizeEnEffortWord(word) {
       var w = String(word || '').toLowerCase();
@@ -818,10 +832,10 @@
       var clean = String(rawLabel || '').replace(/^.*?\bcurrent:\s*/i, '').trim();
       var effort = '';
       var hasExplicit = false;
-      var zhM = ZH_EFFORT_PAREN_RE.exec(clean);
-      if (zhM) {
-        effort = normalizeZhEffortWord(zhM[1]);
-        clean = clean.slice(0, zhM.index).trim();
+      var arM = AR_EFFORT_PAREN_RE.exec(clean);
+      if (arM) {
+        effort = normalizeArEffortWord(arM[1]);
+        clean = clean.slice(0, arM.index).trim();
         hasExplicit = true;
       } else {
         var enM = EN_EFFORT_PAREN_RE.exec(clean);
@@ -837,13 +851,13 @@
             clean = clean.slice(0, bareEn.index).trim();
             hasExplicit = true;
           } else {
-            var bareZh =
-              /\s+(超高思考|极高思考|高思考|中等思考|中思考|低思考|极低思考|最低思考|超深|超高|极高|中等|极低|最低|自动|关闭|高|中|低)\s*$/.exec(
+            var bareAr =
+              /\s+(عالي جدا|عالي جداً|أقصى|فائق|عميق|متوسط|منخفض|أدنى|تلقائي|إيقاف|مغلق|عالي)\s*$/.exec(
                 clean
               );
-            if (bareZh) {
-              effort = normalizeZhEffortWord(bareZh[1].replace(/思考$/, ''));
-              clean = clean.slice(0, bareZh.index).trim();
+            if (bareAr) {
+              effort = normalizeArEffortWord(bareAr[1]);
+              clean = clean.slice(0, bareAr.index).trim();
               hasExplicit = true;
             }
           }
@@ -880,10 +894,10 @@
       var effort = '';
       var hasExplicitEffort = false;
 
-      var zhMatch = ZH_EFFORT_PAREN_RE.exec(baseName);
-      if (zhMatch) {
-        effort = normalizeZhEffortWord(zhMatch[1]);
-        baseName = baseName.slice(0, zhMatch.index).trim();
+      var arMatch = AR_EFFORT_PAREN_RE.exec(baseName);
+      if (arMatch) {
+        effort = normalizeArEffortWord(arMatch[1]);
+        baseName = baseName.slice(0, arMatch.index).trim();
         hasExplicitEffort = true;
       } else {
         var enMatch = EN_EFFORT_PAREN_RE.exec(baseName);
@@ -899,13 +913,13 @@
             baseName = baseName.slice(0, bareEnMatch.index).trim();
             hasExplicitEffort = true;
           } else {
-            var bareZhMatch =
-              /\s+(超高思考|极高思考|高思考|中等思考|中思考|低思考|极低思考|最低思考|超深|超高|极高|中等|极低|最低|自动|关闭|高|中|低)\s*$/.exec(
+            var bareArMatch =
+              /\s+(عالي جدا|عالي جداً|أقصى|فائق|عميق|متوسط|منخفض|أدنى|تلقائي|إيقاف|مغلق|عالي)\s*$/.exec(
                 baseName
               );
-            if (bareZhMatch) {
-              effort = normalizeZhEffortWord(bareZhMatch[1].replace(/思考$/, ''));
-              baseName = baseName.slice(0, bareZhMatch.index).trim();
+            if (bareArMatch) {
+              effort = normalizeArEffortWord(bareArMatch[1]);
+              baseName = baseName.slice(0, bareArMatch.index).trim();
               hasExplicitEffort = true;
             }
           }
@@ -949,7 +963,7 @@
         elementSymbol: matchedElement.symbol,
         name: slot.name,
         elementName: matchedElement.name,
-        zh: slot.zh,
+        ar: slot.ar,
         mass: slot.mass,
         group: slot.group,
         baseName: baseName,
@@ -984,7 +998,7 @@
             slotZ: parsed.slotZ,
             symbol: slot ? slot.symbol : parsed.symbol,
             name: parsed.elementName || parsed.name,
-            zh: slot ? slot.zh : parsed.zh,
+            ar: slot ? slot.ar : parsed.ar,
             mass: slot ? slot.mass : parsed.mass,
             group: slot ? slot.group : parsed.group,
             baseName: parsed.baseName,
@@ -1041,7 +1055,7 @@
           symbol: raw.symbol,
           name: raw.name,
           elementName: raw.name,
-          zh: raw.zh,
+          ar: raw.ar,
           mass: raw.mass,
           group: raw.group,
           baseName: raw.baseName,
@@ -1063,8 +1077,8 @@
      * Unknown / unbenchmarked models strictly return `{ isKnownBenchmark: false, scores: null }`
      * and NEVER fall back to Carbon (6) or GPT-OSS scores.
      */
-    function resolveBenchmarkMetrics(benchKey, effortCode, zh, isAvailable) {
-      var useZh = Boolean(zh);
+    function resolveBenchmarkMetrics(benchKey, effortCode, langOrFlag, isAvailable) {
+      var useAr = isArabicLangFlag(langOrFlag);
       var normEff = String(effortCode || '').toLowerCase();
 
       if (isAvailable === false) {
@@ -1074,7 +1088,7 @@
           ratios: null,
           rawValues: null,
           rows: [],
-          compactText: useZh ? '未开放席位' : 'Locked Slot',
+          compactText: useAr ? 'خانة مقفلة' : 'Locked Slot',
           effort: normEff,
           isAvailable: false,
         };
@@ -1092,7 +1106,7 @@
           ratios: null,
           rawValues: null,
           rows: [],
-          compactText: useZh ? '暂无权威跑分数据' : 'No Benchmark Data',
+          compactText: useAr ? 'لا توجد بيانات قياس' : 'No Benchmark Data',
           effort: normEff,
           isAvailable: true,
         };
@@ -1133,7 +1147,7 @@
           { label: 'TermBench', valText: termStr, fillPct: Math.round(r1 * 100), raw: tier.term, unit: 'pct' },
           { label: rec.sciName, valText: sciStr, fillPct: Math.round(r2 * 100), raw: tier.sci, unit: 'pct' },
           { label: sweDisplayLbl, valText: sweStr, fillPct: Math.round(r3 * 100), raw: tier.swe, unit: 'pct' },
-          { label: useZh ? '吞吐速率' : 'Velocity', valText: tpsStr, fillPct: Math.round(r4 * 100), raw: rec.tps, unit: 'tps' },
+          { label: useAr ? 'السرعة' : 'Velocity', valText: tpsStr, fillPct: Math.round(r4 * 100), raw: rec.tps, unit: 'tps' },
         ],
         compactText: 'AA ' + aaStr + ' · Term ' + termStr + ' · ' + tpsStr,
         effort: normEff || rec.defaultTier,
@@ -1172,9 +1186,9 @@
         secondaryHex: isClaudeFamily ? '#F4B26A' : '#A5B4FC',
         secondaryHexLight: isClaudeFamily ? '#D97706' : '#64748B',
         glowRgba: isClaudeFamily ? 'rgba(217, 119, 66, 0.24)' : 'rgba(142, 164, 200, 0.24)',
-        taglineZh: desc || title + ' · 原生模型配置（暂无 2026Q4 基准跑分）',
+        taglineAr: desc || title + ' · إعداد نموذج أصلي (لا توجد بيانات قياس 2026Q4)',
         taglineEn: desc || title + ' · Native model configuration (no benchmark data)',
-        scenesZh: ['原生模型', '推理档位', '扩展席位'],
+        scenesAr: ['نموذج أصلي', 'التفكير', 'خانة توسعة'],
         scenesEn: ['Native', 'Thinking', 'Ext Slot'],
       };
     }
@@ -1207,7 +1221,7 @@
       var nativeDesc = readNativeOptionDescription(opt);
       var hay = (rawLabel + ' ' + modelId).toLowerCase();
 
-      if (/orchestrator|编排|调度器/.test(hay)) {
+      if (/orchestrator|المنسق|المجدول/.test(hay)) {
         var isVariant = /\(/.test(rawLabel);
         return {
           groupKey: 'orchestrator',
@@ -1362,10 +1376,10 @@
         secondaryHex: bp.secondaryHex,
         secondaryHexLight: bp.secondaryHexLight,
         glowRgba: bp.glowRgba,
-        taglineZh: bp.taglineZh,
+        taglineAr: bp.taglineAr,
         taglineEn: bp.taglineEn,
         tagline: bp.taglineEn,
-        scenesZh: bp.scenesZh,
+        scenesAr: bp.scenesAr,
         scenesEn: bp.scenesEn,
         scenes: bp.scenesEn.slice(),
         nativeDescription: '',
@@ -1443,7 +1457,8 @@
      */
     function matchHostAuxModels(modelOptions, effortIndex, orchestratorPlanners, options) {
       var opts = options && typeof options === 'object' ? options : {};
-      var useZh = Boolean(opts.zh);
+      var useAr = Boolean(opts.ar || isArabicLangFlag(opts.lang));
+      var langArg = useAr ? 'ar' : 'en';
       var hasHostMenu = Array.isArray(modelOptions) && modelOptions.length > 0;
 
       if (!hasHostMenu) {
@@ -1455,7 +1470,7 @@
           var demoOpt = isDemoAvail
             ? { label: dp.defaultTitle, value: dp.id, modelId: dp.id }
             : null;
-          var demoBench = resolveBenchmarkMetrics(dp.id, 'high', useZh, isDemoAvail);
+          var demoBench = resolveBenchmarkMetrics(dp.id, 'high', langArg, isDemoAvail);
           var demoSlot = {
             slotIndex: di,
             auxIndex: di,
@@ -1473,12 +1488,12 @@
             secondaryHex: dp.secondaryHex,
             secondaryHexLight: dp.secondaryHexLight || dp.secondaryHex,
             glowRgba: dp.glowRgba,
-            taglineZh: dp.taglineZh,
+            taglineAr: dp.taglineAr,
             taglineEn: dp.taglineEn,
-            tagline: useZh ? dp.taglineZh : dp.taglineEn,
-            scenesZh: dp.scenesZh,
+            tagline: useAr ? dp.taglineAr : dp.taglineEn,
+            scenesAr: dp.scenesAr,
             scenesEn: dp.scenesEn,
-            scenes: (useZh ? dp.scenesZh : dp.scenesEn).slice(),
+            scenes: (useAr ? dp.scenesAr : dp.scenesEn).slice(),
             nativeDescription: '',
             isKnownBenchmark: Boolean(demoBench.isKnownBenchmark),
             scores: demoBench.isKnownBenchmark && demoBench.scores ? demoBench.scores.slice() : null,
@@ -1611,8 +1626,8 @@
           }
 
           var slotId = sg.groupKey;
-          var initBench = resolveBenchmarkMetrics(slotId, 'high', useZh, true);
-          var taglineZh = sg.nativeDescription || pr.taglineZh;
+          var initBench = resolveBenchmarkMetrics(slotId, 'high', langArg, true);
+          var taglineAr = sg.nativeDescription || pr.taglineAr;
           var taglineEn = sg.nativeDescription || pr.taglineEn;
           var slotItem = {
             slotIndex: k,
@@ -1631,12 +1646,12 @@
             secondaryHex: pr.secondaryHex,
             secondaryHexLight: pr.secondaryHexLight || pr.secondaryHex,
             glowRgba: pr.glowRgba,
-            taglineZh: taglineZh,
+            taglineAr: taglineAr,
             taglineEn: taglineEn,
-            tagline: useZh ? taglineZh : taglineEn,
-            scenesZh: pr.scenesZh,
+            tagline: useAr ? taglineAr : taglineEn,
+            scenesAr: pr.scenesAr,
             scenesEn: pr.scenesEn,
-            scenes: (useZh ? pr.scenesZh : pr.scenesEn).slice(),
+            scenes: (useAr ? pr.scenesAr : pr.scenesEn).slice(),
             nativeDescription: sg.nativeDescription || '',
             isKnownBenchmark: Boolean(initBench.isKnownBenchmark),
             scores: initBench.isKnownBenchmark && initBench.scores ? initBench.scores.slice() : null,
@@ -1656,40 +1671,43 @@
       return slots;
     }
 
-    function getGroupLabel(group, zh) {
+    function getGroupLabel(group, langOrFlag) {
+      var useAr = isArabicLangFlag(langOrFlag);
       var meta = GROUP_META[group] || GROUP_META.transition;
-      return zh ? meta.zh : meta.en;
+      return useAr ? meta.ar : meta.en;
     }
 
     function getElementSpecProfile(z) {
       return ELEMENT_SPEC_PROFILES[z] || ELEMENT_SPEC_PROFILES.fallback;
     }
 
-    function getElementLore(z, zh) {
+    function getElementLore(z, langOrFlag) {
+      var useAr = isArabicLangFlag(langOrFlag);
       var slot = SLOT_BY_Z.get(Number(z));
       var lore = ELEMENT_LORE[Number(z)];
-      if (lore) return zh ? lore.zh : lore.en;
+      if (lore) return useAr ? lore.ar : lore.en;
       if (!slot) {
-        return zh ? 'Google 化学元素直连序列' : 'Google Chemical Element Series';
+        return useAr ? 'سلسلة العناصر الكيميائية من Google' : 'Google Chemical Element Series';
       }
-      var groupText = getGroupLabel(slot.group, zh);
-      return zh
-        ? '第 ' + slot.col + ' 族 · ' + groupText + ' · Google 元素直连模型'
+      var groupText = getGroupLabel(slot.group, langOrFlag);
+      return useAr
+        ? 'المجموعة ' + slot.col + ' · ' + groupText + ' · سلسلة عناصر Google'
         : 'Group ' + slot.col + ' · ' + groupText + ' · Google Element Series';
     }
 
-    function getRadarAxes(zh) {
+    function getRadarAxes(langOrFlag) {
+      var useAr = isArabicLangFlag(langOrFlag);
       return RADAR_AXES.map(function (ax) {
         return {
           key: ax.key,
-          label: zh ? ax.zh : ax.en,
-          vertexLabel: zh ? ax.vertexZh : ax.vertexEn,
+          label: useAr ? ax.ar : ax.en,
+          vertexLabel: useAr ? ax.vertexAr : ax.vertexEn,
         };
       });
     }
 
-    function resolveElementDisplay(slotOrZ, zh) {
-      var useZh = Boolean(zh);
+    function resolveElementDisplay(slotOrZ, langOrFlag) {
+      var useAr = isArabicLangFlag(langOrFlag);
       var slot =
         typeof slotOrZ === 'object' && slotOrZ
           ? slotOrZ
@@ -1699,18 +1717,18 @@
         z: slot.z,
         symbol: slot.symbol,
         name: slot.name,
-        displayName: useZh ? slot.name + ' (' + slot.zh + ')' : slot.name,
-        groupLabel: getGroupLabel(slot.group, useZh),
-        lore: getElementLore(slot.z, useZh),
+        displayName: useAr && slot.ar ? slot.name + ' (' + slot.ar + ')' : slot.name,
+        groupLabel: getGroupLabel(slot.group, langOrFlag),
+        lore: getElementLore(slot.z, langOrFlag),
         roleTag: prof.roleTag,
-        switchSpec: useZh ? prof.switchSpecZh : prof.switchSpecEn,
-        tagline: useZh ? prof.taglineZh : prof.taglineEn,
-        scenes: (useZh ? prof.scenesZh : prof.scenesEn).slice(),
+        switchSpec: useAr ? prof.switchSpecAr : prof.switchSpecEn,
+        tagline: useAr ? prof.taglineAr : prof.taglineEn,
+        scenes: (useAr ? prof.scenesAr : prof.scenesEn).slice(),
       };
     }
 
-    function resolveAuxSlotDisplay(slot, zh) {
-      var useZh = Boolean(zh);
+    function resolveAuxSlotDisplay(slot, langOrFlag) {
+      var useAr = isArabicLangFlag(langOrFlag);
       if (!slot || typeof slot !== 'object') {
         return {
           title: '',
@@ -1727,15 +1745,16 @@
         title: slot.title || '',
         shortLabel: slot.shortLabel || '',
         roleTag: slot.roleTag || '',
-        tagline: nativeDesc || (useZh ? slot.taglineZh || slot.taglineEn || '' : slot.taglineEn || ''),
-        scenes: (useZh ? slot.scenesZh || slot.scenesEn || [] : slot.scenesEn || []).slice(),
+        tagline: nativeDesc || (useAr ? slot.taglineAr || slot.taglineEn || '' : slot.taglineEn || ''),
+        scenes: (useAr ? slot.scenesAr || slot.scenesEn || [] : slot.scenesEn || []).slice(),
         nativeDescription: nativeDesc,
       };
     }
 
-    function getLocalizedEffortLabel(effortCode, zh) {
+    function getLocalizedEffortLabel(effortCode, langOrFlag) {
+      var useAr = isArabicLangFlag(langOrFlag);
       var code = String(effortCode || '').toLowerCase();
-      if (zh && EFFORT_LABELS_ZH[code]) return EFFORT_LABELS_ZH[code];
+      if (useAr && EFFORT_LABELS_AR[code]) return EFFORT_LABELS_AR[code];
       return EFFORT_LABELS[code] || effortCode || '';
     }
 
@@ -1745,9 +1764,11 @@
       EFFORT_ORDER: EFFORT_ORDER,
       EFFORT_NORM_MAP: EFFORT_NORM_MAP,
       EFFORT_LABELS: EFFORT_LABELS,
+      EFFORT_LABELS_AR: EFFORT_LABELS_AR,
       EFFORT_LABELS_ZH: EFFORT_LABELS_ZH,
       MODEL_TRIGGER_TEXT_RE: MODEL_TRIGGER_TEXT_RE,
       EXCLUDED_FAMILY_RE: EXCLUDED_FAMILY_RE,
+      AR_EFFORT_PAREN_RE: AR_EFFORT_PAREN_RE,
       ZH_EFFORT_PAREN_RE: ZH_EFFORT_PAREN_RE,
       EN_EFFORT_PAREN_RE: EN_EFFORT_PAREN_RE,
       ELEMENTS_90: ELEMENTS_90,
@@ -1771,6 +1792,7 @@
       rgba255Css: rgba255Css,
       rgb255ToHex: rgb255ToHex,
       resolveThemeNativeMiniBadgeColors: resolveThemeNativeMiniBadgeColors,
+      normalizeArEffortWord: normalizeArEffortWord,
       normalizeZhEffortWord: normalizeZhEffortWord,
       normalizeEnEffortWord: normalizeEnEffortWord,
       stripEffortSuffixFromLabel: stripEffortSuffixFromLabel,

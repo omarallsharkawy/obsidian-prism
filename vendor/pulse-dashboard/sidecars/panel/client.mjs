@@ -14,7 +14,7 @@ const SERVICE = '/exa.language_server_pb.LanguageServerService/';
 export function serverFromPorts(logPorts, processes) {
   const list = Array.isArray(processes) ? processes : [processes];
   const rows = list.filter(p => p && (/--standalone\b/.test(p.CommandLine || '') || p.HubPort || /--subclient_type(?:=|\s+)["']?ide["']?/i.test(p.CommandLine || '')));
-  if (!rows.length) throw new Error('未找到 Antigravity 桌面后台');
+  if (!rows.length) throw new Error('Antigravity desktop backend not found');
 
   // 1) Explicit --hub-port match (IDE 2.6+ agy --hub)
   for (const row of rows) {
@@ -30,9 +30,9 @@ export function serverFromPorts(logPorts, processes) {
   if (rows.length === 1) {
     const ports = new Set([rows[0].Ports].flat().map(Number));
     const port = logPorts.find(p => ports.has(p));
-    if (!port) throw new Error('等待 Antigravity 本地接口启动');
+    if (!port) throw new Error('Waiting for Antigravity local API to start');
     const csrf = String(rows[0].CommandLine || '').match(/--csrf_token(?:=|\s+)"?([^\s"]+)/)?.[1];
-    if (!csrf) throw new Error('当前版本未提供可用的本地检测凭据');
+    if (!csrf) throw new Error('No usable local detection credentials provided by this version');
     return { port, csrf, pid: rows[0].ProcessId };
   }
 
@@ -45,7 +45,7 @@ export function serverFromPorts(logPorts, processes) {
     }
   }
 
-  throw new Error('检测到多个 Antigravity 实例，等待窗口归属解析');
+  throw new Error('Multiple Antigravity instances detected; waiting for window ownership resolution');
 }
 
 export function serverFromDiscovery(log, processes) {
@@ -162,7 +162,7 @@ export class AntigravityClient {
   async discoverNow(scope = 'local', slot = this) {
     slot.server = null;
     const cdpPort = this._resolveCdpPort();
-    // 远程/独立 scope 严禁扫描本机日志或连接本机 HTTP LS，仅通过对应渲染器通道探测
+    // Remote/isolated scopes must never scan local logs or connect to the local HTTP LS; probe only via the corresponding renderer channel.
     if (scope && scope !== 'local') {
       if (typeof this.rendererRpc === 'function') {
         try {
@@ -174,7 +174,7 @@ export class AntigravityClient {
           }
         } catch {}
       }
-      throw new Error(`远程窗口 ${scope} 渲染器通道暂不可用`);
+      throw new Error(`Renderer channel for remote window ${scope} is temporarily unavailable`);
     }
     const paths = this.paths(), logs = [], files = [...new Set(paths.logCandidates || [paths.log])];
     for (const file of files) {
@@ -210,7 +210,7 @@ export class AntigravityClient {
           }
         } catch {}
       }
-      throw new Error('请先打开 Antigravity');
+      throw new Error('Please open Antigravity first');
     }
 
     // Allow hub-port resolution even if log files are absent
@@ -234,7 +234,7 @@ export class AntigravityClient {
       }
     }
     if (!slot.server) {
-      const primaryErr = lastError || new Error(foundLog ? '等待 Antigravity 本地接口启动' : '未找到 Antigravity 语言服务日志，请检查日志路径');
+      const primaryErr = lastError || new Error(foundLog ? 'Waiting for Antigravity local API to start' : 'Antigravity language server log not found; please check the log path');
       if (typeof this.rendererRpc === 'function') {
         try {
           const probe = await this.rendererRpc('Probe', {});
@@ -295,7 +295,7 @@ export class AntigravityClient {
     if (settled) {
       return sumStamp && cached.sumStamp && sumStamp === cached.sumStamp ? 60000 : 20000;
     }
-    // 运行中对话按轨迹体量动态拉长全量 GetCascadeTrajectory TTL（12s~20s），避免长对话每 4s 触发 LS 整树反序列化
+    // Dynamically extend full GetCascadeTrajectory TTL (12s-20s) for running conversations based on trajectory size to avoid full LS deserialization every 4s.
     const steps = Number(cached.ctxSig?.steps ?? cached.data?.numTotalSteps ?? 0) || 0;
     const bytes = Number(cached.bytes || 0) || 0;
     if (steps >= 200 || bytes >= 768 * 1024) return 20000;
@@ -325,7 +325,7 @@ export class AntigravityClient {
         const ttl = this._resolveProxyTrajectoryTtl(cached, sumStamp);
         if (age < ttl) {
           let peekChanged = false;
-          // 1) 已结束会话：无 summary stamp 时用零 LS-RPC 内存态探针秒级感知 /compact 变化
+          // 1) Settled session: without a summary stamp, use a zero-LS-RPC in-memory probe to detect /compact changes within seconds.
           if (settled && !sumStamp && age >= 3500 && (!cached.peekAt || now - cached.peekAt >= 2000)) {
             cached.peekAt = now;
             try {
@@ -352,7 +352,7 @@ export class AntigravityClient {
               }
             } catch {}
           } else if (!settled && ttl >= 12000 && age >= 3500 && (!cached.peekAt || now - cached.peekAt >= 2500)) {
-            // 2) 运行中长对话：在 12s~20s 动态 TTL 内优先通过零 LS-RPC PeekContextState 刷新上下文水位与结束态
+            // 2) Running long conversation: within the 12s-20s dynamic TTL, prefer zero-LS-RPC PeekContextState to refresh context watermark and settled state.
             cached.peekAt = now;
             try {
               const peek = await this.rendererRpc('PeekContextState', { cascadeId });
@@ -386,7 +386,7 @@ export class AntigravityClient {
       const data = await this.rendererRpc('GetCascadeTrajectory', { cascadeId });
       const bytes = Buffer.byteLength(JSON.stringify(data || {}));
       if (bytes > 8 * 1024 * 1024) {
-        throw new Error('接口响应超过采集上限');
+        throw new Error('API response exceeded collection limit');
       }
       const fetchedAt = this.now();
       const ctxSig = this._proxyContextSig(data);
@@ -407,7 +407,7 @@ export class AntigravityClient {
 
   async _callRendererProxy(method, body = {}) {
     if (typeof this.rendererRpc !== 'function') {
-      throw new Error('当前版本未提供可用的本地检测凭据');
+      throw new Error('No usable local detection credentials provided by this version');
     }
     if (method === 'GetCascadeTrajectory') {
       return this._getProxyTrajectory(body?.cascadeId, Boolean(body?.force));
@@ -493,7 +493,7 @@ export class AntigravityClient {
               if (failed) return;
               bytes += Buffer.byteLength(chunk);
               if (!(projected && res.statusCode === 200) && bytes > 32 * 1024 * 1024) {
-                fail(new Error('接口响应超过采集上限'));
+                fail(new Error('API response exceeded collection limit'));
                 return;
               }
               try {
@@ -505,20 +505,20 @@ export class AntigravityClient {
             });
             res.on('end', () => {
               if (failed) return;
-              if (res.statusCode !== 200) return reject(Object.assign(new Error(`Antigravity 接口 ${method} 返回 ${res.statusCode}`), { status: res.statusCode }));
+              if (res.statusCode !== 200) return reject(Object.assign(new Error(`Antigravity API ${method} returned ${res.statusCode}`), { status: res.statusCode }));
               try {
                 const value = projected ? projected.end() : JSON.parse(text);
                 try { this.onRpc?.({ method, bytes, retainedBytes: projected?.retained ?? Buffer.byteLength(text), ms: this.now() - started }); } catch {}
                 resolve(value);
               } catch (error) {
-                reject(projected ? error : new Error('Antigravity 接口返回了无法解析的数据'));
+                reject(projected ? error : new Error('Antigravity API returned unparseable data'));
               }
             });
           }
         );
         req.on('error', reject);
-        req.setTimeout(12000, () => req.destroy(new Error('Antigravity 本地接口超时')));
-        const deadline = setTimeout(() => req.destroy(new Error('Antigravity 本地接口超时')), 30000);
+        req.setTimeout(12000, () => req.destroy(new Error('Antigravity local API timed out')));
+        const deadline = setTimeout(() => req.destroy(new Error('Antigravity local API timed out')), 30000);
         deadline.unref();
         req.once('close', () => clearTimeout(deadline));
         req.end(data);
@@ -562,7 +562,7 @@ export class AntigravityClient {
     });
     const started = this.now();
     let bytes = 0, peakRetained = 0, req, res, deadline, watch;
-    const timeout = () => Error('Antigravity 本地接口超时');
+    const timeout = () => Error('Antigravity local API timed out');
     const abort = error => {
       streamError ||= error;
       rejectAbort(streamError);
@@ -653,8 +653,8 @@ export class AntigravityClient {
         total = Number(page.numTotalGeneratorMetadata);
       }
       if (!items.length) {
-        if (generatorMetadata.length === 0 && total === null) throw new Error('会话暂时没有可用统计');
-        if (total !== null && generatorMetadata.length < total) throw new Error('完整会话统计分页暂不可用');
+        if (generatorMetadata.length === 0 && total === null) throw new Error('No statistics available for this session yet');
+        if (total !== null && generatorMetadata.length < total) throw new Error('Full session statistics pagination is temporarily unavailable');
         break;
       }
       generatorMetadata.push(...items);
@@ -686,14 +686,14 @@ export class AntigravityClient {
     const server = await this.discover(false, scope);
     if (server && server.mode === 'renderer-proxy') {
       if (options?.isCurrent && options.isCurrent() !== true) {
-        throw new Error('后台已重新连接，请等待刷新');
+        throw new Error('Backend reconnected; waiting for refresh');
       }
       const data = await this._getProxyTrajectory(id, Boolean(options?.force), {
         summary: options?.summary || null,
         scopeKey: scope,
       });
       if (options?.isCurrent && options.isCurrent() !== true) {
-        throw new Error('后台已重新连接，请等待刷新');
+        throw new Error('Backend reconnected; waiting for refresh');
       }
       return data;
     }

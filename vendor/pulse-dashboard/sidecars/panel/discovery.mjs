@@ -76,7 +76,7 @@ const integer = value => typeof value === 'number' ? value : typeof value === 's
 function netstatSnapshot(text) {
   const ports = new Map(), rejectedPids = new Set();
   for (const line of text.split(/\r?\n/)) {
-    const match = line.match(/^\s*TCP\s+(\S+)\s+(\S+)\s+(?:LISTENING|LISTEN|侦听|监听)\s+(\d+)\s*$/i);
+    const match = line.match(/^\s*TCP\s+(\S+)\s+(\S+)\s+(?:LISTENING|LISTEN)\s+(\d+)\s*$/i);
     if (!match) continue;
     const local = endpoint(match[1]), remote = endpoint(match[2]), pid = Number(match[3]);
     if (!validPid(pid)) continue;

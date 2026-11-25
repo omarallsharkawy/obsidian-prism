@@ -262,7 +262,7 @@ function createMockDomEnv(initialTheme = 'dark') {
   return { doc, win, storage, clipboardWrites };
 }
 
-test('mountOrSyncSettingsSection mounts all 27 settings (including omniModule, linkTarget & sidebarStudio), syncs presets, async export, cross-language import/reset toast, and 5-language UI', async () => {
+test('mountOrSyncSettingsSection mounts all settings (including omniModule, linkTarget & sidebarStudio), syncs presets, async export, cross-language import/reset toast, and bilingual en/ar UI', async () => {
   const prevDoc = globalThis.document;
   const prevWin = globalThis.window;
   const prevStorage = globalThis.localStorage;
@@ -323,13 +323,13 @@ test('mountOrSyncSettingsSection mounts all 27 settings (including omniModule, l
     },
   };
 
-  const resolveTestLang = () => (state.language === 'auto' ? 'zh-CN' : state.language);
+  const resolveTestLang = () => (state.language === 'ar' ? 'ar' : 'en');
   const remountOrSync = () => {
     settingsPanel.mountOrSyncSettingsSection({
       version: '1.0.1',
       getLang: resolveTestLang,
       uiText: (l) => i18nLocales.getUiStrings(l),
-      isZh: () => { const l = resolveTestLang(); return l !== 'en' && l !== 'ja'; },
+      isZh: () => false,
       i18nCore,
       formatSettingsSummary: (l, u) => `${l}:${state.palette}:${u.optLinkBuiltin}`,
       resolveSettingRowActiveValue: (k) => (k === 'language' ? resolveTestLang() : state[k]),
@@ -450,10 +450,10 @@ test('mountOrSyncSettingsSection mounts all 27 settings (including omniModule, l
     assert.equal(clipboardWrites[0].includes('SECRETKEY123'), false);
     assert.equal(clipboardWrites[0].includes('PRIVATE999'), false);
 
-    // 5. Cross-language Import JSON (zh-CN -> en) rebuilds panel, preserves green 'ok' status toast, and calls reloadConfig()
+    // 5. Cross-language Import JSON (en -> ar) rebuilds panel, preserves green 'ok' status toast, and calls reloadConfig()
     const fileInput = sec.querySelector('input');
     const importPayload = JSON.stringify({
-      settings: { language: 'en', omniModule: 'off', linkTarget: 'builtin', thoughtTranslate: 'ai', thoughtView: 'bilingual' },
+      settings: { language: 'ar', omniModule: 'off', linkTarget: 'builtin', thoughtTranslate: 'ai', thoughtView: 'bilingual' },
       thought: { stylePreset: 'concise', customPrompt: 'Be concise' },
     });
     fileInput.files = [{ text: () => Promise.resolve(importPayload) }];
@@ -461,46 +461,46 @@ test('mountOrSyncSettingsSection mounts all 27 settings (including omniModule, l
     await new Promise((r) => setTimeout(r, 20));
 
     sec = doc.getElementById(settingsPanel.SETTINGS_SEC_ID);
-    assert.equal(sec.getAttribute('data-ag-cs-lang'), 'en', 'Panel must rebuild in English');
+    assert.equal(sec.getAttribute('data-ag-cs-lang'), 'ar', 'Panel must rebuild in Arabic');
     assert.equal(state.omniModule, 'off');
     assert.equal(state.linkTarget, 'builtin');
     assert.ok(reloadConfigCalls >= 1, 'Import must trigger thoughtUiHandle.reloadConfig()');
     assert.equal(savedThoughtPayloads.length, 1);
     const statusAfterImport = sec.querySelector('[data-ag-cs-cfg-status]');
     assert.equal(statusAfterImport.getAttribute('data-tone'), 'ok', 'Green toast must survive cross-language panel rebuild');
-    assert.equal(statusAfterImport.textContent, i18nLocales.getUiStrings('en').cfgImportOk);
+    assert.equal(statusAfterImport.textContent, i18nLocales.getUiStrings('ar').cfgImportOk);
 
-    // 6. Cross-language Reset Defaults (en -> auto -> zh-CN) restores defaults & preserves green 'ok' toast in zh-CN
+    // 6. Cross-language Reset Defaults (ar -> en) restores defaults & preserves green 'ok' toast in en
     sec.querySelector('button[data-ag-cs-cfg-action="reset"]').click();
     sec = doc.getElementById(settingsPanel.SETTINGS_SEC_ID);
     assert.equal(state.language, 'auto');
-    assert.equal(sec.getAttribute('data-ag-cs-lang'), 'zh-CN');
+    assert.equal(sec.getAttribute('data-ag-cs-lang'), 'en');
     assert.equal(state.omniModule, 'on');
     assert.equal(state.linkTarget, 'builtin');
     const statusAfterReset = sec.querySelector('[data-ag-cs-cfg-status]');
     assert.equal(statusAfterReset.getAttribute('data-tone'), 'ok');
-    assert.equal(statusAfterReset.textContent, i18nLocales.getUiStrings('zh-CN').cfgResetOk);
+    assert.equal(statusAfterReset.textContent, i18nLocales.getUiStrings('en').cfgResetOk);
 
     // 7. Dynamic lightPreset context hints across dark, light+warm, light+host, light+obsidian
     const getLpDesc = () => doc.getElementById(settingsPanel.SETTINGS_SEC_ID).querySelector('[data-ag-cs-row="lightPreset"] [data-k="d"]').textContent;
-    const zhUi = i18nLocales.getUiStrings('zh-CN');
-    assert.equal(getLpDesc(), zhUi.lightPresetHintDark);
+    const enUi = i18nLocales.getUiStrings('en');
+    assert.equal(getLpDesc(), enUi.lightPresetHintDark);
 
     doc.documentElement.setAttribute('data-ag-cs-theme', 'light');
     state.palette = 'warm';
     remountOrSync();
-    assert.equal(getLpDesc(), zhUi.lightPresetHintWarm);
+    assert.equal(getLpDesc(), enUi.lightPresetHintWarm);
 
     state.palette = 'host';
     remountOrSync();
-    assert.equal(getLpDesc(), zhUi.lightPresetHintHost);
+    assert.equal(getLpDesc(), enUi.lightPresetHintHost);
 
     state.palette = 'obsidian';
     remountOrSync();
-    assert.equal(getLpDesc(), zhUi.setLightPresetDesc);
+    assert.equal(getLpDesc(), enUi.setLightPresetDesc);
 
-    // 8. Verify all 5 languages render Omni & Link Target titles cleanly
-    for (const lang of ['zh-CN', 'zh-TW', 'yue', 'en', 'ja']) {
+    // 8. Verify both bilingual locales (en/ar) render Omni & Link Target titles cleanly
+    for (const lang of ['en', 'ar']) {
       state.language = lang;
       remountOrSync();
       const curSec = doc.getElementById(settingsPanel.SETTINGS_SEC_ID);
@@ -592,7 +592,7 @@ test('UX-A2 Effort Slider full Prism integration: data-ag-cs-motion="off", data-
     rootAttrs['data-ag-cs-accent'] = 'cobalt';
     assert.equal(upstream.valueColorFor('High', 2, 3, true, false, false), '#38bdf8');
 
-    // 3. Single-level model resolves "Fixed" in English instead of hardcoded Chinese "固定"
+    // 3. Single-level model resolves "Fixed" in English
     const singleProf = upstream.resolveModelEffortProfile(
       { selectedModel: { label: 'Gemini 4 Flash' }, effortIndex: new Map(), modelOptions: [{ label: 'Gemini 4 Flash' }] },
       { label: 'Gemini 4 Flash' },
@@ -651,7 +651,7 @@ test('settings-panel lazy foldBody deferral on collapsed mount, memoized syncRoo
       version: '1.0.6',
       getLang: () => state.language,
       uiText: (l) => i18nLocales.getUiStrings(l),
-      isZh: () => true,
+      isZh: () => false,
       i18nCore,
       formatSettingsSummary: (l) => `${l}:${state.palette}:${state.motionLevel}`,
       resolveSettingRowActiveValue: (k) => state[k],
@@ -683,7 +683,7 @@ test('settings-panel lazy foldBody deferral on collapsed mount, memoized syncRoo
     // Updating state while collapsed updates fold summary in O(1) without building or scanning buttons
     state.palette = 'warm';
     mountOrSync();
-    assert.equal(summaryEl.textContent, 'zh-CN:warm:ultra');
+    assert.equal(summaryEl.textContent, 'en:warm:ultra');
     assert.equal(foldBody.children.length, 0);
     assert.equal(matchCalls, 0);
 

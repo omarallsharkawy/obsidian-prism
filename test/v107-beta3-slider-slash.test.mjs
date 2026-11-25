@@ -258,7 +258,7 @@ function createDomEnv(opts = {}) {
     return el;
   }
 
-  const html = makeEl('html', { attrs: { 'data-ag-cs-theme': 'dark', 'data-ag-cs-lang': 'zh-CN', 'data-ag-cs-motion': 'ultra' } });
+  const html = makeEl('html', { attrs: { 'data-ag-cs-theme': 'dark', 'data-ag-cs-lang': 'ar', 'data-ag-cs-motion': 'ultra' } });
   html.isConnected = true;
   const head = makeEl('head');
   const body = makeEl('body');
@@ -295,7 +295,7 @@ function createDomEnv(opts = {}) {
   const win = {
     document: doc,
     location: { pathname: '/c/test-conv-beta3' },
-    navigator: { language: 'zh-CN' },
+    navigator: { language: 'ar' },
     performance: { now: () => fakeNow },
     MutationObserver: FakeMO,
     Event: class FakeEvent { constructor(t) { this.type = t; } },
@@ -1190,7 +1190,7 @@ test('9. context-menu-btw: matches Antigravity v2.34 typeahead-item-* options wi
 });
 
 // ── Test 10: Issue #31 anti-flicker & first-frame anti-translation regression ──
-test('10. upstream-client (Issue #31): _mntSec stamps 5+1 no-translate attrs before DOM insertion, bilingual synonyms (Medium <-> 中) never trigger rise flicker, real tier change updates with bounded <=22% rise & overflow-y:clip margin', () => {
+test('10. upstream-client (Issue #31): _mntSec stamps 5+1 no-translate attrs before DOM insertion, bilingual synonyms (Medium <-> متوسط) never trigger rise flicker, real tier change updates with bounded <=22% rise & overflow-y:clip margin', () => {
   const REQUIRED_NO_TR_ATTRS = [
     ['data-ag-i18n-skip', '1'],
     ['data-ag-no-tr', '1'],
@@ -1220,12 +1220,12 @@ test('10. upstream-client (Issue #31): _mntSec stamps 5+1 no-translate attrs bef
     attrs: { 'data-testid': 'model-selector-effort-group', 'data-model-base': 'Gemini 4 Hydrogen' },
     text: 'Gemini 4 Hydrogen',
   });
-  const effSpan = env.makeEl('span', { text: '中' });
+  const effSpan = env.makeEl('span', { text: 'متوسط' });
   rowItem.appendChild(grpSpan);
   rowItem.appendChild(effSpan);
   listWrap.appendChild(rowItem);
   panel.appendChild(listWrap);
-  const viewUsageRow = env.makeEl('div', { text: '查看用量明细' });
+  const viewUsageRow = env.makeEl('div', { text: 'View Usage Details' });
   panel.appendChild(viewUsageRow);
   env.body.appendChild(panel);
 
@@ -1278,7 +1278,7 @@ test('10. upstream-client (Issue #31): _mntSec stamps 5+1 no-translate attrs bef
 
   agObs.stop();
 
-  // (b) Bilingual synonym oscillation (Medium <-> 中 <-> 中等 <-> Medium) must NEVER trigger ces-text-rise / is-claude-changing
+  // (b) Bilingual synonym oscillation (Medium <-> متوسط <-> Med <-> Medium) must NEVER trigger ces-text-rise / is-claude-changing
   const mEnv = createDomEnv({ virtualTimers: true });
   const rowEl = mEnv.makeEl('div', { className: 'ces-ag-effort-row' });
   const valEl = mEnv.makeEl('span', { className: 'ces-ag-effort-value' });
@@ -1322,14 +1322,14 @@ test('10. upstream-client (Issue #31): _mntSec stamps 5+1 no-translate attrs bef
   assert.equal(valEl.textContent, 'Medium');
   assert.equal(riseAdds, 0, 'Initial mount must not trigger rise animation');
 
-  // Alternate seat label & external DOM text between bilingual equivalents: Medium <-> 中 <-> 中等 <-> Medium
+  // Alternate seat label & external DOM text between bilingual equivalents: Medium <-> متوسط <-> Med <-> Medium
   for (const [nextSeatLbl, domRewrite] of [
-    ['中', '中'],
-    ['Medium', '中'],
-    ['中等', '中等'],
+    ['متوسط', 'متوسط'],
+    ['Medium', 'متوسط'],
+    ['Med', 'Med'],
     ['Medium', 'Medium'],
-    ['（中）', '（中）'],
-    ['Medium', '中'],
+    ['(متوسط)', '(متوسط)'],
+    ['Medium', 'متوسط'],
   ]) {
     seatLabelMed = nextSeatLbl;
     valEl.textContent = domRewrite;
@@ -1338,11 +1338,11 @@ test('10. upstream-client (Issue #31): _mntSec stamps 5+1 no-translate attrs bef
     assert.equal(valEl.classList.contains('ces-text-rise'), false, `Bilingual synonym "${nextSeatLbl}" must not add ces-text-rise`);
     assert.equal(valEl.classList.contains('is-claude-changing'), false, `Bilingual synonym "${nextSeatLbl}" must not add is-claude-changing`);
   }
-  // Even when effort key is absent and only label oscillates between 'Medium' and '中'
+  // Even when effort key is absent and only label oscillates between 'Medium' and 'متوسط'
   seatLevelsUseEmptyKey = true;
   curEffort = 'Medium';
-  seatLabelMed = '中';
-  curEffort = '中';
+  seatLabelMed = 'متوسط';
+  curEffort = 'متوسط';
   mount.refresh();
   seatLabelMed = 'Medium';
   curEffort = 'Medium';
@@ -1359,11 +1359,11 @@ test('10. upstream-client (Issue #31): _mntSec stamps 5+1 no-translate attrs bef
   assert.equal(valEl.classList.contains('ces-text-rise'), true, 'Real tier change must play controlled rise animation');
   assert.equal(riseAdds, 1, 'Real tier change must trigger rise animation exactly once');
 
-  // Repeated refreshes at High (including High <-> 高 synonym) must NOT re-trigger animation
+  // Repeated refreshes at High (including High <-> عالي synonym) must NOT re-trigger animation
   mEnv.flushTimers(300);
   assert.equal(valEl.classList.contains('ces-text-rise'), false, 'Rise animation class must clear after timer');
-  seatLabelHigh = '高';
-  valEl.textContent = '高';
+  seatLabelHigh = 'عالي';
+  valEl.textContent = 'عالي';
   mount.refresh();
   seatLabelHigh = 'High';
   mount.refresh();
@@ -1375,7 +1375,7 @@ test('10. upstream-client (Issue #31): _mntSec stamps 5+1 no-translate attrs bef
 });
 
 // ── Test 11: Red-team #255 P1 #6 (Adaptive + fixed locked key) & P1 #7 (markNoTranslate idempotence + orchestrator-effort-bar 5+1) ──
-test('11. Red-team #255 P1 #6/#7: Adaptive <-> 自适应 zero-flicker, Medium -> Adaptive / GPT-OSS 120B (sE="fixed") never stalls, markNoTranslate is idempotent (0 redundant setAttribute), and orchestrator-effort-bar carries 5+1 no-translate attrs pre-insert', () => {
+test('11. Red-team #255 P1 #6/#7: Adaptive <-> تكيفي zero-flicker, Medium -> Adaptive / GPT-OSS 120B (sE="fixed") never stalls, markNoTranslate is idempotent (0 redundant setAttribute), and orchestrator-effort-bar carries 5+1 no-translate attrs pre-insert', () => {
   const REQUIRED_NO_TR_ATTRS = [
     ['data-ag-i18n-skip', '1'],
     ['data-ag-no-tr', '1'],
@@ -1384,15 +1384,15 @@ test('11. Red-team #255 P1 #6/#7: Adaptive <-> 自适应 zero-flicker, Medium ->
     ['translate', 'no'],
   ];
 
-  // (a) slider-coexist EFF_MAP & EFF_LABELS map Adaptive / 自适应 / 自適應 cleanly
-  for (const raw of ['Claude Sonnet (Adaptive)', 'Claude Sonnet (自适应)', 'Claude Sonnet (自適應)']) {
+  // (a) slider-coexist EFF_MAP & EFF_LABELS map Adaptive / تكيفي cleanly
+  for (const raw of ['Claude Sonnet (Adaptive)', 'Claude Sonnet (تكيفي)']) {
     const parsed = sliderCoexist.parseLocalizedModelLabel(raw);
     assert.equal(parsed.effort, 'adaptive', `${raw} must map to effort="adaptive"`);
     assert.equal(parsed.effortLabel, 'Adaptive', `${raw} must map to effortLabel="Adaptive"`);
     assert.equal(parsed.canonicalLabel, 'Claude Sonnet (Adaptive)');
   }
 
-  // (b) Adaptive <-> 自适应 <-> 自適應 zero-flicker, Medium -> Adaptive (even with fallback effort="medium"), and Medium -> GPT-OSS 120B (locked single-tier)
+  // (b) Adaptive <-> تكيفي zero-flicker, Medium -> Adaptive (even with fallback effort="medium"), and Medium -> GPT-OSS 120B (locked single-tier)
   const mEnv = createDomEnv({ virtualTimers: true });
   const rowEl = mEnv.makeEl('div', { className: 'ces-ag-effort-row' });
   const valEl = mEnv.makeEl('span', { className: 'ces-ag-effort-value' });
@@ -1443,11 +1443,11 @@ test('11. Red-team #255 P1 #6/#7: Adaptive <-> 自适应 zero-flicker, Medium ->
   assert.equal(riseAdds, 1, 'Medium -> Adaptive real change triggers 1 rise animation');
   mEnv.flushTimers(300);
 
-  // Bilingual Adaptive <-> 自适应 <-> 自適應 oscillation -> 0 rise animations & 0 ping-pong overwrites
+  // Bilingual Adaptive <-> تكيفي oscillation -> 0 rise animations & 0 ping-pong overwrites
   for (const [seatLbl, domTxt] of [
-    ['自适应', '自适应'],
-    ['Adaptive', '自适应'],
-    ['自適應', '自適應'],
+    ['تكيفي', 'تكيفي'],
+    ['Adaptive', 'تكيفي'],
+    ['(تكيفي)', '(تكيفي)'],
     ['Adaptive', 'Adaptive'],
   ]) {
     curLevels = [{ effort: 'adaptive', label: seatLbl }, { effort: 'high', label: 'High' }];
@@ -1457,7 +1457,7 @@ test('11. Red-team #255 P1 #6/#7: Adaptive <-> 自适应 zero-flicker, Medium ->
     mEnv.flushRafs(16);
     assert.equal(valEl.classList.contains('ces-text-rise'), false, `Adaptive synonym "${seatLbl}" must never trigger rise flicker`);
   }
-  assert.equal(riseAdds, 1, 'Adaptive <-> 自适应 <-> 自適應 must produce 0 extra rise animations');
+  assert.equal(riseAdds, 1, 'Adaptive <-> تكيفي must produce 0 extra rise animations');
 
   // Switch back to Medium, then switch to unparenthesized single-tier locked model GPT-OSS 120B (sE="fixed")
   curLevels = [{ effort: 'low', label: 'Low' }, { effort: 'medium', label: 'Medium' }];
@@ -1480,7 +1480,7 @@ test('11. Red-team #255 P1 #6/#7: Adaptive <-> 自适应 zero-flicker, Medium ->
   curEffort = gptProf.currentEffort;
   curLocked = gptProf.locked;
   mount.refresh();
-  assert.equal(valEl.textContent, gptProf.currentLabel, 'Medium -> GPT-OSS 120B must update value text to Fixed/固定 (no "medium" key collision)');
+  assert.equal(valEl.textContent, gptProf.currentLabel, 'Medium -> GPT-OSS 120B must update value text to Fixed/ثابت (no "medium" key collision)');
 
   // Also switch Medium -> unknown unmapped label "Turbo" (even with effort="medium") -> !_sameEffTxt updates cleanly
   curLevels = [{ effort: 'medium', label: 'Medium' }];

@@ -176,20 +176,20 @@ namespace AgyClaudeStyle.Watcher
         private static string BuildHelpText()
         {
             return InstallerI18n.Tr(
-                "Obsidian Prism 后台守护进程 (obsidian-prism-watcher)\r\n" +
-                "用法: obsidian-prism-watcher.exe [选项]\r\n\r\n" +
-                "选项:\r\n" +
-                "  --watch               持续监听并自动注入 Antigravity 窗口（默认）\r\n" +
-                "  --once                立即执行一次注入并退出\r\n" +
-                "  --remove              移除已注入界面并停止守护进程\r\n" +
-                "  --dir <目录>          指定守护资源目录\r\n" +
-                "  --plugin-dir <目录>   指定原生插件目录\r\n" +
-                "  --cdp-port <端口>     指定 CDP 调试端口\r\n" +
-                "  --no-native-daemon    禁用自动拉起本地守护服务\r\n" +
-                "  --no-relaunch-prompt  禁用裸启重开提示弹窗\r\n" +
-                "  --lang <zh|en>        指定界面/日志语言（覆盖 AG_PRISM_LANG 与系统语言）\r\n" +
-                "  --out <文件>          将结果输出到指定文件\r\n" +
-                "  --help, -h            显示此帮助信息",
+                "مراقب Obsidian Prism الخلفي (obsidian-prism-watcher)\r\n" +
+                "الاستخدام: obsidian-prism-watcher.exe [الخيارات]\r\n\r\n" +
+                "الخيارات:\r\n" +
+                "  --watch               مراقبة نوافذ Antigravity وحقنها تلقائياً باستمرار (افتراضي)\r\n" +
+                "  --once                تنفيذ الحقن مرة واحدة ثم الخروج\r\n" +
+                "  --remove              إزالة الواجهة المحقونة وإيقاف المراقب\r\n" +
+                "  --dir <الدليل>        تحديد دليل موارد المراقب\r\n" +
+                "  --plugin-dir <الدليل> تحديد دليل الإضافة الأصلية\r\n" +
+                "  --cdp-port <المنفذ>   تحديد منفذ تصحيح CDP\r\n" +
+                "  --no-native-daemon    تعطيل التشغيل التلقائي للخدمة الخلفية المحلية\r\n" +
+                "  --no-relaunch-prompt  تعطيل نافذة تأكيد إعادة التشغيل\r\n" +
+                "  --lang <ar|en>        تحديد لغة الواجهة/السجلات (يتجاوز AG_PRISM_LANG ولغة النظام)\r\n" +
+                "  --out <الملف>         كتابة النتيجة إلى الملف المحدد\r\n" +
+                "  --help, -h            عرض رسالة المساعدة هذه",
                 "Obsidian Prism Background Watcher (obsidian-prism-watcher)\r\n" +
                 "Usage: obsidian-prism-watcher.exe [options]\r\n\r\n" +
                 "Options:\r\n" +
@@ -201,7 +201,7 @@ namespace AgyClaudeStyle.Watcher
                 "  --cdp-port <port>     Specify CDP debug port\r\n" +
                 "  --no-native-daemon    Do not auto-start local background daemon\r\n" +
                 "  --no-relaunch-prompt  Disable bare-launch relaunch prompt\r\n" +
-                "  --lang <zh|en>        Set UI/log language (overrides AG_PRISM_LANG and OS locale)\r\n" +
+                "  --lang <ar|en>        Set UI/log language (overrides AG_PRISM_LANG and OS locale)\r\n" +
                 "  --out <file>          Write result to the specified file\r\n" +
                 "  --help, -h            Show this help message"
             );
@@ -286,7 +286,7 @@ namespace AgyClaudeStyle.Watcher
                     outFile,
                     false,
                     InstallerI18n.Tr(
-                        "未找到调试端口文件，Antigravity 可能未运行",
+                        "لم يتم العثور على ملف منفذ التصحيح؛ قد لا يكون Antigravity قيد التشغيل",
                         "Debug port file not found; Antigravity may not be running"
                     ),
                     null
@@ -301,7 +301,7 @@ namespace AgyClaudeStyle.Watcher
                     outFile,
                     false,
                     InstallerI18n.Tr(
-                        "未找到 Antigravity 窗口页面",
+                        "لم يتم العثور على صفحات نوافذ Antigravity",
                         "No Antigravity window pages found"
                     ),
                     null
@@ -480,7 +480,7 @@ namespace AgyClaudeStyle.Watcher
 
                 PluginManifest manifest = PluginManifest.Load(_baseDir);
                 Log(InstallerI18n.TrFormat(
-                    "[*] Obsidian Prism (obsidian-prism) 守护模式启动 (PID {0})，每 2 秒检查一次窗口",
+                    "[*] تم بدء مراقب Obsidian Prism (PID {0})، يتم فحص النوافذ كل ثانيتين",
                     "[*] Obsidian Prism (obsidian-prism) watcher started (PID {0}), polling windows every 2s",
                     selfPid
                 ));
@@ -691,7 +691,7 @@ namespace AgyClaudeStyle.Watcher
                             AttachedEntry ignored;
                             attached.TryRemove(page.Id, out ignored);
                             Log(InstallerI18n.TrFormat(
-                                "[-] 窗口已关闭: {0}",
+                                "[-] تم إغلاق النافذة: {0}",
                                 "[-] Window closed: {0}",
                                 entry.Title
                             ));
@@ -809,7 +809,7 @@ namespace AgyClaudeStyle.Watcher
                                             try { CdpHelper.UpdateConfigBatch(_pluginDir, manifest, entriesDict); } catch { }
                                         }
                                         Log(InstallerI18n.TrFormat(
-                                            "[⚙] 批量设置已保存 ({0} 项)",
+                                            "[⚙] تم حفظ دفعة الإعدادات ({0} عناصر)",
                                             "[⚙] Batch settings saved ({0} item(s))",
                                             entriesDict.Count
                                         ));
@@ -828,7 +828,7 @@ namespace AgyClaudeStyle.Watcher
                                             try { CdpHelper.UpdateConfigSetting(_pluginDir, manifest, key, vObj); } catch { }
                                         }
                                         Log(InstallerI18n.TrFormat(
-                                            "[⚙] 设置已保存: {0} = {1}",
+                                            "[⚙] تم حفظ الإعداد: {0} = {1}",
                                             "[⚙] Setting saved: {0} = {1}",
                                             key,
                                             MiniJson.Stringify(vObj, false)
@@ -868,7 +868,7 @@ namespace AgyClaudeStyle.Watcher
                         Dictionary<string, object> res = await applyAsync(entry, exprSnapshot, omniSnapshot, thoughtSnapshot, inlineDiffSnapshot).ConfigureAwait(false);
                         string status = (res != null && res.ContainsKey("status")) ? Convert.ToString(res["status"]) : "ok";
                         Log(InstallerI18n.TrFormat(
-                            "[✓] 已注入 obsidian-prism: {0} ({1})",
+                            "[✓] تم حقن obsidian-prism: {0} ({1})",
                             "[✓] Injected obsidian-prism: {0} ({1})",
                             entry.Title,
                             status
@@ -886,7 +886,7 @@ namespace AgyClaudeStyle.Watcher
                             try { session.Close(); } catch { }
                         }
                         Log(InstallerI18n.TrFormat(
-                            "[!] 注入失败，稍后重试: {0} — {1}",
+                            "[!] فشل الحقن، ستتم إعادة المحاولة: {0} — {1}",
                             "[!] Injection failed, will retry: {0} — {1}",
                             CdpHelper.ShortTitle(page),
                             ex.Message
@@ -1103,7 +1103,7 @@ namespace AgyClaudeStyle.Watcher
                                             catch { }
                                         }
                                         Log(InstallerI18n.TrFormat(
-                                            "[↻] {0} 已变更，已热更新 {1} 个窗口",
+                                            "[↻] تم تغيير {0}، جرى التحديث الفوري لـ {1} نافذة",
                                             "[↻] {0} changed; hot-reloaded {1} window(s)",
                                             changedName,
                                             n
@@ -1112,7 +1112,7 @@ namespace AgyClaudeStyle.Watcher
                                     catch (Exception ex)
                                     {
                                         Log(InstallerI18n.TrFormat(
-                                            "[!] 读取文件失败: {0}",
+                                            "[!] فشلت قراءة الملف: {0}",
                                             "[!] Failed to read file: {0}",
                                             ex.Message
                                         ));
@@ -1242,7 +1242,7 @@ namespace AgyClaudeStyle.Watcher
                                     {
                                         yieldingToDaemon = true;
                                         Log(InstallerI18n.Tr(
-                                            "[~] 检测到本地守护服务运行中，Watcher 进入热备避让态",
+                                            "[~] تم اكتشاف تشغيل الخدمة الخلفية المحلية؛ دخل المراقب في وضع الاستعداد الاحتياطي",
                                             "[~] Local background daemon detected; Watcher entering standby mode"
                                         ));
                                     }
@@ -1254,7 +1254,7 @@ namespace AgyClaudeStyle.Watcher
                             {
                                 yieldingToDaemon = false;
                                 Log(InstallerI18n.Tr(
-                                    "[+] 本地守护服务已离线，Watcher 接管实时注入",
+                                    "[+] توقفت الخدمة الخلفية المحلية؛ تولّى المراقب الحقن المباشر",
                                     "[+] Local background daemon offline; Watcher taking over live injection"
                                 ));
                             }
@@ -1286,7 +1286,7 @@ namespace AgyClaudeStyle.Watcher
                                 {
                                     lastLoggedStalePort = portProbe.RawPort.Value;
                                     Log(InstallerI18n.TrFormat(
-                                        "[!] 检测到残留无效调试端口 {0}（连接被拒绝/超时），视作无有效端口并转入裸启恢复检测",
+                                        "[!] تم اكتشاف منفذ تصحيح قديم غير صالح {0} (رُفض الاتصال/انتهت المهلة)؛ يتم الانتقال لفحص الاستعادة",
                                         "[!] Detected stale debug port {0} (connection refused/timed out); treating as inactive and checking bare-launch recovery",
                                         portProbe.RawPort.Value
                                     ));
@@ -1365,7 +1365,7 @@ namespace AgyClaudeStyle.Watcher
                                     BareHostProcessInfo bare = CdpHelper.FindBareAntigravityMainProcess();
                                     if (bare != null)
                                     {
-                                        // 发现裸启主进程时立即复检并自愈补齐快捷方式参数（无需干等 45 秒周期）
+                                        // Re-check and heal shortcut arguments immediately on bare-host detection without waiting for the 45s cycle
                                         lastShortcutCheckTick = Environment.TickCount & int.MaxValue;
                                         CdpHelper.EnsureAntigravityShortcutsOptIn(
                                             _baseDir,
@@ -1389,7 +1389,7 @@ namespace AgyClaudeStyle.Watcher
                                             if (confirmed)
                                             {
                                                 Log(InstallerI18n.TrFormat(
-                                                    "[*] 用户确认带 --remote-debugging-port=0 重新打开 Antigravity (旧 PID {0})",
+                                                    "[*] أكّد المستخدم إعادة فتح Antigravity باستخدام --remote-debugging-port=0 (PID السابق {0})",
                                                     "[*] User confirmed relaunching Antigravity with --remote-debugging-port=0 (old PID {0})",
                                                     bare.Pid
                                                 ));
@@ -1415,12 +1415,12 @@ namespace AgyClaudeStyle.Watcher
                                         }
                                     }
                                     Log(InstallerI18n.TrFormat(
-                                        "[+] 连接到调试端口 {0}",
+                                        "[+] تم الاتصال بمنفذ التصحيح {0}",
                                         "[+] Connected to debug port {0}",
                                         livePort.Value
                                     ));
                                     lastPort = livePort.Value;
-                                    // 端口切换或重连后立即复检快捷方式（应对更新覆盖 .lnk）
+                                    // Re-check shortcuts after port switch or reconnect in case an update overwrote .lnk files
                                     lastShortcutCheckTick = Environment.TickCount & int.MaxValue;
                                     CdpHelper.EnsureAntigravityShortcutsOptIn(
                                         _baseDir,
@@ -1584,7 +1584,7 @@ namespace AgyClaudeStyle.Watcher
             }
             catch
             {
-                // 任何进程枚举异常一律 fail-closed，绝不冒险移动文件
+                // Fail closed on any process enumeration error; never risk moving files
                 return true;
             }
         }
@@ -1650,7 +1650,7 @@ namespace AgyClaudeStyle.Watcher
                 if (string.IsNullOrEmpty(home)) return false;
                 string archiveDir = Path.Combine(home, Path.Combine(".gemini", Path.Combine("antigravity", "conversations_archive")));
                 if (!Directory.Exists(archiveDir)) return false;
-                // 归档目录若为不安全重解析点/符号链接，一律 fail-closed 拦截
+                // Fail closed if archive directory is an unsafe reparse point or symlink
                 if (CdpHelper.IsUnsafeReparsePoint(archiveDir)) return true;
 
                 string lockPath = Path.Combine(archiveDir, ".archive.lock");
@@ -1664,8 +1664,8 @@ namespace AgyClaudeStyle.Watcher
                     }
                 }
 
-                // 协调正在静置/等待退出的脱离归档或还原任务（消除 4s vs 5.5s 抢跑竞态）；
-                // 若记录的 auto-exit-archive PID 已随宿主 Job Object 一起死亡，则不让步，立即由 Watcher 接棒兜底
+                // Coordinate with any detached archive/restore task settling on exit (avoids 4s vs 5.5s race);
+                // if the recorded auto-exit-archive PID exited with the host Job Object, Watcher takes over immediately
                 string activePath = Path.Combine(archiveDir, ".archive-task-active.json");
                 if (File.Exists(activePath))
                 {
@@ -1768,7 +1768,7 @@ namespace AgyClaudeStyle.Watcher
 
         private static async Task RunAutoArchiveOnExitFallbackAsync(int? overridePort, ManualResetEventSlim exitEvent)
         {
-            // 1) 等待 Antigravity 与 language_server 均彻底退出（绝不强杀宿主）
+            // 1) Wait for both Antigravity and language_server to exit cleanly (never force-kill host)
             for (int waitIdx = 0; waitIdx < 15; waitIdx++)
             {
                 if (!IsAntigravityOrLanguageServerRunning()) break;
@@ -1779,10 +1779,10 @@ namespace AgyClaudeStyle.Watcher
             }
             if (IsAntigravityOrLanguageServerRunning()) return;
 
-            // 2) 静置 4 秒等待 SQLite WAL/SHM 完全释放
+            // 2) Settle for 4 seconds so SQLite WAL/SHM locks fully release
             if (WaitExitSafe(exitEvent, 4000)) return;
 
-            // 3) 二次 fail-closed 确认：配置仍开启、无活跃 CDP 端口、原生 Daemon 未运行、宿主与 language_server 均未运行、无互斥锁/刚还原记录
+            // 3) Second fail-closed check: setting enabled, no active CDP port, native daemon stopped, host & language_server exited, no lock/recent restore
             if (!IsAutoArchiveOnExitEnabled()) return;
             if (!string.IsNullOrEmpty(_pluginDir) && CdpHelper.IsNativeDaemonAlive(_pluginDir)) return;
             int? portRecheck = CdpHelper.ReadPort(overridePort);
@@ -1822,7 +1822,7 @@ namespace AgyClaudeStyle.Watcher
                     if (exited)
                     {
                         Log(InstallerI18n.TrFormat(
-                            "[storage-guard] Watcher 退出兜底自动归档已执行 (exitCode={0})",
+                            "[storage-guard] تم تنفيذ الأرشفة التلقائية الاحتياطية عند الخروج (exitCode={0})",
                             "[storage-guard] Watcher auto-archive on exit finished (exitCode={0})",
                             proc.ExitCode
                         ));
@@ -1832,7 +1832,7 @@ namespace AgyClaudeStyle.Watcher
             catch (Exception ex)
             {
                 Log(InstallerI18n.TrFormat(
-                    "[storage-guard] Watcher 退出兜底自动归档异常: {0}",
+                    "[storage-guard] استثناء في الأرشفة التلقائية الاحتياطية عند الخروج: {0}",
                     "[storage-guard] Watcher auto-archive on exit error: {0}",
                     ex.Message
                 ));

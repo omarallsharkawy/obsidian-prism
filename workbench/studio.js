@@ -1,7 +1,7 @@
-// Obsidian Prism — Bipolar Studio (/studio) 预览引擎与 Google 级微动效编排
-// - 100% 零 innerHTML / outerHTML / document.write（严格遵循 CodeQL 零告警规范）
-// - 全站零 Emoji（单色线性 SVG + 100% 官方原版彩色 Gemini / Antigravity SVG）
-// - 统一全局主题色板（4 主题），Code 工程台 vs Chat 蓝绿极光 / Antigravity 失重棱镜呼吸光
+// Obsidian Prism — Bipolar Studio (/studio) preview engine & micro-motion choreography
+// - 100% zero innerHTML / outerHTML / document.write (strict DOM construction for CodeQL safety)
+// - Monochrome line SVG iconography + official full-color Gemini / Antigravity brand SVGs
+// - Unified 4-theme palette: Code engineering workbench vs Chat aurora / Antigravity prism ambient glow
 
 import {
   parseView,
@@ -13,57 +13,57 @@ import {
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
-// 官方原版彩色 Brand SVG（挂载时经 DOMParser 解析并自动隔离唯一 ID 前缀）
+// Official color Brand SVGs (parsed via DOMParser with isolated unique ID prefixes on mount)
 const OFFICIAL_GEMINI_COLOR_SVG =
   '<svg viewBox="0 0 24 24" width="100%" height="100%" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.616 10.835a14.147 14.147 0 01-4.45-3.001 14.111 14.111 0 01-3.678-6.452.503.503 0 00-.975 0 14.134 14.134 0 01-3.679 6.452 14.155 14.155 0 01-4.45 3.001c-.65.28-1.318.505-2.002.678a.502.502 0 000 .975c.684.172 1.35.397 2.002.677a14.147 14.147 0 014.45 3.001 14.112 14.112 0 013.679 6.453.502.502 0 00.975 0c.172-.685.397-1.351.677-2.003a14.145 14.145 0 013.001-4.45 14.113 14.113 0 016.453-3.678.503.503 0 000-.975 13.245 13.245 0 01-2.003-.678z" fill="#3186FF"/><path d="M20.616 10.835a14.147 14.147 0 01-4.45-3.001 14.111 14.111 0 01-3.678-6.452.503.503 0 00-.975 0 14.134 14.134 0 01-3.679 6.452 14.155 14.155 0 01-4.45 3.001c-.65.28-1.318.505-2.002.678a.502.502 0 000 .975c.684.172 1.35.397 2.002.677a14.147 14.147 0 014.45 3.001 14.112 14.112 0 013.679 6.453.502.502 0 00.975 0c.172-.685.397-1.351.677-2.003a14.145 14.145 0 013.001-4.45 14.113 14.113 0 016.453-3.678.503.503 0 000-.975 13.245 13.245 0 01-2.003-.678z" fill="url(#gem-brand-0)"/><path d="M20.616 10.835a14.147 14.147 0 01-4.45-3.001 14.111 14.111 0 01-3.678-6.452.503.503 0 00-.975 0 14.134 14.134 0 01-3.679 6.452 14.155 14.155 0 01-4.45 3.001c-.65.28-1.318.505-2.002.678a.502.502 0 000 .975c.684.172 1.35.397 2.002.677a14.147 14.147 0 014.45 3.001 14.112 14.112 0 013.679 6.453.502.502 0 00.975 0c.172-.685.397-1.351.677-2.003a14.145 14.145 0 013.001-4.45 14.113 14.113 0 016.453-3.678.503.503 0 000-.975 13.245 13.245 0 01-2.003-.678z" fill="url(#gem-brand-1)"/><path d="M20.616 10.835a14.147 14.147 0 01-4.45-3.001 14.111 14.111 0 01-3.678-6.452.503.503 0 00-.975 0 14.134 14.134 0 01-3.679 6.452 14.155 14.155 0 01-4.45 3.001c-.65.28-1.318.505-2.002.678a.502.502 0 000 .975c.684.172 1.35.397 2.002.677a14.147 14.147 0 014.45 3.001 14.112 14.112 0 013.679 6.453.502.502 0 00.975 0c.172-.685.397-1.351.677-2.003a14.145 14.145 0 013.001-4.45 14.113 14.113 0 016.453-3.678.503.503 0 000-.975 13.245 13.245 0 01-2.003-.678z" fill="url(#gem-brand-2)"/><defs><linearGradient gradientUnits="userSpaceOnUse" id="gem-brand-0" x1="7" x2="11" y1="15.5" y2="12"><stop stop-color="#08B962"/><stop offset="1" stop-color="#08B962" stop-opacity="0"/></linearGradient><linearGradient gradientUnits="userSpaceOnUse" id="gem-brand-1" x1="8" x2="11.5" y1="5.5" y2="11"><stop stop-color="#F94543"/><stop offset="1" stop-color="#F94543" stop-opacity="0"/></linearGradient><linearGradient gradientUnits="userSpaceOnUse" id="gem-brand-2" x1="3.5" x2="17.5" y1="13.5" y2="12"><stop stop-color="#FABC12"/><stop offset=".46" stop-color="#FABC12" stop-opacity="0"/></linearGradient></defs></svg>';
 
 const OFFICIAL_ANTIGRAVITY_COLOR_SVG =
   '<svg width="100%" height="100%" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#agy-brand-clip0_6153_71)"><path d="M85.9734 89.3438C91.2234 93.2812 99.0984 90.6562 91.8796 83.4375C70.2234 62.4375 74.8171 4.6875 47.9109 4.6875C21.0046 4.6875 25.5984 62.4375 3.94213 83.4375C-3.93287 91.3125 4.59838 93.2812 9.84838 89.3438C30.1921 75.5625 28.8796 51.2812 47.9109 51.2812C66.9421 51.2812 65.6296 75.5625 85.9734 89.3438Z" fill="#3186FF"/><mask id="agy-brand-mask0_6153_71" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="4" width="95" height="88"><path d="M85.9734 89.3438C91.2234 93.2812 99.0984 90.6562 91.8796 83.4375C70.2234 62.4375 74.8171 4.6875 47.9109 4.6875C21.0046 4.6875 25.5984 62.4375 3.94213 83.4375C-3.93287 91.3125 4.59838 93.2812 9.84838 89.3438C30.1921 75.5625 28.8796 51.2812 47.9109 51.2812C66.9421 51.2812 65.6296 75.5625 85.9734 89.3438Z" fill="black"/></mask><g mask="url(#agy-brand-mask0_6153_71)"><g filter="url(#agy-brand-filter0_f_6153_71)"><ellipse cx="25.6357" cy="30.161" rx="25.6357" ry="30.161" transform="matrix(-0.112784 0.99362 -0.99362 -0.112781 59.5896 -33.5392)" fill="#FFE432"/></g><g filter="url(#agy-brand-filter1_f_6153_71)"><ellipse cx="93.6143" cy="23.4505" rx="33.1883" ry="33.9179" transform="rotate(76.9243 93.6143 23.4505)" fill="#FC413D"/></g><g filter="url(#agy-brand-filter2_f_6153_71)"><ellipse cx="-4.78051" cy="30.8098" rx="34.686" ry="44.9344" transform="rotate(74.1257 -4.78051 30.8098)" fill="#00B95C"/></g><g filter="url(#agy-brand-filter3_f_6153_71)"><ellipse cx="-4.78051" cy="30.8098" rx="34.686" ry="44.9344" transform="rotate(74.1257 -4.78051 30.8098)" fill="#00B95C"/></g><g filter="url(#agy-brand-filter4_f_6153_71)"><ellipse cx="-2.31406" cy="32.1899" rx="33.9975" ry="37.4282" transform="rotate(45.6065 -2.31406 32.1899)" fill="#00B95C"/></g><g filter="url(#agy-brand-filter5_f_6153_71)"><ellipse cx="70.2862" cy="101.861" rx="32.6449" ry="31.4359" transform="rotate(76.9243 70.2862 101.861)" fill="#3186FF"/></g><g filter="url(#agy-brand-filter6_f_6153_71)"><ellipse cx="37.7619" cy="39.8298" rx="37.7619" ry="39.8298" transform="matrix(-0.409539 0.912293 -0.912294 -0.409537 98.9683 -33.1266)" fill="#FBBC04"/></g><g filter="url(#agy-brand-filter7_f_6153_71)"><path d="M-12.0493 152.344C-32.7264 144.227 2.61016 77.4428 11.3972 55.0598C20.1841 32.6769 44.0695 21.1122 64.7466 29.2295C85.4236 37.3467 109.932 82.0552 101.145 104.438C92.3577 126.8 8.6 160.461 -12.0493 152.344Z" fill="#3186FF"/></g><g filter="url(#agy-brand-filter8_f_6153_71)"><path d="M113.238 69.2209C107.702 75.6818 93.256 72.3872 80.9716 61.8621C68.6872 51.337 63.2163 37.567 68.752 31.1061C74.2876 24.6451 88.7336 27.9398 101.018 38.4649C113.302 48.99 118.773 62.7599 113.238 69.2209Z" fill="#749BFF"/></g><g filter="url(#agy-brand-filter9_f_6153_71)"><ellipse cx="89.2491" cy="10.7078" rx="49.7713" ry="30.9393" transform="rotate(34.0763 89.2491 10.7078)" fill="#FC413D"/></g><g filter="url(#agy-brand-filter10_f_6153_71)"><ellipse cx="11.4944" cy="17.2241" rx="26.6705" ry="15.5102" transform="rotate(112.516 11.4944 17.2241)" fill="#FFEE48"/></g></g></g><defs><filter id="agy-brand-filter0_f_6153_71" x="-12.1334" y="-45.9232" width="77.7263" height="68.9091" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur stdDeviation="4.37664" result="effect1_foregroundBlur_6153_71"/></filter><filter id="agy-brand-filter1_f_6153_71" x="17.4083" y="-52.1006" width="152.412" height="151.102" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur stdDeviation="21.1588" result="effect1_foregroundBlur_6153_71"/></filter><filter id="agy-brand-filter2_f_6153_71" x="-85.0138" y="-40.729" width="160.467" height="143.078" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur stdDeviation="17.987" result="effect1_foregroundBlur_6153_71"/></filter><filter id="agy-brand-filter3_f_6153_71" x="-85.0138" y="-40.729" width="160.467" height="143.078" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur stdDeviation="17.987" result="effect1_foregroundBlur_6153_71"/></filter><filter id="agy-brand-filter4_f_6153_71" x="-74.0787" y="-39.502" width="143.529" height="143.384" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur stdDeviation="17.987" result="effect1_foregroundBlur_6153_71"/></filter><filter id="agy-brand-filter5_f_6153_71" x="4.5942" y="35.0845" width="131.384" height="133.554" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur stdDeviation="17.0929" result="effect1_foregroundBlur_6153_71"/></filter><filter id="agy-brand-filter6_f_6153_71" x="-23.3161" y="-84.096" width="140.966" height="138.215" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur stdDeviation="15.4911" result="effect1_foregroundBlur_6153_71"/></filter><filter id="agy-brand-filter7_f_6153_71" x="-46.1105" y="-1.03333" width="176.759" height="182.283" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur stdDeviation="13.8342" result="effect1_foregroundBlur_6153_71"/></filter><filter id="agy-brand-filter8_f_6153_71" x="41.8338" y="3.04072" width="98.3219" height="94.2455" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur stdDeviation="12.379" result="effect1_foregroundBlur_6153_71"/></filter><filter id="agy-brand-filter9_f_6153_71" x="23.6047" y="-48.077" width="131.289" height="117.57" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur stdDeviation="10.4556" result="effect1_foregroundBlur_6153_71"/></filter><filter id="agy-brand-filter10_f_6153_71" x="-31.9837" y="-34.0061" width="86.9561" height="102.461" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur stdDeviation="12.9406" result="effect1_foregroundBlur_6153_71"/></filter><clipPath id="agy-brand-clip0_6153_71"><rect width="96" height="96" fill="white"/></clipPath></defs></svg>';
 
-// Gemini 对话模型清单（严禁出现 Orchestrator 或非 Gemini 模型；对齐宿主实时可见清单）
+// Gemini chat model catalog (strictly Gemini models; aligned with host live catalog)
 const GEMINI_CHAT_MODELS = [
   {
     id: 'Gemini 4 Neon',
-    desc: '全能深度推理 · 覆盖绝大多数深度思考与复杂问题',
+    desc: 'All-around deep reasoning · Covers most complex analysis and problem solving',
     efforts: ['Low', 'Medium', 'High', 'XHigh'],
     defaultEffort: 'High',
   },
   {
     id: 'Gemini 4 Carbon',
-    desc: '旗舰深度攻坚 · 胜任最高难度与超长链路复杂任务',
+    desc: 'Flagship deep reasoning · Built for hardest long-horizon tasks',
     efforts: ['Low', 'Medium', 'High'],
     defaultEffort: 'High',
   },
   {
     id: 'Gemini 4 Argon',
-    desc: '经典高阶主力 · 稳健可靠的高阶专业工作流模型',
+    desc: 'Classic advanced workhorse · Dependable for demanding professional workflows',
     efforts: ['Low', 'Medium', 'High'],
     defaultEffort: 'High',
   },
   {
     id: 'Gemini 4 Hydrogen',
-    desc: '极速高效执行 · 兼顾疾速响应与高性价比执行任务',
+    desc: 'High-speed execution · Balances rapid latency with strong efficiency',
     efforts: ['Low', 'Medium', 'High', 'XHigh'],
     defaultEffort: 'High',
   },
   {
     id: 'Gemini 3.8 Flash',
-    desc: '轻快省流主力 · 响应迅捷，适合日常问答、资料速读与轻量协作',
+    desc: 'Lightweight daily driver · Fast responses for everyday Q&A and quick reading',
     efforts: ['Low', 'Medium', 'High'],
     defaultEffort: 'Medium',
   },
 ];
 
 const CHAT_EFFORT_TIERS = [
-  { id: 'Low', label: '低', fullLabel: '低 Low' },
-  { id: 'Medium', label: '中', fullLabel: '中 Medium' },
-  { id: 'High', label: '高', fullLabel: '高 High' },
-  { id: 'XHigh', label: '极高', fullLabel: '极高 XHigh' },
+  { id: 'Low', label: 'Low', fullLabel: 'Low' },
+  { id: 'Medium', label: 'Med', fullLabel: 'Medium' },
+  { id: 'High', label: 'High', fullLabel: 'High' },
+  { id: 'XHigh', label: 'XHigh', fullLabel: 'XHigh' },
 ];
 
 let brandSvgUidSeq = 1;
 
-// 1.35px 单色线性 SVG 图标库（零 Emoji）
+// 1.35px monochrome line SVG icon library
 const MONO_ICONS = {
   code: ['M8 6L2 12L8 18', 'M16 6L22 12L16 18', 'M13.5 4.5L10.5 19.5'],
   chat: ['M21 11.5A8.38 8.38 0 0 1 12.5 20A8.5 8.5 0 0 1 8 18.7L3 20L4.3 15.2A8.38 8.38 0 0 1 3 11.5A8.5 8.5 0 0 1 11.5 3H12.5A8.5 8.5 0 0 1 21 11.5Z'],
@@ -111,7 +111,7 @@ const state = {
   snapshot: null,
   audit: null,
   catalog: { health: 'loading', items: [] },
-  locale: 'zh-CN',
+  locale: 'en',
   userName: 'Alex',
   greetingSeed: Math.floor(Math.random() * 100),
   motionLevel: 'ultra',
@@ -146,7 +146,7 @@ let vialCtrl = null;
 let masterRaf = 0;
 let lastFrameAt = performance.now();
 
-// 自定义 Pointer 拖拽状态（会话行拖入子文件夹 / 根目录 / Spark 项目）
+// Custom Pointer drag state (drag sessions into subfolders / root / Spark projects)
 const dragState = {
   active: false,
   started: false,
@@ -280,7 +280,7 @@ function pushRpcLog(label, ok, detail) {
   if (state.rpcLog.length > 18) state.rpcLog.length = 18;
 }
 
-/* ── Code 专属物理渲染循环（0fps 休眠：ripple + vial） ──────────────────── */
+/* ── Code-mode physical render loop (0fps idle sleep: ripple + vial) ──────────────────── */
 function wakeMasterLoop() {
   if (masterRaf || document.hidden || state.motionLevel === 'off') return;
   lastFrameAt = performance.now();
@@ -387,7 +387,7 @@ function mountRippleBackdrop() {
     ro.observe(canvas);
   }
 
-  // Chat 氛围光轻视差 + Code 水波纹 skimmer
+  // Chat ambient light subtle parallax + Code ripple skimmer
   listenTarget.addEventListener(
     'pointermove',
     (evt) => {
@@ -564,7 +564,7 @@ function mountVialInto(canvas) {
   vialCtrl.impulse(1.1);
 }
 
-/* ── 增强版彩色环境氛围光状态同步（Code 关闭 / Chat 1.35x~1.5x 持续流动） ── */
+/* ── Enhanced ambient aura synchronization (off in Code / active breathing in Chat) ── */
 function syncAmbientAuraLayer() {
   const snap = state.snapshot;
   if (!snap || !chatAuraLayer) return;
@@ -581,7 +581,7 @@ function syncAmbientAuraLayer() {
     return;
   }
 
-  // Chat 模式：彻底关闭字符海波浪，开启对应空间色调的动态呼吸环境氛围光
+  // Chat mode: disable ASCII wave backdrop and activate space-tinted breathing ambient aura
   if (rippleBackdrop) rippleBackdrop.setAttribute('data-dormant', 'true');
   if (snap.currentView === '/') {
     const kind = snap.chatDraft.kind === 'spark' ? 'spark' : 'knowledge';
@@ -599,7 +599,7 @@ function syncAmbientAuraLayer() {
   }
 }
 
-/* ── 通信层：严格对接 /api/studio/* 隔离沙盒服务 ──────────────────────── */
+/* ── Transport layer: isolated /api/studio/* sandbox service ──────────────────────── */
 function ingestEnvelope(data) {
   if (!data || typeof data !== 'object') return;
   if (data.snapshot) state.snapshot = data.snapshot;
@@ -618,7 +618,7 @@ async function fetchInitialState() {
   renderAll();
 }
 
-// 前端串行 RPC 队列：确保快速连点切胶囊/建文件夹时按顺序等待上一次回包同步最新 rev/navRev/draftRev，杜绝 409 STALE_STATE
+// Serialized frontend RPC queue so rapid mode/folder clicks sync rev/navRev/draftRev without 409 STALE_STATE
 let rpcChain = Promise.resolve();
 
 function enqueueStudioOp(taskFn) {
@@ -648,7 +648,7 @@ function callRpc(action, payload = {}) {
   return enqueueStudioOp(async () => {
     const snap = state.snapshot;
     const reqId = `studio-req-${Date.now()}-${state.reqSeq++}`;
-    // 串行出队时用最新 snapshot 刷新 navRev/draftRev（仅在调用方提供了对应字段时同步）
+    // Refresh navRev/draftRev from latest snapshot on dequeue (only when caller provided them)
     const nextPayload = payload && typeof payload === 'object' ? { ...payload } : {};
     if (snap) {
       if (Object.prototype.hasOwnProperty.call(nextPayload, 'navRev')) {
@@ -677,7 +677,7 @@ function callRpc(action, payload = {}) {
 function applyFixture(fixture, label) {
   return enqueueStudioOp(async () => {
     const { data } = await callStudioPost('/api/studio/fixture', fixture, `fixture:${label}`);
-    if (!data.ok && data.error) showToast(`Fixture 失败: ${data.error.code}`);
+    if (!data.ok && data.error) showToast(`Fixture failed: ${data.error.code}`);
     return data;
   });
 }
@@ -693,7 +693,7 @@ function resetSandbox() {
     state.inlineRenameFolderId = null;
     state.inlineSparkBoxOpen = false;
     state.greetingSeed = Math.floor(Math.random() * 100);
-    if (data.ok) showToast(`已重置沙盒 · ${state.snapshot?.storeId || ''}`);
+    if (data.ok) showToast(`Sandbox reset · ${state.snapshot?.storeId || ''}`);
     return data;
   });
 }
@@ -729,7 +729,7 @@ function applyThemePreset(preset) {
   if (vialCtrl) vialCtrl.impulse(0.6);
 }
 
-/* ── 锚点浮层定位（按点击坐标/锚点设定 transform-origin + 视口夹紧） ──── */
+/* ── Anchored popover positioning (transform-origin + viewport clamping) ──── */
 function mountAnchoredPopover(pop, anchorEl, preferAbove = false) {
   overlayRoot.appendChild(pop);
   const vw = window.innerWidth || 1280;
@@ -765,7 +765,7 @@ function openBadgeHoverPreview(anchorEl, badge) {
   if (!badge) return;
   const pop = el('div', 'st-badge-preview');
   pop.setAttribute('data-testid', 'background-badge-preview');
-  const title = el('div', '', `${badge.targetMode === 'code' ? 'Code' : 'Chat'} 后台任务 (${badge.count})`);
+  const title = el('div', '', `${badge.targetMode === 'code' ? 'Code' : 'Chat'} Background Tasks (${badge.count})`);
   title.style.fontWeight = '600';
   pop.appendChild(title);
 
@@ -780,10 +780,10 @@ function openBadgeHoverPreview(anchorEl, badge) {
     const nameEl = el('span', 'ag-v2-row-title', t.title || t.cascadeId);
     nameEl.style.flex = '1';
     row.appendChild(nameEl);
-    row.appendChild(el('span', 'st-row-mono-tag', t.status === 'blocked' ? '待审批' : '运行中'));
+    row.appendChild(el('span', 'st-row-mono-tag', t.status === 'blocked' ? 'Blocked' : 'Running'));
     pop.appendChild(row);
   }
-  const hint = el('div', '', '点击微点直接切模式并跳转至该会话');
+  const hint = el('div', '', 'Click dot to switch mode and jump directly to the session');
   hint.style.fontSize = '11px';
   hint.style.color = 'var(--muted-foreground)';
   pop.appendChild(hint);
@@ -796,7 +796,7 @@ function hideBadgeHoverPreview() {
   if (old) old.remove();
 }
 
-/* ── 右键菜单（全单色线性 SVG，零 Emoji） ─────────────────────────────── */
+/* ── Context menu (monochrome line SVGs) ─────────────────────────────── */
 function addMenuItem(menu, iconName, label, rightTag, onClick) {
   const btn = el('button', 'st-menu-item');
   btn.type = 'button';
@@ -823,9 +823,9 @@ function openCodeContextMenu(ev, item) {
   const menu = el('div', 'st-popover');
   menu.setAttribute('data-testid', 'code-session-context-menu');
 
-  addMenuItem(menu, 'arrowRight', '模拟 Running 运行中', 'RUN', () => void mutateSingleSessionStatus(item.cascadeId, 'running'));
-  addMenuItem(menu, 'shield', '模拟 Blocked 待审批', 'WAIT', () => void mutateSingleSessionStatus(item.cascadeId, 'blocked'));
-  addMenuItem(menu, 'check', '恢复 Idle 空闲态', 'IDLE', () => void mutateSingleSessionStatus(item.cascadeId, 'idle'));
+  addMenuItem(menu, 'arrowRight', 'Simulate Running', 'RUN', () => void mutateSingleSessionStatus(item.cascadeId, 'running'));
+  addMenuItem(menu, 'shield', 'Simulate Blocked', 'WAIT', () => void mutateSingleSessionStatus(item.cascadeId, 'blocked'));
+  addMenuItem(menu, 'check', 'Restore Idle', 'IDLE', () => void mutateSingleSessionStatus(item.cascadeId, 'idle'));
 
   overlayRoot.appendChild(menu);
   menu.style.left = `${Math.max(8, Math.min(window.innerWidth - 230, ev.clientX))}px`;
@@ -842,7 +842,7 @@ function openChatSessionContextMenu(ev, item) {
   const menu = el('div', 'st-popover');
   menu.setAttribute('data-testid', 'chat-session-context-menu');
 
-  addMenuItem(menu, 'book', '移回 Knowledge 根目录', null, async () => {
+  addMenuItem(menu, 'book', 'Move to Knowledge Root', null, async () => {
     const res = await callRpc('move-chat-session', {
       cascadeId: item.cascadeId,
       placement: { kind: 'knowledge', folderId: null },
@@ -850,14 +850,14 @@ function openChatSessionContextMenu(ev, item) {
     if (res.ok) {
       state.flashSessionId = item.cascadeId;
       renderSidebar();
-      showToast('已移回 Knowledge 根目录');
+      showToast('Moved to Knowledge root');
     }
   });
 
   const folders = snap.knowledgeFolders || [];
   for (let i = 0; i < folders.length; i++) {
     const f = folders[i];
-    addMenuItem(menu, 'folder', `移入文件夹：${f.name}`, null, async () => {
+    addMenuItem(menu, 'folder', `Move to folder: ${f.name}`, null, async () => {
       const res = await callRpc('move-chat-session', {
         cascadeId: item.cascadeId,
         placement: { kind: 'knowledge', folderId: f.id },
@@ -865,7 +865,7 @@ function openChatSessionContextMenu(ev, item) {
       if (res.ok) {
         state.flashSessionId = item.cascadeId;
         renderSidebar();
-        showToast(`已归入文件夹「${f.name}」`);
+        showToast(`Moved into folder "${f.name}"`);
       }
     });
   }
@@ -875,7 +875,7 @@ function openChatSessionContextMenu(ev, item) {
     menu.appendChild(el('div', 'st-menu-sep'));
     for (let i = 0; i < projects.length; i++) {
       const p = projects[i];
-      addMenuItem(menu, 'box', `移入 Spark：${p.name}`, null, async () => {
+      addMenuItem(menu, 'box', `Move to Spark: ${p.name}`, null, async () => {
         const res = await callRpc('move-chat-session', {
           cascadeId: item.cascadeId,
           placement: { kind: 'spark', sparkProjectId: p.id },
@@ -883,7 +883,7 @@ function openChatSessionContextMenu(ev, item) {
         if (res.ok) {
           state.flashSessionId = item.cascadeId;
           renderSidebar();
-          showToast(`已移入 Spark 项目「${p.name}」`);
+          showToast(`Moved into Spark project "${p.name}"`);
         }
       });
     }
@@ -899,13 +899,13 @@ function openFolderContextMenu(ev, folder) {
   ev.stopPropagation();
   clearOverlays();
   const menu = el('div', 'st-popover');
-  addMenuItem(menu, 'edit', '重命名文件夹', null, () => {
+  addMenuItem(menu, 'edit', 'Rename Folder', null, () => {
     state.inlineRenameFolderId = folder.id;
     renderSidebar();
   });
-  addMenuItem(menu, 'trash', '删除文件夹（会话退回根目录）', null, async () => {
+  addMenuItem(menu, 'trash', 'Delete Folder (return sessions to root)', null, async () => {
     const res = await callRpc('delete-knowledge-folder', { folderId: folder.id });
-    if (res.ok) showToast(`已删除「${folder.name}」，会话已无损退回 Knowledge 根目录`);
+    if (res.ok) showToast(`Deleted "${folder.name}"; sessions returned safely to Knowledge root`);
   });
   overlayRoot.appendChild(menu);
   menu.style.left = `${Math.max(8, Math.min(window.innerWidth - 230, ev.clientX))}px`;
@@ -917,16 +917,16 @@ function openSparkProjectContextMenu(ev, proj) {
   ev.stopPropagation();
   clearOverlays();
   const menu = el('div', 'st-popover');
-  addMenuItem(menu, 'unlink', '解绑工作区（保留磁盘与历史会话）', null, async () => {
+  addMenuItem(menu, 'unlink', 'Unbind Workspace (keep files & history)', null, async () => {
     const res = await callRpc('unlink-spark-project', { sparkProjectId: proj.id });
-    if (res.ok) showToast(`已解绑「${proj.name}」，历史会话已退回 Knowledge 根目录`);
+    if (res.ok) showToast(`Unbound "${proj.name}"; history sessions returned to Knowledge root`);
   });
   overlayRoot.appendChild(menu);
   menu.style.left = `${Math.max(8, Math.min(window.innerWidth - 240, ev.clientX))}px`;
   menu.style.top = `${Math.max(8, Math.min(window.innerHeight - 100, ev.clientY))}px`;
 }
 
-/* ── Pointer 自定义拖拽引擎（磁吸高亮 + 450ms 自动展开折叠目录 + 320ms 落位高光） ── */
+/* ── Custom Pointer drag engine (magnetic highlight + 450ms auto-expand + 320ms drop flash) ── */
 function clearDropHoverState() {
   if (dragState.autoExpandTimer) {
     clearTimeout(dragState.autoExpandTimer);
@@ -964,7 +964,7 @@ function endSessionDrag(commitDrop) {
       if (r.ok) {
         state.flashSessionId = cid;
         renderSidebar();
-        showToast('已拖入 Knowledge 根目录');
+        showToast('Dropped into Knowledge root');
       }
     });
   } else if (dropKind === 'knowledge-folder' && dropId) {
@@ -972,7 +972,7 @@ function endSessionDrag(commitDrop) {
       if (r.ok) {
         state.flashSessionId = cid;
         renderSidebar();
-        showToast('已归入目标子文件夹');
+        showToast('Moved into target subfolder');
       }
     });
   } else if (dropKind === 'spark-project' && dropId) {
@@ -980,7 +980,7 @@ function endSessionDrag(commitDrop) {
       if (r.ok) {
         state.flashSessionId = cid;
         renderSidebar();
-        showToast('已拖入 Spark 项目工作区');
+        showToast('Dropped into Spark workspace');
       }
     });
   }
@@ -1024,7 +1024,7 @@ document.addEventListener('pointermove', (e) => {
     if (target) {
       dragState.hoverTargetEl = target;
       target.setAttribute('data-drop-hover', '1');
-      // 悬停在折叠文件夹上 450ms 自动展开
+      // Auto-expand collapsed folder after 450ms hover
       if (target.getAttribute('data-drop-kind') === 'knowledge-folder') {
         const fid = target.getAttribute('data-drop-id');
         const grp = target.closest('.ag-v2-sidebar-group');
@@ -1047,7 +1047,7 @@ document.addEventListener('pointercancel', () => {
   if (dragState.active) endSessionDrag(false);
 });
 
-/* ── 后台模拟 & WSL2 显式二次确认 Modal ───────────────────────────────── */
+/* ── Background simulation & explicit WSL2 confirmation Modal ───────────────────────────────── */
 async function mutateSingleSessionStatus(cascadeId, nextStatus) {
   const now = Date.now();
   const nextItems = getCatalogItems().map((it) =>
@@ -1071,20 +1071,20 @@ async function simulateOppositeModeTask(nextStatus) {
     if (nextStatus === 'running') {
       await mutateSingleSessionStatus('code-blocked-approval', 'idle');
     }
-    showToast(`已注入后台 ${nextStatus.toUpperCase()} 模拟任务`);
+    showToast(`Injected simulated background ${nextStatus.toUpperCase()} task`);
     return;
   }
 
   if (nextStatus === 'idle') {
     const cleared = items.map((it) => ({ ...it, status: 'idle', statusStartedAt: 0 }));
     await applyFixture({ catalog: { health: 'ready', items: cleared } }, 'clear-bg');
-    showToast('已清空全部后台运行/阻塞状态');
+    showToast('Cleared all simulated background running/blocked states');
     return;
   }
 
   if (target) {
     await mutateSingleSessionStatus(target.cascadeId, nextStatus);
-    showToast(`已将非激活模式会话设为 ${nextStatus.toUpperCase()}`);
+    showToast(`Set inactive-mode session status to ${nextStatus.toUpperCase()}`);
   }
 }
 
@@ -1099,27 +1099,27 @@ function openWslConfirmModal(operationId, targetLabel) {
   titleRow.style.alignItems = 'center';
   titleRow.style.gap = '7px';
   titleRow.appendChild(makeMonoSvg('terminal', 16));
-  titleRow.appendChild(el('span', '', '确认切换至 WSL2 硬沙箱环境'));
+  titleRow.appendChild(el('span', '', 'Confirm Switch to WSL2 Hard Sandbox'));
   box.appendChild(titleRow);
 
   box.appendChild(
     el(
       'div',
       'st-modal-desc',
-      `操作 ${operationId}（${targetLabel}）需要 WSL2 沙箱隔离校验。确认后将从可信宿主通道签发一次性 challenge 并仅写入该项目级策略，全局 Code 权限保持 0 写入。`
+      `Operation ${operationId} (${targetLabel}) requires WSL2 sandbox isolation verification. Confirming issues a one-time challenge from the trusted host channel and writes only to this project-scoped policy while keeping global Code writes at 0.`
     )
   );
 
   const foot = el('div', 'st-modal-foot');
-  const cancelBtn = el('button', 'st-mono-chip', '取消');
+  const cancelBtn = el('button', 'st-mono-chip', 'Cancel');
   cancelBtn.type = 'button';
   cancelBtn.setAttribute('data-testid', 'studio-wsl-cancel');
   cancelBtn.addEventListener('click', () => {
     clearOverlays();
-    showToast('已取消 WSL2 确认，操作保持暂停');
+    showToast('Cancelled WSL2 confirmation; operation remains paused');
   });
 
-  const confirmBtn = el('button', 'st-mono-chip', '确认并下发 Challenge');
+  const confirmBtn = el('button', 'st-mono-chip', 'Confirm & Issue Challenge');
   confirmBtn.type = 'button';
   confirmBtn.style.background = 'var(--foreground)';
   confirmBtn.style.color = 'var(--background)';
@@ -1128,7 +1128,7 @@ function openWslConfirmModal(operationId, targetLabel) {
     clearOverlays();
     const { data: chData } = await callStudioPost('/api/studio/wsl-challenge', { operationId }, 'trusted-wsl-challenge');
     if (!chData.ok || !chData.challenge || !chData.challenge.challenge) {
-      showToast('无法获取一次性 WSL Challenge');
+      showToast('Unable to fetch one-time WSL Challenge');
       return;
     }
     const res = await callRpc('confirm-wsl', {
@@ -1137,7 +1137,7 @@ function openWslConfirmModal(operationId, targetLabel) {
     });
     if (res.ok) {
       triggerChatSimStreamPulse();
-      showToast('WSL2 硬沙箱确认成功，首条消息已送达');
+      showToast('WSL2 hard sandbox confirmed; first message delivered');
     }
   });
 
@@ -1148,7 +1148,7 @@ function openWslConfirmModal(operationId, targetLabel) {
   overlayRoot.appendChild(backdrop);
 }
 
-/* ── 侧边栏渲染（零 Emoji · 顶部无色差胶囊 · 行内建文件夹 · 拖拽磁吸 · 52px 4 槽微轨） ── */
+/* ── Sidebar rendering (monochrome icons, pill switcher, inline folder creation, drag drop, 52px rail) ── */
 function renderSidebar(modeDirection = null) {
   clearNode(sidebarMount);
   const snap = state.snapshot;
@@ -1160,16 +1160,16 @@ function renderSidebar(modeDirection = null) {
   aside.setAttribute('data-collapsed', String(isCollapsed));
   aside.setAttribute('data-search-open', String(state.searchOpen));
 
-  // 折叠态：52px 极简 4 槽单色微轨（§四.4）
+  // Collapsed state: 52px minimal 4-slot monochrome micro-rail
   if (isCollapsed) {
     const rail = el('div', 'st-rail-4slot');
     rail.setAttribute('data-testid', 'studio-mini-rail');
 
-    // 槽 1：单色 Code <-> Chat 切换（带跨模式 Blocked/Running 微光点）
+    // Slot 1: monochrome Code <-> Chat switch (with cross-mode Blocked/Running dot)
     const slot1 = el('button', 'ag-v2-rail-btn');
     slot1.type = 'button';
     slot1.setAttribute('data-testid', 'rail-mode-toggle');
-    slot1.title = snap.activeMode === 'code' ? '切换至 Chat' : '切换至 Code';
+    slot1.title = snap.activeMode === 'code' ? 'Switch to Chat' : 'Switch to Code';
     slot1.appendChild(makeMonoSvg(snap.activeMode === 'code' ? 'code' : 'chat', 15));
     if (snap.backgroundBadge && snap.backgroundBadge.count > 0) {
       const dot = el('span', 'st-bg-dot');
@@ -1182,17 +1182,17 @@ function renderSidebar(modeDirection = null) {
     });
     rail.appendChild(slot1);
 
-    // 槽 2：单色 [+] 新建当前模式对话
+    // Slot 2: monochrome [+] new conversation in current mode
     const slot2 = el('button', 'ag-v2-rail-btn');
     slot2.type = 'button';
-    slot2.title = '新建对话';
+    slot2.title = 'New Conversation';
     slot2.appendChild(makeMonoSvg('plus', 15));
     slot2.addEventListener('click', () => {
       void callRpc('navigate', { mode: snap.activeMode, view: '/', navRev: snap.navRev });
     });
     rail.appendChild(slot2);
 
-    // 槽 3：运行中 / 待审批任务克制圆点列表
+    // Slot 3: restrained dot list for running/blocked tasks
     const slot3 = el('div', 'st-rail-tasks');
     const assignedSet = new Set(snap.chatAssignedIds || []);
     const activeTasks = getCatalogItems().filter((it) => !it.hidden && (it.status === 'blocked' || it.status === 'running'));
@@ -1225,11 +1225,11 @@ function renderSidebar(modeDirection = null) {
     }
     rail.appendChild(slot3);
 
-    // 槽 4（底部）：单色展开 / 设置齿轮入口
+    // Slot 4 (bottom): monochrome expand / settings trigger
     const slot4 = el('button', 'ag-v2-rail-btn');
     slot4.type = 'button';
     slot4.setAttribute('data-testid', 'studio-collapse-btn');
-    slot4.title = '展开侧边栏 ( [ )';
+    slot4.title = 'Expand Sidebar ( [ )';
     slot4.appendChild(makeMonoSvg('sidebar', 15));
     slot4.addEventListener('click', () => {
       stageEl.setAttribute('data-sidebar-collapsed', '0');
@@ -1242,7 +1242,7 @@ function renderSidebar(modeDirection = null) {
     return;
   }
 
-  // 展开态最顶行：[ </> Code | ○ Chat ] 共享弹簧滑块胶囊 + 搜索 + 折叠
+  // Expanded top row: [ </> Code | Chat ] spring pill switcher + search + collapse
   const topBar = el('div', 'ag-v2-sidebar-top');
   const seg = el('div', 'st-bipolar-seg');
   seg.setAttribute('role', 'tablist');
@@ -1301,7 +1301,7 @@ function renderSidebar(modeDirection = null) {
   searchBtn.type = 'button';
   searchBtn.setAttribute('data-testid', 'sidebar-search-toggle');
   searchBtn.setAttribute('data-active', String(state.searchOpen));
-  searchBtn.title = '搜索会话 (Ctrl+K)';
+  searchBtn.title = 'Search Conversations (Ctrl+K)';
   searchBtn.appendChild(makeMonoSvg('search', 13.5));
   searchBtn.addEventListener('click', () => {
     state.searchOpen = !state.searchOpen;
@@ -1317,7 +1317,7 @@ function renderSidebar(modeDirection = null) {
   const collapseBtn = el('button', 'ag-v2-collapse-btn');
   collapseBtn.type = 'button';
   collapseBtn.setAttribute('data-testid', 'studio-collapse-btn');
-  collapseBtn.title = '折叠侧边栏 ( [ )';
+  collapseBtn.title = 'Collapse Sidebar ( [ )';
   collapseBtn.appendChild(makeMonoSvg('sidebar', 14));
   collapseBtn.addEventListener('click', () => {
     stageEl.setAttribute('data-sidebar-collapsed', '1');
@@ -1327,7 +1327,7 @@ function renderSidebar(modeDirection = null) {
   topBar.appendChild(tools);
   aside.appendChild(topBar);
 
-  // 展开主体容器
+  // Expanded main container
   const expBody = el('div', 'ag-v2-sidebar-expanded-body');
   const actionsWrap = el('div', 'ag-v2-sidebar-actions');
   const newBtn = el('button', 'ag-v2-new-chat-btn');
@@ -1335,7 +1335,7 @@ function renderSidebar(modeDirection = null) {
   newBtn.setAttribute('data-testid', 'studio-new-session-btn');
   const lead = el('span', 'ag-v2-new-chat-lead');
   lead.appendChild(makeMonoSvg('plus', 13.5));
-  lead.appendChild(el('span', '', '新建对话'));
+  lead.appendChild(el('span', '', state.locale === 'ar' ? 'محادثة جديدة' : 'New Conversation'));
   newBtn.appendChild(lead);
   newBtn.appendChild(el('span', 'ag-v2-kbd-hint', '⌘N'));
   newBtn.addEventListener('click', () => {
@@ -1350,7 +1350,7 @@ function renderSidebar(modeDirection = null) {
     const sInp = el('input', 'st-inline-create-input');
     sInp.type = 'text';
     sInp.setAttribute('data-testid', 'sidebar-search-input');
-    sInp.placeholder = '过滤当前模式会话…';
+    sInp.placeholder = state.locale === 'ar' ? 'تصفية محادثات الوضع الحالي…' : 'Filter conversations…';
     sInp.value = state.searchQuery;
     sInp.addEventListener('input', () => {
       state.searchQuery = sInp.value;
@@ -1406,7 +1406,7 @@ function renderSidebar(modeDirection = null) {
     } else if (isRunning) {
       row.appendChild(createRunningSpinnerNode());
     } else if (it.continuation === 'needs-rebind') {
-      row.appendChild(el('span', 'st-row-mono-tag', '只读'));
+      row.appendChild(el('span', 'st-row-mono-tag', 'RO'));
     }
     row.addEventListener('click', () => {
       if (dragState.started) return;
@@ -1437,7 +1437,7 @@ function renderSidebar(modeDirection = null) {
     sessionsEl.appendChild(secHead);
 
     if (codeItems.length === 0) {
-      sessionsEl.appendChild(el('div', 'st-sb-empty', '当前无匹配的 Code 会话'));
+      sessionsEl.appendChild(el('div', 'st-sb-empty', 'No matching Code sessions'));
     } else {
       byWs.forEach((wsItems, wsName) => {
         const grp = el('div', 'ag-v2-sidebar-group');
@@ -1484,13 +1484,13 @@ function renderSidebar(modeDirection = null) {
       });
     }
   } else {
-    // ── Chat 侧栏：纯净无 Code，全单色线性 SVG，行内新建文件夹 + 拖拽磁吸 ──
+    // ── Chat sidebar: pure monochrome icons, inline folder creation & magnetic drag-and-drop ──
     const cs = snap.chatSidebar || {
       knowledge: { rootItems: [], folders: [], totalCount: 0 },
       spark: { projects: [], totalCount: 0 },
     };
 
-    // 1) Knowledge 区（上方默认工作区，也是拖拽落回根目录的热区）
+    // 1) Knowledge section (default top space and root drop target)
     const kHead = el('div', 'st-sec-head-row st-root-drop-zone');
     kHead.setAttribute('data-testid', 'chat-sidebar-knowledge');
     kHead.setAttribute('data-drop-kind', 'knowledge-root');
@@ -1505,7 +1505,7 @@ function renderSidebar(modeDirection = null) {
     addFolderBtn.type = 'button';
     addFolderBtn.setAttribute('data-testid', 'create-knowledge-folder-btn');
     addFolderBtn.setAttribute('data-open', state.inlineFolderOpen ? '1' : '0');
-    addFolderBtn.title = '新建子文件夹';
+    addFolderBtn.title = 'New Subfolder';
     addFolderBtn.appendChild(makeMonoSvg('plus', 12));
     addFolderBtn.addEventListener('click', () => {
       state.inlineFolderOpen = !state.inlineFolderOpen;
@@ -1519,7 +1519,7 @@ function renderSidebar(modeDirection = null) {
     kHead.appendChild(kRight);
     sessionsEl.appendChild(kHead);
 
-    // 原地行内平滑展开新建子文件夹输入框（0fr -> 1fr，绝不弹 prompt）
+    // Expand inline new-folder input smoothly in place (0fr -> 1fr, no modal prompt)
     const inlineGrid = el('div', 'st-inline-create-grid');
     inlineGrid.setAttribute('data-open', state.inlineFolderOpen ? '1' : '0');
     const inlineInner = el('div', 'st-inline-create-inner');
@@ -1528,7 +1528,7 @@ function renderSidebar(modeDirection = null) {
     const inlineInp = el('input', 'st-inline-create-input');
     inlineInp.type = 'text';
     inlineInp.setAttribute('data-testid', 'inline-folder-name-input');
-    inlineInp.placeholder = '输入文件夹名后按 Enter…';
+    inlineInp.placeholder = 'Enter folder name and press Enter…';
     inlineInp.addEventListener('keydown', async (e) => {
       if (e.key === 'Escape') {
         state.inlineFolderOpen = false;
@@ -1539,7 +1539,7 @@ function renderSidebar(modeDirection = null) {
         if (!name) return;
         state.inlineFolderOpen = false;
         const res = await callRpc('create-knowledge-folder', { name });
-        if (res.ok) showToast(`已创建文件夹「${name}」`);
+        if (res.ok) showToast(`Created folder "${name}"`);
       }
     });
     inlineBox.appendChild(inlineInp);
@@ -1624,7 +1624,7 @@ function renderSidebar(modeDirection = null) {
         const inlineActs = el('span', 'st-group-inline-acts');
         const renBtn = el('button', 'st-mini-gbtn');
         renBtn.type = 'button';
-        renBtn.title = '重命名';
+        renBtn.title = 'Rename';
         renBtn.appendChild(makeMonoSvg('edit', 11));
         renBtn.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -1633,12 +1633,12 @@ function renderSidebar(modeDirection = null) {
         });
         const delBtn = el('button', 'st-mini-gbtn');
         delBtn.type = 'button';
-        delBtn.title = '删除（会话退回根目录）';
+        delBtn.title = 'Delete (return sessions to root)';
         delBtn.appendChild(makeMonoSvg('trash', 11));
         delBtn.addEventListener('click', (e) => {
           e.stopPropagation();
           void callRpc('delete-knowledge-folder', { folderId: f.id }).then((r) => {
-            if (r.ok) showToast(`已删除「${f.name}」，会话已退回根目录`);
+            if (r.ok) showToast(`Deleted "${f.name}"; sessions returned to root`);
           });
         });
         inlineActs.appendChild(renBtn);
@@ -1655,17 +1655,17 @@ function renderSidebar(modeDirection = null) {
           buildNativeSessionRow(it, 'chat', openChatItem(it), (e) => openChatSessionContextMenu(e, it), true)
         );
       }
-      if (fItems.length === 0) rowsWrap.appendChild(el('div', 'st-sb-empty', '可拖拽对话至此文件夹'));
+      if (fItems.length === 0) rowsWrap.appendChild(el('div', 'st-sb-empty', 'Drag conversations here'));
       colWrap.appendChild(rowsWrap);
       grp.appendChild(colWrap);
       sessionsEl.appendChild(grp);
     }
 
     if (cs.knowledge.totalCount === 0 && cs.knowledge.folders.length === 0) {
-      sessionsEl.appendChild(el('div', 'st-sb-empty', '暂无对话'));
+      sessionsEl.appendChild(el('div', 'st-sb-empty', 'No conversations yet'));
     }
 
-    // 2) Spark 项目工作区（排在 Knowledge 下方，全单色线框）
+    // 2) Spark project workspaces (below Knowledge, monochrome line icons)
     const sHead = el('div', 'st-sec-head-row');
     sHead.setAttribute('data-testid', 'chat-sidebar-spark');
     const sLead = el('span', 'st-sec-head-lead');
@@ -1679,7 +1679,7 @@ function renderSidebar(modeDirection = null) {
     newBoxBtn.type = 'button';
     newBoxBtn.setAttribute('data-testid', 'create-spark-box-btn');
     newBoxBtn.setAttribute('data-open', state.inlineSparkBoxOpen ? '1' : '0');
-    newBoxBtn.title = '新建工作文件夹';
+    newBoxBtn.title = 'New Working Folder';
     newBoxBtn.appendChild(makeMonoSvg('plus', 12));
     newBoxBtn.addEventListener('click', () => {
       state.inlineSparkBoxOpen = !state.inlineSparkBoxOpen;
@@ -1701,7 +1701,7 @@ function renderSidebar(modeDirection = null) {
     const sparkInp = el('input', 'st-inline-create-input');
     sparkInp.type = 'text';
     sparkInp.setAttribute('data-testid', 'inline-spark-box-input');
-    sparkInp.placeholder = '输入工作文件夹名称按 Enter…';
+    sparkInp.placeholder = 'Enter working folder name and press Enter…';
     sparkInp.addEventListener('keydown', async (e) => {
       if (e.key === 'Escape') {
         state.inlineSparkBoxOpen = false;
@@ -1740,7 +1740,7 @@ function renderSidebar(modeDirection = null) {
       hBtn.appendChild(makeMonoSvg('folder', 12));
       hBtn.appendChild(el('span', 'st-group-name', p.name));
       if (projMeta.sharedWithCode) {
-        hBtn.appendChild(el('span', 'st-row-mono-tag', '共享'));
+        hBtn.appendChild(el('span', 'st-row-mono-tag', 'Shared'));
       }
       hBtn.appendChild(el('span', 'st-group-count', String(p.items.length)));
       hBtn.addEventListener('click', () => {
@@ -1751,12 +1751,12 @@ function renderSidebar(modeDirection = null) {
       const inlineActs = el('span', 'st-group-inline-acts');
       const unlinkBtn = el('button', 'st-mini-gbtn');
       unlinkBtn.type = 'button';
-      unlinkBtn.title = '解绑项目（保留磁盘与历史会话）';
+      unlinkBtn.title = 'Unbind project (keep disk files & history)';
       unlinkBtn.appendChild(makeMonoSvg('unlink', 11));
       unlinkBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         void callRpc('unlink-spark-project', { sparkProjectId: p.id }).then((r) => {
-          if (r.ok) showToast(`已解绑「${p.name}」，会话已退回根目录`);
+          if (r.ok) showToast(`Unbound "${p.name}"; sessions returned to root`);
         });
       });
       inlineActs.appendChild(unlinkBtn);
@@ -1771,14 +1771,14 @@ function renderSidebar(modeDirection = null) {
           buildNativeSessionRow(it, 'chat', openChatItem(it), (e) => openChatSessionContextMenu(e, it), true)
         );
       }
-      if (pItems.length === 0) rowsWrap.appendChild(el('div', 'st-sb-empty', '在右侧选此项目开始对话'));
+      if (pItems.length === 0) rowsWrap.appendChild(el('div', 'st-sb-empty', 'Select this project on the right to start chatting'));
       colWrap.appendChild(rowsWrap);
       grp.appendChild(colWrap);
       sessionsEl.appendChild(grp);
     }
 
     if (cs.spark.projects.length === 0) {
-      sessionsEl.appendChild(el('div', 'st-sb-empty', '切至 Spark 选择本地目录或新建工作文件夹'));
+      sessionsEl.appendChild(el('div', 'st-sb-empty', 'Switch to Spark to pick a local directory or create a working folder'));
     }
   }
 
@@ -1804,7 +1804,7 @@ function renderSidebar(modeDirection = null) {
   }
 }
 
-/* ── Spark 项目挂载（工作文件夹 / 独立目录 / 共享目录安全兼容） ────────── */
+/* ── Spark project binding (working folder / isolated dir / shared dir compatibility) ────────── */
 async function createAndBindSparkBoxByName(name) {
   const created = await callRpc('create-spark-box', { name });
   if (!created.ok || !created.result || !created.result.selectionToken) return;
@@ -1818,7 +1818,7 @@ async function createAndBindSparkBoxByName(name) {
     navRev: state.snapshot.navRev,
     draftRev: state.snapshot.draftRev,
   });
-  if (sel.ok) showToast(`已创建并选中工作文件夹：${created.result.displayName}`);
+  if (sel.ok) showToast(`Created and selected working folder: ${created.result.displayName}`);
 }
 
 async function pickAndBindSparkDirectory(sharedWithCode = false) {
@@ -1840,13 +1840,13 @@ async function pickAndBindSparkDirectory(sharedWithCode = false) {
   if (sel.ok) {
     showToast(
       sharedWithCode || picked.result.sharedWithCode
-        ? `已挂载共享目录「${picked.result.displayName}」（安全兼容，全局 Code 权限 0 写入）`
-        : `已挂载独立目录「${picked.result.displayName}」`
+        ? `Mounted shared directory "${picked.result.displayName}" (safe compat, 0 global Code writes)`
+        : `Mounted isolated directory "${picked.result.displayName}"`
     );
   }
 }
 
-/* ── Chat 发送首条消息 + 正中心 -> 底部停靠 FLIP GPU 飞行转场（380ms） ── */
+/* ── Chat first-message send + center-to-bottom FLIP GPU transition (380ms) ── */
 function triggerChatSimStreamPulse() {
   state.chatSimRunning = true;
   syncAmbientAuraLayer();
@@ -1867,12 +1867,12 @@ async function handleSendFirstChatMessage() {
   if (snap.activeMode === 'code') {
     if (mascotRig && typeof mascotRig.notify === 'function') mascotRig.notify('celebrate');
     state.composerText = '';
-    showToast('Code 模式：指令已触发（全局权限 0 写入）');
+    showToast('Code mode: command triggered (0 global permission writes)');
     renderMainCanvas();
     return;
   }
 
-  // 已在 Chat 对话阅读页时直接追加一轮对话并触发 3.5s 活跃氛围光
+  // When already in Chat reading view, append a turn directly and pulse ambient aura for 3.5s
   if (snap.currentView !== '/') {
     const parsed = parseView(snap.currentView);
     if (parsed.ok && parsed.cascadeId) {
@@ -1880,8 +1880,8 @@ async function handleSendFirstChatMessage() {
       list.push({ role: 'user', text });
       list.push({
         role: 'assistant',
-        thought: `使用 ${state.selectedModel}（思考强度：${getEffortShortLabel(state.selectedEffort)}）分析当前上下文，整理关键结论并同步更新右侧文档。`,
-        text: '已为你补充整理本轮要点：建议按目标拆解、关键里程碑与风险备选三部分推进，右侧 Artifacts 视图已同步更新结构化草案。',
+        thought: `Analyzing current context with ${state.selectedModel} (effort: ${getEffortShortLabel(state.selectedEffort)}), distilling key takeaways and updating the right-hand document.`,
+        text: 'Summary updated: I recommend progressing across goal breakdown, key milestones, and contingency options. The Artifacts pane on the right now reflects the structured draft.',
       });
       state.sessionMessages.set(parsed.cascadeId, list);
       state.composerText = '';
@@ -1892,11 +1892,11 @@ async function handleSendFirstChatMessage() {
   }
 
   if (snap.chatDraft.kind === 'spark' && !snap.chatDraft.sparkProjectId) {
-    showToast('请先在底托选择一个项目或文件夹再发送');
+    showToast('Select a project or folder in the tray before sending');
     return;
   }
 
-  // 捕获 FLIP 起点坐标 + 触发问候语上移淡出（180ms）
+  // Capture FLIP origin coordinates + fade greeting upward (180ms)
   const centerShell = mainPrimary.querySelector('.st-chat-composer-shell');
   const firstTop = centerShell ? centerShell.getBoundingClientRect().top : null;
   const greetHeader = mainPrimary.querySelector('.st-chat-greet-header');
@@ -1934,12 +1934,12 @@ async function handleSendFirstChatMessage() {
           role: 'assistant',
           thought:
             fresh.chatDraft.kind === 'spark'
-              ? `使用 ${state.selectedModel}（思考强度：${getEffortShortLabel(state.selectedEffort)}）检查当前项目目录结构，并在项目级安全围栏内规划步骤。`
-              : `使用 ${state.selectedModel}（思考强度：${getEffortShortLabel(state.selectedEffort)}）梳理核心思路，并生成右侧结构化摘要。`,
+              ? `Inspecting project structure with ${state.selectedModel} (effort: ${getEffortShortLabel(state.selectedEffort)}) and planning steps inside the project-scoped fence.`
+              : `Synthesizing core ideas with ${state.selectedModel} (effort: ${getEffortShortLabel(state.selectedEffort)}) and generating a structured summary in the right pane.`,
           text:
             fresh.chatDraft.kind === 'spark'
-              ? '已连接到所选工作目录并准备好协作处理该任务。权限策略仅限定在当前目录作用域内，不会影响后台 Code 工程会话。'
-              : '已为你梳理清晰的思路与执行清单。你可以随时展开右侧 Artifacts 面板查看文档摘要，或在下方继续追问细节。',
+              ? 'Connected to the selected working directory and ready to collaborate. Permissions stay strictly scoped to this directory without affecting background Code sessions.'
+              : 'I have outlined a clear plan and checklist. Open the Artifacts pane on the right to inspect the document summary, or ask follow-up questions below.',
         },
       ]);
       state.composerText = '';
@@ -1952,14 +1952,14 @@ async function handleSendFirstChatMessage() {
   }
 }
 
-/* ── Chat 纯净输入框（图四留白 -> 图五 260ms 弹簧底托） ─────────────────── */
+/* ── Chat pure composer (clean home -> 260ms spring tray expansion) ─────────────────── */
 function openChatPlusMenu(anchorEl, snap) {
   clearOverlays();
   const menu = el('div', 'st-popover');
   menu.setAttribute('data-testid', 'chat-plus-menu');
 
-  addMenuItem(menu, 'paperclip', '上传文件 / 截图（原生透传）', null, () => {
-    showToast('已透传宿主原生附件选择器（预览模拟）');
+  addMenuItem(menu, 'paperclip', 'Upload File / Screenshot (native passthrough)', null, () => {
+    showToast('Forwarded to host native attachment picker (preview simulation)');
   });
 
   if (snap.chatDraft.kind === 'knowledge' && snap.currentView === '/') {
@@ -1967,8 +1967,8 @@ function openChatPlusMenu(anchorEl, snap) {
     addMenuItem(
       menu,
       'book',
-      '归入 Knowledge 根目录',
-      snap.chatDraft.folderId === null ? '已选' : null,
+      'Save to Knowledge Root',
+      snap.chatDraft.folderId === null ? 'Selected' : null,
       () => {
         void callRpc('set-chat-draft', {
           draft: { kind: 'knowledge', folderId: null, sparkProjectId: null },
@@ -1982,8 +1982,8 @@ function openChatPlusMenu(anchorEl, snap) {
       addMenuItem(
         menu,
         'folder',
-        `指定子文件夹：${f.name}`,
-        snap.chatDraft.folderId === f.id ? '已选' : null,
+        `Target subfolder: ${f.name}`,
+        snap.chatDraft.folderId === f.id ? 'Selected' : null,
         () => {
           void callRpc('set-chat-draft', {
             draft: { kind: 'knowledge', folderId: f.id, sparkProjectId: null },
@@ -1994,11 +1994,11 @@ function openChatPlusMenu(anchorEl, snap) {
       );
     }
     menu.appendChild(el('div', 'st-menu-sep'));
-    addMenuItem(menu, 'globe', '优先联网调研', state.webResearchPreferred ? '开' : '关', () => {
+    addMenuItem(menu, 'globe', 'Prefer Web Research', state.webResearchPreferred ? 'On' : 'Off', () => {
       state.webResearchPreferred = !state.webResearchPreferred;
-      showToast(state.webResearchPreferred ? '已开启优先联网调研' : '已关闭优先联网调研');
+      showToast(state.webResearchPreferred ? 'Enabled web research priority' : 'Disabled web research priority');
     });
-    addMenuItem(menu, 'panelRight', '右侧 Artifacts 预览', state.artifactsOpen ? '开' : '关', () => {
+    addMenuItem(menu, 'panelRight', 'Right Artifacts Preview', state.artifactsOpen ? 'On' : 'Off', () => {
       state.artifactsOpen = !state.artifactsOpen;
       renderMainCanvas();
     });
@@ -2009,7 +2009,7 @@ function openChatPlusMenu(anchorEl, snap) {
 
 function getEffortShortLabel(effortId) {
   const found = CHAT_EFFORT_TIERS.find((t) => t.id === effortId);
-  return found ? found.label : '高';
+  return found ? found.label : 'High';
 }
 
 function openChatModelMenu(anchorEl) {
@@ -2017,7 +2017,7 @@ function openChatModelMenu(anchorEl) {
   const menu = el('div', 'st-popover st-model-popover');
   menu.setAttribute('data-testid', 'chat-model-menu');
 
-  menu.appendChild(el('div', 'st-model-sec-label', 'Gemini 模型'));
+  menu.appendChild(el('div', 'st-model-sec-label', 'Gemini Models'));
   for (let i = 0; i < GEMINI_CHAT_MODELS.length; i++) {
     const m = GEMINI_CHAT_MODELS[i];
     const opt = el('button', 'st-model-opt');
@@ -2053,13 +2053,13 @@ function openChatModelMenu(anchorEl) {
   }
 
   menu.appendChild(el('div', 'st-menu-sep'));
-  menu.appendChild(el('div', 'st-model-sec-label', '思考强度'));
+  menu.appendChild(el('div', 'st-model-sec-label', 'Thinking Effort'));
 
   const curModelObj = GEMINI_CHAT_MODELS.find((x) => x.id === state.selectedModel) || GEMINI_CHAT_MODELS[0];
   const allowedEfforts = Array.isArray(curModelObj.efforts) ? curModelObj.efforts : ['Low', 'Medium', 'High'];
   const pills = el('div', 'st-effort-pills');
   pills.setAttribute('role', 'radiogroup');
-  pills.setAttribute('aria-label', '思考强度');
+  pills.setAttribute('aria-label', 'Thinking Effort');
   pills.style.gridTemplateColumns = `repeat(${allowedEfforts.length}, minmax(0, 1fr))`;
   for (let i = 0; i < CHAT_EFFORT_TIERS.length; i++) {
     const tier = CHAT_EFFORT_TIERS[i];
@@ -2093,7 +2093,7 @@ function openSparkProjectPickerMenu(anchorEl, snap) {
       menu,
       'folder',
       p.name,
-      p.id === snap.chatDraft.sparkProjectId ? '当前' : p.sharedWithCode ? '共享' : null,
+      p.id === snap.chatDraft.sparkProjectId ? 'Active' : p.sharedWithCode ? 'Shared' : null,
       () => {
         void callRpc('set-chat-draft', {
           draft: { kind: 'spark', folderId: null, sparkProjectId: p.id },
@@ -2105,9 +2105,9 @@ function openSparkProjectPickerMenu(anchorEl, snap) {
   }
   if (projects.length > 0) menu.appendChild(el('div', 'st-menu-sep'));
 
-  addMenuItem(menu, 'folder', '选择独立本地目录', '隔离', () => void pickAndBindSparkDirectory(false));
-  addMenuItem(menu, 'code', '共享目录：选择已有代码库', '安全兼容', () => void pickAndBindSparkDirectory(true));
-  addMenuItem(menu, 'box', '新建工作文件夹', null, () => {
+  addMenuItem(menu, 'folder', 'Choose Isolated Local Directory', 'Isolated', () => void pickAndBindSparkDirectory(false));
+  addMenuItem(menu, 'code', 'Shared Directory: Existing Repo', 'Safe', () => void pickAndBindSparkDirectory(true));
+  addMenuItem(menu, 'box', 'New Working Folder', null, () => {
     state.inlineSparkBoxOpen = true;
     renderSidebar();
     const inp = sidebarMount.querySelector('[data-testid="inline-spark-box-input"]');
@@ -2127,19 +2127,19 @@ function openSparkFenceMenu(anchorEl, snap) {
     'div',
     'st-menu-note',
     selectedProj && selectedProj.sharedWithCode
-      ? '共享目录 · 安全兼容：检测到与活跃 Code 工程共享物理目录，自动保持现有 Code 权限零覆写，会话按入口独立归档。'
-      : `项目级权限围栏：AutoExec=${PERMISSION_PROFILES.spark.autoExecutionPolicy} · FileAccess=${PERMISSION_PROFILES.spark.fileAccessPolicy} · Sandbox=${PERMISSION_PROFILES.spark.sandboxMode} · 全局 Code 权限写入恒为 0。`
+      ? 'Shared Directory · Safe Compat: Shares a physical directory with an active Code workspace; preserves existing Code permissions with zero overwrites and archives conversations per entry.'
+      : `Project Permission Fence: AutoExec=${PERMISSION_PROFILES.spark.autoExecutionPolicy} · FileAccess=${PERMISSION_PROFILES.spark.fileAccessPolicy} · Sandbox=${PERMISSION_PROFILES.spark.sandboxMode} · Global Code writes remain 0.`
   );
   menu.appendChild(note);
   menu.appendChild(el('div', 'st-menu-sep'));
   addMenuItem(
     menu,
     'terminal',
-    'WSL2 硬沙箱二次确认演练',
-    state.requireWslSim ? '已开启' : '关闭',
+    'WSL2 Hard Sandbox Confirmation Drill',
+    state.requireWslSim ? 'On' : 'Off',
     () => {
       state.requireWslSim = !state.requireWslSim;
-      showToast(state.requireWslSim ? '发送首条消息时将弹出 WSL2 显式二次确认 Modal' : '已关闭 WSL2 二次确认演练');
+      showToast(state.requireWslSim ? 'WSL2 confirmation modal will prompt on first message' : 'Disabled WSL2 confirmation drill');
     }
   );
   mountAnchoredPopover(menu, anchorEl, true);
@@ -2153,8 +2153,8 @@ function setComposerFocusBloom(focused) {
 
 function getSparkFenceLabel(snap) {
   const selectedProj = (snap.sparkProjects || []).find((p) => p.id === snap.chatDraft.sparkProjectId) || null;
-  if (selectedProj && selectedProj.sharedWithCode) return '共享目录 · 安全兼容';
-  return state.requireWslSim ? '权限围栏 · WSL2' : '权限围栏';
+  if (selectedProj && selectedProj.sharedWithCode) return 'Shared Dir · Safe Compat';
+  return state.requireWslSim ? 'Permission Fence · WSL2' : 'Permission Fence';
 }
 
 function renderKnowFolderSlot(slotEl, snap) {
@@ -2182,7 +2182,7 @@ function buildPureChatComposer(snap, isDockedBottom) {
   shell.setAttribute('data-space-kind', spaceKind);
   shell.setAttribute('data-focused', '0');
 
-  // M3 一体延展式输入舱容器：统一 26px 大圆角外轮廓 + 聚焦空气级 1px 丝绸微流光
+  // M3 unified expanding composer: 26px outer radius + focus-only 1px silk edge shimmer
   const vessel = el('div', 'st-chat-unified-vessel');
   vessel.addEventListener('focusin', () => {
     shell.setAttribute('data-focused', '1');
@@ -2203,10 +2203,10 @@ function buildPureChatComposer(snap, isDockedBottom) {
   inputEl.setAttribute(
     'data-placeholder',
     isDockedBottom
-      ? '继续提问…（Ctrl+Enter 发送）'
+      ? (state.locale === 'ar' ? 'واصل السؤال… (Ctrl+Enter للإرسال)' : 'Ask a follow-up… (Ctrl+Enter to send)')
       : isSparkTray
-        ? '描述你想在选定目录中协作完成的任务…'
-        : '问点什么，或整理一份想法…'
+        ? (state.locale === 'ar' ? 'صف المهمة التي تريد التعاون عليها في المجلد المحدد…' : 'Describe what you want to collaborate on in the selected folder…')
+        : (state.locale === 'ar' ? 'اسأل أي شيء، أو رتب أفكارك…' : 'Ask anything, or organize an idea…')
   );
   if (state.composerText) inputEl.textContent = state.composerText;
   inputEl.addEventListener('keydown', (e) => {
@@ -2220,11 +2220,11 @@ function buildPureChatComposer(snap, isDockedBottom) {
   const toolbar = el('div', 'st-chat-toolbar');
   const tbLeft = el('div', 'st-chat-tb-left');
 
-  // 左下 [+] 极简无框圆钮
+  // Bottom-left [+] borderless circular trigger
   const plusBtn = el('button', 'st-mono-icon-btn');
   plusBtn.type = 'button';
   plusBtn.setAttribute('data-testid', 'chat-plus-btn');
-  plusBtn.title = '附加与选项';
+  plusBtn.title = 'Attachments & Options';
   plusBtn.appendChild(makeMonoSvg('plus', 15));
   plusBtn.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -2232,7 +2232,7 @@ function buildPureChatComposer(snap, isDockedBottom) {
   });
   tbLeft.appendChild(plusBtn);
 
-  // 新建页左下紧跟无边框失重弹簧微胶囊 [ Knowledge | Spark ]
+  // Home bottom-left borderless spring pill switcher [ Knowledge | Spark ]
   if (isHome) {
     const subSeg = el('div', 'st-submode-seg');
     subSeg.setAttribute('role', 'tablist');
@@ -2274,7 +2274,7 @@ function buildPureChatComposer(snap, isDockedBottom) {
   }
   toolbar.appendChild(tbLeft);
 
-  // 右下：极简无框纯字 Gemini 模型选择器 + “打字即点亮”发送钮
+  // Bottom-right: minimal Gemini model picker + active-on-input send button
   const tbRight = el('div', 'st-chat-tb-right');
   const modelBtn = el('button', 'st-mono-chip st-model-trigger-ghost');
   modelBtn.type = 'button';
@@ -2295,7 +2295,7 @@ function buildPureChatComposer(snap, isDockedBottom) {
   sendBtn.type = 'button';
   sendBtn.setAttribute('data-testid', 'chat-send-first-btn');
   sendBtn.setAttribute('data-ready', hasText ? '1' : '0');
-  sendBtn.title = '发送 (Ctrl+Enter)';
+  sendBtn.title = 'Send (Ctrl+Enter)';
   sendBtn.disabled = !hasText;
   sendBtn.appendChild(makeMonoSvg('arrowUp', 15));
   sendBtn.addEventListener('click', () => void handleSendFirstChatMessage());
@@ -2312,7 +2312,7 @@ function buildPureChatComposer(snap, isDockedBottom) {
   card.appendChild(toolbar);
   vessel.appendChild(card);
 
-  // M3 无缝一体延展 Spark 底座（空间弹簧 280ms 向下延展，与主框同体收束 26px 大圆角、零双层硬框拼接、0px 跳动）
+  // M3 unified Spark tray extending smoothly via 280ms spatial spring with zero layout shift
   if (isHome) {
     const trayGrid = el('div', 'st-spark-tray-grid');
     trayGrid.setAttribute('data-testid', 'spark-dock-tray');
@@ -2326,7 +2326,7 @@ function buildPureChatComposer(snap, isDockedBottom) {
     projBtn.type = 'button';
     projBtn.setAttribute('data-testid', 'spark-tray-project-btn');
     projBtn.appendChild(makeMonoSvg('folder', 13));
-    const projLabel = el('span', '', selectedProj ? selectedProj.name : '工作文件夹');
+    const projLabel = el('span', '', selectedProj ? selectedProj.name : 'Working Folder');
     projLabel.setAttribute('data-st-role', 'spark-proj-label');
     projBtn.appendChild(projLabel);
     projBtn.appendChild(makeMonoSvg('chevronDown', 11));
@@ -2354,7 +2354,7 @@ function buildPureChatComposer(snap, isDockedBottom) {
     const infoBtn = el('button', 'st-mini-gbtn st-tray-info-btn');
     infoBtn.type = 'button';
     infoBtn.setAttribute('data-testid', 'spark-tray-info-btn');
-    infoBtn.title = '查看项目级零干扰隔离详情';
+    infoBtn.title = 'Inspect project-scoped isolation details';
     infoBtn.appendChild(makeMonoSvg('info', 13.5));
     infoBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -2381,7 +2381,7 @@ function buildPureChatComposer(snap, isDockedBottom) {
   return shell;
 }
 
-/* ── Code 专属原版发光棱镜输入框 + 双宠 + 512K 实体水试管 ─────────────── */
+/* ── Code-mode prism composer + dual mascots + 512K borosilicate vial ─────────────── */
 function buildCodePrismComposerDock() {
   const host = el('div', 'st-composer-host-wrap');
   const dock = el('div', 'ag-v2-composer-dock');
@@ -2404,13 +2404,13 @@ function buildCodePrismComposerDock() {
     vMeta.style.flexDirection = 'column';
     vMeta.style.gap = '6px';
     vMeta.style.fontSize = '12px';
-    const vTitle = el('div', '', '512K 高硼硅物理水试管');
+    const vTitle = el('div', '', '512K Borosilicate Optical Vial');
     vTitle.style.fontWeight = '600';
     vMeta.appendChild(vTitle);
-    const vSub = el('div', '', '上下文 52% (266K / 512K) · 缓存命中 86.9%');
+    const vSub = el('div', '', 'Context 52% (266K / 512K) · Cache Hit 86.9%');
     vSub.style.color = 'var(--muted-foreground)';
     vMeta.appendChild(vSub);
-    const sloshBtn = el('button', 'ag-v2-chip-btn', '晃动弯月水波');
+    const sloshBtn = el('button', 'ag-v2-chip-btn', 'Slosh Meniscus');
     sloshBtn.type = 'button';
     sloshBtn.addEventListener('click', () => {
       if (vialCtrl) vialCtrl.impulse((Math.random() > 0.5 ? 1 : -1) * 2.2);
@@ -2426,7 +2426,7 @@ function buildCodePrismComposerDock() {
 
   const inputEl = el('div', 'ag-v2-composer-input');
   inputEl.setAttribute('contenteditable', 'true');
-  inputEl.setAttribute('data-placeholder', '输入工作区指令（全局权限隔离保护中）…');
+  inputEl.setAttribute('data-placeholder', state.locale === 'ar' ? 'أدخل أمر مساحة العمل (العزل الشامل مفعّل)…' : 'Enter a workspace command (global isolation active)…');
   if (state.composerText) inputEl.textContent = state.composerText;
   inputEl.addEventListener('input', () => {
     state.composerText = inputEl.textContent || '';
@@ -2470,7 +2470,7 @@ function buildCodePrismComposerDock() {
   tele.appendChild(el('span', 'ag-v2-tele-item', '74.8 tok/s'));
   tele.appendChild(el('span', 'ag-v2-tele-sep', '·'));
   const cacheItem = el('span', 'ag-v2-tele-item');
-  cacheItem.appendChild(el('span', 'ag-v2-tele-dim', '缓存命中 '));
+  cacheItem.appendChild(el('span', 'ag-v2-tele-dim', 'Cache Hit '));
   cacheItem.appendChild(document.createTextNode('86.9%'));
   tele.appendChild(cacheItem);
   tele.appendChild(el('span', 'ag-v2-tele-sep', '·'));
@@ -2525,7 +2525,7 @@ function buildCodePrismComposerDock() {
   return host;
 }
 
-/* ── Code 首页统计热力图大盘（图一原味保留给 Code 专属） ────────────────── */
+/* ── Code home telemetry heatmap dashboard ────────────────── */
 function buildCodeBentoDashboard() {
   const sec = el('section', 'ag-v2-bento-chassis');
   sec.setAttribute('data-testid', 'code-bento-dashboard');
@@ -2534,8 +2534,8 @@ function buildCodeBentoDashboard() {
 
   const left = el('div', 'ag-v2-bento-left');
   const heatHead = el('div', 'ag-v2-bento-head');
-  heatHead.appendChild(el('span', 'ag-v2-sec-title', '活跃轨迹 · Code 工程沉淀'));
-  heatHead.appendChild(el('span', 'ag-v2-pool-stats', '近 30 天'));
+  heatHead.appendChild(el('span', 'ag-v2-sec-title', 'Activity Cadence · Code Output'));
+  heatHead.appendChild(el('span', 'ag-v2-pool-stats', 'Last 30d'));
   left.appendChild(heatHead);
 
   const heatGrid = el('div', 'ag-v2-heat-grid');
@@ -2550,8 +2550,8 @@ function buildCodeBentoDashboard() {
 
   const right = el('div', 'ag-v2-bento-right');
   const rHead = el('div', 'ag-v2-bento-head');
-  rHead.appendChild(el('span', 'ag-v2-sec-title', '5h 配额池余量'));
-  rHead.appendChild(el('span', 'ag-v2-pool-stats', '实时健康'));
+  rHead.appendChild(el('span', 'ag-v2-sec-title', '5h Quota Pool'));
+  rHead.appendChild(el('span', 'ag-v2-pool-stats', 'Healthy'));
   right.appendChild(rHead);
 
   const pools = [
@@ -2581,7 +2581,7 @@ function buildCodeBentoDashboard() {
   return sec;
 }
 
-/* ── 主画布顶栏（新建页绝对留白，仅进入具体会话时展示简洁标题与 Artifacts 开关） ── */
+/* ── Main canvas topbar (clean on home; shows title & Artifacts toggle inside active sessions) ── */
 function renderMainTopbar() {
   clearNode(mainTopbar);
   const snap = state.snapshot;
@@ -2608,7 +2608,7 @@ function renderMainTopbar() {
     artBtn.type = 'button';
     artBtn.setAttribute('data-testid', 'toggle-artifacts-btn');
     artBtn.appendChild(makeMonoSvg('panelRight', 12));
-    artBtn.appendChild(el('span', '', state.artifactsOpen ? '收起 Artifacts' : 'Artifacts'));
+    artBtn.appendChild(el('span', '', state.artifactsOpen ? 'Hide Artifacts' : 'Artifacts'));
     artBtn.addEventListener('click', () => {
       state.artifactsOpen = !state.artifactsOpen;
       renderMainCanvas();
@@ -2627,7 +2627,7 @@ function renderArtifactsPane(activeItem, assignment) {
 
   clearNode(artifactsPane);
 
-  // Google Canvas 独立圆角悬浮画板（四周留出空气呼吸边距）
+  // Floating rounded Canvas pane with airy outer margins
   const canvasSurface = el('div', 'st-canvas-surface');
   const head = el('div', 'st-art-head');
   const hLead = el('span', 'st-sec-head-lead');
@@ -2636,7 +2636,7 @@ function renderArtifactsPane(activeItem, assignment) {
   head.appendChild(hLead);
   const closeBtn = el('button', 'st-mini-gbtn st-canvas-close-btn');
   closeBtn.type = 'button';
-  closeBtn.title = '收起画板';
+  closeBtn.title = 'Close Canvas';
   closeBtn.appendChild(makeMonoSvg('close', 13));
   closeBtn.addEventListener('click', () => {
     state.artifactsOpen = false;
@@ -2647,15 +2647,15 @@ function renderArtifactsPane(activeItem, assignment) {
 
   const body = el('div', 'st-art-body');
   const card = el('div', 'st-msg-card st-canvas-doc-card');
-  const t = el('div', 'st-canvas-doc-title', activeItem ? activeItem.title || activeItem.cascadeId : '未命名文档');
+  const t = el('div', 'st-canvas-doc-title', activeItem ? activeItem.title || activeItem.cascadeId : 'Untitled Document');
   card.appendChild(t);
   card.appendChild(
     el(
       'div',
       'st-canvas-doc-meta',
       assignment && assignment.placement.kind === 'spark'
-        ? 'Spark 工作区产物 · 项目级权限围栏（0 触碰全局 Code）'
-        : 'Knowledge 空间产物 · 联网研究与结构化预览画板'
+        ? 'Spark Workspace Artifact · Project-scoped fence (0 global Code writes)'
+        : 'Knowledge Space Artifact · Web research & structured preview canvas'
     )
   );
   body.appendChild(card);
@@ -2680,7 +2680,7 @@ function renderArtifactsPane(activeItem, assignment) {
   artifactsPane.appendChild(canvasSurface);
 }
 
-/* 原地热更 Chat 新建页 DOM，确保 Knowledge <-> Spark 切换时 0px 跳动且真实触发 280ms 空间弹簧一体底座展开 */
+/* Patch Chat home DOM in place so Knowledge <-> Spark switches with zero shift and triggers 280ms spring tray */
 function patchChatComposeHome(homeEl, snap, draftKindChanged) {
   const isSparkTray = snap.chatDraft.kind === 'spark';
   const markWrap = homeEl.querySelector('.st-brand-mark-wrap');
@@ -2718,7 +2718,7 @@ function patchChatComposeHome(homeEl, snap, draftKindChanged) {
     if (inputEl) {
       inputEl.setAttribute(
         'data-placeholder',
-        isSparkTray ? '描述你想在选定目录中协作完成的任务…' : '问点什么，或整理一份想法…'
+        isSparkTray ? (state.locale === 'ar' ? 'صف المهمة التي تريد التعاون عليها في المجلد المحدد…' : 'Describe what you want to collaborate on in the selected folder…') : (state.locale === 'ar' ? 'اسأل أي شيء، أو رتب أفكارك…' : 'Ask anything, or organize an idea…')
       );
       if (document.activeElement !== inputEl && inputEl.textContent !== state.composerText) {
         inputEl.textContent = state.composerText;
@@ -2746,7 +2746,7 @@ function patchChatComposeHome(homeEl, snap, draftKindChanged) {
 
     const selectedProj = (snap.sparkProjects || []).find((p) => p.id === snap.chatDraft.sparkProjectId) || null;
     const projLabel = shell.querySelector('[data-st-role="spark-proj-label"]');
-    if (projLabel) projLabel.textContent = selectedProj ? selectedProj.name : '工作文件夹';
+    if (projLabel) projLabel.textContent = selectedProj ? selectedProj.name : 'Working Folder';
 
     const fenceLabel = shell.querySelector('[data-st-role="spark-fence-label"]');
     if (fenceLabel) fenceLabel.textContent = getSparkFenceLabel(snap);
@@ -2776,7 +2776,7 @@ function renderMainCanvas() {
 
   renderArtifactsPane(activeItem, activeAssignment);
 
-  // 若已在 Chat 新建页，原地复用 DOM 避免销毁重建，从而真实触发 260ms 向下抽拉滑出并保持 0px 垂直跳动
+  // Reuse existing Chat home DOM in place to preserve 260ms tray slide with zero vertical jump
   if (snap.activeMode === 'chat' && isHomeRoute && !isNewEntrance) {
     const existingHome = mainPrimary.querySelector('[data-testid="chat-compose-home"]');
     if (existingHome) {
@@ -2792,7 +2792,7 @@ function renderMainCanvas() {
 
   const scrollArea = el('div', 'st-primary-scroll ag-v2-scroll');
 
-  // ── 1) Chat 新建页（Gemini 经典居中双层问候 + 黄金锚点 0px 跳动 + M3 一体延展底座） ──
+  // ── 1) Chat home (centered two-tier Gemini greeting + zero-shift anchor + unified M3 tray) ──
   if (snap.activeMode === 'chat' && isHomeRoute) {
     const center = el('div', 'st-chat-center-stage');
     center.setAttribute('data-testid', 'chat-compose-home');
@@ -2829,7 +2829,7 @@ function renderMainCanvas() {
     return;
   }
 
-  // ── 2) Chat 对话阅读态（Google Neural Expressive 杂志排版 + 显示思路折叠 + Canvas 分屏 + FLIP 停靠） ──
+  // ── 2) Chat reading view (editorial prose + thinking disclosure + Canvas split + FLIP dock) ──
   if (snap.activeMode === 'chat' && activeCid) {
     const col = el('div', 'st-reading-col st-msg-enter');
     col.setAttribute('data-testid', 'chat-reading-view');
@@ -2840,24 +2840,24 @@ function renderMainCanvas() {
     if (activeAssignment && activeAssignment.continuation === 'needs-rebind') {
       const banner = el('div', 'st-msg-card st-rebind-banner');
       banner.setAttribute('data-testid', 'needs-rebind-banner');
-      banner.appendChild(el('span', '', '该会话原属已解绑的 Spark 项目，当前处于只读保护态。'));
-      const resumeBtn = el('button', 'st-mono-chip', '重新绑定至 Knowledge 继续聊');
+      banner.appendChild(el('span', '', 'This conversation belonged to an unbound Spark project and is currently read-only.'));
+      const resumeBtn = el('button', 'st-mono-chip', 'Rebind to Knowledge to Resume');
       resumeBtn.type = 'button';
       resumeBtn.setAttribute('data-testid', 'resume-chat-session-btn');
       resumeBtn.addEventListener('click', async () => {
         const res = await callRpc('resume-chat-session', { cascadeId: activeCid });
-        if (res.ok) showToast('已重绑项目作用域，可恢复续聊');
+        if (res.ok) showToast('Rebound scope; conversation resumed');
       });
       banner.appendChild(resumeBtn);
       col.appendChild(banner);
     }
 
     const msgs = state.sessionMessages.get(activeCid) || [
-      { role: 'user', text: `请围绕「${activeItem ? activeItem.title || 'Q3 Product Roadmap Notes' : 'Q3 Product Roadmap Notes'}」整理一份清晰的要点与行动计划。` },
+      { role: 'user', text: `Please organize key takeaways and an action plan around "${activeItem ? activeItem.title || 'Q3 Product Roadmap Notes' : 'Q3 Product Roadmap Notes'}".` },
       {
         role: 'assistant',
-        thought: '先提炼核心目标与约束边界，按影响面与实现成本拆分阶段里程碑，同时生成结构化大纲以便右侧 Canvas 预览。',
-        text: '已按目标背景、关键里程碑与下一步待办整理完成。\n\n你可以点击右上角「Artifacts」展开独立 Canvas 画板查看完整结构化大纲，或者直接告诉我需要深入展开的章节。',
+        thought: 'Distill core goals and constraints first, split milestones by impact and implementation effort, and generate a structured outline for the right-hand Canvas preview.',
+        text: 'Organized into goals, key milestones, and next action items.\n\nClick Artifacts in the top-right to open the Canvas pane for the structured outline, or tell me which section to expand.',
       },
     ];
     for (let i = 0; i < msgs.length; i++) {
@@ -2876,7 +2876,7 @@ function renderMainCanvas() {
           disc.setAttribute('data-open', '1');
           const toggleBtn = el('button', 'st-thought-toggle');
           toggleBtn.type = 'button';
-          toggleBtn.appendChild(el('span', '', '显示思路'));
+          toggleBtn.appendChild(el('span', '', state.locale === 'ar' ? 'إظهار التفكير' : 'Show thinking'));
           const chev = el('span', 'st-thought-chev');
           chev.appendChild(makeMonoSvg('chevronDown', 13));
           toggleBtn.appendChild(chev);
@@ -2912,7 +2912,7 @@ function renderMainCanvas() {
     dockWrap.appendChild(dockedComposer);
     mainPrimary.appendChild(dockWrap);
 
-    // 执行正中心 -> 底部停靠 FLIP 共享元素 GPU 飞行转场（380ms）
+    // Execute center-to-bottom FLIP shared-element GPU transition (380ms)
     if (state.pendingFlipFromTop !== null && state.motionLevel !== 'off') {
       const fromTop = state.pendingFlipFromTop;
       state.pendingFlipFromTop = null;
@@ -2930,7 +2930,7 @@ function renderMainCanvas() {
     return;
   }
 
-  // ── 3) Code 工程首页（图一原味保留：字符海 + Antigravity 图标 + 热力图大盘 + 双宠 + 完整遥测） ──
+  // ── 3) Code engineering home (ASCII wave + Antigravity emblem + heatmap + dual mascots + telemetry) ──
   if (isHomeRoute) {
     const stack = el('div', 'st-code-home-stack');
     stack.setAttribute('data-testid', 'code-workspace-view');
@@ -2941,7 +2941,7 @@ function renderMainCanvas() {
     gLead.style.alignItems = 'center';
     gLead.style.gap = '10px';
     gLead.appendChild(makeAntigravityBrandSvg(28));
-    const h1 = el('h1', '', state.userName ? `接下来做什么，${state.userName}？` : '接下来做什么？');
+    const h1 = el('h1', '', state.locale === 'ar' ? (state.userName ? `ماذا سنبني الآن، ${state.userName}؟` : 'ماذا سنبني الآن؟') : (state.userName ? `What should we build next, ${state.userName}?` : 'What should we build next?'));
     h1.setAttribute('data-testid', 'home-greeting');
     gLead.appendChild(h1);
     greetRow.appendChild(gLead);
@@ -2962,19 +2962,19 @@ function renderMainCanvas() {
     return;
   }
 
-  // ── 4) Code 会话视图 ──
+  // ── 4) Code session view ──
   const col = el('div', 'st-reading-col');
   col.style.width = 'min(860px, 100%)';
   col.setAttribute('data-testid', 'code-workspace-view');
   const card = el('div', 'st-msg-card');
-  const cHead = el('div', '', `Code 会话：${activeItem ? activeItem.title || activeCid : activeCid}`);
+  const cHead = el('div', '', `Code Session: ${activeItem ? activeItem.title || activeCid : activeCid}`);
   cHead.style.fontWeight = '600';
   cHead.style.marginBottom = '6px';
   card.appendChild(cHead);
   const sub = el(
     'div',
     '',
-    `工作区：${activeItem?.workspace || 'Standalone'} · 状态：${String(activeItem?.status || 'idle').toUpperCase()} · 全局权限：只读隔离（0 写入）`
+    `Workspace: ${activeItem?.workspace || 'Standalone'} · Status: ${String(activeItem?.status || 'idle').toUpperCase()} · Global Policy: Read-only isolated (0 writes)`
   );
   sub.style.fontSize = '13px';
   sub.style.color = 'var(--secondary-foreground)';
@@ -2986,14 +2986,14 @@ function renderMainCanvas() {
       'pre',
       'st-code-block',
       [
-        '// Code 模式全局权限基线（双极架构硬隔离保护）',
+        '// Code-mode global permission baseline (hard bipolar isolation)',
         'const globalCodeSettings = {',
         '  autoExecutionPolicy: "turbo",',
         '  fileAccessPolicy: "allow-all",',
         '  internetPolicy: "allow",',
         '  sandboxMode: "off",',
         '};',
-        `// 当前视图: code:${snap.currentView} | 对侧 Chat 记忆: chat:${snap.modeLastView.chat}`,
+        `// Active view: code:${snap.currentView} | Opposite Chat memory: chat:${snap.modeLastView.chat}`,
       ].join('\n')
     )
   );
@@ -3002,7 +3002,7 @@ function renderMainCanvas() {
   mainPrimary.appendChild(buildCodePrismComposerDock());
 }
 
-/* ── 右侧开发者状态机与项目级权限隔离审计抽屉 ─────────────────────────── */
+/* ── Right developer state machine & permission isolation audit drawer ─────────────────────────── */
 function renderAuditDrawer() {
   const snap = state.snapshot;
   const audit = state.audit;
@@ -3055,13 +3055,13 @@ function renderAuditDrawer() {
     .reverse()
     .map((e) => `${e.scope} | ${e.setter}(${e.scopeRef}, ${JSON.stringify(e.value)}) => ${e.ok ? 'OK' : 'ERR'}`);
   c2.appendChild(
-    el('pre', 'st-audit-log', permLogLines.length ? permLogLines.join('\n') : '(尚无项目级权限写入记录；全局写入恒为 0)')
+    el('pre', 'st-audit-log', permLogLines.length ? permLogLines.join('\n') : '(No project-scoped permission writes yet; global writes remain 0)')
   );
   auditBody.appendChild(c2);
 
   const c3 = el('div', 'st-audit-card');
   c3.appendChild(el('div', 'st-audit-ctitle', 'RPC & Fixture Trace'));
-  c3.appendChild(el('pre', 'st-audit-log', state.rpcLog.length ? state.rpcLog.join('\n') : '(等待操作)'));
+  c3.appendChild(el('pre', 'st-audit-log', state.rpcLog.length ? state.rpcLog.join('\n') : '(Waiting for activity)'));
   auditBody.appendChild(c3);
 }
 
@@ -3088,16 +3088,20 @@ function bindGlobalEvents() {
 
   const localeSel = document.getElementById('sel-studio-locale');
   localeSel.addEventListener('change', () => {
-    state.locale = localeSel.value;
+    state.locale = localeSel.value === 'ar' ? 'ar' : 'en';
+    const dir = state.locale === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = state.locale;
+    document.documentElement.dir = dir;
+    stageEl.setAttribute('dir', dir);
     state.greetingSeed = Math.floor(Math.random() * 100);
-    renderMainCanvas();
+    renderAll();
   });
 
   const userToggleBtn = document.getElementById('btn-toggle-username');
   if (userToggleBtn) {
     userToggleBtn.addEventListener('click', () => {
       state.userName = state.userName ? '' : 'Alex';
-      userToggleBtn.textContent = state.userName || '无名';
+      userToggleBtn.textContent = state.userName || (state.locale === 'ar' ? 'مجهول' : 'Anon');
       userToggleBtn.setAttribute('data-active', state.userName ? '1' : '0');
       renderMainCanvas();
     });

@@ -1,8 +1,8 @@
 /* ==========================================================================
-   Obsidian Prism v1.0.2 — Bipolar Studio (/studio) Google 官方级美学与 M3 Expressive 视觉层
-   - 对标：Google Material 3 Expressive (2025–2026) × Gemini Web Neural Expressive × antigravity.google
-   - 表面：四套全局主题 M3 Tonal Surface 明度阶梯（去硬边框，明度与微光塑形）
-   - 动效：Spatial Spring 空间微弹 + Effect Spring 丝滑过渡 + Shape Morphing 按压微形变
+   Obsidian Prism v1.0.2 — Bipolar Studio (/studio) Google M3 Expressive visual layer
+   - Reference: Google Material 3 Expressive (2025–2026) x Gemini Web Neural Expressive x antigravity.google
+   - Surfaces: 4 global themes built on M3 Tonal Surface elevation steps (tonal contrast + subtle specular instead of heavy borders)
+   - Motion: Spatial Spring bounce + Effect Spring smooth transitions + Shape Morphing press feedback
    ========================================================================== */
 
 @property --st-halo-angle {
@@ -35,11 +35,11 @@ body {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  font-family: 'Google Sans Flex', 'Google Sans', 'SF Pro Text', 'Segoe UI Variable Text', 'PingFang SC', 'Microsoft YaHei UI', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Google Sans Flex', 'Google Sans', 'IBM Plex Sans Arabic', 'Noto Sans Arabic', 'Cairo', 'SF Pro Text', 'Segoe UI Variable Text', -apple-system, BlinkMacSystemFont, sans-serif;
   color: #e3e3e3;
 }
 
-/* ── 顶部开发者调试条（1280px 单行零重叠、零遮挡） ────────────────────── */
+/* ── Top developer bar (single-row at 1280px with zero overlap) ────────────────────── */
 .st-devbar {
   display: flex;
   align-items: center;
@@ -211,7 +211,7 @@ body {
   box-shadow: 0 0 8px currentColor;
 }
 
-/* ── 主工作区网格 ─────────────────────────────────────────────────────── */
+/* ── Main workspace grid ─────────────────────────────────────────────────────── */
 .st-workspace-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 296px;
@@ -228,14 +228,14 @@ body {
   display: none;
 }
 
-/* ── 1:1 现役 Obsidian Prism 舞台 + Google M3 Tonal Surface 四主题色阶矩阵 ── */
+/* ── 1:1 Obsidian Prism stage + Google M3 Tonal Surface 4-theme matrix ── */
 .st-prism-stage {
-  /* M3 Expressive 物理曲线 & 本地零外网可变几何无衬线字体栈 */
-  --st-font-display: 'Google Sans Flex', 'Google Sans', 'SF Pro Display', 'Segoe UI Variable Display', 'PingFang SC', 'Microsoft YaHei UI', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  /* M3 Expressive motion curves & geometric sans-serif display font stack */
+  --st-font-display: 'Google Sans Flex', 'Google Sans', 'IBM Plex Sans Arabic', 'Noto Sans Arabic', 'Cairo', 'SF Pro Display', 'Segoe UI Variable Display', -apple-system, BlinkMacSystemFont, sans-serif;
   --st-spring-spatial: cubic-bezier(0.34, 1.24, 0.64, 1);
   --st-spring-effect: cubic-bezier(0.2, 0, 0, 1);
 
-  /* 默认 Obsidian Dark（严格对标 Gemini Web Dark #131314 / #1E1F20 / #282A2C） */
+  /* Default Obsidian Dark (aligned with Gemini Web Dark #131314 / #1E1F20 / #282A2C) */
   --st-sb-bg: #0e0f12;
   --st-canvas-bg: #131314;
   --st-surface-container: #1e1f20;
@@ -272,7 +272,7 @@ body {
   color: var(--st-fg);
 }
 
-/* Warm Dark（暖黑曜石炭棕 M3 色阶） */
+/* Warm Dark (warm charcoal obsidian M3 tonal scale) */
 .st-prism-stage[data-palette="warm"][data-theme="dark"] {
   --st-sb-bg: #110f0e;
   --st-canvas-bg: #161412;
@@ -297,7 +297,7 @@ body {
   --st-send-ready-fg: #161412;
 }
 
-/* Daylight Crystal（严格对标 Gemini Light 官方纯净白底 #FFFFFF + 天蓝灰容器 #F0F4F9） */
+/* Daylight Crystal (aligned with Gemini Light #FFFFFF + cool sky-tinted container #F0F4F9) */
 .st-prism-stage[data-theme="light"] {
   --st-sb-bg: #f4f7fc;
   --st-canvas-bg: #ffffff;
@@ -325,7 +325,7 @@ body {
   --st-canvas-shadow: 0 8px 28px rgba(15, 23, 42, 0.07);
 }
 
-/* Warm Alabaster（纸张米白阅读舱 M3 色阶） */
+/* Warm Alabaster (warm editorial paper M3 tonal scale) */
 .st-prism-stage[data-palette="warm"][data-theme="light"] {
   --st-sb-bg: #f3efe8;
   --st-canvas-bg: #faf8f5;
@@ -351,7 +351,7 @@ body {
 }
 
 .st-host-sidebar-outer {
-  /* 1:1 还原 Antigravity 真机 display: block 侧栏父壳，验证 height: 100% 0 塌陷 */
+  /* 1:1 host display: block sidebar shell verifying height: 100% never collapses */
   --ag-sidebar-w: 256px;
   display: block;
   width: 256px;
@@ -398,7 +398,7 @@ body {
   transform: scale(0.975);
 }
 
-/* 侧栏活跃会话行：Google M3 柔光胶囊 + 极细 2.5px 柔光左锚点（Code & Chat 和谐统一） */
+/* Active sidebar session row: M3 soft pill + 2.5px accent bar unified across Code & Chat */
 .st-sidebar-height-guard button[data-testid="conversation-row-sidebar"] {
   border-radius: 12px !important;
   transition: background-color 160ms var(--st-spring-effect), color 160ms var(--st-spring-effect), transform 140ms var(--st-spring-spatial) !important;
@@ -432,7 +432,7 @@ body {
   box-shadow: 0 0 8px color-mix(in srgb, var(--st-active-anchor) 55%, transparent) !important;
 }
 
-/* 侧栏新建按钮：M3 极简无框微弹 */
+/* Sidebar new-chat button: minimal borderless M3 spring feedback */
 .st-sidebar-height-guard button[data-testid="new-conversation-btn"] {
   border: none !important;
   border-radius: 12px !important;
@@ -473,7 +473,7 @@ body {
   flex: none !important;
 }
 
-/* 展开态锁定内部内容最小宽度 256px，配合外层 overflow-x: hidden 确保从 52px 微轨展开过渡中段零文字挤压折行 */
+/* Lock expanded inner width to 256px with outer overflow-x: hidden to prevent text wrap during 52px rail expansion */
 .st-sidebar-height-guard > aside[data-testid="sidebar-split"][data-collapsed="false"] {
   width: 256px !important;
   min-width: 256px !important;
@@ -486,7 +486,7 @@ body {
   box-sizing: border-box;
 }
 
-/* 侧栏顶行留足呼吸空间，确保搜索/折叠按钮绝不被挤压裁切 */
+/* Give sidebar top row breathing room so search and collapse buttons never clip */
 .st-sidebar-height-guard .ag-v2-sidebar-top {
   display: flex;
   align-items: center;
@@ -513,7 +513,7 @@ body {
   border-radius: 8px;
 }
 
-/* ── Antigravity 失重无边框双极药丸切换器（M3 Expressive 空间弹簧滑块） ──── */
+/* ── Antigravity borderless bipolar pill switcher (M3 Expressive spatial spring slider) ──── */
 .st-bipolar-seg {
   position: relative;
   display: grid;
@@ -582,7 +582,7 @@ body {
   transform: scale(0.95);
 }
 
-/* 3 大点睛锚点之一：后台任务微光点（Blocked 琥珀 / Running 蓝） */
+/* Background task indicator dot (Blocked amber / Running blue) */
 .st-bg-dot {
   position: absolute;
   top: 3px;
@@ -614,7 +614,7 @@ body {
   50% { opacity: 0.62; transform: scale(0.86); }
 }
 
-/* 侧栏定向水平交叉淡变（Code -> Chat -8px / Chat -> Code +8px） */
+/* Directional sidebar horizontal crossfade (Code -> Chat -8px / Chat -> Code +8px) */
 .st-sidebar-transition-to-chat {
   animation: st-sb-enter-chat 180ms cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -633,7 +633,7 @@ body {
   to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
-/* 侧栏三阶极简排印：一级分区(最轻) -> 二级文件夹/项目(次清晰) -> 三级对话名(最清晰) */
+/* Three-tier sidebar typographic hierarchy: section (lightest) -> folder/project -> conversation title (clearest) */
 .st-sec-head-row {
   display: flex;
   align-items: center;
@@ -758,7 +758,7 @@ body {
   color: var(--placeholder);
 }
 
-/* 侧栏文件夹/项目组头部 + 拖拽磁吸高亮 + 320ms 落位确认高光 */
+/* Sidebar folder/project header + drag magnetic highlight + 320ms drop confirmation flash */
 .st-group-head-wrap {
   display: flex;
   align-items: center;
@@ -907,7 +907,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   color: var(--placeholder);
 }
 
-/* 52px 4 槽单色极简微轨（展开↔折叠 160ms 交叉淡变防折行） */
+/* 52px 4-slot monochrome micro-rail (160ms crossfade on expand/collapse) */
 .st-rail-4slot {
   display: flex;
   flex-direction: column;
@@ -963,7 +963,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   box-shadow: 0 0 8px rgba(76, 141, 246, 0.72);
 }
 
-/* ── Chat 专属纯净双相光场（零混色发脏）+ 聚焦柔和聚拢 ───────────────────── */
+/* ── Chat dual-phase pure ambient light field + soft focus bloom ───────────────────── */
 .st-chat-aura-layer {
   position: absolute;
   inset: 0;
@@ -985,7 +985,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   opacity: 1;
 }
 
-/* 聚焦打字时柔和向中心聚拢并轻度提亮，绝不生硬整体放大 */
+/* Softly converge and brighten on composer focus without abrupt scaling */
 .st-chat-aura-layer:not([data-phase="off"])[data-composer-focused="1"] {
   transform: scale(0.955);
   filter: brightness(1.13) saturate(1.06);
@@ -999,7 +999,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   transition: top 460ms var(--st-spring-effect), left 460ms var(--st-spring-effect), opacity 380ms var(--st-spring-effect);
 }
 
-/* Knowledge 新建页：真实 Gemini 网页端纯净深钴蓝 → 纯青蓝极光（零紫/红/泥巴灰杂质） */
+/* Knowledge home: pure deep cobalt to cyan Gemini aurora without muddy blending */
 .st-chat-aura-layer[data-phase="home-knowledge"] .st-aura-orb-a {
   width: 680px;
   height: 410px;
@@ -1027,7 +1027,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   animation: st-aura-drift-c 9.5s ease-in-out infinite alternate;
 }
 
-/* Spark 新建页：antigravity.google 澄澈电光蓝主核（彻底消除黄绿红暗底混色发脏；棱镜微光收敛于边缘丝绸流光） */
+/* Spark home: crisp electric-blue core with subtle silk edge prism shimmer */
 .st-chat-aura-layer[data-phase="home-spark"] .st-aura-orb-a {
   width: 700px;
   height: 420px;
@@ -1055,7 +1055,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   animation: st-aura-drift-c 9.5s ease-in-out infinite alternate;
 }
 
-/* 对话态底部宽域纯净极光带（Knowledge 钴蓝→纯青） */
+/* Active chat wide bottom aurora band (Knowledge cobalt to cyan) */
 .st-chat-aura-layer[data-phase="conv-idle"] .st-aura-orb-a,
 .st-chat-aura-layer[data-phase="conv-running"] .st-aura-orb-a {
   width: 58%;
@@ -1086,7 +1086,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   animation: st-aura-drift-c 9.5s ease-in-out infinite alternate;
 }
 
-/* Spark 会话底部：澄澈电光蓝 + 晴空天蓝（零暗浊混色） */
+/* Active Spark chat bottom glow: electric blue + clear sky blue */
 .st-chat-aura-layer[data-space-kind="spark"][data-phase="conv-idle"] .st-aura-orb-a,
 .st-chat-aura-layer[data-space-kind="spark"][data-phase="conv-running"] .st-aura-orb-a {
   background: radial-gradient(ellipse at center, rgba(50, 121, 249, 0.34) 0%, rgba(37, 99, 235, 0.18) 54%, transparent 78%);
@@ -1102,13 +1102,13 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   background: radial-gradient(ellipse at center, rgba(29, 78, 216, 0.20) 0%, rgba(50, 121, 249, 0.14) 56%, transparent 78%);
 }
 
-/* 对话运行态：平滑提速至 3.6s 活跃流转并微微提亮 */
+/* Running chat state: smoothly accelerate drift to 3.6s and brighten slightly */
 .st-chat-aura-layer[data-phase="conv-running"] .st-chat-aura-orb {
   animation-duration: 3.6s !important;
   filter: blur(82px) brightness(1.15);
 }
 
-/* 浅色主题提纯：高明度冰蓝/薄荷青轻雾光层（透亮如空气，绝不发灰脏） */
+/* Light theme tint: airy high-luminance ice-blue and mint-cyan mist */
 .st-prism-stage[data-theme="light"] .st-chat-aura-orb {
   filter: blur(100px) saturate(1.05);
 }
@@ -1143,7 +1143,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   background: radial-gradient(circle, rgba(99, 102, 241, 0.09) 0%, rgba(50, 121, 249, 0.09) 56%, transparent 76%);
 }
 
-/* 2% 抗色带胶片微噪点（彻底消除同心色阶环） */
+/* 2% anti-banding film grain to eliminate concentric gradient rings */
 .st-chat-aura-grain {
   position: absolute;
   inset: 0;
@@ -1160,7 +1160,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   animation-play-state: paused !important;
 }
 
-/* 双层异步呼吸：主光核 7.5s 潮汐伸缩 scale(0.92 <-> 1.09) + opacity(0.72 <-> 1.0) */
+/* Dual-layer async breathing: primary orb 7.5s scale(0.92 <-> 1.09) + opacity(0.72 <-> 1.0) */
 @keyframes st-aura-breathe-core {
   0%, 100% {
     opacity: 0.72;
@@ -1172,7 +1172,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   }
 }
 
-/* 副光瓣 11s 缓步椭圆漂移 */
+/* Secondary lobe 11s elliptical drift */
 @keyframes st-aura-orbit-lobe {
   0% {
     opacity: 0.76;
@@ -1199,7 +1199,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   }
 }
 
-/* ── 主画布顶栏与双栏布局 ─────────────────────────────────────────────── */
+/* ── Main canvas topbar and dual-pane layout ─────────────────────────────────────────────── */
 .st-prism-main {
   position: relative;
   flex: 1 1 0;
@@ -1228,7 +1228,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   border-bottom-color: rgba(15, 23, 42, 0.06) !important;
 }
 
-/* 新建页彻底隐藏顶栏杂项，还主画布绝对留白 */
+/* Keep topbar clean on home view for maximum whitespace */
 .st-prism-titlebar[data-empty="1"] {
   height: 0 !important;
   min-height: 0 !important;
@@ -1295,7 +1295,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   flex-direction: column;
 }
 
-/* ── Chat 新建页：Gemini 经典居中双层问候 + 黄金锚点（0px 跳动） ────────── */
+/* ── Chat home: centered two-tier Gemini greeting + zero-shift anchor ────────── */
 .st-chat-center-stage {
   margin: 0;
   width: 100%;
@@ -1321,7 +1321,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   transform: translate3d(0, -12px, 0);
 }
 
-/* 第一行：官方彩色 22px 图标 + 柔淡次级问候同行居中 */
+/* Row 1: official 22px brand icon + subtle eyebrow greeting centered inline */
 .st-chat-greet-eyebrow-row {
   display: inline-flex;
   align-items: center;
@@ -1370,7 +1370,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   to { opacity: 1; transform: scale(1) rotate(0deg); }
 }
 
-/* 第二行：现代几何无衬线轻字重主问候（覆盖 v2-components 衬线规则，零外网本地可变栈） */
+/* Row 2: light-weight geometric sans-serif main headline */
 .ag-v2-stage.st-prism-stage .st-chat-greet-h1[data-testid="home-greeting"],
 .ag-v2-stage.st-prism-stage .st-chat-greet-h1 {
   margin: 0;
@@ -1423,7 +1423,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
-/* ── Google M3 26px 一体延展输入舱 + 空气级 1px 丝绸微流光 ──────────────── */
+/* ── Google M3 26px unified expanding composer + 1px silk shimmer ──────────────── */
 .st-chat-composer-shell {
   width: min(688px, 100%);
   margin: 0 auto;
@@ -1438,7 +1438,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   flex-shrink: 0;
 }
 
-/* 一体化大圆角容器：彻底移除硬白外框，由表面明度差与柔和顶漫反光塑形 */
+/* Unified large-radius container shaped by tonal contrast and soft top sheen */
 .st-chat-unified-vessel {
   position: relative;
   z-index: 2;
@@ -1457,7 +1457,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   box-shadow: inset 0 1px 0 var(--st-top-specular), var(--st-vessel-focus-shadow);
 }
 
-/* 空气级 1px 丝绸微流光（仅聚焦时沿 26px 外沿淡入并缓慢单向游走，绝非 RGB 跑马灯） */
+/* Subtle 1px silk edge shimmer fading in on focus along the 26px contour */
 .st-chat-unified-vessel::after {
   content: '';
   position: absolute;
@@ -1485,7 +1485,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   animation-play-state: paused;
 }
 
-/* Spark 丝绸流光：澄澈电光蓝主弧 + 极轻高净度棱镜光泽微反光 */
+/* Spark silk shimmer: clean electric-blue arc with subtle prism sheen */
 .st-chat-composer-shell[data-space-kind="spark"] .st-chat-unified-vessel::after {
   background: conic-gradient(
     from var(--st-halo-angle),
@@ -1554,7 +1554,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   line-height: 1.56;
 }
 
-/* 豁免 v2-components.css 对 [contenteditable="true"]:focus-visible 的蓝色直角描边，由 1px 丝绸流光与 Focus Bloom 承接反馈 */
+/* Exempt composer contenteditable from default square focus outline; silk shimmer handles focus feedback */
 .ag-v2-stage.st-prism-stage .st-chat-input:focus,
 .ag-v2-stage.st-prism-stage .st-chat-input:focus-visible {
   outline: none;
@@ -1613,7 +1613,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   border-radius: 10px;
 }
 
-/* 无边框失重弹簧微胶囊 [ Knowledge | Spark ]（与顶栏同源物理滑块） */
+/* Borderless spring pill switcher [ Knowledge | Spark ] matching topbar physics */
 .st-submode-seg {
   position: relative;
   display: inline-grid;
@@ -1708,7 +1708,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   border-radius: 10px;
 }
 
-/* “打字即点亮”发送钮 + M3 Shape Morphing 按压微形变 */
+/* Active-on-input send button with M3 Shape Morphing press feedback */
 .st-sharp-send-btn {
   appearance: none;
   border: none;
@@ -1746,7 +1746,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   border-radius: 12px;
 }
 
-/* M3 无缝一体延展 Spark 底座（同容器内 280ms 空间弹簧向下延展，彻底告别双层硬框拼接，0px 跳动） */
+/* Seamless unified Spark tray extending downward with 280ms spatial spring and zero layout shift */
 .st-spark-tray-grid {
   display: grid;
   grid-template-rows: 0fr;
@@ -1844,7 +1844,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   border: none;
 }
 
-/* ── Code 首页孪生柔化衔接（保留字符海/热力图/双宠，同步 M3 Tonal 大圆角表面） ── */
+/* ── Code home alignment (keeps ASCII wave, heatmap, mascots with M3 Tonal surfaces) ── */
 .st-code-home-stack {
   width: min(820px, 100%);
   margin: auto;
@@ -1889,7 +1889,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   pointer-events: none;
 }
 
-/* ── Google Neural Expressive 居中阅读列（~740px）+ 显示思路 + Canvas 悬浮分屏 ── */
+/* ── Google Neural Expressive centered reading column (~740px) + thinking toggle + Canvas pane ── */
 .st-reading-col {
   width: min(740px, 100%);
   margin: 0 auto;
@@ -1903,7 +1903,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   animation: st-fade-up 260ms var(--st-spring-effect);
 }
 
-/* 用户消息：Google M3 大圆角温润胶囊（带 6px 右上微折角，无硬边框） */
+/* User message: rounded M3 tonal bubble with 6px top-right corner */
 .st-msg-user {
   align-self: flex-end;
   max-width: 78%;
@@ -1917,7 +1917,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   box-shadow: inset 0 1px 0 var(--st-top-specular);
 }
 
-/* AI 回复行：左侧 22px 官方彩色星标 + 右侧零边框杂志级正文 */
+/* Assistant message row: 22px brand mark + clean borderless editorial prose */
 .st-msg-assistant-row {
   display: flex;
   align-items: flex-start;
@@ -1965,7 +1965,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   margin: 0;
 }
 
-/* Google Gemini「显示思路 ⌄」极简无框折叠条 + 左缘柔光细纵线 */
+/* Minimal borderless Show Thinking disclosure with soft vertical hairline */
 .st-thought-disclosure {
   display: flex;
   flex-direction: column;
@@ -2060,7 +2060,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   color: var(--st-fg-muted);
 }
 
-/* Google Canvas 独立圆角悬浮 Artifacts 分屏（四周空气留白 + M3 空间弹簧滑入） */
+/* Floating rounded Artifacts Canvas split pane with M3 spatial spring entrance */
 .st-artifacts-pane {
   width: 0;
   min-width: 0;
@@ -2141,7 +2141,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   color: var(--st-fg-dim);
 }
 
-/* 窄屏容器自适应：Artifacts 展开时不遮挡聊天工具条 */
+/* Narrow viewport adaptation: prevent Artifacts pane from overlapping chat controls */
 @container (max-width: 480px) {
   .st-chat-dock-bottom {
     padding: 6px 12px 12px;
@@ -2151,7 +2151,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   }
 }
 
-/* 512K 实体水试管浮层（Code 专属） */
+/* 512K Borosilicate Vial popover (Code mode only) */
 .st-vial-pop {
   position: absolute;
   right: 0;
@@ -2176,7 +2176,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   display: block;
 }
 
-/* ── 右侧开发者状态与权限审计抽屉 ─────────────────────────────────────── */
+/* ── Right developer state & permission audit drawer ─────────────────────────────────────── */
 .st-audit-drawer {
   display: flex;
   flex-direction: column;
@@ -2260,7 +2260,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   word-break: break-word;
 }
 
-/* ── M3 温润大圆角锚点浮层 / 右键菜单 / 气泡 / WSL Modal（Spatial Spring 弹入） ── */
+/* ── M3 rounded anchored popovers / context menus / toasts / WSL modal (Spatial Spring entrance) ── */
 .st-popover {
   position: fixed;
   z-index: 9000;
@@ -2337,7 +2337,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   color: var(--st-fg-muted, var(--muted-foreground));
 }
 
-/* 纯净 Gemini 模型与思考强度 Popover（零滑块 / 零 Orchestrator / 零 Claude） */
+/* Pure Gemini model & thinking effort popover (no slider / Orchestrator / Claude) */
 .st-model-popover {
   min-width: 256px;
   max-width: 288px;
@@ -2525,7 +2525,7 @@ button[data-testid="conversation-row-sidebar"][data-dragging="1"] {
   color: var(--foreground);
 }
 
-/* ── 无障碍与 motionLevel="off" 全局即时零延迟护栏 ─────────────────────── */
+/* ── Accessibility & motionLevel="off" instant zero-delay guardrails ─────────────────────── */
 .st-prism-stage[data-motion="off"] *,
 .st-prism-stage[data-motion="off"] *::before,
 .st-prism-stage[data-motion="off"] *::after {

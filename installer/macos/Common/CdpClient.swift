@@ -32,8 +32,8 @@ enum InstallerI18n {
               !s.isEmpty else {
             return nil
         }
-        if s == "zh" || s.hasPrefix("zh-") || s.hasPrefix("zh_") || s == "cn" {
-            return "zh"
+        if s == "ar" || s.hasPrefix("ar-") || s.hasPrefix("ar_") || s == "arabic" {
+            return "ar"
         }
         if s == "en" || s.hasPrefix("en-") || s.hasPrefix("en_") {
             return "en"
@@ -75,8 +75,8 @@ enum InstallerI18n {
             return envVal
         }
         if let first = preferredLanguages.first?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(),
-           first.hasPrefix("zh") {
-            return "zh"
+           first.hasPrefix("ar") {
+            return "ar"
         }
         return "en"
     }
@@ -100,12 +100,12 @@ enum InstallerI18n {
         return resolved
     }
 
-    static var isChinese: Bool {
-        return currentLanguage == "zh"
+    static var isArabic: Bool {
+        return currentLanguage == "ar"
     }
 
-    static func tr(_ zh: String, _ en: String) -> String {
-        return isChinese ? zh : en
+    static func tr(_ ar: String, _ en: String) -> String {
+        return isArabic ? ar : en
     }
 }
 
@@ -878,7 +878,7 @@ enum CdpHelper {
         return clean
     }
 
-    /// 通过 lstat 检查路径是否为符号链接；除 ENOENT（目标不存在）外，所有非 ENOENT 错误均 Fail-Closed 返回 true。
+    /// Check via lstat whether path is a symlink; all non-ENOENT errors fail closed (return true).
     static func isSymbolicLinkOrUnsafePath(_ path: String) -> Bool {
         guard !path.isEmpty else { return true }
         var st = stat()
@@ -888,7 +888,7 @@ enum CdpHelper {
         return (st.st_mode & S_IFMT) == S_IFLNK
     }
 
-    /// 检查宿主配置目录祖先链（覆盖 ~/.gemini → cfgDir 或沙盒 .gemini → cfgDir）是否含符号链接或不可验证节点（Fail-Closed）。
+    /// Check whether any ancestor in the host config directory chain (~/.gemini -> cfgDir) is a symlink or unverifiable node (fail-closed).
     static func hasSymbolicLinkInHostConfigChain(_ cfgDir: String) -> Bool {
         let normDir = normalizeHostSystemRootPrefix(cfgDir)
         if normDir.isEmpty { return true }
@@ -926,18 +926,18 @@ enum CdpHelper {
 
     private static func atomicWriteJsonObject(_ obj: [String: JsonValue], toFile path: String) throws {
         guard !path.isEmpty else {
-            throw CdpError(InstallerI18n.tr("目标文件路径为空", "Target file path is empty"))
+            throw CdpError(InstallerI18n.tr("مسار الملف الهدف فارغ", "Target file path is empty"))
         }
         let parentDir = (path as NSString).deletingLastPathComponent
         if hasSymbolicLinkInHostConfigChain(parentDir) {
             throw CdpError(InstallerI18n.tr(
-                "目标目录链路包含符号链接或无法安全验证，已拒绝写入: \(parentDir)",
+                "مسار الدليل الهدف يحتوي على رابط رمزي أو تعذّر التحقق منه بأمان، تم رفض الكتابة: \(parentDir)",
                 "Target directory chain contains a symbolic link or cannot be safely verified; write refused: \(parentDir)"
             ))
         }
         if isSymbolicLinkOrUnsafePath(path) {
             throw CdpError(InstallerI18n.tr(
-                "目标文件为符号链接或无法安全验证，已拒绝覆盖: \(path)",
+                "الملف الهدف عبارة عن رابط رمزي أو تعذّر التحقق منه، تم رفض الكتابة فوقه: \(path)",
                 "Target file is a symbolic link or cannot be safely verified; overwrite refused: \(path)"
             ))
         }
@@ -949,7 +949,7 @@ enum CdpHelper {
         if fd < 0 {
             let errCode = errno
             throw CdpError(InstallerI18n.tr(
-                "无法安全创建临时文件 \(tmpPath) (errno=\(errCode))",
+                "تعذّر إنشاء الملف المؤقت بأمان \(tmpPath) (errno=\(errCode))",
                 "Failed to safely create temporary file \(tmpPath) (errno=\(errCode))"
             ))
         }
@@ -974,13 +974,13 @@ enum CdpHelper {
                         if errno == EINTR { continue }
                         let errCode = errno
                         throw CdpError(InstallerI18n.tr(
-                            "写入临时文件失败 \(tmpPath) (errno=\(errCode))",
+                            "فشلت الكتابة إلى الملف المؤقت \(tmpPath) (errno=\(errCode))",
                             "Failed to write temporary file \(tmpPath) (errno=\(errCode))"
                         ))
                     }
                     if written == 0 {
                         throw CdpError(InstallerI18n.tr(
-                            "写入临时文件提前结束: \(tmpPath)",
+                            "انتهت الكتابة إلى الملف المؤقت قبل أوانها: \(tmpPath)",
                             "Short write while writing temporary file: \(tmpPath)"
                         ))
                     }
@@ -994,26 +994,26 @@ enum CdpHelper {
         if closeRc != 0 {
             let errCode = errno
             throw CdpError(InstallerI18n.tr(
-                "关闭临时文件失败 \(tmpPath) (errno=\(errCode))",
+                "فشل إغلاق الملف المؤقت \(tmpPath) (errno=\(errCode))",
                 "Failed to close temporary file \(tmpPath) (errno=\(errCode))"
             ))
         }
         if hasSymbolicLinkInHostConfigChain(parentDir) {
             throw CdpError(InstallerI18n.tr(
-                "目标目录链路包含符号链接或无法安全验证，已拒绝替换: \(parentDir)",
+                "مسار الدليل الهدف يحتوي على رابط رمزي أو تعذّر التحقق منه، تم رفض الاستبدال: \(parentDir)",
                 "Target directory chain contains a symbolic link or cannot be safely verified; replace refused: \(parentDir)"
             ))
         }
         if isSymbolicLinkOrUnsafePath(path) {
             throw CdpError(InstallerI18n.tr(
-                "目标文件为符号链接或无法安全验证，已拒绝覆盖: \(path)",
+                "الملف الهدف عبارة عن رابط رمزي أو تعذّر التحقق منه، تم رفض الكتابة فوقه: \(path)",
                 "Target file is a symbolic link or cannot be safely verified; overwrite refused: \(path)"
             ))
         }
         if rename(tmpPath, path) != 0 {
             let errCode = errno
             throw CdpError(InstallerI18n.tr(
-                "原子替换目标文件失败 \(path) (errno=\(errCode))",
+                "فشل الاستبدال الذري للملف الهدف \(path) (errno=\(errCode))",
                 "Failed to atomically replace target file \(path) (errno=\(errCode))"
             ))
         }
@@ -1203,7 +1203,7 @@ enum CdpHelper {
             while Date() < deadline {
                 if isNativeDaemonAlive(pluginDir: pluginDir) {
                     log?(InstallerI18n.tr(
-                        "已自举启动五通道原生 Sidecar Daemon (\(rtLabel))",
+                        "تم تشغيل خدمة Sidecar الخلفية الأصلية (\(rtLabel))",
                         "Bootstrapped native 5-channel Sidecar Daemon (\(rtLabel))"
                     ))
                     return true
@@ -1530,14 +1530,14 @@ enum CdpHelper {
            !mockDec.isEmpty {
             return mockDec.caseInsensitiveCompare("yes") == .orderedSame || mockDec == "1"
         }
-        let laterBtn = InstallerI18n.tr("稍后手动重开", "Later")
-        let relaunchBtn = InstallerI18n.tr("立即重新打开", "Relaunch Now")
+        let laterBtn = InstallerI18n.tr("لاحقاً", "Later")
+        let relaunchBtn = InstallerI18n.tr("إعادة الفتح الآن", "Relaunch Now")
         let dialogTitle = InstallerI18n.tr(
-            "Obsidian Prism · 恢复界面连接",
+            "Obsidian Prism · استعادة اتصال الواجهة",
             "Obsidian Prism · Restore UI Connection"
         )
         let dialogMessage = InstallerI18n.tr(
-            "检测到 Antigravity 已升级或无参启动，尚未开启本地光学桥接端口（--remote-debugging-port=0）。\n\n是否立即重新打开 Antigravity 以恢复 Obsidian Prism（黑曜棱镜）界面？",
+            "تم اكتشاف تشغيل Antigravity بعد التحديث أو بدون معاملات دون فتح منفذ الجسر البصري المحلي (--remote-debugging-port=0).\n\nهل تريد إعادة فتح Antigravity الآن لاستعادة واجهة Obsidian Prism؟",
             "Antigravity appears to have updated or launched without the local optical bridge flag (--remote-debugging-port=0).\n\nRelaunch Antigravity now to restore the Obsidian Prism interface?"
         )
         let escMsg = escapeAppleScriptString(dialogMessage)
@@ -1628,7 +1628,7 @@ enum CdpHelper {
 
         if !aliveFamilyPids.isEmpty || lockHeld {
             log?(InstallerI18n.tr(
-                "等待 Antigravity 退净超时（残留进程数=\(aliveFamilyPids.count)，SingletonLock占用=\(lockHeld)），仍将尝试以新实例拉起",
+                "انتهت مهلة انتظار إغلاق Antigravity بالكامل (العمليات المتبقية=\(aliveFamilyPids.count)، قفل SingletonLock=\(lockHeld))؛ ستتم محاولة التشغيل بنسخة جديدة",
                 "Timed out waiting for Antigravity to fully exit (remaining=\(aliveFamilyPids.count), SingletonLockHeld=\(lockHeld)); proceeding with new instance launch"
             ))
         }
@@ -1650,7 +1650,7 @@ enum CdpHelper {
             openProc.waitUntilExit()
             guard openProc.terminationStatus == 0 else {
                 log?(InstallerI18n.tr(
-                    "重新打开 \(normalizedAppPath) 失败（open 退出码 \(openProc.terminationStatus)）",
+                    "فشل إعادة فتح \(normalizedAppPath) (رمز خروج open: \(openProc.terminationStatus))",
                     "Failed to relaunch \(normalizedAppPath) (open exited with code \(openProc.terminationStatus))"
                 ))
                 return false
@@ -1679,24 +1679,24 @@ enum CdpHelper {
 
             if let p = confirmedPort {
                 log?(InstallerI18n.tr(
-                    "已带 \(cdpOptInFlag) 以新实例重新打开 \(normalizedAppPath)（检测到 DevToolsActivePort=\(p)）",
+                    "تمت إعادة فتح \(normalizedAppPath) بنسخة جديدة مع \(cdpOptInFlag) (رُصد DevToolsActivePort=\(p))",
                     "Relaunched new instance of \(normalizedAppPath) with \(cdpOptInFlag) (DevToolsActivePort=\(p) ready)"
                 ))
             } else if let cdpPid = confirmedPid {
                 log?(InstallerI18n.tr(
-                    "已带 \(cdpOptInFlag) 以新实例重新打开 \(normalizedAppPath)（新进程 PID \(cdpPid) 已存活）",
+                    "تمت إعادة فتح \(normalizedAppPath) بنسخة جديدة مع \(cdpOptInFlag) (العملية الجديدة PID \(cdpPid) نشطة)",
                     "Relaunched new instance of \(normalizedAppPath) with \(cdpOptInFlag) (new process PID \(cdpPid) alive)"
                 ))
             } else {
                 log?(InstallerI18n.tr(
-                    "已带 \(cdpOptInFlag) 发起新实例启动 \(normalizedAppPath)，正在等待调试端口就绪",
+                    "تم بدء تشغيل نسخة جديدة من \(normalizedAppPath) مع \(cdpOptInFlag)، بانتظار جاهزية منفذ التصحيح",
                     "Dispatched new instance launch for \(normalizedAppPath) with \(cdpOptInFlag); waiting for DevToolsActivePort"
                 ))
             }
             return true
         } catch {
             log?(InstallerI18n.tr(
-                "重新打开 \(normalizedAppPath) 异常: \(error.localizedDescription)",
+                "حدث استثناء أثناء إعادة فتح \(normalizedAppPath): \(error.localizedDescription)",
                 "Exception while relaunching \(normalizedAppPath): \(error.localizedDescription)"
             ))
             return false
@@ -1753,7 +1753,7 @@ enum CdpHelper {
         sb.append("    } else {\n")
         sb.append("      try { window.__agPrismSidebar?.sync?.(effectiveCfg, window.__agPrismSidebarMeta || null); } catch {}\n")
         sb.append("    }\n")
-        sb.append("    try { const hiMode = effectiveCfg.hostLocalization; const hiLang = effectiveCfg.language; const navL = String((typeof navigator !== 'undefined' && ((navigator.languages && navigator.languages[0]) || navigator.language)) || '').trim(); if (hiMode === 'off') window.__agPrismHostI18n?.setMode?.('off'); else if (hiMode === 'on') window.__agPrismHostI18n?.setMode?.('on'); else if ((hiLang && hiLang !== 'zh-CN' && hiLang !== 'auto') || ((!hiLang || hiLang === 'auto') && navL && !/^zh(?:$|-(?:cn|hans|sg)(?:-|$))/i.test(navL))) window.__agPrismHostI18n?.destroy?.(); else window.__agPrismHostI18n?.setMode?.('auto'); } catch {}\n")
+        sb.append("    try { const hiMode = effectiveCfg.hostLocalization; const hiLang = effectiveCfg.language; const navL = String((typeof navigator !== 'undefined' && ((navigator.languages && navigator.languages[0]) || navigator.language)) || '').trim(); if (hiMode === 'off') window.__agPrismHostI18n?.setMode?.('off'); else if (hiMode === 'on') window.__agPrismHostI18n?.setMode?.('on'); else if ((hiLang && hiLang !== 'ar' && hiLang !== 'auto') || ((!hiLang || hiLang === 'auto') && navL && !/^ar(?:-|$)/i.test(navL))) window.__agPrismHostI18n?.destroy?.(); else window.__agPrismHostI18n?.setMode?.('auto'); } catch {}\n")
         sb.append("    if (document.documentElement) {\n")
         sb.append("      if (effectiveCfg && effectiveCfg.thoughtTranslate && effectiveCfg.thoughtTranslate !== 'off') document.documentElement.setAttribute('data-ag-prism-thought-view', effectiveCfg.thoughtView === 'bilingual' ? 'bilingual' : 'immersive');\n")
         sb.append("      else document.documentElement.removeAttribute('data-ag-prism-thought-view');\n")

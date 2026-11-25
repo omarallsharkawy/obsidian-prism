@@ -6,7 +6,7 @@ const require = createRequire(import.meta.url);
 const rig = require('../dual-mascot-rig.js');
 
 /**
- * 构建具备可控 rAF、ResizeObserver、MutationObserver 与零回流计数器的舞台测试夹具
+ * Build a stage test fixture with controllable rAF, ResizeObserver, MutationObserver, and zero-reflow counters.
  */
 function createPhysicsStageHarness(opts = {}) {
   let curW = opts.width ?? 720;
@@ -206,7 +206,7 @@ function createPhysicsStageHarness(opts = {}) {
   };
 
   const hostEl = mockDoc.createElement('div');
-  // 模拟真实 DOM 原型链上的 clientWidth getter（使 isMockHostWidth === false，开启 ResizeObserver 与缓存路径）
+  // Simulate real DOM prototype chain clientWidth getter (so isMockHostWidth === false, enabling ResizeObserver and cached width path)
   Object.setPrototypeOf(hostEl, {
     get clientWidth() {
       clientWidthReads += 1;
@@ -288,7 +288,7 @@ test('v107 P0-3.1: ballistic launch & y===0 ground-bounce frames stay locked on 
     const snap0 = h.stage.getLayoutSnapshot();
     const clawd0 = snap0.actors.find((a) => a.id === 'clawd');
 
-    // 1) 拖拽并高速向上斜抛 Clawd（保证产生高空下落 + 至少 1 次 y===0 触地反弹）
+    // 1) Drag and toss Clawd upward at high speed (guarantees high-altitude drop + at least 1 y===0 ground bounce)
     clawdEl.dispatch('pointerdown', { clientX: clawd0.worldCx, clientY: 120 });
     h.advanceClock(16);
     clawdEl.dispatch('pointermove', { clientX: clawd0.worldCx - 16, clientY: 96 });
@@ -297,7 +297,7 @@ test('v107 P0-3.1: ballistic launch & y===0 ground-bounce frames stay locked on 
     h.advanceClock(16);
     clawdEl.dispatch('pointerup', { clientX: clawd0.worldCx - 34, clientY: 64 });
 
-    // 起跳瞬间（首个 rAF 执行前）必须已锁死 data-direct="1" 且 transition="none"
+    // At launch start (before first rAF executes), data-direct="1" and transition="none" must already be locked
     assert.equal(clawdEl.getAttribute('data-direct'), '1', 'Launch start must lock data-direct="1" immediately before first rAF');
     assert.equal(clawdEl.style.transition, 'none', 'Launch start must force inline transition:none');
 
@@ -336,7 +336,7 @@ test('v107 P0-3.1: ballistic launch & y===0 ground-bounce frames stay locked on 
     assert.equal(clawdCanvas.style.transform, '', 'Settled actor canvas rotation must reset to empty string');
     assert.ok(lowAltitudeFrames >= 0);
 
-    // 2) 迷你蟹高速抛掷同样全程锁死 data-direct="1"（含触地反弹 y===0 帧），落地后恢复
+    // 2) High-speed mini-crab toss also keeps data-direct="1" locked throughout flight (including y===0 bounce), then restores on settle
     const miniEl = h.findMiniEl('cowboy');
     const mini0 = h.stage.getLayoutSnapshot().minis.find((m) => m.id === 'cowboy');
     miniEl.dispatch('pointerdown', { clientX: mini0.worldCx, clientY: 120 });
@@ -367,7 +367,7 @@ test('v107 P0-3.1: ballistic launch & y===0 ground-bounce frames stay locked on 
     assert.equal(miniEl.style.transition, '');
     assert.equal(miniEl.style.transform.includes('rotate('), false, 'Settled mini-crab must clear rotate()');
 
-    // 3) 抛掷途中 document.hidden = true 强制安全落位并解除 ballisticActive / data-direct / rotate
+    // 3) Setting document.hidden = true mid-toss forces safe settle and clears ballisticActive / data-direct / rotate
     h.stage.triggerDemo('toss');
     const leaderId = h.stage.getLayoutSnapshot().camp === 'claude' ? 'clawd' : 'cat';
     const leaderEl = h.findActorEl(leaderId);
@@ -394,19 +394,19 @@ test('v107 P0-3.2: 60fps GPU rotation on inner canvas with zero software __agRot
     const catCv = catEl.children[0];
     const canvasesAfterMount = h.counters().createdCanvases;
 
-    // 旋转锚点必须与原像素绘制锚点 (OX+8)*PX=48px, (OY+10)*PX=81px 对齐
+    // Rotation anchor must align with pixel draw anchor (OX+8)*PX=48px, (OY+10)*PX=81px
     assert.equal(clawdCv.style.transformOrigin, '48px 81px');
     assert.equal(catCv.style.transformOrigin, '48px 81px');
 
     const clawd0 = h.stage.getLayoutSnapshot().actors.find((a) => a.id === 'clawd');
     clawdEl.dispatch('pointerdown', { clientX: clawd0.worldCx, clientY: 110 });
     h.advanceClock(16);
-    // 首帧跨过拖拽阈值：切入 dangle 姿态
+    // First frame crossing drag threshold: transitions into dangle pose
     clawdEl.dispatch('pointermove', { clientX: clawd0.worldCx - 14, clientY: 96 });
     assert.equal(clawdEl.style.transform.includes('rotate('), false, 'Outer actor.el.style.transform must remain pure translate3d()');
     assert.match(clawdCv.style.transform, /^rotate\(-?\d+(?:\.\d+)?deg\)$/, 'Inner actor.canvas must drive 60fps GPU rotate()');
 
-    // 记录首帧 dangle 绘制后的基线，随后在同一 tickIdx 下连续 12 次高速移动 + flush rAF
+    // Record baseline after initial dangle draw, then perform 12 rapid drags + flush rAF on same tickIdx
     h.resetCounters();
     const snapAfterDragStart = h.stage.getLayoutSnapshot();
     const drawsAtDragStart = snapAfterDragStart.perf.canvasDraws;
@@ -416,7 +416,7 @@ test('v107 P0-3.2: 60fps GPU rotation on inner canvas with zero software __agRot
     let px = clawd0.worldCx - 14;
     for (let i = 1; i <= 12; i++) {
       h.advanceClock(16);
-      // 变速左右拖拽，制造连续变化的物理倾角 rot
+      // Variable-speed left/right dragging to produce continuous physical tilt angle changes
       px += i <= 6 ? -(4 + i * 2.5) : 5 + (i - 6) * 2.2;
       clawdEl.dispatch('pointermove', { clientX: px, clientY: 88 - i * 1.5 });
       seenDragRots.add(clawdCv.style.transform);
@@ -435,7 +435,7 @@ test('v107 P0-3.2: 60fps GPU rotation on inner canvas with zero software __agRot
       `Expected canvasSkips to hit on unchanged drag rAF frames (${skipsAtDragStart} -> ${snapDuringDrag.perf.canvasSkips})`
     );
 
-    // 松手前做一次向左上甩出，验证飞行中每一帧 rAF 都实时同步 60fps 倾角，且不创建离屏画布、仅在姿态变化（如反弹 flat）时重绘
+    // Fling up-left before release: verify every flight rAF syncs 60fps GPU tilt without offscreen canvas, redrawing only on pose transitions (e.g. bounce flat)
     h.advanceClock(16);
     clawdEl.dispatch('pointermove', { clientX: px - 18, clientY: 42 });
     h.advanceClock(16);
@@ -463,7 +463,7 @@ test('v107 P0-3.2: 60fps GPU rotation on inner canvas with zero software __agRot
     assert.equal(clawdCv.__agRotOff, undefined);
     assert.equal(clawdCv.style.transform, '', 'Landing must reset GPU rotation back to empty string');
 
-    // 验证静态歪头姿态（tilt）同样走 GPU rotate 且 0 软件离屏重绘
+    // Verify static head-tilt pose (tilt) also uses GPU rotate with 0 software offscreen redraws
     h.stage.onUserType('is this smooth?');
     assert.equal(catCv.style.transform, 'rotate(-9deg)', 'tilt clip must drive GPU rotate(-9deg) on inner canvas');
     assert.equal(h.counters().drawImageCalls, 0);
@@ -482,10 +482,10 @@ test('v107 P0-3.3: pointerdown reuses cached stageW with 0 clientWidth reflows a
 
     assert.equal(html.getAttribute('data-ag-cs-mascot-drag'), null);
 
-    // 重置挂载初始化后的读取计数
+    // Reset read counters after initial mount
     h.resetCounters();
 
-    // 1) 主宠拖拽：onDown 复用 cachedHostWidth（0 次 clientWidth 强制回流），未过阈值不置位，拖起置位，松手清理
+    // 1) Main mascot drag: onDown reuses cachedHostWidth (0 forced clientWidth reflows), sub-threshold does not set attr, active drag sets attr, release clears it
     const clawd0 = h.stage.getLayoutSnapshot().actors.find((a) => a.id === 'clawd');
     clawdEl.dispatch('pointerdown', { clientX: clawd0.worldCx, clientY: 100 });
     assert.equal(h.counters().clientWidthReads, 0, 'pointerdown must reuse cached stage width with 0 clientWidth reflows');
@@ -500,10 +500,10 @@ test('v107 P0-3.3: pointerdown reuses cached stageW with 0 clientWidth reflows a
     clawdEl.dispatch('pointerup', { clientX: clawd0.worldCx - 18, clientY: 88 });
     assert.equal(html.getAttribute('data-ag-cs-mascot-drag'), null, 'Releasing main actor must clear data-ag-cs-mascot-drag immediately');
 
-    // 清空抛掷队列
+    // Drain ballistic rAF queue
     for (let i = 0; i < 120 && h.pendingRafCount() > 0; i++) h.stepRafOnce(16.6667);
 
-    // 2) 主宠拖拽中途触发 window blur -> 立即清理 data-ag-cs-mascot-drag
+    // 2) Window blur mid-drag of main mascot -> immediately clears data-ag-cs-mascot-drag
     const clawd1 = h.stage.getLayoutSnapshot().actors.find((a) => a.id === 'clawd');
     clawdEl.dispatch('pointerdown', { clientX: clawd1.worldCx, clientY: 100 });
     h.advanceClock(16);
@@ -513,7 +513,7 @@ test('v107 P0-3.3: pointerdown reuses cached stageW with 0 clientWidth reflows a
     assert.equal(html.getAttribute('data-ag-cs-mascot-drag'), null, 'window blur must clear data-ag-cs-mascot-drag');
     h.mockWin.dispatch('focus');
 
-    // 3) 迷你蟹拖拽 + blur 清理
+    // 3) Mini-crab drag + blur cleanup
     const sh0 = h.stage.getLayoutSnapshot().minis.find((m) => m.id === 'shades');
     shadesEl.dispatch('pointerdown', { clientX: sh0.worldCx, clientY: 100 });
     h.advanceClock(16);
@@ -524,7 +524,7 @@ test('v107 P0-3.3: pointerdown reuses cached stageW with 0 clientWidth reflows a
     assert.equal(html.getAttribute('data-ag-cs-mascot-drag'), null, 'window blur during mini-crab drag must clear data-ag-cs-mascot-drag');
     h.mockWin.dispatch('focus');
 
-    // 4) 拖拽中途直接 dispose() -> 必须清理 data-ag-cs-mascot-drag，绝不残留锁死棱镜追光！
+    // 4) dispose() mid-drag -> must clean up data-ag-cs-mascot-drag so prism rim tracking never remains stuck
     clawdEl.dispatch('pointerdown', { clientX: clawd1.worldCx, clientY: 100 });
     h.advanceClock(16);
     clawdEl.dispatch('pointermove', { clientX: clawd1.worldCx - 16, clientY: 84 });
@@ -535,7 +535,7 @@ test('v107 P0-3.3: pointerdown reuses cached stageW with 0 clientWidth reflows a
     h.cleanup();
   }
 
-  // 5) 挂载时未测宽（clientWidth===0）兜底测量一次并缓存，后续按下 0 回流
+  // 5) Unmeasured initial width (clientWidth===0) falls back to one-time measurement and caches for 0 subsequent reflows
   const hZero = createPhysicsStageHarness({ width: 0, miniPileEnabled: false, reducedMotion: true, manualClock: true });
   try {
     hZero.resetCounters();
@@ -564,13 +564,13 @@ test('v107 P0-3.4: high-frequency right-sidebar resize coalesces via rAF with 0 
 
     h.resetCounters();
 
-    // 开启右侧边栏拖拽标志（仅通过 data-ag-cs-resizing="1"，不派发 window pointerdown）
+    // Enable right-sidebar drag flag (via data-ag-cs-resizing="1" only, without dispatching window pointerdown)
     h.mockHtml.setAttribute('data-ag-cs-resizing', '1');
 
-    // 同帧高频连续收缩 + 夹杂折叠 0 宽度与多条 entries，验证仅读最后有效 contentRect.width 且合并进单次 rAF
+    // Burst same-frame shrink events mixed with collapsed 0-width and multi-entry callbacks: must read only last valid contentRect.width and coalesce into 1 rAF
     h.setWidth(360);
     h.triggerRo([{ contentRect: { width: 640 } }]);
-    h.triggerRo([{ contentRect: { width: 0 } }]); // 折叠/隐藏帧绝不能回退读 hostEl.clientWidth！
+    h.triggerRo([{ contentRect: { width: 0 } }]); // Collapsed/hidden frame must never fall back to reading hostEl.clientWidth
     h.triggerRo([{ contentRect: { width: 540 } }, { contentRect: { width: 360 } }]);
 
     assert.equal(h.pendingRafCount(), 1, 'Burst ResizeObserver events within one frame must coalesce into 1 rAF');
@@ -588,7 +588,7 @@ test('v107 P0-3.4: high-frequency right-sidebar resize coalesces via rAF with 0 
     assert.equal(clawdEl.getAttribute('data-direct'), '1', 'Pushed clawd must lock data-direct="1" during data-ag-cs-resizing="1"');
     assert.equal(snapNarrow.perf.canvasDraws, draws0, 'Resize push must trigger 0 software canvasDraws');
 
-    // 仍在 data-ag-cs-resizing="1" 期间向右拖宽（360 -> 500）：直接低开销跟手直推，绝不重绘 Canvas
+    // Widen back to the right (360 -> 500) while data-ag-cs-resizing="1" is active: low-overhead direct follow with 0 canvas redraws
     h.resetCounters();
     h.setWidth(500);
     h.triggerRo([{ contentRect: { width: 500 } }]);
@@ -602,11 +602,11 @@ test('v107 P0-3.4: high-frequency right-sidebar resize coalesces via rAF with 0 
     assert.equal(catEl.getAttribute('data-direct'), '1');
     assert.equal(snapMid.perf.canvasDraws, draws0, 'Follow-push during resizing must trigger 0 software canvasDraws');
 
-    // 仍在窄一点的 500px 位置松手（移除 data-ag-cs-resizing）：原地保持稳态不乱跳，释放 data-direct
+    // Release while still at narrower 500px width (remove data-ag-cs-resizing): hold steady without jumping and clear data-direct
     h.mockHtml.removeAttribute('data-ag-cs-resizing');
     assert.equal(catEl.getAttribute('data-direct'), null, 'Releasing resize at steady edge must release data-direct');
 
-    // 随后收起侧边栏展开到 720px -> 120ms 防抖后自然抛物线回弹回原位
+    // Collapse sidebar to expand back to 720px -> natural parabolic rebound to original position after 120ms debounce
     h.setWidth(720);
     h.triggerRo([{ contentRect: { width: 720 } }]);
     h.stepRafOnce();
@@ -638,7 +638,7 @@ test('v107 P0-3.5: mini-crab ballistic flight streams 60fps GPU translate3d+rota
   try {
     const wizEl = h.findMiniEl('wizard');
     const wiz0 = h.stage.getLayoutSnapshot().minis.find((m) => m.id === 'wizard');
-    // 向左侧空地抛掷，避开右侧主宠头顶吸附，验证纯弹道飞行全程 0 主宠重绘
+    // Toss into open left space away from right-side main mascot heads to verify pure ballistic flight triggers 0 main-actor redraws
     wizEl.dispatch('pointerdown', { clientX: wiz0.worldCx, clientY: 110 });
     h.advanceClock(16);
     wizEl.dispatch('pointermove', { clientX: wiz0.worldCx - 16, clientY: 88 });

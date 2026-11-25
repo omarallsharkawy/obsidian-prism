@@ -41,7 +41,7 @@ const LITERAL_CH=/[a-zA-Z0-9+\-.]/;
 export class TrajectoryJson {
  constructor({maxRetainedBytes=8*1024*1024,projection=schema,onRecord=null,recordKeys=null}={}){this.maxRetainedBytes=maxRetainedBytes;this.projection=projection;this.onRecord=onRecord;this.recordCounts={steps:0,generatorMetadata:0};this.streamedKinds=new Set();this.recordKeys=recordKeys;this.emitted=0;if(recordKeys&&(!Array.isArray(recordKeys)||recordKeys.length>8||recordKeys.some(k=>typeof k!=='string'||!Object.hasOwn(projection,k))))throw Error('Invalid streamed record keys');}
  stack=[];token=null;result=undefined;done=false;retained=0;
- fail(){throw new Error('Antigravity 接口返回了无法解析的数据');}
+ fail(){throw new Error('Antigravity API returned unparseable data');}
  charge(n){if((this.retained+=n)>this.maxRetainedBytes)throw budgetError('retained-fields',this.retained,this.maxRetainedBytes);}
  node(){
   const f=this.stack.at(-1);if(!f)return this.projection;

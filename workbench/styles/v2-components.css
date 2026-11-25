@@ -1104,7 +1104,7 @@
   box-shadow: var(--elevation-1), inset 0 0 0 1px var(--border);
 }
 
-/* 顶沿偏左 Google 四色光学镀膜焦点微丝（非包围边框，严守 Input-Only Prism 宪法） */
+/* Top-left Google 4-color optical prism focus filament (Input-Only Prism rule) */
 .ag-v2-bento-chassis::before {
   content: "";
   position: absolute;
@@ -1126,7 +1126,7 @@
   );
 }
 
-/* DeepMind 反重力偏心天体星轨与十字准星微刻度暗纹 */
+/* Off-center orbital arcs and crosshair micro-tick watermark */
 .ag-v2-orbital-backdrop {
   position: absolute;
   inset: 0;
@@ -1280,7 +1280,7 @@
   position: relative;
 }
 
-/* 26 周 × 7 天：按列（周）流动的方晶格 */
+/* 26 weeks x 7 days: column-flowing square crystal grid */
 .ag-v2-heat-grid {
   display: grid;
   grid-template-columns: repeat(26, minmax(0, 1fr));
@@ -1918,7 +1918,7 @@
     opacity var(--ag-dur-3) ease,
     visibility 0s linear 0s;
 }
-/* 答完收折：高度与透明度一起收拢，结束后再隐藏可见性，键盘焦点不穿透 */
+/* Collapse on completion: animate height and opacity together, then hide visibility to prevent tab focus bleed */
 .ag-v2-thinking-block[data-open="false"] .ag-v2-thinking-collapse {
   grid-template-rows: 0fr;
   opacity: 0;
@@ -2002,7 +2002,7 @@
   background: var(--primary);
   animation: agPulseDot 1.3s ease-in-out infinite;
 }
-/* 步骤完成瞬间：状态点弹性回弹 + 一圈淡光环 */
+/* Step completion moment: spring dot rebound + subtle halo ring */
 .ag-v2-step-row.is-settled .ag-v2-step-dot {
   animation: agStepPop 460ms var(--ag-ease-spring);
 }
@@ -2063,7 +2063,7 @@
   color: var(--secondary-foreground);
 }
 
-/* 行内代码胶囊：仅作用于非 pre 内的 code（修复代码块每行套胶囊的 Bug） */
+/* Inline code pill: target non-pre code elements only */
 .ag-v2-stage :not(pre) > code {
   font-family: var(--ag-v2-font-mono);
   font-size: 0.84em;
@@ -2085,7 +2085,7 @@
   white-space: inherit;
 }
 
-/* 流式新块渗入：位移 + 透明度 + 轻微失焦回清 */
+/* Streaming chunk entrance: subtle translate and opacity reveal */
 .ag-v2-enter {
   animation: agProseEnter 460ms var(--ag-ease-out) both;
   animation-delay: var(--enter-delay, 0ms);
@@ -2109,7 +2109,7 @@
   50% { opacity: 0.2; }
 }
 
-/* Markdown 表格：蚀刻网格线 + 等宽表头微标签 */
+/* Markdown table: etched gridlines + monospace uppercase headers */
 .ag-v2-md-table {
   width: 100%;
   border-collapse: separate;
@@ -2150,7 +2150,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* 引用块：2px 中性钛条（非彩色）+ 弱化斜体 */
+/* Blockquote: 2px neutral titanium rail + muted italic copy */
 .ag-v2-md-quote {
   margin: 0;
   padding: 2px 0 2px 14px;
@@ -2209,7 +2209,7 @@
   flex-shrink: 0;
 }
 
-/* 复制按钮：锁定宽度，复制图标 → 对勾 180ms 形变 */
+/* Copy button: fixed width with 180ms copy-to-check morph */
 .ag-v2-copy-btn {
   display: inline-flex;
   align-items: center;
@@ -2603,7 +2603,7 @@
 .ag-v2-glyph-sat.is-a { fill: #fbbc04; }
 .ag-v2-glyph-sat.is-b { fill: #ea5a60; }
 
-/* Tier 1: LOW — 冷银单色蚀刻蓄力线框 */
+/* Tier 1: LOW — cool silver monochrome etched wireframe */
 .ag-v2-model-glyph[data-tier="low"] .ag-v2-glyph-body {
   fill: currentColor;
   fill-opacity: 0.14;
@@ -2611,13 +2611,13 @@
   stroke-opacity: 0.74;
 }
 
-/* Tier 2: MEDIUM — 78% 品牌本色温润点亮 */
+/* Tier 2: MEDIUM — 78% brand tint illumination */
 .ag-v2-model-glyph[data-tier="medium"] .ag-v2-glyph-body {
   fill: var(--glyph-color);
   fill-opacity: 0.82;
 }
 
-/* Tier 3: HIGH — 100% 满充能 + 中心白炽星芯高光 */
+/* Tier 3: HIGH — 100% charge + bright incandescent core highlight */
 .ag-v2-model-glyph[data-tier="high"] {
   filter: drop-shadow(0 0 3.5px var(--glyph-glow));
 }
@@ -2630,7 +2630,7 @@
   transform: scale(1);
 }
 
-/* Tier 4: EXTRA (xhigh) — 满充能鸢尾星芒 + 外绕偏心天体引力星环展开 */
+/* Tier 4: EXTRA (xhigh) — full iris starburst + outer orbital gravity ring */
 .ag-v2-model-glyph[data-tier="xhigh"] {
   filter: drop-shadow(0 0 4.5px rgba(138, 122, 248, 0.55));
 }
@@ -2650,7 +2650,7 @@
   transform: scale(1);
 }
 
-/* Tier AUTO: Orchestrator — 正统 Google Spark Orbit 四色流光双曲星轨图腾 */
+/* Tier AUTO: Orchestrator — official Google Spark Orbit four-color emblem */
 .ag-v2-model-glyph[data-tier="auto"] {
   filter: drop-shadow(0 0 3.5px var(--glyph-glow));
 }
@@ -2659,7 +2659,7 @@
   fill-opacity: 1;
 }
 
-/* Tier FIXED: 单档锁定钛银旋结 + 微雕挂锁 */
+/* Tier FIXED: single-tier locked titanium emblem + micro padlock */
 .ag-v2-model-glyph[data-tier="fixed"] .ag-v2-glyph-body {
   fill: currentColor;
   fill-opacity: 0.52;
@@ -2696,7 +2696,7 @@
   color: #5b3fd6;
   background: rgba(108, 76, 230, 0.11);
 }
-/* AUTO：冰银胶囊标 */
+/* AUTO: ice-silver pill badge */
 .ag-v2-effort-tag[data-orch="true"] {
   color: #c4d2ec;
   background: rgba(120, 169, 255, 0.13);
@@ -3134,7 +3134,7 @@
   bottom: calc(100% + 10px);
   z-index: 30;
 }
-/* 从触发按钮方向长出 / 收回 */
+/* Expand and retract from trigger button origin */
 .ag-v2-popover-docked.is-left {
   left: 0;
   transform-origin: 18% 100%;
@@ -3164,7 +3164,7 @@
   text-transform: uppercase;
   color: var(--placeholder);
 }
-/* 微标签中的中文段：无衬线、零字距、不大写 */
+/* Localized spans inside micro-labels: sans-serif, normal tracking, no forced uppercase */
 .ag-v2-stage .ag-cjk {
   font-family: var(--ag-v2-font-sans);
   letter-spacing: 0;
@@ -3215,7 +3215,7 @@
   opacity: 0.94;
   color: var(--foreground);
 }
-/* 克制点亮铁律：仅当前激活模型点亮品牌专属色（零圆框套娃底座） */
+/* Restrained accent rule: highlight only the active model in its brand tint */
 .ag-v2-model-option[data-selected="true"] .ag-v2-option-logo {
   opacity: 1;
   transform: scale(1.06);
@@ -3325,7 +3325,7 @@
   display: flex;
 }
 
-/* 无黑凹坑悬浮量管舱：通透贴合暗晶浮窗，仅右界留 1px 极细蚀刻分割线 */
+/* Frameless floating vial chamber: integrates with popover glass with a 1px etched right divider */
 .ag-v2-vial-well {
   flex: 1 1 auto;
   min-width: 0;
@@ -3378,7 +3378,7 @@
   cursor: pointer;
 }
 
-/* 底部读数行：30px 行高，分隔线与右栏页脚分隔线同高 */
+/* Bottom readout row: 30px height aligned with right-column footer divider */
 .ag-v2-vial-rate {
   width: 100%;
   height: 30px;
@@ -3767,7 +3767,7 @@
 .ag-v2-switch[data-on="true"]::after {
   transform: translateX(15px);
 }
-/* 按住时旋钮微微拉长（物理阻尼手感） */
+/* Slightly elongate knob while pressed for tactile damping feel */
 .ag-v2-switch:active::after {
   width: 16px;
 }
@@ -3836,7 +3836,7 @@
     0 1px 4px rgba(15, 23, 42, 0.10);
 }
 
-/* 96px 小半径外沿 1px 棱镜微反应边（同源四色光谱，仅光标靠近时显影） */
+/* 96px local-radius 1px reactive prism border revealed only near pointer */
 .ag-v2-orch-track::after {
   content: "";
   position: absolute;
@@ -3883,10 +3883,10 @@
 }
 
 /* ==========================================================================
-   v3.4 精修层：微标签阶梯 · 等宽数字 · 焦点环 · 窄宽自适应 · 视图过渡 · 减弱动态总闸
+   v3.4 polish layer: micro-label scale, tabular numerals, focus rings, narrow layout, view transitions, reduced motion
    ========================================================================== */
 
-/* 微标签统一 10px 底线 + 西文大写字距；全部数字等宽对齐 */
+/* Micro-labels use 10px floor + uppercase tracking; all numerals stay tabular */
 .ag-v2-crumb-tag,
 .ag-v2-ready-badge,
 .ag-v2-kbd-cap {
@@ -3913,12 +3913,12 @@
   transition: background var(--ag-dur-1) ease, color var(--ag-dur-1) ease, border-color var(--ag-dur-1) ease, transform var(--ag-dur-1) var(--ag-ease-standard);
 }
 
-/* 问候主标题与右侧微标签按末行基线对齐 */
+/* Align greeting headline and right-hand micro-badge on last baseline */
 .ag-v2-greeting-row {
   align-items: last baseline;
 }
 
-/* 设置页标题：无衬线（衬线体仅限首页问候与人文标尺） */
+/* Settings heading: sans-serif (serif reserved for home greeting and scale callouts) */
 .ag-v2-settings-head {
   max-width: 560px;
   width: 100%;
@@ -3933,7 +3933,7 @@
   color: var(--foreground);
 }
 
-/* 选区与键盘焦点 */
+/* Text selection and keyboard focus */
 .ag-v2-stage ::selection {
   background: color-mix(in srgb, var(--primary) 30%, transparent);
 }
@@ -3945,7 +3945,7 @@
   outline: none;
 }
 
-/* Light：气泡与浮层阴影改冷灰低透明 */
+/* Light mode: cool low-opacity gray shadows for bubbles and overlays */
 .ag-v2-stage[data-theme="light"] [data-testid="user-message-bubble"] {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.85),
@@ -3968,7 +3968,7 @@
   box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.5);
 }
 
-/* 输入舱窄宽自适应（Split 半宽）：收起文字标签只留图标，底栏绝不折行 */
+/* Narrow composer responsiveness (Split half-width): collapse text labels to icons to prevent wrapping */
 .ag-v2-composer-wrap {
   container-type: inline-size;
   container-name: composer;
@@ -3989,14 +3989,14 @@
   }
 }
 
-/* 整页视图切换：200ms 交叉淡化（View Transitions） */
+/* Full-page view switch: 200ms crossfade via View Transitions */
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation-duration: 200ms;
   animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
 }
 
-/* 减弱动态总闸：冻结循环节拍与入场位移，保留静态清晰视觉 */
+/* Reduced-motion kill switch: freeze loops and entrance offsets while keeping crisp static visuals */
 @media (prefers-reduced-motion: reduce) {
   .ag-v2-stage *,
   .ag-v2-stage *::before,
@@ -4012,11 +4012,11 @@
     animation: none;
   }
 }
-/* Light 字符海整体再退半步，避免灰字铺满显脏（休眠态仍由 data-dormant 归零） */
+/* Pull back light-mode ASCII wave opacity to stay clean (dormant state still zeroes via data-dormant) */
 .ag-v2-stage[data-theme="light"] .ag-v2-ripple-backdrop:not([data-dormant="true"]) {
   opacity: 0.82;
 }
-/* 收折后思考区归零：内衬 8px 顶距随高度一起收拢，避免残留空隙 */
+/* Zero collapsed thinking block padding together with height to avoid residual gaps */
 .ag-v2-thinking-inner {
   min-height: 0;
   transition: padding-top var(--ag-dur-4) var(--ag-ease-out);
@@ -4025,7 +4025,7 @@
   padding-top: 0;
 }
 
-/* ── v3.7 四档动效门控、Hero A/C/D 光学转场与双轨流式显影 ──────────────── */
+/* ── v3.7 4-tier motion gating, Hero A/C/D optical transitions & dual-track streaming ──────────────── */
 .ag-v2-motion-showcase {
   display: flex;
   align-items: center;
@@ -4069,7 +4069,7 @@
   display: none !important;
 }
 
-/* Hero A: 反重力升空四色棱镜冲击环与首条气泡轻浮 */
+/* Hero A: Antigravity liftoff 4-color prism shockwave ring and first-bubble float */
 .ag-cs-liftoff-veil {
   position: fixed;
   inset: 0;
@@ -4124,7 +4124,7 @@
   }
 }
 
-/* Hero C: 水晶三棱镜 115deg 四色焦散扫光（含白昼高透四色彩虹折射） */
+/* Hero C: Crystal prism 115deg 4-color caustic sweep (with daylight refraction) */
 [data-ag-cs-caustic="1"] {
   position: relative;
   overflow: hidden;
@@ -4176,7 +4176,7 @@
   }
 }
 
-/* Hero D: 切换模型阵营光纤环绕合焦脉冲 */
+/* Hero D: Model camp switch optical-fiber lock pulse */
 [data-testid="agent-input-box"][data-ag-cs-fiber-camp] {
   position: relative;
 }
@@ -4217,7 +4217,7 @@
   }
 }
 
-/* 双轨智能分流流式吐字与思考彗星笔尖（纯 GPU 合成层，0 模糊滤镜） */
+/* Dual-track streaming reveal and thinking comet caret (GPU-composited, zero blur filter) */
 .ag-cs-stream-chunk {
   display: inline;
   will-change: opacity, transform;

@@ -4,7 +4,7 @@ import {budgetError,collectionFailure} from './collection-state.mjs';
 // Statistics-only acquisition. Host schemas accept offsets, not page sizes.
 // Cached immutable prefixes are local numeric/structural projections only.
 const settled=s=>/IDLE|DONE|COMPLETED|CANCELLED|CANCELED|STOPPED|FAILED|ERROR/.test(String(s||''));
-const unavailable=()=>new Error('后台已重新连接，请等待刷新');
+const unavailable=()=>new Error('Backend reconnected; waiting for refresh');
 export class TrajectoryReader {
  // Serialized statistics budget, not transcript/response size. Local resource
  // experiments cover 1K/8K/32K records; 8 MiB bounds retained objects well below
@@ -31,11 +31,11 @@ export class TrajectoryReader {
    }
    await this.summaryPending;
   }
-  const s=this.summaries[id];if(!s)throw new Error('会话暂时没有可用统计');return s;
+  const s=this.summaries[id];if(!s)throw new Error('No statistics available for this session yet');return s;
  }
  async read(id,{summary:provided,force=false,isCurrent=()=>true}={}){
   if(!isCurrent())throw unavailable();
-  if(this.isBackgroundManaged?.(id))throw this.failures.get(id)?.error||new Error('会话统计正在后台处理');
+  if(this.isBackgroundManaged?.(id))throw this.failures.get(id)?.error||new Error('Session statistics are being processed in the background');
   const endpoint=await this.client.discover();
   if(!this.endpoint||['pid','port','csrf'].some(k=>this.endpoint[k]!==endpoint[k])){this.reset();this.endpoint=endpoint;}
   let entry=this.entries.get(id);if(entry?.pending)return entry.pending;
@@ -48,7 +48,7 @@ export class TrajectoryReader {
    if(failure&&now<(failure.mark===null&&!force?failure.retryAt:failure.at+10000))throw failure.error;
    attempted=true;
    const summary=await this.summary(id,provided,force);assertCurrent();
-   const count=summary.stepCount===undefined?null:Number(summary.stepCount);if(count!==null&&(!Number.isSafeInteger(count)||count<0))throw new Error('会话统计分页数量无效');
+   const count=summary.stepCount===undefined?null:Number(summary.stepCount);if(count!==null&&(!Number.isSafeInteger(count)||count<0))throw new Error('Invalid session statistics page count');
    const mark=JSON.stringify([count,summary.lastModifiedTime,summary.status,summary.lastUserInputStepIndex]);
    attemptMark=mark;
    if(failure){
@@ -98,35 +98,35 @@ export class TrajectoryReader {
    const append=(target,items,sizes)=>{
     for(const item of items){const itemBytes=Buffer.byteLength(JSON.stringify(item))+1;bytes+=itemBytes;if(bytes>this.budgetBytes)throw budgetError('projected-json',bytes,this.budgetBytes);target.push(item);sizes.push(itemBytes);}
    };
-   const check=()=>{assertCurrent();if(this.client.now()>deadline)throw new Error('会话统计分页读取超时');};
+   const check=()=>{assertCurrent();if(this.client.now()>deadline)throw new Error('Session statistics pagination timed out');};
    const stepPages=new Set(),metadataPages=new Set();let pageCount=0;
    while(count===null||steps.length<count){
-    check();if(++pageCount>this.maxPages)throw new Error('会话统计分页数量超过上限');
-    const offset=steps.length;if(stepPages.has(offset))throw new Error('会话统计分页没有推进');stepPages.add(offset);
+    check();if(++pageCount>this.maxPages)throw new Error('Session statistics page count exceeded limit');
+    const offset=steps.length;if(stepPages.has(offset))throw new Error('Session statistics pagination did not advance');stepPages.add(offset);
     const page=await this.client.call('GetCascadeTrajectorySteps',{cascadeId:id,stepOffset:offset,trajectoryVerbosity:2});check();
-    const items=page.steps||[];if(!Array.isArray(items))throw new Error('会话统计分页格式无效');
-    if(!items.length){if(count===null)break;throw new Error('完整会话统计分页暂不可用');}append(steps,items,nextStepSizes);
+    const items=page.steps||[];if(!Array.isArray(items))throw new Error('Invalid session statistics page format');
+    if(!items.length){if(count===null)break;throw new Error('Full session statistics pagination is temporarily unavailable');}append(steps,items,nextStepSizes);
     // Only compare stable item IDs. Some hosts legitimately return structurally
     // identical marker objects on adjacent offsets; treating their full JSON as
     // a page identity would reject valid pagination. A repeated offset is still
     // rejected above, while repeated identified pages fail immediately.
     const ids=items.map(item=>item?.id??item?.stepId??item?.metadata?.id).filter(Boolean);
-    if(ids.length===items.length){const fingerprint='page:'+JSON.stringify(ids);if(stepPages.has(fingerprint))throw new Error('会话统计分页重复返回');stepPages.add(fingerprint);}
+    if(ids.length===items.length){const fingerprint='page:'+JSON.stringify(ids);if(stepPages.has(fingerprint))throw new Error('Duplicate page returned in session statistics pagination');stepPages.add(fingerprint);}
    }
    // Full step semantics retain the tool-only timing markers. Their text and
    // large tool payloads are discarded by the streaming projector.
    for(;;){
-    check();if(++pageCount>this.maxPages)throw new Error('会话统计分页数量超过上限');
-    const offset=generators.length;if(metadataPages.has(offset))throw new Error('会话统计分页没有推进');metadataPages.add(offset);
+    check();if(++pageCount>this.maxPages)throw new Error('Session statistics page count exceeded limit');
+    const offset=generators.length;if(metadataPages.has(offset))throw new Error('Session statistics pagination did not advance');metadataPages.add(offset);
     const page=await this.client.call('GetCascadeTrajectoryGeneratorMetadata',{cascadeId:id,generatorMetadataOffset:offset,includeMessages:false});check();
-    const items=page.generatorMetadata||page.generatorMetadatas||[];if(!Array.isArray(items))throw new Error('会话统计分页格式无效');
+    const items=page.generatorMetadata||page.generatorMetadatas||[];if(!Array.isArray(items))throw new Error('Invalid session statistics page format');
     if(!items.length)break;append(generators,items,nextGenSizes);
     const ids=items.map(item=>item?.id??item?.generatorId??item?.responseId??item?.chatModel?.responseId).filter(Boolean);
-    if(ids.length===items.length){const fingerprint='page:'+JSON.stringify(ids);if(metadataPages.has(fingerprint))throw new Error('会话统计分页重复返回');metadataPages.add(fingerprint);}
+    if(ids.length===items.length){const fingerprint='page:'+JSON.stringify(ids);if(metadataPages.has(fingerprint))throw new Error('Duplicate page returned in session statistics pagination');metadataPages.add(fingerprint);}
    }
    // A growing host may return newer metadata than the step-count snapshot.
    // Do not cache or persist a mixed/incomplete revision.
-   if(generators.some(g=>(g.stepIndices||[]).some(i=>Number.isInteger(i)&&i>=steps.length)))throw new Error('会话仍在更新，请等待下一次刷新');
+   if(generators.some(g=>(g.stepIndices||[]).some(i=>Number.isInteger(i)&&i>=steps.length)))throw new Error('Session is still updating; please wait for the next refresh');
    const value={trajectory:{cascadeId:id,steps,generatorMetadata:generators},numTotalSteps:steps.length,numTotalGeneratorMetadata:generators.length,status:summary.status};
    assertCurrent();this.cachedBytes-=entry.bytes;entry.bytes=bytes;this.cachedBytes+=bytes;
    entry.data=value;entry.summary=summary;entry.mark=mark;entry.stepSizes=nextStepSizes;entry.genSizes=nextGenSizes;entry.verifiedAt=this.client.now();this.entries.delete(id);this.entries.set(id,entry);

@@ -7,7 +7,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawn } from 'node:child_process';
 
-export const GITHUB_REPO = 'RMvdesi/obsidian-prism';
+export const GITHUB_REPO = 'omarallsharkawy/obsidian-prism';
 export const LATEST_RELEASE_API = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
 export const RELEASES_LIST_API = `https://api.github.com/repos/${GITHUB_REPO}/releases?per_page=15`;
 export const RELEASES_PAGE_URL = `https://github.com/${GITHUB_REPO}/releases`;
@@ -720,7 +720,7 @@ export class UpdateService {
         }
         const buf = await readResponseBufferWithLimit(dlRes, this.maxAssetBytes);
 
-        // 写盘前先在内存中完成 SHA-256 验签，杜绝未验签二进制落盘
+        // Verify SHA-256 checksum in memory before writing to disk so unverified binaries never touch disk
         const actualSha256 = crypto.createHash('sha256').update(buf).digest('hex').toLowerCase();
         if (actualSha256 !== expectedSha256) {
           throw new Error('sha256_mismatch');

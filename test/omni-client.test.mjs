@@ -881,13 +881,13 @@ test('right-clicking file pills & thought code chips opens native workbench tab,
   document.documentElement.setAttribute('data-ag-cs-theme', 'dark');
   document.documentElement.setAttribute('data-ag-cs-palette', 'obsidian');
   document.documentElement.setAttribute('data-ag-cs-accent', 'cobalt');
-  document.documentElement.setAttribute('data-ag-cs-lang', 'zh-CN');
+  document.documentElement.setAttribute('data-ag-cs-lang', 'ar');
 
   const composerBox = document.createElement('div');
   composerBox.setAttribute('data-testid', 'agent-input-box');
   const ce = document.createElement('div');
   ce.setAttribute('contenteditable', 'true');
-  ce.textContent = '请检查这个视频';
+  ce.textContent = 'Check this video';
   composerBox.appendChild(ce);
   document.body.appendChild(composerBox);
 
@@ -927,7 +927,7 @@ test('right-clicking file pills & thought code chips opens native workbench tab,
   // Right-click `.inline-pill` -> insert @mention -> reveal -> copy-rel-path -> open-preview (in native host tab!)
   pill.dispatchEvent(new FakeEvent('contextmenu', { bubbles: true, cancelable: true }));
   document.querySelector('[data-omni-action="insert-mention"]').click();
-  assert.match(ce.textContent, /^请检查这个视频 @[A-Za-z0-9_./-]*intro\.mp4 $/);
+  assert.match(ce.textContent, /^Check this video @[A-Za-z0-9_./-]*intro\.mp4 $/);
 
   pill.dispatchEvent(new FakeEvent('contextmenu', { bubbles: true, cancelable: true }));
   document.querySelector('[data-omni-action="reveal-folder"]').click();
@@ -954,7 +954,7 @@ test('right-clicking file pills & thought code chips opens native workbench tab,
   // Inline Aux switcher SEC-7 origin-locked postMessage verification
   const switcher = binShell.querySelector('[data-testid="ag-omni-aux-switcher"]');
   assert.ok(switcher);
-  switcher.children[0].click(); // Click `检视台视图`
+  switcher.children[0].click(); // Click Workbench View
   await flushMicrotasks();
 
   const auxIframe = binShell.querySelector('[data-testid="ag-omni-aux-iframe"]');
@@ -999,7 +999,7 @@ test('CSS.highlights engine highlights bare URLs & paths with ZERO TextNode spli
 
   const para = document.createElement('p');
   const origTextNode = document.createTextNode(
-    'Check https://docs.example.com/api(v2)。 Also src/core/engine.ts#L15-L30!'
+    'Check https://docs.example.com/api(v2). Also src/core/engine.ts#L15-L30!'
   );
   para.appendChild(origTextNode);
   resp.appendChild(para);
@@ -1049,7 +1049,7 @@ test('fallback span linkifier works when CSS.highlights is unavailable and stric
 
   const para = document.createElement('p');
   para.textContent =
-    '(See https://docs.example.com/api(v2))。 Also check localhost:5173/health and src/core/engine.ts#L15-L30!';
+    '(See https://docs.example.com/api(v2))، Also check localhost:5173/health and src/core/engine.ts#L15-L30!';
 
   const pre = document.createElement('pre');
   const code = document.createElement('code');
@@ -1082,7 +1082,7 @@ test('fallback span linkifier works when CSS.highlights is unavailable and stric
   assert.equal(document.querySelectorAll('.ag-omni-autolink').length, 0);
   assert.equal(
     para.textContent,
-    '(See https://docs.example.com/api(v2))。 Also check localhost:5173/health and src/core/engine.ts#L15-L30!'
+    '(See https://docs.example.com/api(v2))، Also check localhost:5173/health and src/core/engine.ts#L15-L30!'
   );
   client.destroy();
 });
@@ -1234,12 +1234,12 @@ test('auto-replaces host >20MB File Pane error (UHc without data-testid) with in
   client.destroy();
 });
 
-// ── 6c. Battle 3: Aux Auto-Preview for .html/.htm/.svg + Sandbox Badge + 8-Locale + Clean Unmount ─
-test('auto-previews normal .html/.htm/.svg in aux-pane-split without error banner, toggles Source, unmounts on .ts, excludes native containers, and renders 8-locale 5+1 sandbox badge', async () => {
+// ── 6c. Battle 3: Aux Auto-Preview for .html/.htm/.svg + Sandbox Badge + Bilingual EN/AR + Clean Unmount ─
+test('auto-previews normal .html/.htm/.svg in aux-pane-split without error banner, toggles Source, unmounts on .ts, excludes native containers, and renders bilingual en/ar 5+1 sandbox badge', async () => {
   const env = createFakeDomEnvironment();
   const { window, document } = env;
   mountMockHostRoot(document, { withBrowserCtx: true, withV2: true });
-  document.documentElement.setAttribute('data-ag-cs-lang', 'zh-CN');
+  document.documentElement.setAttribute('data-ag-cs-lang', 'ar');
 
   const auxSplit = document.createElement('div');
   auxSplit.setAttribute('data-testid', 'aux-pane-split');
@@ -1324,13 +1324,13 @@ test('auto-previews normal .html/.htm/.svg in aux-pane-split without error banne
   assert.equal(editorBox.style.display, 'none', 'Native source editor must be hidden in preview mode');
   assert.match(iframe.src, /^http:\/\/127\.0\.0\.1:46600\/viewer\?token=tok_b3.*landing%2Findex\.html/);
   assert.match(iframe.src, /kind=html/);
-  assert.equal(switcher.children[0].textContent, '预览', 'children[0] must remain Preview button');
-  assert.equal(switcher.children[1].textContent, '源码', 'children[1] must remain Source button');
+  assert.equal(switcher.children[0].textContent, 'معاينة', 'children[0] must remain Preview button');
+  assert.equal(switcher.children[1].textContent, 'المصدر', 'children[1] must remain Source button');
 
   // 3) Sandbox badge carries full 5+1 anti-translate attributes
   assert.ok(badge, 'Sandbox isolation badge must render for .html/.htm/.svg');
   assert.equal(badge.className, 'ag-omni-sandbox-badge');
-  assert.equal(badge.textContent, '沙盒隔离');
+  assert.equal(badge.textContent, 'معزول في بيئة آمنة');
   for (const [attr, expected] of [
     ['translate', 'no'],
     ['data-no-translate', 'true'],
@@ -1343,29 +1343,24 @@ test('auto-previews normal .html/.htm/.svg in aux-pane-split without error banne
     assert.equal(switcher.getAttribute(attr), expected, `Aux bar must set ${attr}="${expected}"`);
   }
 
-  // 4) All 8 locales update switcher & badge cleanly with 0 CJK in non-CJK locales
+  // 4) Bilingual en/ar locales update switcher & badge cleanly with 0 CJK chars (unknown falls back to en)
   const cjkRe = /[\u3400-\u9FFF\uF900-\uFAFF]/;
   const expectedBadges = {
-    'zh-CN': '沙盒隔离',
-    'zh-TW': '沙盒隔離',
-    en: 'Sandbox Isolated',
-    ja: 'サンドボックス隔離',
-    ko: '샌드박스 격리',
-    es: 'Aislado en sandbox',
-    fr: 'Isolé en sandbox',
-    de: 'Sandbox-isoliert',
+    en: ['Sandbox Isolated', 'Preview', 'Source'],
+    ar: ['معزول في بيئة آمنة', 'معاينة', 'المصدر'],
+    'xx-UNKNOWN': ['Sandbox Isolated', 'Preview', 'Source'],
   };
-  for (const [lang, expectedBadge] of Object.entries(expectedBadges)) {
+  for (const [lang, [expectedBadge, expectedPreview, expectedSource]] of Object.entries(expectedBadges)) {
     document.documentElement.setAttribute('data-ag-cs-lang', lang);
     client.sync({ omniModule: 'on' });
     assert.equal(badge.textContent, expectedBadge, `Badge text mismatch for ${lang}`);
-    if (['en', 'ko', 'es', 'fr', 'de'].includes(lang)) {
-      assert.equal(cjkRe.test(badge.textContent), false, `${lang} badge must contain 0 CJK chars`);
-      assert.equal(cjkRe.test(switcher.children[0].textContent), false, `${lang} preview btn must contain 0 CJK chars`);
-      assert.equal(cjkRe.test(switcher.children[1].textContent), false, `${lang} source btn must contain 0 CJK chars`);
-    }
+    assert.equal(switcher.children[0].textContent, expectedPreview, `Preview btn mismatch for ${lang}`);
+    assert.equal(switcher.children[1].textContent, expectedSource, `Source btn mismatch for ${lang}`);
+    assert.equal(cjkRe.test(badge.textContent), false, `${lang} badge must contain 0 CJK chars`);
+    assert.equal(cjkRe.test(switcher.children[0].textContent), false, `${lang} preview btn must contain 0 CJK chars`);
+    assert.equal(cjkRe.test(switcher.children[1].textContent), false, `${lang} source btn must contain 0 CJK chars`);
   }
-  document.documentElement.setAttribute('data-ag-cs-lang', 'zh-CN');
+  document.documentElement.setAttribute('data-ag-cs-lang', 'en');
   client.sync({ omniModule: 'on' });
 
   // 5) Clicking Source button restores native editor & hides iframe; clicking Preview returns to iframe

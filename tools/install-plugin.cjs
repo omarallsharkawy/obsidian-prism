@@ -1,14 +1,14 @@
 "use strict";
 
 /**
- * Obsidian Prism 原生自启动插件一键同步安装器 (tools/install-plugin.cjs)
+ * Obsidian Prism Native Auto-Start Plugin One-Click Sync Installer (tools/install-plugin.cjs)
  *
- * 职责：
- * 1. 将 obsidian-prism 完整同步部署至 ~/.gemini/config/plugins/obsidian-prism
- *    （含 plugin.json、assets/logo.svg、THIRD_PARTY_NOTICES.md、sidecars/daemon/sidecar.json、全部运行时与 vendor/）；
- * 2. 自动停用并清理旧临时插件目录 ~/.gemini/config/plugins/antigravity-prism（若存在用户配置则平滑迁入新目录）；
- * 3. 写入 repo-meta.json 链接本地 Git 源码目录，支持设置面板「检查 / 同步 Git 更新」；
- * 4. 通过 PowerShell Start-Process -WindowStyle Hidden 脱离终端 Job Object 确保后台守护实例已启动并接管当前 CDP 窗口！
+ * Responsibilities:
+ * 1. Sync and deploy obsidian-prism to ~/.gemini/config/plugins/obsidian-prism
+ *    (including plugin.json, assets/logo.svg, THIRD_PARTY_NOTICES.md, sidecars/daemon/sidecar.json, all runtime files and vendor/);
+ * 2. Automatically disable and clean up legacy plugin directory ~/.gemini/config/plugins/antigravity-prism (migrating user config smoothly if present);
+ * 3. Write repo-meta.json linking the local Git source directory so the settings panel can Check / Sync Git updates;
+ * 4. Spawn a background daemon detached from the terminal Job Object (via PowerShell Start-Process -WindowStyle Hidden on Windows) to attach to active CDP windows.
  */
 
 const crypto = require("node:crypto");
@@ -401,7 +401,7 @@ function safeCopyFileNoSymlink(src, dst) {
       if (!isTransientFsError(err)) {
         throw err;
       }
-      // 遇 Windows 共享读取占用时回退临时文件原子重命名替换
+      // Fall back to atomic temp-file rename when Windows shared read lock blocks direct overwrite
       const tmpPath = `${dst}.tmp.${process.pid}.${crypto.randomBytes(6).toString("hex")}`;
       try {
         fs.copyFileSync(src, tmpPath, fs.constants.COPYFILE_EXCL);
@@ -682,7 +682,7 @@ function generateMacosLauncherScript(targetApp = "/Applications/Antigravity.app"
     "",
     'TARGET_APP="$(resolve_target_app || true)"',
     'if [ -z "$TARGET_APP" ]; then',
-    "  NOT_FOUND_MSG=\"$(printf 'Antigravity.app was not found in /Applications or ~/Applications.\\n\\n未在 /Applications 或 ~/Applications 中找到 Antigravity.app。')\"",
+    "  NOT_FOUND_MSG=\"$(printf 'Antigravity.app was not found in /Applications or ~/Applications.\\n\\nلم يتم العثور على Antigravity.app في /Applications أو ~/Applications.')\"",
     '  /usr/bin/osascript - "$NOT_FOUND_MSG" <<\'APPLESCRIPT\' >/dev/null 2>&1 || true',
     "on run argv",
     '  display dialog (item 1 of argv) with title "Antigravity Prism" buttons {"OK"} default button "OK"',
@@ -770,11 +770,11 @@ function generateMacosLauncherScript(targetApp = "/Applications/Antigravity.app"
     "    LOCALE_HINT=\"$(/usr/bin/defaults read -g AppleLanguages 2>/dev/null | /usr/bin/head -n 3 | /usr/bin/tr '\\n' ' ' || true)\"",
     "  fi",
     '  case "$LOCALE_HINT" in',
-    "    *zh*|*ZH*|*cn*|*CN*)",
-    '      PROMPT_BTN="立即重启并开启"',
-    '      KEEP_BTN="保持现状"',
+    "    *ar*|*AR*)",
+    '      PROMPT_BTN="إعادة التشغيل مع Prism"',
+    '      KEEP_BTN="الإبقاء قيد التشغيل"',
     '      PROMPT_TITLE="Antigravity Prism"',
-    "      PROMPT_MSG=\"$(printf '检测到 Antigravity 当前正在运行，但未开启光学桥接端口（--remote-debugging-port=0）。\\n\\n是否温和重启 Antigravity 以激活 Obsidian Prism？')\"",
+    "      PROMPT_MSG=\"$(printf 'يعمل Antigravity حالياً بدون منفذ التصحيح (--remote-debugging-port=0).\\n\\nهل تريد إعادة تشغيل Antigravity بلطف الآن لتفعيل Obsidian Prism؟')\"",
     "      ;;",
     "    *)",
     '      PROMPT_BTN="Relaunch with Prism"',
@@ -1362,7 +1362,7 @@ const DAEMON_STOP_POLL_MS = 30;
 const DAEMON_STOP_GRACEFUL_TIMEOUT_MS = 800;
 const DAEMON_STOP_SIGKILL_WAIT_MS = 200;
 
-// 发送 SIGTERM 后轮询等待守护彻底退出（超时则升级 SIGKILL 再短等），防止退出中临终 flush 复活已清理的缓存文件
+// Send SIGTERM and poll until daemon exits completely (escalate to SIGKILL on timeout and wait briefly) to prevent a final flush from recreating cleaned cache files
 async function terminatePidAndWait(pid, opts = {}) {
   const num = Number(pid);
   if (!Number.isInteger(num) || num <= 0 || num === process.pid) {
@@ -1719,7 +1719,7 @@ async function installPlugin(opts = {}) {
     }
   }
 
-  // 默认开启 --defer-relaunch-prompt：若当前本机宿主已裸启运行，预先记入 .relaunch-prompt-state.json 避免弹窗打断正在进行的会话
+  // Default --defer-relaunch-prompt: if host is already running bare, pre-record .relaunch-prompt-state.json to avoid interrupting an active session with a dialog
   const deferRelaunchPrompt = opts.deferRelaunchPrompt !== false;
   let deferredRelaunchHost = null;
   if (deferRelaunchPrompt && !cdpPort && (typeof opts.hostProbe === "function" || (isDefaultTarget && !isAutomatedTestRuntime()))) {
@@ -2206,34 +2206,24 @@ function formatInstallSelfCheckSummary(res) {
   const launcherPath = res?.launcher?.desktopPath || res?.launcher?.appPath || null;
   const lines = [
     "",
-    "================ Obsidian Prism 安装自检摘要 / Self-Check Summary ================",
-    `[中文] 插件目录: ${res?.targetDir || getDefaultPluginTargetDir()}`,
-    `[中文] 后台守护: ${daemonAlive ? "运行中 (PID " + (res?.daemon?.pid || "?") + ")" : "未启动"} | 已连接窗口: ${attachedCount} | 思考翻译模块: ${sc.hasThoughtTranslator ? "已就绪" : "缺失"} | 壁纸通道(Ch7): ${sc.hasWallpaperChannel ? "已就绪" : "缺失"} | 独立Watcher: ${sc.watcherInstalled ? "已安装" : "未安装(原生Sidecar/源码模式)"}`,
-    `[中文] 快捷方式 --remote-debugging-port=0: 本次新补齐 ${patchedCount} 个，已就绪 ${alreadySetCount} 个${shadowCount > 0 ? `（含 ${shadowCount} 个 XDG 影子覆写，零 root 权限，卸载自动撤回）` : ""}${skippedCount > 0 ? `，权限不足跳过 ${skippedCount} 个（系统目录需管理员权限或安全拦截）` : ""}。`,
-    ...(res?.registrySynced === false
-      ? ["[中文] 提示: 未能自动写入 ~/.gemini/config/config.json（目标可能为符号链接或只读），请确认 plugins[\"obsidian-prism\"].enabled 为 true。"]
+    "================ Obsidian Prism Self-Check Summary ================",
+    `[AR] مجلد الإضافة: ${res?.targetDir || getDefaultPluginTargetDir()}`,
+    `[AR] خدمة الخلفية: ${daemonAlive ? "تعمل" : "متوقفة"} | النوافذ المتصلة: ${attachedCount} | مترجم التفكير: ${sc.hasThoughtTranslator ? "جاهز" : "غير متاح"} | الخلفيات: ${sc.hasWallpaperChannel ? "جاهزة" : "غير متاحة"}`,
+    ...(thoughtMode === "off"
+      ? ["[AR] مترجم التفكير متوقف افتراضيًا. يمكنك تفعيله من الإعدادات ← المظهر ← Obsidian Prism."]
       : []),
-    ...(res?.shortcuts?.error
-      ? [`[中文] 快捷方式维护提示（非致命）: ${res.shortcuts.error}`]
+    ...(sc.bareAntigravityRunning || sc.needsHostRelaunch
+      ? ["[AR] أغلق Antigravity وافتحه مرة واحدة من مشغّل Antigravity Prism لتفعيل الإضافة."]
       : []),
-    ...(res?.launcher?.created && launcherPath
-      ? [
-          isLinuxLauncher
-            ? `[中文] Linux 无损桌面启动器已就绪: ${launcherPath}（可从应用菜单一键带参启动，零修改 Antigravity 本体与 app.asar）。`
-            : `[中文] macOS 无损启动器已就绪: ${launcherPath}（可拖进 Dock 一键带参启动，零修改 Antigravity.app 本体）。`,
-        ]
-      : []),
-    ...(res?.launcher?.error
-      ? [`[中文] ${isLinuxLauncher ? "Linux" : "macOS"} 无损启动器提示（非致命）: ${res.launcher.error}`]
-      : []),
-    thoughtMode === "off"
-      ? "[中文] 提示: 思考过程翻译默认处于关闭态 (off, 0 B 注入)，请打开 Antigravity「设置 -> 外观 -> Obsidian Prism」手动开启「机器翻译」或「AI 流式转译」。"
-      : `[中文] 思考过程翻译当前模式: ${thoughtMode}（如翻译异常，可在设置卡片点击「一键诊断」排查）。`,
-    sc.bareAntigravityRunning || sc.needsHostRelaunch
-      ? "[中文] 重要提醒: 检测到当前 Antigravity 为无调试端口裸启实例（常见于客户端在线更新后），请关闭并通过已修补的桌面/应用菜单快捷方式重新打开 Antigravity 一次即可自动激活！"
-      : "[中文] 当前未检测到裸启冲突；随时可运行 `node tools/install-plugin.cjs --status` 复核插件状态。",
     `[EN] Plugin Dir: ${res?.targetDir || getDefaultPluginTargetDir()}`,
     `[EN] Daemon: ${daemonAlive ? "alive (PID " + (res?.daemon?.pid || "?") + ")" : "stopped"} | Attached Windows: ${attachedCount} | ThoughtTranslator: ${sc.hasThoughtTranslator ? "ready" : "missing"} | Wallpaper(Ch7): ${sc.hasWallpaperChannel ? "ready" : "missing"} | Watcher: ${sc.watcherInstalled ? "installed" : "not-installed"}`,
+    `[EN] Shortcuts --remote-debugging-port=0: patched ${patchedCount}, already set ${alreadySetCount}${shadowCount > 0 ? ` (includes ${shadowCount} rootless XDG shadow override(s), reverted on uninstall)` : ""}${skippedCount > 0 ? `, skipped ${skippedCount} (permission required)` : ""}.`,
+    ...(res?.registrySynced === false
+      ? ["[EN] Note: Could not write ~/.gemini/config/config.json automatically (target may be a symlink or read-only). Please verify plugins[\"obsidian-prism\"].enabled is true."]
+      : []),
+    ...(res?.shortcuts?.error
+      ? [`[EN] Shortcut maintenance note (non-fatal): ${res.shortcuts.error}`]
+      : []),
     ...(shadowCount > 0
       ? [`[EN] XDG Shadow Override: created ${shadowCount} user-level override(s) in ~/.local/share/applications (rootless, fully reverted on uninstall).`]
       : []),
@@ -2253,7 +2243,7 @@ function formatInstallSelfCheckSummary(res) {
     ...(res?.launcher?.error
       ? [`[EN] ${isLinuxLauncher ? "Linux" : "macOS"} launcher note (non-fatal): ${res.launcher.error}`]
       : []),
-    "==================================================================================",
+    "===================================================================",
   ];
   return lines.join("\n");
 }

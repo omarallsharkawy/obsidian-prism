@@ -2,19 +2,23 @@
 /**
  * Obsidian Prism — Safe Antigravity Conversation Storage Health & Archiver
  *
- * 解决问题：
- *   Antigravity 官方 language_server.exe 启动时会把 ~/.gemini/antigravity/conversations/
- *   下的历史会话 .db（含大量不可见的后台子代理 / Swarm 子会话）加载进内存，长期积累易导致
- *   language_server.exe 开机即占 3~5 GB 内存。
+ * Problem solved:
+ *   The official Antigravity language_server.exe loads historical conversation .db files
+ *   under ~/.gemini/antigravity/conversations/ (including many hidden background subagent /
+ *   Swarm child conversations) into memory on startup, which can cause language_server.exe
+ *   to consume 3-5 GB of RAM immediately on launch.
  *
- * 安全红线（零数据丢失原则）：
- *   1. 绝不删除任何 .db 文件 —— 所有归档一律采用「移动备份 + manifest.json 清单」，随时可一键无损还原；
- *   2. 运行时 fail-closed 防锁破坏 —— 移动/还原前及每个会话处理前均复检 language_server 是否运行，
- *      任何检测命令失败/异常一律按“运行中”拒绝移动；
- *   3. 三件套捆绑移动 + 严控回滚异常 —— .db / .db-wal / .db-shm 同进同出，回滚失败显式升级并记录路径；
- *   4. 全路径链拒绝符号链接 + 排他随机临时文件 —— 逐级 lstatSync 拒绝祖先/末级 symlink，所有写盘均
- *      采用不可预测随机名 + O_EXCL ('wx') 排他创建；
- *   5. 唯一不可复用批次目录 + 默认仅归档已结束隐藏子代理 —— 100% 保留全部主对话。
+ * Safety boundaries (zero data loss):
+ *   1. Never deletes any .db file — archiving always moves files with a manifest.json ledger
+ *      so any batch can be restored losslessly in one click;
+ *   2. Runtime fail-closed lock protection — checks whether language_server is running before
+ *      moving/restoring and before each conversation; any detection error fails closed as running;
+ *   3. Atomic companion bundle moves with rollback tracking — .db / .db-wal / .db-shm move
+ *      together; rollback failures are explicitly surfaced and recorded in manifest.json;
+ *   4. Full path-chain symlink rejection + exclusive random temp files — lstatSync rejects
+ *      ancestor/leaf symlinks and all writes use unpredictable random names with O_EXCL ('wx');
+ *   5. Unique non-reusable batch directories + defaults to finished hidden subagents only —
+ *      100% of main conversations are preserved by default.
  */
 
 import crypto from 'node:crypto';
@@ -224,7 +228,7 @@ function withArchiveLock(archiveDir, fn) {
       return {
         ok: false,
         code: 'ARCHIVE_LOCKED',
-        error: `已有另一个归档/还原进程正在执行（锁文件存在：${lockPath}）。若确认无运行中进程，可手动移除该锁文件后重试。`,
+        error: `Another archive/restore process is already running (lock file exists: ${lockPath}). If no process is running, remove the lock file manually and retry.`,
       };
     }
     throw err;
@@ -285,7 +289,7 @@ export function parseWindowsTasklistCsv(csvText, { selfPid = process.pid } = {})
     parsedCount++;
     const imageName = m[1];
     const pid = Number(m[2]);
-    // 当无全局 node 而以 Antigravity.exe (ELECTRON_RUN_AS_NODE=1) 运行离线归档脚本时，排除自身 PID，绝不排除 language_server
+    // When running offline archive via Antigravity.exe (ELECTRON_RUN_AS_NODE=1) without global node, exclude self PID only (never language_server)
     if (
       Number.isInteger(selfPid) &&
       selfPid > 0 &&
@@ -367,7 +371,7 @@ export function isLanguageServerRunning({
 }
 
 /**
- * 只读解析 Windows tasklist /NH /FO CSV 中 language_server 进程内存占用（严格只读，零跨进程操作）。
+ * Read-only parser for Windows tasklist /NH /FO CSV language_server memory usage (strictly read-only, zero cross-process manipulation).
  */
 export function parseWindowsTasklistMemoryCsv(csvText) {
   const text = String(csvText || '').trim();
@@ -402,7 +406,7 @@ export function parseWindowsTasklistMemoryCsv(csvText) {
 }
 
 /**
- * 只读解析 POSIX ps -eo pid=,rss=,args= 中 language_server 进程常驻内存占用（KB -> MB）。
+ * Read-only parser for POSIX ps -eo pid=,rss=,args= language_server resident memory (KB -> MB).
  */
 export function parsePosixPsRss(psText, { selfPid = process.pid, selfPpid = process.ppid } = {}) {
   const text = String(psText || '').trim();
@@ -453,7 +457,7 @@ function defaultExecFileAsync(file, args, options) {
 }
 
 /**
- * 异步只读探测当前 language_server 进程内存占用（严禁 OpenProcess/EmptyWorkingSet/强杀，0 Google 风控）。
+ * Async read-only probe of current language_server process memory usage (no OpenProcess/EmptyWorkingSet/force-kill).
  */
 export async function getLanguageServerMemoryStatsAsync({
   platform = process.platform,
@@ -617,7 +621,7 @@ export function extractCatalogIndexFromSummaries(rawSummaries, extraSignals = nu
     };
   }
 
-  // 补充写入通过主对话 invokeSubagent / delegatedConversations 发现但未出现在 Redux 摘要里的子代理
+  // Supplement with subagents discovered via invokeSubagent / delegatedConversations that are absent from Redux summaries
   for (const [id, discInfo] of discoveredSubs.entries()) {
     if (map[id]) continue;
     if (protectedMainIds.has(id) || chapterTitleIds.has(id)) continue;
@@ -632,7 +636,7 @@ export function extractCatalogIndexFromSummaries(rawSummaries, extraSignals = nu
     };
   }
 
-  // 将显式可见主对话白名单固化为 main，死守主对话
+  // Pin explicitly visible main conversations in the allowlist as main to protect them unconditionally
   for (const mainId of protectedMainIds) {
     if (!map[mainId]) {
       map[mainId] = {
@@ -666,7 +670,7 @@ export function saveCatalogIndex(archiveDir, rawSummaries, opts = {}) {
       for (const [id, next] of Object.entries(fresh)) {
         const prev = merged[id];
         if (prev && prev.subagent === true && !next.subagent && !next.protectedMain) {
-          // 防止 v2.34+ 剥离了父字段的 Redux / searchConversations 条目冲掉已权威确认的子代理分类
+          // Prevent v2.34+ Redux/searchConversations entries lacking parent fields from overwriting authoritative subagent classification
           merged[id] = {
             ...prev,
             ...(next.title && !prev.title ? { title: next.title } : {}),
@@ -675,7 +679,7 @@ export function saveCatalogIndex(archiveDir, rawSummaries, opts = {}) {
             ...(Number(next.lastModifiedMs) > Number(prev.lastModifiedMs || 0) ? { lastModifiedMs: next.lastModifiedMs } : {}),
           };
         } else if (prev && prev.protectedMain === true && (!next.subagent || next.source === 'discovered')) {
-          // 保留先前确认的侧栏可见主对话白名单标记，防后续无 DOM 摘要刷新或启发式 DOM 发现覆盖主对话保护
+          // Preserve previously confirmed sidebar-visible main allowlist mark against DOM-less refreshes or heuristic discovery
           merged[id] = next.subagent
             ? { ...prev, subagent: false, protectedMain: true }
             : { ...next, subagent: false, protectedMain: true };
@@ -749,7 +753,7 @@ function normalizeNonNegativeThreshold(value, fallback, { integer = false } = {}
 const ASYNC_SCAN_LSTAT_CONCURRENCY = 24;
 const TOP_CONSUMERS_LIMIT = 5;
 
-// 与 main.mjs sanitizeSecretText 对齐并补全 rk-/pk-/ak-/AKIA 及控制字符脱敏
+// Aligned with main.mjs sanitizeSecretText plus rk-/pk-/ak-/AKIA and control-char redaction
 const REPORT_URL_CREDENTIALS_RE = /https?:\/\/[^/\s:@]+:[^/\s@]+@/gi;
 const REPORT_URL_SECRET_QUERY_RE = /([?&](?:token|auth|signature|key|secret)=)[^&\s#"']+/gi;
 const REPORT_BEARER_RE = /\bBearer\s+[A-Za-z0-9._\-]{8,}\b/gi;
@@ -788,8 +792,8 @@ function buildStorageScanReport({
   for (const g of groups.values()) {
     const info = catalogEntries ? catalogEntries[g.id] || null : null;
     const kind = info ? (info.subagent ? 'subagent' : 'main') : 'unknown';
-    // 判龄严格免疫 .db-shm（Antigravity 重启会刷新全部 .db-shm 时间戳）及 0 字节空 .db-wal：
-    // 优先使用宿主权威 RPC lastModifiedMs，缺失时以主 .db 与非空 .db-wal 的最新 mtime 兜底。
+    // Age calculation ignores .db-shm (Antigravity restarts touch all .db-shm mtimes) and 0-byte .db-wal:
+    // prefer authoritative host RPC lastModifiedMs, falling back to latest mtime of main .db and non-empty .db-wal.
     const fileMtimeMs = Math.max(g.dbMtimeMs || 0, g.walNonEmptyMtimeMs || 0) || g.mtimeMs || 0;
     const rpcMs = info && Number(info.lastModifiedMs) > 0 ? Number(info.lastModifiedMs) : 0;
     const activityMs = rpcMs > 0 ? rpcMs : fileMtimeMs;
@@ -1152,7 +1156,7 @@ export function archiveConversations({
     return {
       ok: false,
       code: 'NO_CATALOG_INDEX',
-      error: '未找到会话分类索引（无法区分隐藏子代理与主对话）。请在 Antigravity 运行时先执行 --prepare 或在设置面板点击「生成归档脚本」刷新索引。',
+      error: 'Conversation classification index not found (cannot distinguish hidden subagents from main chats). Run --prepare while Antigravity is running or click "Generate Archive Scripts" in Settings to refresh the index.',
       scan,
     };
   }
@@ -1188,7 +1192,7 @@ export function archiveConversations({
     return {
       ok: false,
       code: 'LANGUAGE_SERVER_RUNNING',
-      error: '检测到 language_server 正在运行（或进程状态无法确认）。为防止损坏数据，请先完全退出 Antigravity，再运行归档脚本！',
+      error: 'Detected language_server running (or process state cannot be verified). To prevent data corruption, fully quit Antigravity before running the archive script.',
       candidateCount: targets.length,
       candidateMb: Number((targetBytes / 1048576).toFixed(1)),
     };
@@ -1202,7 +1206,7 @@ export function archiveConversations({
       movedCount: 0,
       movedMb: 0,
       batchDir: null,
-      message: '当前没有符合归档条件的旧子代理或过期会话，无需移动。',
+      message: 'No eligible finished subagents or expired conversations to archive; nothing was moved.',
     };
   }
 
@@ -1311,8 +1315,8 @@ export function archiveConversations({
 
     return {
       ok: failedItems.length === 0 && partialSplits.length === 0 && !abortedByHostRestart,
-      ...(partialSplits.length > 0 ? { code: 'ROLLBACK_FAILED', error: '部分会话三件套回滚失败，请按 manifest.json 中的 partialSplits 核对文件位置。' } : {}),
-      ...(abortedByHostRestart ? { code: 'LANGUAGE_SERVER_RUNNING', error: '归档途中检测到 Antigravity/language_server 启动，已立即中止剩余移动；已完成部分可通过 --restore latest 还原。' } : {}),
+      ...(partialSplits.length > 0 ? { code: 'ROLLBACK_FAILED', error: 'Rollback failed for some conversation file bundles; check partialSplits in manifest.json to verify file locations.' } : {}),
+      ...(abortedByHostRestart ? { code: 'LANGUAGE_SERVER_RUNNING', error: 'Detected Antigravity/language_server starting mid-archive; remaining moves were aborted immediately. Completed items can be restored via --restore latest.' } : {}),
       dryRun: false,
       mode,
       batchName,
@@ -1416,7 +1420,7 @@ export function restoreArchiveBatch({
     return {
       ok: false,
       code: 'LANGUAGE_SERVER_RUNNING',
-      error: '检测到 Antigravity/language_server 正在运行（或状态无法确认）。请先完全退出 Antigravity，再执行一键还原。',
+      error: 'Detected Antigravity/language_server running (or state cannot be verified). Fully quit Antigravity before running one-click restore.',
     };
   }
   const safeConvDir = ensureSafeDir(convDir);
@@ -1424,7 +1428,7 @@ export function restoreArchiveBatch({
   return withArchiveLock(safeArchiveRoot, () => {
     const batches = listArchiveBatches(safeArchiveRoot);
     if (batches.length === 0) {
-      return { ok: false, code: 'NO_BATCH', error: '未找到任何历史归档批次。' };
+      return { ok: false, code: 'NO_BATCH', error: 'No historical archive batches found.' };
     }
     const chosen =
       batchName === 'latest'
@@ -1433,7 +1437,7 @@ export function restoreArchiveBatch({
         ? batches.find((b) => b.batchName === batchName)
         : null;
     if (!chosen) {
-      return { ok: false, code: 'BATCH_NOT_FOUND', error: `未找到指定归档批次: ${batchName}` };
+      return { ok: false, code: 'BATCH_NOT_FOUND', error: `Archive batch not found: ${batchName}` };
     }
     const manifestPath = path.join(chosen.batchDir, 'manifest.json');
     let restoreItems = [];
@@ -1570,16 +1574,16 @@ export function writeHelperScripts({
   if (process.platform === 'win32') {
     const nodeCmd = safeNodeExec === 'node' ? 'node' : escapeBatchArg(safeNodeExec);
     const scriptArg = escapeBatchArg(absScript);
-    // subagents+old-main 与指定批次还原分别写入独立文件名，绝不静默覆盖默认子代理归档或最近还原脚本
-    const archiveFilename = safeMode === 'subagents+old-main' ? 'archive-old-main.cmd' : '归档旧子代理释放内存.cmd';
-    const restoreFilename = safeRestoreBatch === 'latest' ? '一键还原最近归档.cmd' : `restore-${safeRestoreBatch}.cmd`;
+    // Write subagents+old-main and specific-batch restore to dedicated filenames so defaults are never silently overwritten
+    const archiveFilename = safeMode === 'subagents+old-main' ? 'archive-old-main.cmd' : 'archive-subagents.cmd';
+    const restoreFilename = safeRestoreBatch === 'latest' ? 'restore-latest-archive.cmd' : `restore-${safeRestoreBatch}.cmd`;
     const archiveCmdPath = path.join(safeArchive, archiveFilename);
     const restoreCmdPath = path.join(safeArchive, restoreFilename);
     if (writeArchiveScript) {
       const archiveBanner =
         safeMode === 'subagents+old-main'
-          ? `echo  Obsidian Prism — 对话库安全归档工具（含 >${safeMainDays} 天旧主对话，保留最近 ${safeKeepMain} 条，只移动不删除）`
-          : 'echo  Obsidian Prism — Antigravity 对话库安全归档工具（只移动不删除）';
+          ? `echo  Obsidian Prism - Safe Conversation Archiver (includes >${safeMainDays}d old main chats, keeps latest ${safeKeepMain}, move-only)`
+          : 'echo  Obsidian Prism - Antigravity Safe Conversation Archiver (move-only, never deletes)';
       const archiveCmd = [
         '@echo off',
         'setlocal DisableDelayedExpansion',
@@ -1587,7 +1591,7 @@ export function writeHelperScripts({
         'echo ============================================================',
         archiveBanner,
         'echo ============================================================',
-        'echo  请确认已完全关闭 Antigravity（等待 language_server.exe 退出）',
+        'echo  Please ensure Antigravity is completely closed (wait for language_server.exe to exit)',
         'echo.',
         `${nodeCmd} ${scriptArg} ${archiveFlags}`,
         'echo.',
@@ -1602,9 +1606,9 @@ export function writeHelperScripts({
         'setlocal DisableDelayedExpansion',
         'chcp 65001 >nul',
         'echo ============================================================',
-        `echo  Obsidian Prism — 一键无损还原对话归档 (${safeRestoreBatch})`,
+        `echo  Obsidian Prism - One-Click Lossless Archive Restore (${safeRestoreBatch})`,
         'echo ============================================================',
-        'echo  请确认已完全关闭 Antigravity（等待 language_server.exe 退出）',
+        'echo  Please ensure Antigravity is completely closed (wait for language_server.exe to exit)',
         'echo.',
         `${nodeCmd} ${scriptArg} ${restoreFlags}`,
         'echo.',
@@ -1647,48 +1651,6 @@ export function writeHelperScripts({
 }
 
 const STORAGE_WB_I18N = {
-  'zh-CN': {
-    summary: '存储明细与无损归档工作台',
-    archiveOldMain: '含 >14 天旧主对话',
-    restoreBtn: '生成离线还原脚本',
-    refreshBtn: '刷新',
-    restoreReadyTpl: '还原脚本就绪（{0}）：{1}（退出 Antigravity 后运行）',
-    oldMainReadyTpl: '旧主对话归档脚本就绪（可归档 {0} 项 / {1}）：{2}（退出 Antigravity 后运行）',
-    breakdown: '空间构成',
-    main: '主对话',
-    subagent: '隐藏子代理',
-    wal: 'WAL 日志',
-    unknown: '未索引',
-    lsMem: '后台服务内存',
-    archivable: '可安全归档',
-    archSub: '已结束子代理',
-    archOld: '>14 天旧主对话（保留最近 20 条）',
-    topTitle: '体积 Top 5 会话（只读）',
-    batchTitle: '历史无损归档批次',
-    none: '暂无',
-    hint: '安全原则：只移动不删除，支持按批次无损还原；离线脚本请在退出 Antigravity 后运行。',
-  },
-  'zh-TW': {
-    summary: '儲存明細與無損封存工作台',
-    archiveOldMain: '含 >14 天舊主對話',
-    restoreBtn: '產生離線還原腳本',
-    refreshBtn: '重新整理',
-    restoreReadyTpl: '還原腳本就緒（{0}）：{1}（退出 Antigravity 後執行）',
-    oldMainReadyTpl: '舊主對話封存腳本就緒（可封存 {0} 項 / {1}）：{2}（退出 Antigravity 後執行）',
-    breakdown: '空間構成',
-    main: '主對話',
-    subagent: '隱藏子代理',
-    wal: 'WAL 日誌',
-    unknown: '未索引',
-    lsMem: '背景服務記憶體',
-    archivable: '可安全封存',
-    archSub: '已結束子代理',
-    archOld: '>14 天舊主對話（保留最近 20 筆）',
-    topTitle: '體積 Top 5 會話（唯讀）',
-    batchTitle: '歷史無損封存批次',
-    none: '暫無',
-    hint: '安全原則：只移動不刪除，支援按批次無損還原；離線腳本請在退出 Antigravity 後執行。',
-  },
   en: {
     summary: 'Storage Details & Lossless Archive Workbench',
     archiveOldMain: 'Include >14d Main',
@@ -1710,125 +1672,37 @@ const STORAGE_WB_I18N = {
     none: 'None',
     hint: 'Zero-loss policy: move-only with manifest.json for per-batch restore; quit Antigravity before running helper scripts.',
   },
-  ja: {
-    summary: 'ストレージ詳細・無損失アーカイブ管理',
-    archiveOldMain: '>14日前の主会話も含む',
-    restoreBtn: 'オフライン復元スクリプト',
-    refreshBtn: '更新',
-    restoreReadyTpl: '復元スクリプト準備完了（{0}）：{1}（Antigravity 終了後に実行）',
-    oldMainReadyTpl: '旧主会話スクリプト準備完了（{0} 件 / {1}）：{2}（Antigravity 終了後に実行）',
-    breakdown: '容量内訳',
-    main: '主会話',
-    subagent: 'サブエージェント',
-    wal: 'WAL',
-    unknown: '未分類',
-    lsMem: 'バックグラウンドメモリ',
-    archivable: '安全にアーカイブ可能',
-    archSub: '完了済みサブエージェント',
-    archOld: '>14日前の主会話（最新20件保持）',
-    topTitle: '容量 Top 5 会話（参照のみ）',
-    batchTitle: '過去の無損失アーカイブバッチ',
-    none: 'なし',
-    hint: '安全方針：削除せず移動のみ（manifest.json 付でバッチ別復元可）。スクリプト実行前に Antigravity を終了してください。',
-  },
-  ko: {
-    summary: '저장소 상세 및 무손실 아카이브 작업대',
-    archiveOldMain: '14일 초과 기본 대화 포함',
-    restoreBtn: '오프라인 복원 스크립트',
-    refreshBtn: '새로고침',
-    restoreReadyTpl: '복원 스크립트 준비됨 ({0}): {1} (Antigravity 종료 후 실행)',
-    oldMainReadyTpl: '이전 기본 대화 스크립트 준비됨 ({0}건 / {1}): {2} (Antigravity 종료 후 실행)',
-    breakdown: '용량 구성',
-    main: '기본 대화',
-    subagent: '서브에이전트',
-    wal: 'WAL 로그',
-    unknown: '미색인',
-    lsMem: '백그라운드 메모리',
-    archivable: '안전 아카이브 가능',
-    archSub: '종료된 서브에이전트',
-    archOld: '14일 초과 기본 대화 (최근 20개 유지)',
-    topTitle: '용량 Top 5 대화 (읽기 전용)',
-    batchTitle: '무손실 아카이브 배치 기록',
-    none: '없음',
-    hint: '무손실 원칙: 삭제 없이 이동만 수행하며 배치별 복원을 지원합니다. 스크립트 실행 전 Antigravity를 종료하세요.',
-  },
-  es: {
-    summary: 'Detalles de almacenamiento y archivo sin pérdida',
-    archiveOldMain: 'Incluir chats >14 d',
-    restoreBtn: 'Script de restauración',
-    refreshBtn: 'Actualizar',
-    restoreReadyTpl: 'Script de restauración listo ({0}): {1} (cierra Antigravity primero)',
-    oldMainReadyTpl: 'Script de chats >14 d listo ({0} elem. / {1}): {2} (cierra Antigravity primero)',
-    breakdown: 'Desglose',
-    main: 'Principales',
-    subagent: 'Subagentes',
-    wal: 'WAL',
-    unknown: 'Sin indexar',
-    lsMem: 'RAM en segundo plano',
-    archivable: 'Archivable',
-    archSub: 'Subagentes finalizados',
-    archOld: 'Chats principales >14 d (conserva 20 recientes)',
-    topTitle: 'Top 5 conversaciones por tamaño (solo lectura)',
-    batchTitle: 'Lotes de archivo sin pérdida',
-    none: 'Ninguno',
-    hint: 'Política sin pérdida: solo mover con manifest.json y restauración por lote; cierra Antigravity antes de ejecutar scripts.',
-  },
-  fr: {
-    summary: 'Détails de stockage et archivage sans perte',
-    archiveOldMain: 'Inclure chats >14 j',
-    restoreBtn: 'Script de restauration',
-    refreshBtn: 'Actualiser',
-    restoreReadyTpl: 'Script de restauration prêt ({0}) : {1} (fermez Antigravity d’abord)',
-    oldMainReadyTpl: 'Script chats >14 j prêt ({0} élém. / {1}) : {2} (fermez Antigravity d’abord)',
-    breakdown: 'Répartition',
-    main: 'Principales',
-    subagent: 'Sous-agents',
-    wal: 'WAL',
-    unknown: 'Non indexés',
-    lsMem: 'RAM arrière-plan',
-    archivable: 'Archivable',
-    archSub: 'Sous-agents terminés',
-    archOld: 'Chats principaux >14 j (garde les 20 derniers)',
-    topTitle: 'Top 5 des conversations les plus volumineuses (lecture seule)',
-    batchTitle: 'Lots d’archivage sans perte',
-    none: 'Aucun',
-    hint: 'Politique sans perte : déplacement seul avec manifest.json et restauration par lot ; fermez Antigravity avant d’exécuter les scripts.',
-  },
-  de: {
-    summary: 'Speicherdetails & verlustfreie Archiv-Werkbank',
-    archiveOldMain: 'Hauptchats >14 T. einschließen',
-    restoreBtn: 'Offline-Wiederherstellungsskript',
-    refreshBtn: 'Aktualisieren',
-    restoreReadyTpl: 'Wiederherstellungsskript bereit ({0}): {1} (Antigravity vorher beenden)',
-    oldMainReadyTpl: 'Archivskript >14 T. bereit ({0} Einträge / {1}): {2} (Antigravity vorher beenden)',
-    breakdown: 'Aufschlüsselung',
-    main: 'Hauptchats',
-    subagent: 'Subagenten',
-    wal: 'WAL',
-    unknown: 'Nicht indiziert',
-    lsMem: 'Hintergrund-RAM',
-    archivable: 'Archivierbar',
-    archSub: 'Beendete Subagenten',
-    archOld: 'Alte Hauptchats >14 T. (behält letzte 20)',
-    topTitle: 'Top 5 größte Unterhaltungen (nur Lesen)',
-    batchTitle: 'Verlustfreie Archivstapel',
-    none: 'Keine',
-    hint: 'Verlustfrei-Richtlinie: nur Verschieben mit manifest.json und stapelweiser Wiederherstellung; Antigravity vor Skriptstart schließen.',
+  ar: {
+    summary: 'تفاصيل التخزين ومنصة الأرشفة بدون فقدان',
+    archiveOldMain: 'تضمين المحادثات الرئيسية الأقدم من 14 يوماً',
+    restoreBtn: 'سكربت الاستعادة دون اتصال',
+    refreshBtn: 'تحديث',
+    restoreReadyTpl: 'سكربت الاستعادة جاهز ({0}): {1} (أغلق Antigravity أولاً)',
+    oldMainReadyTpl: 'سكربت أرشفة المحادثات القديمة جاهز ({0} عنصر / {1}): {2} (أغلق Antigravity أولاً)',
+    breakdown: 'توزيع المساحة',
+    main: 'الرئيسية',
+    subagent: 'الوكلاء الفرعيون',
+    wal: 'سجل WAL',
+    unknown: 'غير مفهرس',
+    lsMem: 'ذاكرة الخدمة الخلفية',
+    archivable: 'قابل للأرشفة الآمنة',
+    archSub: 'الوكلاء الفرعيون المنتهون',
+    archOld: 'محادثات رئيسية أقدم من 14 يوماً (يحتفظ بآخر 20)',
+    topTitle: 'أكبر 5 محادثات حجماً (للقراءة فقط)',
+    batchTitle: 'دفعات الأرشفة بدون فقدان',
+    none: 'لا يوجد',
+    hint: 'سياسة عدم الفقدان: نقل فقط مع ملف manifest.json للاستعادة حسب الدفعة؛ أغلق Antigravity قبل تشغيل السكربتات المساعدة.',
   },
 };
 
-export const WORKBENCH_SUPPORTED_LANGS = Object.freeze(['zh-CN', 'zh-TW', 'en', 'ja', 'ko', 'es', 'fr', 'de']);
+export const WORKBENCH_SUPPORTED_LANGS = Object.freeze(['en', 'ar']);
 
 export function normalizeWorkbenchLang(lang = 'en') {
-  const s = String(lang || '').trim().toLowerCase().replace(/_/g, '-');
+  if (lang === true) return 'ar';
+  if (lang === false) return 'en';
+  const s = String(lang || '').trim().toLowerCase().replace(/_/g, '-').split(/[.@]/)[0];
   if (!s || s === 'auto') return 'en';
-  if (s === 'zh-tw' || s === 'zh-hk' || s === 'zh-mo' || s.startsWith('zh-hant')) return 'zh-TW';
-  if (s === 'zh' || s === 'zh-cn' || s === 'zh-sg' || s.startsWith('zh-hans') || s === 'yue' || s.startsWith('yue-') || s === 'zh-yue') return 'zh-CN';
-  if (s === 'ja' || s.startsWith('ja-')) return 'ja';
-  if (s === 'ko' || s.startsWith('ko-')) return 'ko';
-  if (s === 'es' || s.startsWith('es-')) return 'es';
-  if (s === 'fr' || s.startsWith('fr-')) return 'fr';
-  if (s === 'de' || s.startsWith('de-')) return 'de';
+  if (s === 'ar' || s.startsWith('ar-') || s === 'arabic' || s === 'العربية') return 'ar';
   return 'en';
 }
 
@@ -2105,10 +1979,10 @@ function isAntigravityCdpTarget(target) {
 }
 
 /**
- * 通过本机回环 CDP 浏览器端点发送标准 Browser.close 请求宿主优雅退出（触发 Electron app.quit()，
- * 避免 Windows 托盘拦截 WM_CLOSE 导致 CloseMainWindow() 仅最小化到托盘而不退出）。
- * 发送前严格校验 /json/version 与 /json/list 均属于本机 Antigravity 宿主实例，绝不误关其他应用；
- * 超时未收到 ACK 且未关闭时 fail-closed 返回 false，立即交由 OS 级温和退出回退。
+ * Send standard Browser.close over the local loopback CDP browser endpoint to request graceful host shutdown
+ * (triggers Electron app.quit(), avoiding Windows tray interception of WM_CLOSE that only minimizes).
+ * Strictly validates both /json/version and /json/list belong to local Antigravity before sending;
+ * fails closed (returns false) on timeout without ACK or close so OS-level graceful quit fallback runs immediately.
  */
 export async function requestCdpBrowserClose(cdpPort, opts = {}) {
   const port = normalizeLoopbackCdpPort(cdpPort);
@@ -2157,7 +2031,7 @@ export async function requestCdpBrowserClose(cdpPort, opts = {}) {
     return false;
   }
 
-  // 二次校验 /json/list 确认目标端口属于 Antigravity，防止复用端口误关 Chrome/Edge/VS Code/其他 Electron
+  // Secondary check on /json/list to confirm port belongs to Antigravity (prevents closing Chrome/Edge/VS Code/other Electron)
   const targets = await fetchJsonLoopback('/json/list');
   if (!Array.isArray(targets) || !targets.some(isAntigravityCdpTarget)) {
     return false;
@@ -2176,7 +2050,7 @@ export async function requestCdpBrowserClose(cdpPort, opts = {}) {
       } catch {}
       resolve(Boolean(ok));
     };
-    // 超时未收到 {id:1} ACK 且未正常关闭时一律返回 false，立即触发 CloseMainWindow 回退
+    // Return false on timeout without {id:1} ACK or clean close so CloseMainWindow fallback runs immediately
     const timer = setTimeout(() => finish(false), timeoutMs);
     try {
       ws = new WsCtor(parsed.href);
@@ -2232,7 +2106,7 @@ export async function requestGracefulHostQuit(hostPid, exePath, platform = proce
   const killFn = typeof opts?.killFn === 'function' ? opts.killFn : process.kill;
   try {
     if (platform === 'win32') {
-      // 回退：仅向 Antigravity 主窗口发 WM_CLOSE 温和退出，绝不强杀 language_server.exe
+      // Fallback: send WM_CLOSE only to the Antigravity main window for graceful exit; never force-kill language_server.exe
       execSyncFn(
         'powershell.exe',
         ['-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden', '-EncodedCommand', WIN_GRACEFUL_CLOSE_B64],
@@ -2270,7 +2144,7 @@ export function launchHostWithCdpFlag(exePath, platform = process.platform, opts
   const cleanEnv = { ...baseEnv };
   delete cleanEnv.ELECTRON_RUN_AS_NODE;
   if (platform === 'win32') {
-    // 同步读取最新的用户级 GOMEMLIMIT（仅白名单值），使设置后紧接一键重启即可立即生效
+    // Read latest user-level GOMEMLIMIT (allowlisted values only) so a setting applied right before restart takes effect immediately
     try {
       const freshVal = String(
         execFileSync(
@@ -2348,12 +2222,12 @@ export function launchHostWithCdpFlag(exePath, platform = process.platform, opts
 }
 
 /**
- * 纯异步离线归档/还原与可选重启编排器：
- *   1) 如需重启：仅温和请求关闭 Antigravity（绝不强杀 language_server）
- *   2) 轮询等待 Antigravity 与 language_server 完全退出（超时则 fail-closed 中止）
- *   3) 退出后静置 3~5 秒并执行双重 fail-closed isLanguageServerRunning() 确认无锁
- *   4) 执行原子移动归档或无损还原（途中若宿主重开立刻安全中止）
- *   5) 如需重启：携带 --remote-debugging-port=0 重开 Antigravity
+ * Fully async offline archive/restore and optional restart orchestrator:
+ *   1) If restarting: request graceful Antigravity quit (never force-kill language_server)
+ *   2) Poll until Antigravity and language_server exit completely (fail-closed abort on timeout)
+ *   3) Wait 3-5s to settle and run double fail-closed isLanguageServerRunning() verification
+ *   4) Perform atomic move archive or lossless restore (abort safely if host relaunches mid-run)
+ *   5) If restarting: relaunch Antigravity with --remote-debugging-port=0
  */
 export async function executeArchiveTaskSequence(task = {}, hooks = {}) {
   const action = String(task.action || 'archive-and-restart');
@@ -2398,7 +2272,7 @@ export async function executeArchiveTaskSequence(task = {}, hooks = {}) {
       await quitHost(hostPid, exePath, { cdpPort, expectedBrowserWsPath, attempt: 1 });
     }
 
-    // 等待 Antigravity 与 language_server 完全退出
+    // Wait for Antigravity and language_server to exit completely
     const deadline = Date.now() + waitExitTimeoutMs;
     let exited = !safeIsRunning();
     let nudged = false;
@@ -2419,21 +2293,21 @@ export async function executeArchiveTaskSequence(task = {}, hooks = {}) {
         ok: false,
         action,
         code: 'HOST_EXIT_TIMEOUT',
-        error: '等待 Antigravity 与 language_server 退出超时，已安全中止，未移动任何文件。',
+        error: 'Timed out waiting for Antigravity and language_server to exit; aborted safely without moving any files.',
         relaunched: false,
       };
       writeLastArchiveResult(archiveDir, out);
       return out;
     }
 
-    // 静置 3~5 秒 + 双重 fail-closed 复检
+    // Settle for 3-5s + double fail-closed re-check
     if (settleMs > 0) await sleepFn(settleMs);
     if (safeIsRunning()) {
       const out = {
         ok: false,
         action,
         code: 'HOST_RESTARTED_DURING_SETTLE',
-        error: '静置等待期间检测到 Antigravity 重新启动，已安全中止。',
+        error: 'Detected Antigravity restarting during settle period; aborted safely.',
         relaunched: false,
       };
       writeLastArchiveResult(archiveDir, out);
@@ -2445,7 +2319,7 @@ export async function executeArchiveTaskSequence(task = {}, hooks = {}) {
         ok: false,
         action,
         code: 'HOST_RESTARTED_DURING_SETTLE',
-        error: '二次复检期间检测到 Antigravity 重新启动，已安全中止。',
+        error: 'Detected Antigravity restarting during secondary check; aborted safely.',
         relaunched: false,
       };
       writeLastArchiveResult(archiveDir, out);
@@ -2504,11 +2378,12 @@ function isElectronHostBinaryPath(rawPath) {
 }
 
 /**
- * 解析离线归档脱离任务所用的 Node 运行时：
- *   1) 当前进程为独立 node 时直接复用；
- *   2) 当前进程为 Electron 宿主（ELECTRON_RUN_AS_NODE=1）时，优先查找系统独立 node；
- *   3) 若宿主机未安装全局 node（纯安装版 Antigravity 常见），安全回退复用宿主二进制 + ELECTRON_RUN_AS_NODE=1
- *      （配合 parseWindowsTasklistCsv / parsePosixProcessList 排除 selfPid，绝不触发自检死锁或 ENOENT 崩溃）。
+ * Resolve the Node runtime for detached offline archive tasks:
+ *   1) Reuse directly when the current process is standalone node;
+ *   2) When running under Electron host (ELECTRON_RUN_AS_NODE=1), prefer system standalone node;
+ *   3) If no global node is installed (common in packaged Antigravity installs), safely fall back
+ *      to the host binary with ELECTRON_RUN_AS_NODE=1 (paired with selfPid exclusion in
+ *      parseWindowsTasklistCsv / parsePosixProcessList to avoid self-detection deadlocks or ENOENT).
  */
 export function resolveArchiveNodeRuntime(
   nodeExec = process.execPath,
@@ -2562,7 +2437,7 @@ export function resolveArchiveNodeRuntime(
 }
 
 /**
- * 派生物理脱离宿主进程树（及 Windows Job Object）的独立离线任务进程。
+ * Spawn a standalone offline task process physically detached from the host process tree (and Windows Job Object).
  */
 export function spawnDetachedArchiveTask(task = {}, opts = {}) {
   const archiveDir = ensureSafeDir(task.archiveDir || getDefaultArchiveDir());
@@ -2620,7 +2495,7 @@ export function spawnDetachedArchiveTask(task = {}, opts = {}) {
     const safeTaskFile = assertSafeHelperPath(taskFile, 'taskFile');
     if (!opts.disableWmiBreakaway) {
       try {
-        // 通过 Base64 EncodedCommand 启动运行时执行任务文件，物理脱离 Antigravity Job Object
+        // Launch runtime to execute task file via Base64 EncodedCommand, breaking away from the Antigravity Job Object
         const envLine = useElectronAsNode
           ? '$env:ELECTRON_RUN_AS_NODE = "1"'
           : 'Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue';
@@ -2710,7 +2585,7 @@ async function fetchLiveSummariesViaClient() {
 
 async function waitForLanguageServerExit(timeoutMs = 120000) {
   if (!isLanguageServerRunning()) return true;
-  console.log('[等待] 检测到 language_server 仍在运行。请完全退出 Antigravity，脚本检测到退出后将自动开始安全归档…');
+  console.log('[wait] language_server is still running. Please quit Antigravity completely; safe archiving will start automatically once it exits...');
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     await new Promise((r) => setTimeout(r, 1500));
@@ -2812,7 +2687,7 @@ export async function executeCli(argv = process.argv.slice(2), deps = {}) {
   if (opts.action === 'list') {
     const batches = listArchiveBatches(archiveDir);
     if (opts.json) logOut(JSON.stringify(batches, null, 2));
-    else logOut(batches.length ? batches : '暂无归档批次。');
+    else logOut(batches.length ? batches : 'No archive batches found.');
     return batches;
   }
 
@@ -2843,12 +2718,12 @@ export async function executeCli(argv = process.argv.slice(2), deps = {}) {
       logOut(JSON.stringify({ ...summary, helpers }, null, 2));
       return { ...summary, helpers };
     }
-    logOut(`[体检] 对话库路径: ${report.convDir}`);
-    logOut(`[体检] 总大小: ${report.totalMb} MB（${report.conversationCount} 个会话，其中主对话 ${report.mainCount} 个 / ${report.mainMb} MB，隐藏子代理 ${report.subagentCount} 个 / ${report.subagentMb} MB）`);
-    logOut(`[建议] 可安全归档的已结束子代理（>${opts.subagentHours}h）: ${report.archivableSubagentCount} 个，预计立省 ${report.archivableSubagentMb} MB`);
+    logOut(`[scan] Conversations dir: ${report.convDir}`);
+    logOut(`[scan] Total size: ${report.totalMb} MB (${report.conversationCount} conversations: ${report.mainCount} main / ${report.mainMb} MB, ${report.subagentCount} hidden subagents / ${report.subagentMb} MB)`);
+    logOut(`[tip] Safely archivable finished subagents (>${opts.subagentHours}h): ${report.archivableSubagentCount} items, estimated savings ${report.archivableSubagentMb} MB`);
     if (helpers) {
-      logOut(`[就绪] 一键安全归档脚本已生成: ${helpers.archiveScriptPath}`);
-      logOut(`[就绪] 一键无损还原脚本已生成: ${helpers.restoreScriptPath}`);
+      logOut(`[ready] Safe archive helper script generated: ${helpers.archiveScriptPath}`);
+      logOut(`[ready] Lossless restore helper script generated: ${helpers.restoreScriptPath}`);
     }
     return { report, helpers };
   }
@@ -2857,7 +2732,7 @@ export async function executeCli(argv = process.argv.slice(2), deps = {}) {
     if (!opts.dryRun && opts.waitExit && checkRunning()) {
       const exited = await waitExitFn(120000);
       if (!exited) {
-        logErr('[中止] 等待超时，language_server 仍在运行。请完全退出 Antigravity 后重试。');
+        logErr('[abort] Timed out waiting for language_server to exit. Fully quit Antigravity and retry.');
         setExitCode(1);
         return { ok: false, code: 'WAIT_EXIT_TIMEOUT' };
       }
@@ -2877,13 +2752,13 @@ export async function executeCli(argv = process.argv.slice(2), deps = {}) {
     }
     if (opts.json) logOut(JSON.stringify(res, null, 2));
     else if (!res.ok) {
-      logErr(`[拒绝] ${res.error}`);
+      logErr(`[denied] ${res.error}`);
       setExitCode(1);
     } else if (res.dryRun) {
-      logOut(`[预演] 将移动归档 ${res.candidateCount} 个会话（共 ${res.candidateMb} MB），归档后对话库预计降至 ${res.remainingEstimatedMb} MB（所有主对话保留不变）。`);
+      logOut(`[dry-run] Would move ${res.candidateCount} conversations (${res.candidateMb} MB); estimated remaining DB size: ${res.remainingEstimatedMb} MB (all main conversations preserved).`);
     } else {
-      logOut(`[完成] 已安全移动归档 ${res.movedCount} 个会话（释放 ${res.movedMb} MB）到: ${res.batchDir}`);
-      logOut(`[完成] 对话库剩余预计约 ${res.remainingEstimatedMb} MB。现在可以重新打开 Antigravity！`);
+      logOut(`[done] Safely archived ${res.movedCount} conversations (freed ${res.movedMb} MB) to: ${res.batchDir}`);
+      logOut(`[done] Estimated remaining DB size: ~${res.remainingEstimatedMb} MB. You may now reopen Antigravity.`);
     }
     return res;
   }
@@ -2895,7 +2770,7 @@ export async function executeCli(argv = process.argv.slice(2), deps = {}) {
     } catch (err) {
       const errRes = { ok: false, code: 'INVALID_BATCH', error: err?.message || 'Invalid archive batch name' };
       if (opts.json) logOut(JSON.stringify(errRes, null, 2));
-      else logErr(`[拒绝] ${errRes.error}`);
+      else logErr(`[denied] ${errRes.error}`);
       setExitCode(1);
       return errRes;
     }
@@ -2905,10 +2780,10 @@ export async function executeCli(argv = process.argv.slice(2), deps = {}) {
         const timeoutRes = {
           ok: false,
           code: 'WAIT_EXIT_TIMEOUT',
-          error: '等待超时，language_server 仍在运行。请完全退出 Antigravity 后重试。',
+          error: 'Timed out waiting for language_server to exit. Fully quit Antigravity and retry.',
         };
         if (opts.json) logOut(JSON.stringify(timeoutRes, null, 2));
-        else logErr(`[中止] ${timeoutRes.error}`);
+        else logErr(`[abort] ${timeoutRes.error}`);
         setExitCode(1);
         return timeoutRes;
       }
@@ -2916,10 +2791,10 @@ export async function executeCli(argv = process.argv.slice(2), deps = {}) {
     const res = restoreArchiveBatch({ convDir, archiveDir, batchName: safeBatch, checkRunning });
     if (opts.json) logOut(JSON.stringify(res, null, 2));
     else if (!res.ok) {
-      logErr(`[失败] ${res.error}`);
+      logErr(`[failed] ${res.error}`);
       setExitCode(1);
     } else {
-      logOut(`[完成] 已无损还原批次 ${res.batchName}：恢复 ${res.restoredCount} 个会话（跳过冲突 ${res.skippedCount} 个）。`);
+      logOut(`[done] Losslessly restored batch ${res.batchName}: restored ${res.restoredCount} conversations (skipped ${res.skippedCount} conflicts).`);
     }
     return res;
   }
@@ -2948,8 +2823,9 @@ function resolveRealpathForEntry(targetPath) {
 }
 
 /**
- * 判断当前模块是否作为 CLI 主入口直接启动。
- * 解析符号链接与 Windows Junction（例如 ~/.gemini 迁至其他盘符），并在 Win32 下归一化盘符大小写。
+ * Determine whether this module was launched directly as the CLI entry point.
+ * Resolves symlinks and Windows junctions (e.g., when ~/.gemini is moved to another drive)
+ * and normalizes drive letter casing on Win32.
  */
 export function isMainEntry(argv1, moduleUrl = import.meta.url) {
   if (!argv1 || !moduleUrl) return false;
@@ -2969,7 +2845,7 @@ const isEntry = isMainEntry(process.argv[1], import.meta.url);
 
 if (isEntry) {
   runCli().catch((err) => {
-    console.error('[错误]', err?.message || err);
+    console.error('[error]', err?.message || err);
     process.exitCode = 1;
   });
 }

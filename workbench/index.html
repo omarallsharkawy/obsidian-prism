@@ -1,16 +1,16 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Obsidian Prism v1.0 · 光学与性能工程台</title>
-  <!-- 内联正统 Google Gemini 官方圆角双曲四芒星图标 -->
+  <title>Obsidian Prism v1.0 · Optical &amp; Performance Workbench</title>
+  <!-- Inline official Google Gemini rounded four-point star icon -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23111216'/%3E%3Cpath fill='%23669DF6' d='M12 2.2c.23 0 .43.16.49.38c.19.72.44 1.43.73 2.11c1.13 2.62 3.1 4.6 5.73 5.73c.68.29 1.39.54 2.11.73c.22.06.38.26.38.49s-.16.43-.38.49a15 15 0 0 0-2.11.73c-2.63 1.13-4.6 3.11-5.73 5.73c-.29.68-.54 1.39-.73 2.11a.5.5 0 0 1-.49.38a.5.5 0 0 1-.49-.38a15 15 0 0 0-.73-2.11c-1.13-2.62-3.1-4.6-5.73-5.73a15 15 0 0 0-2.11-.73a.5.5 0 0 1-.38-.49c0-.23.16-.43.38-.49c.72-.19 1.43-.44 2.11-.73c2.63-1.13 4.6-3.11 5.73-5.73c.29-.68.54-1.39.73-2.11c.06-.22.26-.38.49-.38Z'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
     rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Noto+Sans+SC:wght@400;500;600&family=Noto+Serif+SC:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
     media="print"
     onload="this.media='all'"
   />
@@ -28,45 +28,45 @@
             <path d="M12 1.2c.25 0 .47.17.53.41c.21.79.48 1.56.8 2.31c1.23 2.86 3.39 5.02 6.25 6.25c.75.32 1.52.59 2.31.8c.24.06.41.28.41.53s-.17.47-.41.53a16 16 0 0 0-2.31.8c-2.86 1.23-5.02 3.39-6.25 6.25c-.32.75-.59 1.52-.8 2.31a.55.55 0 0 1-.53.41a.55.55 0 0 1-.53-.41a16 16 0 0 0-.8-2.31c-1.23-2.86-3.39-5.02-6.25-6.25a16 16 0 0 0-2.31-.8A.55.55 0 0 1 1.2 12c0-.25.17-.47.41-.53c.79-.21 1.56-.48 2.31-.8c2.86-1.23 5.02-3.39 6.25-6.25c.32-.75.59-1.52.8-2.31c.06-.24.28-.41.53-.41Z" fill="currentColor"/>
           </svg>
         </span>
-        <span>Obsidian Prism v1.0 · 光学与性能工程台</span>
+        <span>Obsidian Prism v1.0 · Optical &amp; Performance Workbench</span>
       </div>
 
       <div class="wb-controls-mid">
-        <div class="wb-pill-group" role="group" aria-label="检视视图模式">
-          <button type="button" class="wb-pill-btn" data-wb-view="single" data-active="true">1:1 应用交互</button>
-          <button type="button" class="wb-pill-btn" data-wb-view="split">明暗同屏 Split</button>
-          <button type="button" class="wb-pill-btn" data-wb-view="quad">亮/暗四主题 Quad</button>
-          <button type="button" class="wb-pill-btn" data-wb-view="matrix"><span class="wb-btn-ico" data-wb-icon="layers-stack" aria-hidden="true"></span><span>全组件矩阵 Matrix</span></button>
+        <div class="wb-pill-group" role="group" aria-label="Inspection view mode">
+          <button type="button" class="wb-pill-btn" data-wb-view="single" data-active="true">1:1 Interactive</button>
+          <button type="button" class="wb-pill-btn" data-wb-view="split">Light/Dark Split</button>
+          <button type="button" class="wb-pill-btn" data-wb-view="quad">4-Theme Quad</button>
+          <button type="button" class="wb-pill-btn" data-wb-view="matrix"><span class="wb-btn-ico" data-wb-icon="layers-stack" aria-hidden="true"></span><span>Component Matrix</span></button>
         </div>
 
-        <div class="wb-pill-group" role="group" aria-label="核心场景切换">
-          <button type="button" class="wb-pill-btn" data-wb-scene="studio" data-active="true">Studio 首页</button>
-          <button type="button" class="wb-pill-btn" data-wb-scene="chat">深度对话</button>
-          <button type="button" class="wb-pill-btn" data-wb-scene="effort">原版滑块</button>
-          <button type="button" class="wb-pill-btn" data-wb-scene="dashboard">实体水试管</button>
-          <button type="button" class="wb-pill-btn" data-wb-scene="settings">设置面板</button>
-          <button type="button" class="wb-pill-btn" data-wb-scene="m3lab">M3 死角实景舱</button>
-          <a class="wb-pill-btn" href="/studio" data-testid="wb-open-studio-link" style="text-decoration:none;">⚡ 双极 Studio 预览台</a>
+        <div class="wb-pill-group" role="group" aria-label="Core scene switcher">
+          <button type="button" class="wb-pill-btn" data-wb-scene="studio" data-active="true">Studio Home</button>
+          <button type="button" class="wb-pill-btn" data-wb-scene="chat">Deep Chat</button>
+          <button type="button" class="wb-pill-btn" data-wb-scene="effort">Effort Slider</button>
+          <button type="button" class="wb-pill-btn" data-wb-scene="dashboard">Optical Vial</button>
+          <button type="button" class="wb-pill-btn" data-wb-scene="settings">Settings</button>
+          <button type="button" class="wb-pill-btn" data-wb-scene="m3lab">M3 Surface Lab</button>
+          <a class="wb-pill-btn" href="/studio" data-testid="wb-open-studio-link" style="text-decoration:none;">⚡ Bipolar Studio</a>
         </div>
       </div>
 
       <div class="wb-controls-right">
-        <div class="wb-pill-group" role="group" aria-label="四大旗舰主题快切">
-          <button type="button" class="wb-pill-btn" data-wb-preset="obsidian-dark" data-wb-palette="obsidian" data-active="true">Obsidian 深空</button>
-          <button type="button" class="wb-pill-btn" data-wb-preset="warm-dark" data-wb-palette="warm">Warm 暖炭</button>
-          <button type="button" class="wb-pill-btn" data-wb-preset="daylight-crystal">白昼冷晶</button>
-          <button type="button" class="wb-pill-btn" data-wb-preset="warm-alabaster">暖白画册</button>
+        <div class="wb-pill-group" role="group" aria-label="Flagship 4-theme quick presets">
+          <button type="button" class="wb-pill-btn" data-wb-preset="obsidian-dark" data-wb-palette="obsidian" data-active="true">Obsidian Dark</button>
+          <button type="button" class="wb-pill-btn" data-wb-preset="warm-dark" data-wb-palette="warm">Warm Charcoal</button>
+          <button type="button" class="wb-pill-btn" data-wb-preset="daylight-crystal">Daylight Crystal</button>
+          <button type="button" class="wb-pill-btn" data-wb-preset="warm-alabaster">Warm Alabaster</button>
           <button type="button" class="wb-pill-btn" data-wb-palette="titanium" style="display:none;">Titanium</button>
         </div>
 
-        <div class="wb-pill-group" role="group" aria-label="明暗模式">
+        <div class="wb-pill-group" role="group" aria-label="Color mode">
           <button type="button" class="wb-pill-btn" data-wb-theme="dark" data-active="true"><span class="wb-btn-ico" data-wb-icon="sun-moon" aria-hidden="true"></span><span>Dark</span></button>
           <button type="button" class="wb-pill-btn" data-wb-theme="light"><span>Light</span></button>
         </div>
 
         <button type="button" class="wb-toggle-inspector" id="wb-toggle-inspector" data-active="true">
           <span class="wb-btn-ico" data-wb-icon="sliders-tune" aria-hidden="true"></span>
-          <span>光学调音台</span>
+          <span>Optical Inspector</span>
         </button>
       </div>
     </header>
@@ -76,14 +76,14 @@
 
       <aside class="wb-inspector" id="wb-inspector" aria-label="Live Optical & Performance Inspector">
         <div class="wb-inspector-head">
-          <span class="wb-inspector-title">光学与性能调音台</span>
+          <span class="wb-inspector-title">Optical &amp; Performance Console</span>
           <span class="wb-inspector-sub">PRISM v1.0 · 0FPS SLEEP</span>
         </div>
 
         <div class="wb-inspector-body">
           <div class="wb-ctrl wb-perf-monitor" data-testid="wb-perf-sleep-monitor">
             <div class="wb-ctrl-row">
-              <span class="wb-ctrl-label">实时画布休眠遥测 (GPU Sleep)</span>
+              <span class="wb-ctrl-label">Live Canvas Sleep Telemetry (GPU Sleep)</span>
               <span class="wb-ctrl-val wb-sleep-pill" id="val-master-fps" data-sleep="true">0fps Idle</span>
             </div>
             <div class="wb-sleep-grid">
@@ -104,37 +104,37 @@
 
           <div class="wb-ctrl" data-testid="wb-light-preset-ctrl">
             <div class="wb-ctrl-row">
-              <span class="wb-ctrl-label">浅色白昼质感 (Light Preset)</span>
+              <span class="wb-ctrl-label">Daylight Surface (Light Preset)</span>
               <span class="wb-ctrl-val" id="val-light-preset">Daylight Crystal</span>
             </div>
-            <div class="wb-pill-group" role="group" aria-label="浅色白昼质感切换" style="width:100%; display:grid; grid-template-columns:repeat(2,1fr);">
-              <button type="button" class="wb-pill-btn" data-wb-light-preset="crystal" data-active="true">白昼冷晶 Crystal</button>
-              <button type="button" class="wb-pill-btn" data-wb-light-preset="alabaster">暖白画册 Alabaster</button>
+            <div class="wb-pill-group" role="group" aria-label="Light surface preset" style="width:100%; display:grid; grid-template-columns:repeat(2,1fr);">
+              <button type="button" class="wb-pill-btn" data-wb-light-preset="crystal" data-active="true">Daylight Crystal</button>
+              <button type="button" class="wb-pill-btn" data-wb-light-preset="alabaster">Warm Alabaster</button>
             </div>
           </div>
 
           <div class="wb-ctrl" data-testid="wb-motion-tier-ctrl">
             <div class="wb-ctrl-row">
-              <span class="wb-ctrl-label">动效档位 (Motion Tier)</span>
+              <span class="wb-ctrl-label">Motion Tier</span>
               <span class="wb-ctrl-val" id="val-motion-tier">Ultra</span>
             </div>
-            <div class="wb-pill-group" role="group" aria-label="动效档位切换" style="width:100%; display:grid; grid-template-columns:repeat(4,1fr);">
+            <div class="wb-pill-group" role="group" aria-label="Motion tier switcher" style="width:100%; display:grid; grid-template-columns:repeat(4,1fr);">
               <button type="button" class="wb-pill-btn" data-wb-motion="off">Off</button>
               <button type="button" class="wb-pill-btn" data-wb-motion="subtle">Subtle</button>
               <button type="button" class="wb-pill-btn" data-wb-motion="standard">Standard</button>
               <button type="button" class="wb-pill-btn" data-wb-motion="ultra" data-active="true">Ultra</button>
             </div>
             <div class="wb-crab-grid" style="margin-top:6px;">
-              <button type="button" class="wb-mini-action" data-hero-demo="liftoff">Hero A 升空转场</button>
-              <button type="button" class="wb-mini-action" data-hero-demo="caustic">Hero C 焦散扫光</button>
-              <button type="button" class="wb-mini-action" data-hero-demo="fiber">Hero D 模型光纤合焦</button>
-              <button type="button" class="wb-mini-action" data-hero-demo="dual-stream">双轨流式吐字</button>
+              <button type="button" class="wb-mini-action" data-hero-demo="liftoff">Hero A Liftoff</button>
+              <button type="button" class="wb-mini-action" data-hero-demo="caustic">Hero C Caustic</button>
+              <button type="button" class="wb-mini-action" data-hero-demo="fiber">Hero D Fiber Lock</button>
+              <button type="button" class="wb-mini-action" data-hero-demo="dual-stream">Dual-Track Stream</button>
             </div>
           </div>
 
           <div class="wb-ctrl">
             <div class="wb-ctrl-row">
-              <label class="wb-ctrl-label" for="ctrl-radius">基准圆角 (Radius)</label>
+              <label class="wb-ctrl-label" for="ctrl-radius">Base Corner Radius (Radius)</label>
               <span class="wb-ctrl-val" id="val-radius">6px</span>
             </div>
             <input class="wb-range" id="ctrl-radius" type="range" min="2" max="12" step="1" value="6" />
@@ -142,7 +142,7 @@
 
           <div class="wb-ctrl">
             <div class="wb-ctrl-row">
-              <label class="wb-ctrl-label" for="ctrl-prism">棱镜光边与水波微光 (Prism)</label>
+              <label class="wb-ctrl-label" for="ctrl-prism">Prism Edge &amp; Ripple Glow (Prism)</label>
               <span class="wb-ctrl-val" id="val-prism">1.00</span>
             </div>
             <input class="wb-range" id="ctrl-prism" type="range" min="0" max="1" step="0.05" value="1" />
@@ -150,7 +150,7 @@
 
           <div class="wb-ctrl">
             <div class="wb-ctrl-row">
-              <label class="wb-ctrl-label" for="ctrl-specular">顶边内高光 (1px Specular)</label>
+              <label class="wb-ctrl-label" for="ctrl-specular">Top Specular Highlight (1px Specular)</label>
               <span class="wb-ctrl-val" id="val-specular">0.095</span>
             </div>
             <input class="wb-range" id="ctrl-specular" type="range" min="0" max="0.20" step="0.005" value="0.095" />
@@ -158,7 +158,7 @@
 
           <div class="wb-ctrl">
             <div class="wb-ctrl-row">
-              <label class="wb-ctrl-label" for="ctrl-border">描边对比度 (Border Alpha)</label>
+              <label class="wb-ctrl-label" for="ctrl-border">Border Contrast (Border Alpha)</label>
               <span class="wb-ctrl-val" id="val-border">0.115</span>
             </div>
             <input class="wb-range" id="ctrl-border" type="range" min="0.03" max="0.22" step="0.005" value="0.115" />
@@ -166,7 +166,7 @@
 
           <div class="wb-ctrl">
             <div class="wb-ctrl-row">
-              <label class="wb-ctrl-label" for="ctrl-blur">浮层透镜模糊 (Overlay Blur)</label>
+              <label class="wb-ctrl-label" for="ctrl-blur">Overlay Lens Blur (Overlay Blur)</label>
               <span class="wb-ctrl-val" id="val-blur">16px</span>
             </div>
             <input class="wb-range" id="ctrl-blur" type="range" min="0" max="32" step="1" value="16" />
@@ -174,7 +174,7 @@
 
           <div class="wb-ctrl">
             <div class="wb-ctrl-row">
-              <label class="wb-ctrl-label" for="ctrl-lh">正文行高 (Prose Leading)</label>
+              <label class="wb-ctrl-label" for="ctrl-lh">Prose Line Height (Prose Leading)</label>
               <span class="wb-ctrl-val" id="val-lh">1.68</span>
             </div>
             <input class="wb-range" id="ctrl-lh" type="range" min="1.45" max="1.95" step="0.02" value="1.7" />
@@ -182,7 +182,7 @@
 
           <div class="wb-ctrl">
             <div class="wb-ctrl-row">
-              <label class="wb-ctrl-label" for="ctrl-grain">胶片微噪点 (Film Grain)</label>
+              <label class="wb-ctrl-label" for="ctrl-grain">Film Grain Texture (Film Grain)</label>
               <span class="wb-ctrl-val" id="val-grain">0.022</span>
             </div>
             <input class="wb-range" id="ctrl-grain" type="range" min="0" max="0.05" step="0.002" value="0.022" />
@@ -190,86 +190,86 @@
 
           <div class="wb-ctrl" style="padding-top:6px; border-top:1px solid rgba(255,255,255,0.08);">
             <div class="wb-ctrl-row">
-              <span class="wb-ctrl-label">衬线标题点缀 (仅限首页)</span>
-              <button type="button" class="ag-v2-switch" id="ctrl-serif" data-on="true" aria-label="切换首页衬线大标题"></button>
+              <span class="wb-ctrl-label">Editorial Serif Accent (Home Only)</span>
+              <button type="button" class="ag-v2-switch" id="ctrl-serif" data-on="true" aria-label="Toggle home editorial serif heading"></button>
             </div>
           </div>
 
           <div class="wb-ctrl" style="padding-top:6px; border-top:1px solid rgba(255,255,255,0.08);">
-            <span class="wb-ctrl-label">高硼硅水晶水试管与推理模型</span>
+            <span class="wb-ctrl-label">Borosilicate Vial &amp; Reasoning Models</span>
             <div class="wb-crab-grid">
-              <button type="button" class="wb-mini-action" data-vial-cmd="slosh">晃动弯月水波</button>
-              <button type="button" class="wb-mini-action" data-vial-cmd="drop">凝落流式水滴</button>
-              <button type="button" class="wb-mini-action" data-vial-cmd="stream" id="btn-vial-stream">流式滴落: 关</button>
-              <button type="button" class="wb-mini-action" data-vial-cmd="critical" id="btn-vial-crit">&gt;85% 熔金告警</button>
-              <button type="button" class="wb-mini-action" data-vial-cmd="camp" id="btn-vial-camp">切阵营水色</button>
-              <button type="button" class="wb-mini-action" data-vial-cmd="fallback" id="btn-vial-fallback">采样异常/降级</button>
-              <button type="button" class="wb-mini-action" data-vial-cmd="open">展开雷达浮窗</button>
-              <button type="button" class="wb-mini-action" data-vial-cmd="mode" id="btn-vial-mode">上下文: 实体试管</button>
-              <button type="button" class="wb-mini-action" data-action="toggle-orchestrator" id="btn-orch-demo">切 Orchestrator 条</button>
+              <button type="button" class="wb-mini-action" data-vial-cmd="slosh">Slosh Meniscus</button>
+              <button type="button" class="wb-mini-action" data-vial-cmd="drop">Drop Fluid Bead</button>
+              <button type="button" class="wb-mini-action" data-vial-cmd="stream" id="btn-vial-stream">Stream Drip: Off</button>
+              <button type="button" class="wb-mini-action" data-vial-cmd="critical" id="btn-vial-crit">&gt;85% Critical Alert</button>
+              <button type="button" class="wb-mini-action" data-vial-cmd="camp" id="btn-vial-camp">Switch Camp Tint</button>
+              <button type="button" class="wb-mini-action" data-vial-cmd="fallback" id="btn-vial-fallback">Sample Fallback</button>
+              <button type="button" class="wb-mini-action" data-vial-cmd="open">Open Radar Popover</button>
+              <button type="button" class="wb-mini-action" data-vial-cmd="mode" id="btn-vial-mode">Context: Optical Vial</button>
+              <button type="button" class="wb-mini-action" data-action="toggle-orchestrator" id="btn-orch-demo">Toggle Orchestrator Bar</button>
             </div>
           </div>
 
           <div class="wb-ctrl" style="padding-top:6px; border-top:1px solid rgba(255,255,255,0.08);">
-            <span class="wb-ctrl-label">官方风双宠 (Clawd &amp; 小紫猫) 剧场</span>
+            <span class="wb-ctrl-label">Dual Mascot (Clawd &amp; Gemini Cat) Theater</span>
             <div class="wb-crab-grid">
-              <button type="button" class="wb-mini-action" data-mascot-cmd="idle">待机陪护</button>
-              <button type="button" class="wb-mini-action" data-mascot-cmd="write">流式速记</button>
-              <button type="button" class="wb-mini-action" data-mascot-cmd="theater">日常小剧场</button>
-              <button type="button" class="wb-mini-action" data-mascot-cmd="fire">淡定着火梗</button>
-              <button type="button" class="wb-mini-action" data-mascot-cmd="cheer">荧光棒应援</button>
-              <button type="button" class="wb-mini-action" data-mascot-cmd="rickroll">立麦欢唱梗</button>
-              <button type="button" class="wb-mini-action" data-mascot-cmd="siren">警灯旋转梗</button>
-              <button type="button" class="wb-mini-action" data-mascot-cmd="stack">头顶叠叠乐</button>
-              <button type="button" class="wb-mini-action" data-mascot-cmd="toss">抛掷拍饼</button>
-              <button type="button" class="wb-mini-action" data-mascot-cmd="pile" id="btn-mascot-pile">迷你三蟹堆: 关</button>
-              <button type="button" class="wb-mini-action" data-overlay-demo="slash" id="btn-demo-slash">框后扒边(Peek)</button>
-              <button type="button" class="wb-mini-action" data-overlay-demo="takeover" id="btn-demo-takeover">弹接管卡(礼让)</button>
-              <button type="button" class="wb-mini-action" data-mascot-cmd="campSwitch">阵营交接</button>
-              <button type="button" class="wb-mini-action" data-mascot-cmd="streamDone">答完庆祝</button>
-              <button type="button" class="wb-mini-action" data-mascot-cmd="doze">打盹 Zzz</button>
-              <button type="button" class="wb-mini-action" data-mascot-cmd="wake">伸懒腰唤醒</button>
-              <button type="button" class="wb-mini-action" data-mascot-cmd="wave">Clawd 挥手</button>
-              <button type="button" class="wb-mini-action" data-mascot-cmd="crabRide">迷你蟹骑头</button>
-              <button type="button" class="wb-mini-action" data-mascot-cmd="bump">迎面轻撞</button>
-              <button type="button" class="wb-mini-action" data-mascot-cmd="passBy">擦肩经过</button>
+              <button type="button" class="wb-mini-action" data-mascot-cmd="idle">Idle Guard</button>
+              <button type="button" class="wb-mini-action" data-mascot-cmd="write">Stream Notes</button>
+              <button type="button" class="wb-mini-action" data-mascot-cmd="theater">Daily Skit</button>
+              <button type="button" class="wb-mini-action" data-mascot-cmd="fire">This Is Fine</button>
+              <button type="button" class="wb-mini-action" data-mascot-cmd="cheer">Glowstick Cheer</button>
+              <button type="button" class="wb-mini-action" data-mascot-cmd="rickroll">Mic Sing</button>
+              <button type="button" class="wb-mini-action" data-mascot-cmd="siren">Siren Spin</button>
+              <button type="button" class="wb-mini-action" data-mascot-cmd="stack">Head Stack</button>
+              <button type="button" class="wb-mini-action" data-mascot-cmd="toss">Toss &amp; Squish</button>
+              <button type="button" class="wb-mini-action" data-mascot-cmd="pile" id="btn-mascot-pile">Mini Crab Pile: Off</button>
+              <button type="button" class="wb-mini-action" data-overlay-demo="slash" id="btn-demo-slash">Edge Peek</button>
+              <button type="button" class="wb-mini-action" data-overlay-demo="takeover" id="btn-demo-takeover">Takeover Yield</button>
+              <button type="button" class="wb-mini-action" data-mascot-cmd="campSwitch">Camp Handoff</button>
+              <button type="button" class="wb-mini-action" data-mascot-cmd="streamDone">Done Celebrate</button>
+              <button type="button" class="wb-mini-action" data-mascot-cmd="doze">Doze Zzz</button>
+              <button type="button" class="wb-mini-action" data-mascot-cmd="wake">Stretch Wake</button>
+              <button type="button" class="wb-mini-action" data-mascot-cmd="wave">Clawd Wave</button>
+              <button type="button" class="wb-mini-action" data-mascot-cmd="crabRide">Mini Crab Ride</button>
+              <button type="button" class="wb-mini-action" data-mascot-cmd="bump">Gentle Bump</button>
+              <button type="button" class="wb-mini-action" data-mascot-cmd="passBy">Pass By</button>
             </div>
             <div class="wb-ctrl-row" style="margin-top:8px;">
-              <span class="wb-ctrl-label">9 大 Slash 剧场 · 情境 · 投喂与栖息地</span>
+              <span class="wb-ctrl-label">9 Slash Theaters · Context · Treats &amp; Habitat</span>
             </div>
             <div class="wb-crab-grid" data-testid="wb-slash-theater-grid">
-              <button type="button" class="wb-mini-action" data-mascot-cmd="slash:plan">/plan 蓝图</button>
-              <button type="button" class="wb-mini-action" data-mascot-cmd="slash:goal">/goal 冲刺</button>
-              <button type="button" class="wb-mini-action" data-mascot-cmd="slash:boost">/boost 冰晶</button>
+              <button type="button" class="wb-mini-action" data-mascot-cmd="slash:plan">/plan Blueprint</button>
+              <button type="button" class="wb-mini-action" data-mascot-cmd="slash:goal">/goal Sprint</button>
+              <button type="button" class="wb-mini-action" data-mascot-cmd="slash:boost">/boost Crystal</button>
               <button type="button" class="wb-mini-action" data-mascot-cmd="slash:teamwork">/teamwork</button>
               <button type="button" class="wb-mini-action" data-mascot-cmd="slash:browser">/browser</button>
               <button type="button" class="wb-mini-action" data-mascot-cmd="slash:compact">/compact</button>
               <button type="button" class="wb-mini-action" data-mascot-cmd="slash:schedule">/schedule</button>
               <button type="button" class="wb-mini-action" data-mascot-cmd="slash:grill-me">/grill-me</button>
-              <button type="button" class="wb-mini-action" data-mascot-cmd="slash:learn">/learn 灯泡</button>
-              <button type="button" class="wb-mini-action" data-mascot-cmd="feedDonut">喂甜甜圈</button>
-              <button type="button" class="wb-mini-action" data-mascot-cmd="feedCoffee">喂热咖啡</button>
-              <button type="button" class="wb-mini-action" data-mascot-cmd="vialHigh">水试管探头</button>
-              <button type="button" class="wb-mini-action" data-mascot-cmd="auraComplete">碰爪庆祝</button>
-              <button type="button" class="wb-mini-action" data-mascot-cmd="effortHigh">高推理换装</button>
-              <button type="button" class="wb-mini-action" data-mascot-cmd="nightSip">深夜热饮</button>
-              <button type="button" class="wb-mini-action" id="btn-habitat-cycle">栖息地: 自动</button>
+              <button type="button" class="wb-mini-action" data-mascot-cmd="slash:learn">/learn Bulb</button>
+              <button type="button" class="wb-mini-action" data-mascot-cmd="feedDonut">Feed Donut</button>
+              <button type="button" class="wb-mini-action" data-mascot-cmd="feedCoffee">Feed Coffee</button>
+              <button type="button" class="wb-mini-action" data-mascot-cmd="vialHigh">Vial Peek</button>
+              <button type="button" class="wb-mini-action" data-mascot-cmd="auraComplete">Paw High-Five</button>
+              <button type="button" class="wb-mini-action" data-mascot-cmd="effortHigh">High Effort Fit</button>
+              <button type="button" class="wb-mini-action" data-mascot-cmd="nightSip">Late-Night Sip</button>
+              <button type="button" class="wb-mini-action" id="btn-habitat-cycle">Habitat: Auto</button>
             </div>
             <div class="wb-inspect-box" data-testid="wb-mascot-inspector">
               <div class="wb-ctrl-row" style="margin-top:8px;">
-                <span class="wb-ctrl-label">逐帧像素检视器 (y=9 标尺)</span>
+                <span class="wb-ctrl-label">Frame-by-Frame Pixel Inspector (y=9 Ruler)</span>
                 <span class="wb-ctrl-val" id="val-inspect-tick">Tick 0</span>
               </div>
               <div class="wb-inspect-row">
-                <select id="wb-inspect-pose" class="wb-select" aria-label="检视姿态枚举"></select>
-                <button type="button" class="wb-mini-action" id="btn-inspect-toggle">锁定检视: 关</button>
+                <select id="wb-inspect-pose" class="wb-select" aria-label="Inspection pose list"></select>
+                <button type="button" class="wb-mini-action" id="btn-inspect-toggle">Lock Inspect: Off</button>
               </div>
               <div class="wb-crab-grid" style="margin-top:4px;">
                 <button type="button" class="wb-mini-action" id="btn-inspect-prev">Tick -1</button>
                 <button type="button" class="wb-mini-action" id="btn-inspect-next">Tick +1</button>
-                <button type="button" class="wb-mini-action" id="btn-inspect-mirror">Mirror: 关</button>
-                <button type="button" class="wb-mini-action" id="btn-inspect-ruler">y=9 标尺: 关</button>
-                <button type="button" class="wb-mini-action" id="btn-sim-win-blur">失焦 0fps: 关</button>
+                <button type="button" class="wb-mini-action" id="btn-inspect-mirror">Mirror: Off</button>
+                <button type="button" class="wb-mini-action" id="btn-inspect-ruler">y=9 Ruler: Off</button>
+                <button type="button" class="wb-mini-action" id="btn-sim-win-blur">Blur 0fps: Off</button>
               </div>
               <div class="wb-inspect-sliders">
                 <label class="wb-ctrl-label">sqW <span id="val-inspect-sqw">0</span><input class="wb-range" id="ctrl-inspect-sqw" type="range" min="-2" max="2" step="1" value="0" /></label>
@@ -280,9 +280,9 @@
         </div>
 
         <div class="wb-inspector-foot">
-          <button type="button" class="wb-btn-primary" id="wb-save-tokens">保存为默认预设</button>
-          <button type="button" class="wb-btn-secondary" id="wb-copy-css">复制 CSS 变量块</button>
-          <button type="button" class="wb-btn-secondary" id="wb-reset-tokens">恢复出厂默认</button>
+          <button type="button" class="wb-btn-primary" id="wb-save-tokens">Save as Default Preset</button>
+          <button type="button" class="wb-btn-secondary" id="wb-copy-css">Copy CSS Variables</button>
+          <button type="button" class="wb-btn-secondary" id="wb-reset-tokens">Reset to Factory Defaults</button>
           <div class="wb-toast" id="wb-toast" aria-live="polite"></div>
         </div>
       </aside>

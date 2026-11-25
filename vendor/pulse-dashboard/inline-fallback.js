@@ -37,14 +37,8 @@
 
   const isFin = (v) => typeof v === 'number' && Number.isFinite(v);
   const FB_ROWS = {
-    'zh-CN': '缓存|吞吐速率|首字延迟|最近速率|上下文窗口|当前模型|已用|剩余|代理',
-    'zh-TW': '快取|吞吐速率|首字延遲|最近速率|上下文視窗|目前模型|已用|剩餘|代理',
     en: 'Cache|Throughput|TTFT|Latest Rate|Context Window|Active Model|used|free| sub',
-    ja: 'キャッシュ|スループット|初回応答|最新速度|コンテキスト|現在のモデル|使用|残り| サブ',
-    ko: '캐시|처리 속도|첫 토큰 지연|최근 속도|컨텍스트 창|현재 모델|사용|여유| 서브',
-    es: 'Caché|Rendimiento|TTFT|Velocidad rec.|Ventana de ctx|Modelo activo|usado|libre| sub',
-    fr: 'Cache|Débit|TTFT|Dernier débit|Fenêtre ctx|Modèle actif|utilisé|libre| sous',
-    de: 'Cache|Durchsatz|TTFT|Akt. Rate|Kontextfenster|Aktives Modell|belegt|frei| Sub',
+    ar: 'الذاكرة المؤقتة|معدل الإنتاجية|زمن أول رمز|أحدث سرعة|نافذة السياق|النموذج النشط|مستخدم|متاح| فرعي',
   };
   function normFbLang(raw, win) {
     let v = String(raw || '').trim();
@@ -54,14 +48,7 @@
     }
     const s = v.toLowerCase().replace(/_/g, '-');
     if (!s || s === 'auto') return 'en';
-    if (s === 'yue' || s.startsWith('yue-') || s === 'zh-yue' || s.includes('cantonese')) return 'zh-CN';
-    if (/^zh-(tw|hant|hk|mo)/.test(s) || s === 'tw' || s === 'hant') return 'zh-TW';
-    if (/^zh/.test(s)) return 'zh-CN';
-    if (/^(ja|jp)/.test(s) || s === 'japanese') return 'ja';
-    if (/^(ko|kr)/.test(s) || s === 'korean') return 'ko';
-    if (/^es/.test(s) || s === 'spanish') return 'es';
-    if (/^fr/.test(s) || s === 'french') return 'fr';
-    if (/^de/.test(s) || s === 'german') return 'de';
+    if (/^ar\b/.test(s) || s === 'arabic') return 'ar';
     return 'en';
   }
   const FB_I18N = Object.fromEntries(
@@ -642,6 +629,13 @@
     const gStr = () => FB_I18N[resolveCurLang()] || FB_I18N.en;
     const syncLblsFor = (sr) => {
       if (!sr) return;
+      const lang = resolveCurLang();
+      const hostEl = sr.host;
+      if (hostEl && typeof hostEl.setAttribute === 'function') {
+        const dir = lang === 'ar' ? 'rtl' : 'ltr';
+        if (hostEl.getAttribute('lang') !== lang) hostEl.setAttribute('lang', lang);
+        if (hostEl.getAttribute('dir') !== dir) hostEl.setAttribute('dir', dir);
+      }
       const t = gStr(), ns = sr.querySelectorAll?.('[data-fb-i18n]') || [];
       for (let i = 0; i < ns.length; i++) {
         const k = ns[i].getAttribute('data-fb-i18n');

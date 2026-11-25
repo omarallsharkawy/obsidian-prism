@@ -35,9 +35,6 @@ const HOST_I18N_FILE = path.join(ROOT_DIR, 'vendor', 'host-i18n', 'host-i18n-run
 const require = createRequire(import.meta.url);
 const cdp = require(path.join(ROOT_DIR, 'cdp.js'));
 
-/**
- * 构造轻量高保真 DOM + 假时钟 + 事件捕获/冒泡沙盒（零外部依赖，严格对称计数监听与定时器）
- */
 function createMock2DContext() {
   const drawnTexts = [];
   return {
@@ -332,7 +329,7 @@ function createMockWebGL2Context({ failFbo = false } = {}) {
 function createPeriodicSandbox({
   href = 'vscode-file://vscode-app/index.html',
   theme = 'dark',
-  lang = 'zh-CN',
+  lang = 'ar',
   bodyClass = 'monaco-workbench',
   mock2d = false,
   mockWebGL2 = false,
@@ -2301,11 +2298,11 @@ test('V6 Dual-mode wallpapers (8 clean WebP data URIs) & oled-cyber-screen.js da
       symbol: 'He',
       elementEn: 'Helium',
       title: '2 He · Helium — Unreleased',
-      chemLabel: '氦',
-      subtitle: '第 18 族 · 惰性气体 · 尚未开放的化学元素席位',
+      chemLabel: 'الهيليوم',
+      subtitle: 'المجموعة 18 · غاز نبيل · مقعد عنصر غير متاح بعد',
       isAvailable: false,
-      unreleasedText: '未发布 · 锁定盲键',
-      effortTitle: '元素状态',
+      unreleasedText: 'غير منشور · مفتاح مغلق',
+      effortTitle: 'حالة العنصر',
       levels: [],
     },
     { id: 'obsidian-dark', isLight: false, isMono: false, primaryHex: '#487396' },
@@ -2323,7 +2320,7 @@ test('V6 Dual-mode wallpapers (8 clean WebP data URIs) & oled-cyber-screen.js da
       groupCode: 'G18',
       symbol: 'He',
       title: '2 He · Helium — Unreleased',
-      chemLabel: '氦',
+      chemLabel: 'الهيليوم',
       isAvailable: false,
       levels: [],
     },
@@ -4417,7 +4414,7 @@ test('V12 OLED Cyber Screen: Orch Dual-Core Latch (4 Planners + Real Effort Matr
   painter.render(unsupportedDeck, themeDark, { now });
   assert.equal(painter.isAnimating(now), false);
   const lockText = ctx2d._drawnTexts.join(' | ');
-  assert.ok(lockText.includes('NON-PLANNER'), `Unsupported model in Orch mode must render NON-PLANNER lock badge, got: ${lockText}`);
+  assert.ok(lockText.includes('خارج التخطيط'), `Unsupported model in Orch mode must render NON-PLANNER lock badge, got: ${lockText}`);
 
   painter.dispose();
   assert.equal(painter.isAnimating(), false);
@@ -4940,9 +4937,9 @@ test('V13.1 PRISM-118 CNC Triptych: MOD-01/MOD-02, Hover Dual-Radar Compare + De
   );
   const microTags = specCard.querySelectorAll('.ag-pp-micro-tag');
   assert.equal(microTags.length, 3, 'MOD-01 must render 3 understated micro-tags');
-  assert.ok(specCard.textContent.includes('深度推理') && specCard.textContent.includes('512K 架构'));
+  assert.ok(specCard.textContent.includes('استدلال عميق') && specCard.textContent.includes('معمارية 512K'));
   const radarLabels = Array.from(specCard.querySelectorAll('.ag-pp-radar-vtx-lbl')).map((n) => n.textContent);
-  assert.deepEqual(radarLabels, ['推理', '终端', '科学', '工程', '极速']);
+  assert.deepEqual(radarLabels, ['الذكاء', 'الطرفية', 'العلوم', 'الهندسة', 'السرعة']);
   const tooltipEl = specCard.querySelector('.ag-pp-bench-tooltip');
   assert.ok(tooltipEl && tooltipEl.textContent.includes('AA v5') && tooltipEl.textContent.includes('TermBench'));
 
@@ -5731,7 +5728,6 @@ test('V14 Round 2 Audit Polish: Zero Center Sculpture Lock Sticker, End-to-End B
 
   // 3) Runtime verification on oled-cyber-screen.js:
   //    - 79 Au & 31 Ga (all 1..118 elements) blind-key chemistry flash: clean crystal filter='none', hero title '79 Au · Gold', capsule '79 Au · Gold · 196.97 · STANDBY'
-  //    - 1H orchUnsupported: attenuated sculpture alpha + desaturate filter, zero 'LOCKED' center label, right capsule 'NON-PLANNER · 编排态不可选'
   //    - Sculpture shifted left (-46px / light 10Ne -64px, right edge flush at 1600) & watermark ('Ne', 'Ar', 'Op', 'Fl', 'H', 'C', 3-char 'Uuo') cleanly separated with maxWidth guard
   const env = createPeriodicSandbox({ mock2d: true, mockWebGL2: false });
   class SyncImg {
@@ -5841,7 +5837,7 @@ test('V14 Round 2 Audit Polish: Zero Center Sculpture Lock Sticker, End-to-End B
   assert.ok(drawImgCalls[0].alpha < 0.85, `orchUnsupported must attenuate left sculpture opacity, got ${drawImgCalls[0].alpha}`);
   assert.ok(drawImgCalls[0].filter.includes('saturate('), `orchUnsupported must softly desaturate left sculpture, got ${drawImgCalls[0].filter}`);
   assert.equal(ctx2d._drawnTexts.includes('LOCKED'), false, 'orchUnsupported must NOT stamp standalone LOCKED sticker over sculpture');
-  assert.ok(ctx2d._drawnTexts.includes('NON-PLANNER · 编排态不可选'), 'Right capsule must retain NON-PLANNER · 编排态不可选');
+  assert.ok(ctx2d._drawnTexts.includes('خارج التخطيط · مقفل في التنسيق'));
 
   // Case C: Verify clean watermark coordinates for Ne (dark & light -64px shift), Ar, Op, Fl, C, and 3-char 'Uuo' maxWidth guard
   for (const wmCase of [
@@ -6154,7 +6150,7 @@ test('V14.1 Dedicated Raw-Quartz Standby Banners (Zero 6C Fallback) & Heavy Fros
     assert.ok(drawnRecords[0].filter.includes('blur(16px)') && drawnRecords[0].filter.includes('saturate(0.08)'), `Expected heavy 16px blur + 92% desaturation filter, got ${drawnRecords[0].filter}`);
     assert.ok(drawnRecords[0].dx <= -80 && drawnRecords[0].dy <= -40 && drawnRecords[0].dh >= 560, 'Locked frosted draw must apply 4-edge overscan bleed so blur kernel never pulls transparent borders');
     assert.ok(drawnRecords[0].alpha < 0.80, `Expected frosted attenuated alpha, got ${drawnRecords[0].alpha}`);
-    assert.ok(ctx._drawnTexts.includes('NON-PLANNER · 编排态不可选'));
+    assert.ok(ctx._drawnTexts.includes('خارج التخطيط · مقفل في التنسيق'));
     assert.equal(ctx._drawnTexts.includes('LOCKED'), false, 'Strictly zero circular LOCKED sticker over left silhouette');
   }
 
@@ -6730,13 +6726,13 @@ test('v1.0.8-beta (a) Open-state session switch 80ms debounce sync: ripple + 1.2
   assert.equal(waveRippleCalls[0].originZ, 10);
   assert.equal(badgeShownCalls.length, 1, 'Different-model session switch must trigger OLED sync badge');
   assert.equal(badgeShownCalls[0].dur, 1200);
-  assert.equal(badgeShownCalls[0].label, '已同步会话');
+  assert.equal(badgeShownCalls[0].label, 'متزامن');
   // Zero-reflow rAF class toggle: enters .is-session-switching on the next animation frame without forced offsetWidth
   env.advanceTime(16);
   env.flushRaf();
   assert.equal(specCard.classList.contains('is-session-switching'), true, 'Spec card must enter .is-session-switching fade on rAF');
   assert.equal(telePod.classList.contains('is-session-switching'), true, 'Telemetry pod must enter .is-session-switching fade on rAF');
-  assert.ok(capturedOledTexts.includes('已同步会话'), `OLED must render "已同步会话" micro-badge, got ${JSON.stringify(capturedOledTexts)}`);
+  assert.ok(capturedOledTexts.includes('متزامن'), `OLED must render "متزامن" micro-badge, got ${JSON.stringify(capturedOledTexts)}`);
 
   env.advanceTime(180);
   assert.equal(specCard.classList.contains('is-session-switching'), false, 'Card fade class must clear after 180ms');
@@ -7410,11 +7406,11 @@ test('v1.0.8-beta (l) host-i18n ag-pp- whitelist + #ag-prism-periodic-picker-roo
     root: i18nEnv.window,
     doc: i18nEnv.document,
     mode: 'on',
-    dict: { exact: { Settings: '设置', Carbon: '碳', 'Telemetry Offline': '遥测离线' }, patterns: [] },
+    dict: { exact: { Settings: 'الإعدادات', Carbon: 'الكربون', 'Telemetry Offline': 'Telemetry offline' }, patterns: [] },
   });
   i18nInst.scan();
-  assert.equal(hostBtn.textContent, '设置', 'Host UI outside ag-pp- must still be translated by host-i18n');
-  assert.equal(rootEl.textContent.includes('遥测离线'), false, 'host-i18n must never translate #ag-prism-periodic-picker-root');
+  assert.equal(hostBtn.textContent, 'الإعدادات', 'Host UI outside ag-pp- must still be translated by host-i18n');
+  assert.equal(rootEl.textContent.includes('Telemetry offline'), false, 'host-i18n must never translate #ag-prism-periodic-picker-root');
   i18nInst.destroy();
 
   // 2) zh=false across 8 modules emits strictly ZERO CJK characters
@@ -7500,7 +7496,7 @@ test('v1.0.8-beta live-fix (1) 300Hz WebGL2 hot-path: 0 per-frame dynMesh rebuil
   const kb3dSrc = fs.readFileSync(KEYBOARD_3D_FILE, 'utf8');
   assert.ok(kb3dSrc.includes('function pushVertexRawNormal('), 'keyboard-3d-gl.js must define pushVertexRawNormal');
   assert.ok(kb3dSrc.includes('clamp(a_normal.x, 0.005, 0.065)'), 'SOLID_VS must clamp bokeh mSize <= 0.065U');
-  const bokehBlockStart = kb3dSrc.indexOf('/* 4. 柔焦光学散景微星尘');
+  const bokehBlockStart = kb3dSrc.indexOf('/* 4. Soft optical bokeh motes');
   const bokehBlock = kb3dSrc.slice(bokehBlockStart, bokehBlockStart + 1800);
   assert.equal(bokehBlock.includes('mb.pushVertex('), false, 'Bokeh motes must never call normalizing mb.pushVertex()');
   assert.ok(bokehBlock.includes('mb.pushVertexRawNormal('), 'Bokeh motes must call mb.pushVertexRawNormal()');
@@ -7712,7 +7708,6 @@ test('v1.0.8-beta perf-dom-bg: 3D hit-layer pointer isolation, event bubble fire
     ],
   };
 
-  // 1) 追踪宿主冒泡事件与悬停态遥测 DOM 扫描
   let hostBubbleHits = 0;
   for (const evType of ['pointerover', 'pointerout', 'mouseover', 'mouseout', 'pointermove']) {
     env.body.addEventListener(evType, () => {
@@ -7731,7 +7726,6 @@ test('v1.0.8-beta perf-dom-bg: 3D hit-layer pointer isolation, event bubble fire
 
   const inst = factory.mountPeriodicPicker({ root: env.window, doc: env.document, mode: 'on' });
   assert.equal(inst.open(triggerBtn), true);
-  // 首帧同步阶段应延后宿主 DOM 遥测扫描（仅在 openRafId 首帧后补扫）
   assert.equal(telemetryDomQueries, 0, 'Synchronous open() must defer host DOM telemetry scan until post-first-frame rAF');
 
   const rootEl = env.document.getElementById('ag-prism-periodic-picker-root');
@@ -7743,24 +7737,20 @@ test('v1.0.8-beta perf-dom-bg: 3D hit-layer pointer isolation, event bubble fire
     styleEl.textContent.includes('#ag-prism-periodic-picker-root[data-gl-stage="1"] .ag-pp-hit-layer .ag-pp-hit-btn{pointer-events:none !important;}'),
     '3D/Canvas stage must disable pointer-events on 100+ overlay hit buttons'
   );
-  // 验证键盘无障碍焦点属性完好：可用键仍可 Tab 聚焦
   const carbonKeyBtn = rootEl.querySelector('button[data-z="6"]');
   assert.equal(carbonKeyBtn.getAttribute('tabindex'), null, 'Available keycap button must stay keyboard focusable');
 
-  // 首帧 rAF 后补扫遥测生效
   env.flushRaf();
   assert.ok(telemetryDomQueries >= 1, 'Post-first-frame rAF must hydrate host DOM telemetry');
   const telePod = rootEl.querySelector('[data-testid="ag-pp-bento-telemetry-pod"]');
   assert.ok(telePod.textContent.includes('159K') || telePod.textContent.includes('31.0%'), 'Deferred telemetry must populate MOD-02');
 
-  // 2) 容器事件冒泡防火墙：pointerover/pointerout/mouseover/mouseout/pointermove 绝不泄漏到宿主
   hostBubbleHits = 0;
   for (const evType of ['pointerover', 'pointerout', 'mouseover', 'mouseout', 'pointermove']) {
     canvas1.dispatchEvent(env.createEventObj(evType, { clientX: 500, clientY: 320, relatedTarget: stageEl }));
   }
   assert.equal(hostBubbleHits, 0, 'High-frequency pointer/hover events inside picker root must never bubble to host');
 
-  // 3) 跨键帽 hoverOnly 扫键：0 次宿主 DOM 遥测扫描 + 0 个高频光标变量写到 rootEl
   const fixedStageRect = { left: 320, top: 240, width: 760, height: 340, right: 1080, bottom: 580 };
   rootEl.getBoundingClientRect = () => ({ left: 0, top: 230, width: 1280, height: 360, right: 1280, bottom: 590 });
   stageEl.getBoundingClientRect = () => fixedStageRect;
@@ -7789,7 +7779,6 @@ test('v1.0.8-beta perf-dom-bg: 3D hit-layer pointer isolation, event bubble fire
     assert.equal(rootEl.style.getPropertyValue(rootVar), '', `Root container must never receive ${rootVar}`);
   }
 
-  // 4) 热开离屏 DOM 壳复用 + 替换全新 <canvas> + close() 零残留 + hidden 立即释放
   inst.close();
   assert.equal(env.document.getElementById('ag-prism-periodic-picker-root'), null, 'Closed picker must detach root from DOM');
   assert.equal(inst.open(triggerBtn), true);
@@ -7807,7 +7796,6 @@ test('v1.0.8-beta perf-dom-bg: 3D hit-layer pointer isolation, event bubble fire
   const rootEl3 = env.document.getElementById('ag-prism-periodic-picker-root');
   assert.notEqual(rootEl3, rootEl, 'visibilitychange(hidden) must evict detached shell cache');
 
-  // 5) 背景模块 data-ag-pp-open="1" 真 0fps 休眠静态/行为核验
   const hostI18nMod = require(HOST_I18N_FILE);
   const hoverHostBtn = env.makeElement('button', { text: 'Settings', useChildNodes: true });
   hoverHostBtn.appendChild(env.createTextNode('Settings'));
@@ -7816,9 +7804,8 @@ test('v1.0.8-beta perf-dom-bg: 3D hit-layer pointer isolation, event bubble fire
     root: env.window,
     doc: env.document,
     mode: 'on',
-    dict: { exact: { Settings: '设置' }, patterns: [] },
+    dict: { exact: { Settings: 'الإعدادات' }, patterns: [] },
   });
-  // 打开态（data-ag-pp-open="1"）下 pointerenter 触发 hoverHandler 应直接休眠早退
   env.document.dispatchEvent(env.createEventObj('pointerenter', {}, hoverHostBtn));
   assert.equal(hoverHostBtn.textContent, 'Settings', 'host-i18n hoverHandler must short-circuit while data-ag-pp-open="1"');
   i18nInst.destroy();

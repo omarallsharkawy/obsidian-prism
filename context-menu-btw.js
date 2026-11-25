@@ -29,16 +29,10 @@
     'M2 3h8v6H5l-2 2V9H2zM10 6h4v6h-1v2l-2-2H7v-1',
   ];
 
-  // 8 语种：[copy, copied, btwPlain, btwSel, planSel, compact, learn, grill, draftBusy, noConv, noComposer, hintSuffix]
+  // Bilingual (en / ar): [copy, copied, btwPlain, btwSel, planSel, compact, learn, grill, draftBusy, noConv, noComposer, hintSuffix]
   const I18N = {
-    'zh-CN': '复制|已复制|打开侧边会话|侧边追问选区|基于选区规划|压缩上下文|沉淀经验规则|对齐访谈|主框有草稿，请先发送或清空|请先打开会话|未找到主框|右键：原生菜单',
-    'zh-TW': '複製|已複製|開啟側邊會話|側邊追問選區|依選區規劃|壓縮上下文|沉澱經驗規則|對齊訪談|主框有草稿，請先送出或清空|請先開啟會話|找不到主框|右鍵：原生選單',
     en: 'Copy|Copied|Open side chat|Ask /btw on selection|Plan selection|Compact context|Capture learnings|Grill-me alignment|Draft in composer; send or clear first|Open a conversation first|Composer not found|Right-click: native',
-    ja: 'コピー|コピー済|サイド会話を開く|選択をサイド質問|選択から計画|コンテキスト圧縮|学び・ルール保存|対話アライメント|下書きあり。先に送信か消去を|先に会話を開いてください|入力欄が見つかりません|右クリック：標準',
-    ko: '복사|복사됨|사이드 채팅 열기|선택 영역 /btw 질문|선택 영역 계획|컨텍스트 압축|학습 규칙 저장|인터뷰 정렬|입력창에 초안이 있습니다. 먼저 전송하거나 비우세요|먼저 대화를 여세요|입력창을 찾을 수 없습니다|우클릭: 기본 메뉴',
-    es: 'Copiar|Copiado|Abrir chat lateral|Preguntar /btw sobre selección|Planificar selección|Compactar contexto|Guardar aprendizajes|Alineación grill-me|Hay un borrador; envía o limpia primero|Abre una conversación primero|No se encontró el editor|Clic derecho: menú nativo',
-    fr: 'Copier|Copié|Ouvrir le chat latéral|Demander /btw sur la sélection|Planifier la sélection|Compacter le contexte|Enregistrer les acquis|Alignement grill-me|Brouillon en cours ; envoyez ou effacez d’abord|Ouvrez d’abord une conversation|Zone de saisie introuvable|Clic droit : menu natif',
-    de: 'Kopieren|Kopiert|Seitenchat öffnen|/btw zur Auswahl fragen|Auswahl planen|Kontext komprimieren|Erkenntnisse speichern|Grill-me-Abgleich|Entwurf vorhanden; zuerst senden oder leeren|Bitte zuerst ein Gespräch öffnen|Eingabefeld nicht gefunden|Rechtsklick: Nativ',
+    ar: 'نسخ|تم النسخ|فتح محادثة جانبية|اسأل /btw عن التحديد|تخطيط من التحديد|ضغط السياق|حفظ الدروس والقواعد|مقابلة المواءمة|توجد مسودة في مربع الإدخال؛ أرسلها أو امسحها أولاً|افتح محادثة أولاً|تعذر العثور على مربع الإدخال|زر الفأرة الأيمن: القائمة الأصلية',
   };
   for (const k in I18N) I18N[k] = I18N[k].split('|');
 
@@ -48,14 +42,7 @@
   const rLang = (r) => {
     const s = String(r || '').trim().toLowerCase().replace(/_/g, '-');
     if (!s || s === 'auto') return 'en';
-    if (s === 'yue' || s.startsWith('yue-') || s === 'zh-yue' || s.includes('cantonese')) return 'zh-CN';
-    if (/^zh-(tw|hant|hk|mo)/.test(s) || s === 'tw' || s === 'hant') return 'zh-TW';
-    if (/^zh/.test(s)) return 'zh-CN';
-    if (/^(ja|jp)/.test(s) || s === 'japanese') return 'ja';
-    if (/^(ko|kr)/.test(s) || s === 'korean') return 'ko';
-    if (/^es/.test(s) || s === 'spanish') return 'es';
-    if (/^fr/.test(s) || s === 'french') return 'fr';
-    if (/^de/.test(s) || s === 'german') return 'de';
+    if (s === 'ar' || s.startsWith('ar-') || s === 'arabic' || s === 'العربية') return 'ar';
     return 'en';
   };
   const sa = (el, o) => { if (el?.setAttribute) for (const k in o) el.setAttribute(k, o[k]); return el; };
@@ -143,7 +130,7 @@
       toastTid = defer(() => { toastTid = null; if (toastEl === el) { safe(() => el.remove()); toastEl = null; } }, toastMs);
     };
 
-    // 两阶段 Fiber 探测：Phase 1 沿 .return 向上直达根节点 O(depth)，Phase 2 从根向下 BFS 兜底
+    // Two-phase Fiber probe: Phase 1 walks up .return to root in O(depth); Phase 2 falls back to BFS downward from root
     const findStore = () => safe(() => {
       if (!doc) return null;
       const pick = (f) => [f?.memoizedProps?.value?.store, f?.pendingProps?.value?.store, f?.memoizedProps?.store].find((s) => s?.dispatch && s?.getState);
@@ -285,7 +272,7 @@
         const quote = norm === '/compact' ? '' : clip(selectedText, 1200, 1);
         insertText(ed, norm);
 
-        // 最多 10 轮短探测原生斜杠菜单（兼容 v2.34 typeahead-item-* 无前导 / 的 label 与旧版 listbox，命中即停）
+        // Up to 10 short probes for native slash menu (supports v2.34 typeahead-item-* labels without leading / and legacy listbox; stops on match)
         const bare = norm.slice(1);
         const re = new RegExp('(?:^|\\s)/?' + bare.replace('-', '\\-') + '(?:\\s|$)', 'i');
         let opt = null, pickEl = null;

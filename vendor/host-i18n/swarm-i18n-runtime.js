@@ -25,7 +25,7 @@
   'use strict';
 
   var hasOwn = Object.prototype.hasOwnProperty;
-  var ZH_CHAR_RE = /[\u4e00-\u9fa5]/;
+  var AR_CHAR_RE = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/;
   var SWARM_HOST_RE = /^swarm--swarm_board-\d+$/;
   var ROOT_ATTR = 'data-ag-prism-swarm-i18n';
 
@@ -58,7 +58,7 @@
     'replay-timing': 1,
   };
 
-  // 元素及其后代文本绝对豁免（动态内容、成员名、消息正文、代码、路径等）
+  // Elements and their descendant text are strictly exempt (dynamic content, member names, message body, code, paths, etc.)
   var EXEMPT_TEXT_CLASSES = {
     'msg-body': 1,
     'sys-text': 1,
@@ -92,10 +92,10 @@
     'ov-who': 1,
   };
 
-  // 属性安全翻译列表（绝不触碰 value / data-* / id / class / href / src）
+  // Safe translatable attributes list (never touch value / data-* / id / class / href / src)
   var TRANSLATABLE_ATTRS = ['title', 'aria-label', 'placeholder', 'alt'];
 
-  // 即使文本豁免，仍允许翻译特定安全提示属性的元素类/testid
+  // Element classes/testids whose safe tooltip attributes remain translatable even when text is exempt
   var SAFE_ATTR_ONLY_CLASSES = {
     'msg-channel': 1,
     mention: 1,
@@ -103,7 +103,7 @@
     'hv-row': 1,
   };
 
-  // 线程标题内允许翻译的内置系统兜底标题
+  // Built-in fallback thread titles eligible for translation
   var BUILTIN_THREAD_TITLES = {
     Other: 1,
     Tasks: 1,
@@ -113,7 +113,7 @@
   };
 
   var RE_RMETA_EN = /^(\d+) of (\d+) tasks done$/;
-  var RE_RMETA_ZH = /^(\d+) \/ (\d+) 项任务已完成$/;
+  var RE_RMETA_AR = /^(\d+) \/ (\d+) مهمة مكتملة$/;
 
   function hasClass(el, cls) {
     if (!el || el.nodeType !== 1) return false;
@@ -286,16 +286,16 @@
       }
       if (rootEl) {
         var htmlLang = String(getAttr(rootEl, 'lang') || rootEl.lang || '').trim();
-        if (/^zh(?:$|[-_])/i.test(htmlLang)) {
-          return 'html-lang-zh';
+        if (/^(?:ar|zh)(?:$|[-_])/i.test(htmlLang)) {
+          return 'html-lang-external';
         }
       }
       if (doc && typeof doc.getElementById === 'function') {
         var anchorIds = ['tabbtn-feed', 'tabbtn-members', 'empty-title', 'live-label'];
         for (var i = 0; i < anchorIds.length; i++) {
           var anchor = doc.getElementById(anchorIds[i]);
-          if (anchor && typeof anchor.textContent === 'string' && ZH_CHAR_RE.test(anchor.textContent)) {
-            return 'chinese-anchor';
+          if (anchor && typeof anchor.textContent === 'string' && AR_CHAR_RE.test(anchor.textContent)) {
+            return 'arabic-anchor';
           }
         }
       }
@@ -521,7 +521,7 @@
 
     if (id === 'gif-modal-title') return { allow: false, isOption: false };
 
-    // <select>/<option> 严格白名单
+    // Strict <select>/<option> whitelist
     if (tag === 'OPTION') {
       var sel = findAncestorSelect(el.parentElement);
       var selId = sel ? getId(sel) : '';
@@ -534,7 +534,7 @@
       return { allow: false, isOption: false };
     }
 
-    // #channel-tabs 严格隔离：仅译 All 按钮文本（data-channel=""），自定义频道名绝不触碰
+    // Strict #channel-tabs isolation: only translate the "All" button text (data-channel=""), never custom channel names
     if (isInsideChannelTabs(el)) {
       var tabBtn = findAncestorChannelTab(el);
       if (tabBtn && getAttr(tabBtn, 'data-channel') === '' && trimmedText === 'All') {
@@ -543,7 +543,7 @@
       return { allow: false, isOption: false };
     }
 
-    // .o2-thn 正文豁免，仅允许 .o2-thn > span（Now）
+    // Exempt .o2-thn body text; allow only .o2-thn > span ("Now")
     if (hasClass(el, 'o2-thn')) {
       return { allow: false, isOption: false };
     }
@@ -551,12 +551,12 @@
       return { allow: true, isOption: false };
     }
 
-    // .o2-askb 正文/标题豁免，仅允许 .o2-askon
+    // Exempt .o2-askb body/title text; allow only .o2-askon
     if (hasClass(el, 'o2-askon')) {
       return { allow: true, isOption: false };
     }
 
-    // .o2-tt 直接任务标题豁免，仅允许内部 .o2-tw
+    // Exempt direct .o2-tt task title text; allow only inner .o2-tw
     if (hasClass(el, 'o2-tw')) {
       return { allow: true, isOption: false };
     }
@@ -564,7 +564,7 @@
       return { allow: false, isOption: false };
     }
 
-    // .o2-mtag：仅允许 swarm-member-seen 与 swarm-member-channels 的 "all channels"
+    // .o2-mtag: allow only swarm-member-seen and "all channels" on swarm-member-channels
     if (hasClass(el, 'o2-mtag')) {
       var mTid = getAttr(el, 'data-testid') || '';
       if (mTid === 'swarm-member-seen') return { allow: true, isOption: false };
@@ -574,12 +574,12 @@
       return { allow: false, isOption: false };
     }
 
-    // .o2-tht > b 仅译内置兜底标题（Other / Tasks / Needs you / Stuck / Waiting on @coordinator）
+    // .o2-tht > b: only translate built-in fallback titles (Other / Tasks / Needs you / Stuck / Waiting on @coordinator)
     if (tag === 'B' && el.parentElement && hasClass(el.parentElement, 'o2-tht')) {
       return { allow: Boolean(BUILTIN_THREAD_TITLES[trimmedText]), isOption: false };
     }
 
-    // 向上检查组合与类名豁免
+    // Walk ancestors for structural and class exemptions
     var cur = el;
     while (cur && cur.nodeType === 1) {
       var cid = getId(cur);
@@ -592,27 +592,27 @@
       if (hasAnyClass(cur, EXEMPT_TEXT_CLASSES)) {
         return { allow: false, isOption: false };
       }
-      // .o2-goal p 与 .o2-goal b 豁免（仅 .o2-glbl 可译）
+      // Exempt .o2-goal p and .o2-goal b (only .o2-glbl is translatable)
       if ((ctag === 'P' || ctag === 'B') && cur.parentElement && hasClass(cur.parentElement, 'o2-goal')) {
         return { allow: false, isOption: false };
       }
-      // .o2-cb b / .o2-cb p 豁免
+      // Exempt .o2-cb b / .o2-cb p
       if ((ctag === 'B' || ctag === 'P') && cur.parentElement && hasClass(cur.parentElement, 'o2-cb')) {
         return { allow: false, isOption: false };
       }
-      // .o2-lb p（协调者动态摘要）豁免
+      // Exempt .o2-lb p (dynamic coordinator summary)
       if (ctag === 'P' && cur.parentElement && hasClass(cur.parentElement, 'o2-lb')) {
         return { allow: false, isOption: false };
       }
-      // .o2-askb 内部除了已提前放行的 .o2-askon 外一律豁免
+      // Exempt everything inside .o2-askb except already-permitted .o2-askon
       if (hasClass(cur, 'o2-askb')) {
         return { allow: false, isOption: false };
       }
-      // .o2-thn 内部除已提前放行的直接 > span 外一律豁免
+      // Exempt everything inside .o2-thn except already-permitted direct > span
       if (hasClass(cur, 'o2-thn')) {
         return { allow: false, isOption: false };
       }
-      // .o2-mtag 内部除上面放行的之外一律豁免
+      // Exempt everything inside .o2-mtag except allowed tags above
       if (hasClass(cur, 'o2-mtag')) {
         return { allow: false, isOption: false };
       }
@@ -630,7 +630,7 @@
     if (getAttr(el, 'data-testid') === 'swarm-member-owner') return true; // title="Runs on ..."
     if (hasAnyClass(el, SAFE_ATTR_ONLY_CLASSES)) return true;
 
-    // #channel-tabs 仅允许 All 按钮（data-channel=""）与 #main 按钮（data-channel="main"）的 title
+    // #channel-tabs: only allow title attributes on All (data-channel="") and #main (data-channel="main")
     if (isInsideChannelTabs(el)) {
       if (hasClass(el, 'channel-tab') || getAttr(el, 'data-testid') === 'swarm-channel-tab') {
         var ch = getAttr(el, 'data-channel');
@@ -639,7 +639,7 @@
       return getId(el) === 'channel-tabs';
     }
 
-    // 豁免正文区域内元素不翻译属性（除非属于上面已放行的 SAFE_ATTR_ONLY_CLASSES）
+    // Do not translate attributes inside exempt body regions (except SAFE_ATTR_ONLY_CLASSES handled above)
     var cur = el;
     while (cur && cur.nodeType === 1) {
       var cid = getId(cur);
@@ -676,18 +676,18 @@
       return makeInactive(false, 'skipped-no-dom', 'no-document');
     }
 
-    // 门禁 1：严格 URL 校验
+    // Gate 1: strict URL validation
     if (!allowNonSwarmLocation && !isSwarmHostLocation(win.location)) {
       return makeInactive(false, 'skipped-non-swarm-url', 'url-mismatch');
     }
 
-    // 门禁 2：DOM 哨兵检查（若文档仍在 loading 允许延后一次检查）
+    // Gate 2: DOM sentinel check (defer once if document is still loading)
     var readyState = String(doc.readyState || 'complete');
     if (!hasSwarmDomSentinel(doc) && readyState !== 'loading') {
       return makeInactive(false, 'skipped-non-swarm-dom', 'missing-sentinel');
     }
 
-    // 门禁 3：外部 ASAR 汉化礼让
+    // Gate 3: yield to external ASAR localization
     var extReason = detectExternalSwarmI18n(win, doc);
     if (extReason) {
       return makeInactive(true, 'yielded', extReason);
@@ -847,7 +847,7 @@
 
       processElementAttrs(node, customUi);
 
-      // 门禁 4 & SVG 内部跳过（保留 SVG 自身 aria-label / title 翻译，不深入其内部节点）
+      // Gate 4 & skip SVG internals (keep SVG's own aria-label/title translated without descending into children)
       if (getTag(node) === 'SVG') return;
 
       var children = node.childNodes;
@@ -859,7 +859,7 @@
 
     function scan(rootNode) {
       if (destroyed || status !== 'active') return;
-      // 再次动态检查是否出现外部汉化
+      // Dynamically re-check for late-mounted external localization
       var lateExt = detectExternalSwarmI18n(win, doc);
       if (lateExt) {
         restoreAllDom();
@@ -962,9 +962,9 @@
           try {
             if (node.nodeValue === rec.translated) {
               node.nodeValue = rec.orig;
-            } else if (rec.isRmeta && typeof node.nodeValue === 'string' && RE_RMETA_ZH.test(node.nodeValue) && RE_RMETA_EN.test(rec.orig)) {
-              // 兼容 hive.js:742 对 .o2-rmeta 执行过 .replace(/^\d+/, f.done) 原位更新
-              node.nodeValue = node.nodeValue.replace(RE_RMETA_ZH, '$1 of $2 tasks done');
+            } else if (rec.isRmeta && typeof node.nodeValue === 'string' && RE_RMETA_AR.test(node.nodeValue) && RE_RMETA_EN.test(rec.orig)) {
+              // Compatibility with hive.js:742 in-place .replace(/^\d+/, f.done) updates on .o2-rmeta
+              node.nodeValue = node.nodeValue.replace(RE_RMETA_AR, '$1 of $2 tasks done');
             }
           } catch (_) {}
           origTextByNode.delete(node);

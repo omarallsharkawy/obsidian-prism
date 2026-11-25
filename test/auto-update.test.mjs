@@ -192,13 +192,13 @@ test('compareSemver handles v-prefix, prereleases, build metadata, and invalid i
 });
 
 test('isTrustedReleaseAssetUrl & multi-hop redirect guard reject untrusted protocols, hosts, private IPs, and >5 redirects', async () => {
-  assert.equal(isTrustedReleaseAssetUrl('https://api.github.com/repos/RMvdesi/obsidian-prism/releases/latest'), true);
-  assert.equal(isTrustedReleaseAssetUrl('https://github.com/RMvdesi/obsidian-prism/releases/download/v1.0.4/obsidian-prism-installer.exe'), true);
+  assert.equal(isTrustedReleaseAssetUrl('https://api.github.com/repos/omarallsharkawy/obsidian-prism/releases/latest'), true);
+  assert.equal(isTrustedReleaseAssetUrl('https://github.com/omarallsharkawy/obsidian-prism/releases/download/v1.0.4/obsidian-prism-installer.exe'), true);
   assert.equal(isTrustedReleaseAssetUrl('https://objects.githubusercontent.com/github-production-release-asset/123'), true);
   assert.equal(isTrustedReleaseAssetUrl('https://release-assets.githubusercontent.com/abc'), true);
   assert.equal(isTrustedReleaseAssetUrl('https://github-releases.githubusercontent.com/xyz'), true);
 
-  assert.equal(isTrustedReleaseAssetUrl('http://github.com/RMvdesi/obsidian-prism'), false);
+  assert.equal(isTrustedReleaseAssetUrl('http://github.com/omarallsharkawy/obsidian-prism'), false);
   assert.equal(isTrustedReleaseAssetUrl('https://evil.com/installer.exe'), false);
   assert.equal(isTrustedReleaseAssetUrl('https://sub.github.com/file'), false);
   assert.equal(isTrustedReleaseAssetUrl('https://127.0.0.1/file'), false);
@@ -276,15 +276,15 @@ test('parseSha256Sums & SHA-256 verification pass on valid payload and delete fi
               tag_name: 'v1.0.4',
               draft: false,
               prerelease: false,
-              html_url: 'https://github.com/RMvdesi/obsidian-prism/releases/tag/v1.0.4',
+              html_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/tag/v1.0.4',
               assets: [
                 {
                   name: 'obsidian-prism-installer.exe',
-                  browser_download_url: 'https://github.com/RMvdesi/obsidian-prism/releases/download/v1.0.4/obsidian-prism-installer.exe',
+                  browser_download_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/download/v1.0.4/obsidian-prism-installer.exe',
                 },
                 {
                   name: 'SHA256SUMS.txt',
-                  browser_download_url: 'https://github.com/RMvdesi/obsidian-prism/releases/download/v1.0.4/SHA256SUMS.txt',
+                  browser_download_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/download/v1.0.4/SHA256SUMS.txt',
                 },
               ],
             }),
@@ -342,7 +342,7 @@ test('parseSha256Sums & SHA-256 verification pass on valid payload and delete fi
               tag_name: 'v1.0.5',
               draft: false,
               prerelease: false,
-              html_url: 'https://github.com/RMvdesi/obsidian-prism/releases/tag/v1.0.5',
+              html_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/tag/v1.0.5',
               assets: [
                 {
                   name: 'obsidian-prism-installer.exe',
@@ -394,11 +394,11 @@ test('parseSha256Sums & SHA-256 verification pass on valid payload and delete fi
               tag_name: 'v1.0.6',
               draft: false,
               prerelease: false,
-              html_url: 'https://github.com/RMvdesi/obsidian-prism/releases/tag/v1.0.6',
+              html_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/tag/v1.0.6',
               assets: [
                 {
                   name: 'obsidian-prism-installer.exe',
-                  browser_download_url: 'https://github.com/RMvdesi/obsidian-prism/releases/download/v1.0.6/obsidian-prism-installer.exe',
+                  browser_download_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/download/v1.0.6/obsidian-prism-installer.exe',
                 },
               ],
             }),
@@ -415,7 +415,7 @@ test('parseSha256Sums & SHA-256 verification pass on valid payload and delete fi
     assert.equal(exeDownloaded, false, 'Must NEVER download .exe when expectedSha256 is unavailable');
     assert.equal(noShaSpawned, 0, 'Must NEVER spawn .exe when expectedSha256 is unavailable');
 
-    // 4) _selectReleaseAssets locks github.com URLs to /RMvdesi/obsidian-prism/releases/, refuses symlink tmpRoot, and cleans stale temp dirs
+    // 4) _selectReleaseAssets locks github.com URLs to /omarallsharkawy/obsidian-prism/releases/, refuses symlink tmpRoot, and cleans stale temp dirs
     const selWrongRepo = svcNoSha._selectReleaseAssets({
       html_url: 'https://github.com/evil/other/releases/tag/v1.0.6',
       assets: [
@@ -425,7 +425,7 @@ test('parseSha256Sums & SHA-256 verification pass on valid payload and delete fi
     });
     assert.equal(selWrongRepo.downloadUrl, null, 'Wrong github.com repo path must be rejected');
     assert.equal(selWrongRepo.shaAsset, null, 'Wrong github.com repo SHA256SUMS.txt must be rejected');
-    assert.equal(selWrongRepo.releaseUrl, 'https://github.com/RMvdesi/obsidian-prism/releases');
+    assert.equal(selWrongRepo.releaseUrl, 'https://github.com/omarallsharkawy/obsidian-prism/releases');
 
     const svcSymTmp = new UpdateService({
       platform: 'win32',
@@ -444,7 +444,7 @@ test('parseSha256Sums & SHA-256 verification pass on valid payload and delete fi
               assets: [{
                 name: 'obsidian-prism-installer.exe',
                 digest: `sha256:${validHash}`,
-                browser_download_url: 'https://github.com/RMvdesi/obsidian-prism/releases/download/v1.0.7/obsidian-prism-installer.exe',
+                browser_download_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/download/v1.0.7/obsidian-prism-installer.exe',
               }],
             }),
           };
@@ -487,11 +487,11 @@ test('UpdateService enforces TTL cache, force refresh, single-flight lock, draft
     tag_name: 'v1.0.4',
     draft: false,
     prerelease: false,
-    html_url: 'https://github.com/RMvdesi/obsidian-prism/releases/tag/v1.0.4',
+    html_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/tag/v1.0.4',
     assets: [
       {
         name: 'Obsidian-Prism-macOS-universal.dmg',
-        browser_download_url: 'https://github.com/RMvdesi/obsidian-prism/releases/download/v1.0.4/Obsidian-Prism-macOS-universal.dmg',
+        browser_download_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/download/v1.0.4/Obsidian-Prism-macOS-universal.dmg',
       },
     ],
   };
@@ -586,7 +586,7 @@ test('PrismDaemon honors autoUpdate=off/on, exposes update-status/check-update/a
           mode: 'installer',
           hotReloadCapable: true,
           manualRequired: false,
-          releaseUrl: 'https://github.com/RMvdesi/obsidian-prism/releases',
+          releaseUrl: 'https://github.com/omarallsharkawy/obsidian-prism/releases',
           downloadUrl: null,
           checkedAt: this._checked ? 123456 : null,
           lastError: null,
@@ -720,7 +720,7 @@ test('PrismDaemon honors autoUpdate=off/on, exposes update-status/check-update/a
   }
 });
 
-test('settings-panel & 5-language i18n render autoUpdate(off default), update controls, hard-reload hint, and keep bundle < 690 KiB / <= 704,000 B', async () => {
+test('settings-panel & bilingual (en/ar) i18n render autoUpdate(off default), update controls, hard-reload hint, and keep bundle < 690 KiB / <= 704,000 B', async () => {
   const requiredKeys = [
     'setAutoUpdateTitle',
     'setAutoUpdateDesc',
@@ -733,7 +733,7 @@ test('settings-panel & 5-language i18n render autoUpdate(off default), update co
     'updManualHint',
     'updHotNote',
   ];
-  for (const lang of ['zh-CN', 'zh-TW', 'yue', 'en', 'ja']) {
+  for (const lang of ['en', 'ar']) {
     const ui = i18nLocales.getUiStrings(lang);
     for (const k of requiredKeys) {
       assert.ok(typeof ui[k] === 'string' && ui[k].trim().length > 0, `Missing i18n key ${k} for ${lang}`);
@@ -793,8 +793,8 @@ test('settings-panel & 5-language i18n render autoUpdate(off default), update co
             hasUpdate: true,
             manualRequired: true,
             mode: 'manual',
-            downloadUrl: 'https://github.com/RMvdesi/obsidian-prism/releases/download/v1.0.4/Obsidian-Prism-macOS-universal.dmg',
-            releaseUrl: 'https://github.com/RMvdesi/obsidian-prism/releases/tag/v1.0.4',
+            downloadUrl: 'https://github.com/omarallsharkawy/obsidian-prism/releases/download/v1.0.4/Obsidian-Prism-macOS-universal.dmg',
+            releaseUrl: 'https://github.com/omarallsharkawy/obsidian-prism/releases/tag/v1.0.4',
           };
         }
         return {
@@ -883,19 +883,19 @@ test('dual update channels (stable / beta): prerelease selection, automatic stab
       tag_name: 'v1.0.8-beta.1',
       draft: true,
       prerelease: true,
-      html_url: 'https://github.com/RMvdesi/obsidian-prism/releases/tag/v1.0.8-beta.1',
+      html_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/tag/v1.0.8-beta.1',
       assets: [],
     },
     {
       tag_name: 'v1.0.7-beta.1',
       draft: false,
       prerelease: true,
-      html_url: 'https://github.com/RMvdesi/obsidian-prism/releases/tag/v1.0.7-beta.1',
+      html_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/tag/v1.0.7-beta.1',
       assets: [
         {
           name: 'obsidian-prism-installer.exe',
           digest: `sha256:${'1'.repeat(64)}`,
-          browser_download_url: 'https://github.com/RMvdesi/obsidian-prism/releases/download/v1.0.7-beta.1/obsidian-prism-installer.exe',
+          browser_download_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/download/v1.0.7-beta.1/obsidian-prism-installer.exe',
         },
       ],
     },
@@ -903,12 +903,12 @@ test('dual update channels (stable / beta): prerelease selection, automatic stab
       tag_name: 'v1.0.6',
       draft: false,
       prerelease: false,
-      html_url: 'https://github.com/RMvdesi/obsidian-prism/releases/tag/v1.0.6',
+      html_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/tag/v1.0.6',
       assets: [
         {
           name: 'obsidian-prism-installer.exe',
           digest: `sha256:${'2'.repeat(64)}`,
-          browser_download_url: 'https://github.com/RMvdesi/obsidian-prism/releases/download/v1.0.6/obsidian-prism-installer.exe',
+          browser_download_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/download/v1.0.6/obsidian-prism-installer.exe',
         },
       ],
     },
@@ -969,14 +969,14 @@ test('dual update channels (stable / beta): prerelease selection, automatic stab
       tag_name: 'v1.0.7',
       draft: false,
       prerelease: false,
-      html_url: 'https://github.com/RMvdesi/obsidian-prism/releases/tag/v1.0.7',
+      html_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/tag/v1.0.7',
       assets: [],
     },
     {
       tag_name: 'v1.0.7-beta.2',
       draft: false,
       prerelease: true,
-      html_url: 'https://github.com/RMvdesi/obsidian-prism/releases/tag/v1.0.7-beta.2',
+      html_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/tag/v1.0.7-beta.2',
       assets: [],
     },
     ...releasesList,
@@ -996,7 +996,7 @@ test('dual update channels (stable / beta): prerelease selection, automatic stab
     tag_name: 'v1.0.6',
     draft: false,
     prerelease: false,
-    html_url: 'https://github.com/RMvdesi/obsidian-prism/releases/tag/v1.0.6',
+    html_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/tag/v1.0.6',
     assets: [],
   };
   const gentleNoDowngrade = await svcOnBetaBuild.checkForUpdates({ force: true });
@@ -1006,7 +1006,7 @@ test('dual update channels (stable / beta): prerelease selection, automatic stab
     tag_name: 'v1.0.7',
     draft: false,
     prerelease: false,
-    html_url: 'https://github.com/RMvdesi/obsidian-prism/releases/tag/v1.0.7',
+    html_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/tag/v1.0.7',
     assets: [],
   };
   const gentlePromote = await svcOnBetaBuild.checkForUpdates({ force: true });
@@ -1070,11 +1070,11 @@ test('dual update channels (stable / beta): prerelease selection, automatic stab
 test('UpdateService on linux selects obsidian-prism-linux-portable.tar.gz (with fallback /linux.*\\.tar\\.gz$/i), preserves manual mode, and resolves SHA256SUMS.txt', async () => {
   const linuxDigest = 'f38d1932efb64ce0c8cde81291a8402efdf917b4dc0fb529b5790053ab0f7573';
   const fallbackDigest = '1111111111111111111111111111111111111111111111111111111111111111';
-  const shaUrl = 'https://github.com/RMvdesi/obsidian-prism/releases/download/v1.0.8-beta.1/SHA256SUMS.txt';
+  const shaUrl = 'https://github.com/omarallsharkawy/obsidian-prism/releases/download/v1.0.8-beta.1/SHA256SUMS.txt';
   const linuxExactUrl =
-    'https://github.com/RMvdesi/obsidian-prism/releases/download/v1.0.8-beta.1/obsidian-prism-linux-portable.tar.gz';
+    'https://github.com/omarallsharkawy/obsidian-prism/releases/download/v1.0.8-beta.1/obsidian-prism-linux-portable.tar.gz';
   const linuxFallbackUrl =
-    'https://github.com/RMvdesi/obsidian-prism/releases/download/v1.0.8-beta.1/obsidian-prism-linux-x64.tar.gz';
+    'https://github.com/omarallsharkawy/obsidian-prism/releases/download/v1.0.8-beta.1/obsidian-prism-linux-x64.tar.gz';
 
   const shaSumsText = [
     `aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111  obsidian-prism-installer.exe`,
@@ -1086,11 +1086,11 @@ test('UpdateService on linux selects obsidian-prism-linux-portable.tar.gz (with 
     tag_name: 'v1.0.8-beta.1',
     draft: false,
     prerelease: true,
-    html_url: 'https://github.com/RMvdesi/obsidian-prism/releases/tag/v1.0.8-beta.1',
+    html_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/tag/v1.0.8-beta.1',
     assets: [
       {
         name: 'obsidian-prism-installer.exe',
-        browser_download_url: 'https://github.com/RMvdesi/obsidian-prism/releases/download/v1.0.8-beta.1/obsidian-prism-installer.exe',
+        browser_download_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/download/v1.0.8-beta.1/obsidian-prism-installer.exe',
       },
       {
         name: 'obsidian-prism-linux-x64.tar.gz',

@@ -1,7 +1,7 @@
 /**
  * Obsidian Prism — Periodic Picker Bento UI & Theme Engine
  * Stylesheet CSS, 4-Kit CNC Theme Resolver, 5-Axis Radar, 512K Telemetry Pod,
- * Aux Pad Pagination UI, Anti-i18n Isolation & Strict EN/ZH Bilingual Rendering.
+ * Aux Pad Pagination UI, Anti-i18n Isolation & Strict EN/AR Bilingual Rendering.
  *
  * Contract:
  *   globalThis.__agPeriodicBentoUi (Browser) / module.exports (Node)
@@ -35,56 +35,14 @@
     var BENCHMARK_SOURCE_CITATION_SHORT = 'AA v5 · TermBench · SWE-bench (2026Q4)';
 
     var RADAR_AXES = [
-      { key: 'aa', zh: 'AA v5', en: 'AA v5', vertexZh: '推理', vertexEn: 'AA' },
-      { key: 'term', zh: 'TermBench', en: 'TermBench', vertexZh: '终端', vertexEn: 'Term' },
-      { key: 'sci', zh: 'HLE-D', en: 'HLE-D', vertexZh: '科学', vertexEn: 'Sci' },
-      { key: 'swe', zh: 'SWE-Pro', en: 'SWE-Pro', vertexZh: '工程', vertexEn: 'SWE' },
-      { key: 'tps', zh: '吞吐极速', en: 'Velocity', vertexZh: '极速', vertexEn: 'Speed' },
+      { key: 'aa', ar: 'AA v5', en: 'AA v5', vertexAr: 'الذكاء', vertexEn: 'AA' },
+      { key: 'term', ar: 'TermBench', en: 'TermBench', vertexAr: 'الطرفية', vertexEn: 'Term' },
+      { key: 'sci', ar: 'HLE-D', en: 'HLE-D', vertexAr: 'العلوم', vertexEn: 'Sci' },
+      { key: 'swe', ar: 'SWE-Pro', en: 'SWE-Pro', vertexAr: 'الهندسة', vertexEn: 'SWE' },
+      { key: 'tps', ar: 'السرعة', en: 'Velocity', vertexAr: 'السرعة', vertexEn: 'Speed' },
     ];
 
     var BENTO_I18N = {
-      'zh-CN': {
-        detailsOpen: '展开面板 ▾', detailsClose: '收起面板 ▴',
-        teleOff: '遥测未开启', teleOffTitle: '实时遥测未开启', teleDisabledTitle: '实时遥测已关闭',
-        teleOffSub: '仅展示真实上下文指标 · 已禁用模拟数据',
-        badgeDisabled: '已关闭', badgeOffline: '未开启', badgeTight: '紧凑 TIGHT', badgeOptimal: '充裕 OPTIMAL',
-        kv: '缓存 ', free: '余量 ', specBtn: '规格',
-        flipToSpec: '切换回 MOD-01 评测规格面板', flipToTele: '切换至 MOD-02 512K 实时遥测面板',
-        metaKicker: '原生模型元信息', metaModel: '名称', metaEffort: '推理档位', metaDefault: '默认', metaId: '原生标识',
-        metaNote: '未收录于 2026Q4 基准库 · 仅展示真实宿主元数据',
-        ttHead: '2026Q4 评测口径与思考档位说明',
-        infoAria: '评测指标与思考档位说明',
-        ttLines: ['AA v5：Artificial Analysis 综合智力指数（满分 100）', 'TermBench：命令行与终端自主排障通过率（%）', 'HLE-D / GPQA-D：前沿科学与多步难题推理（%）', 'SWE-Pro / AutoBench：真实软件工程修复率（%）', '思考档位：Low 极速响应 · Med 均衡 · High 深度 · XHigh 极限推理'],
-        locked: '锁定态', hoverTag: '预览', activeTag: '当前',
-        orchTopo: '双核路由拓扑 · DUAL-CORE', planner: '规划核', runner: '执行核',
-        inFlowDock: '内嵌底坞', stage3d: '全屏展台',
-        dockReturn: '收起回输入框正下方内嵌底坞 (F)', stageExpand: '展开全屏 3D 展台并解锁自由旋转 (F)',
-        unmute: '开启机械音效', mute: '静音', closeDock: '收起底坞 (Esc / Enter)',
-        auxPrev: '上一页副盘模型', auxNext: '下一页副盘模型', pagePre: '第 ', pageSuf: ' 页',
-        radarAxes: ['AA v5', 'TermBench', 'HLE-D', 'SWE-Pro', '吞吐极速'],
-        radarVerts: ['推理', '终端', '科学', '工程', '极速'],
-      },
-      'zh-TW': {
-        detailsOpen: '展開面板 ▾', detailsClose: '收起面板 ▴',
-        teleOff: '遙測未開啟', teleOffTitle: '即時遙測未開啟', teleDisabledTitle: '即時遙測已關閉',
-        teleOffSub: '僅顯示真實上下文指標 · 已停用模擬資料',
-        badgeDisabled: '已關閉', badgeOffline: '未開啟', badgeTight: '緊湊 TIGHT', badgeOptimal: '充裕 OPTIMAL',
-        kv: '快取 ', free: '餘量 ', specBtn: '規格',
-        flipToSpec: '切換回 MOD-01 評測規格面板', flipToTele: '切換至 MOD-02 512K 即時遙測面板',
-        metaKicker: '原生模型中繼資料', metaModel: '名稱', metaEffort: '推理檔位', metaDefault: '預設', metaId: '原生識別',
-        metaNote: '未收錄於 2026Q4 基準庫 · 僅顯示真實宿主中繼資料',
-        ttHead: '2026Q4 評測口徑與思考檔位說明',
-        infoAria: '評測指標與思考檔位說明',
-        ttLines: ['AA v5：Artificial Analysis 綜合智力指數（滿分 100）', 'TermBench：命令列與終端自主排障通過率（%）', 'HLE-D / GPQA-D：前沿科學與多步難題推理（%）', 'SWE-Pro / AutoBench：真實軟體工程修復率（%）', '思考檔位：Low 極速響應 · Med 均衡 · High 深度 · XHigh 極限推理'],
-        locked: '鎖定態', hoverTag: '預覽', activeTag: '目前',
-        orchTopo: '雙核路由拓樸 · DUAL-CORE', planner: '規劃核', runner: '執行核',
-        inFlowDock: '內嵌底塢', stage3d: '全螢幕展台',
-        dockReturn: '收合回輸入框下方內嵌底塢 (F)', stageExpand: '展開全螢幕 3D 展台並解鎖自由旋轉 (F)',
-        unmute: '開啟機械音效', mute: '靜音', closeDock: '收合底塢 (Esc / Enter)',
-        auxPrev: '上一頁副盤模型', auxNext: '下一頁副盤模型', pagePre: '第 ', pageSuf: ' 頁',
-        radarAxes: ['AA v5', 'TermBench', 'HLE-D', 'SWE-Pro', '吞吐極速'],
-        radarVerts: ['推理', '終端', '科學', '工程', '極速'],
-      },
       en: {
         detailsOpen: 'Details ▾', detailsClose: 'Hide Panel ▴',
         teleOff: 'Telemetry Off', teleOffTitle: 'Telemetry Offline', teleDisabledTitle: 'Telemetry Disabled',
@@ -106,124 +64,33 @@
         radarAxes: ['AA v5', 'TermBench', 'HLE-D', 'SWE-Pro', 'Velocity'],
         radarVerts: ['AA', 'Term', 'Sci', 'SWE', 'Speed'],
       },
-      ja: {
-        detailsOpen: '詳細 ▾', detailsClose: 'パネルを閉じる ▴',
-        teleOff: '計測オフ', teleOffTitle: 'テレメトリ未接続', teleDisabledTitle: 'テレメトリ無効',
-        teleOffSub: '実測コンテキスト指標のみ表示 · 擬似データ無効',
-        badgeDisabled: '無効', badgeOffline: 'オフライン', badgeTight: '逼迫 TIGHT', badgeOptimal: '余裕 OPTIMAL',
-        kv: 'KV ', free: '残 ', specBtn: '仕様',
-        flipToSpec: 'MOD-01 ベンチマーク仕様へ戻る', flipToTele: 'MOD-02 512K リアルタイム計測へ切替',
-        metaKicker: 'ネイティブモデルメタ情報', metaModel: 'モデル', metaEffort: '推論レベル', metaDefault: '既定', metaId: '識別子',
-        metaNote: '2026Q4 ベンチ対象外 · ホスト実メタデータを表示中',
-        ttHead: '2026Q4 評価指標と推論レベル説明',
-        infoAria: '評価指標と推論レベルの説明',
-        ttLines: ['AA v5：Artificial Analysis 総合知能指数 (100点満点)', 'TermBench：端末・CLI 自律修復成功率 (%)', 'HLE-D / GPQA-D：先端科学・多段推論正答率 (%)', 'SWE-Pro / AutoBench：実ソフトウェア修正率 (%)', '推論レベル：Low 高速 · Med 均衡 · High 深層 · XHigh 極限'],
-        locked: 'ロック中', hoverTag: 'プレビュー', activeTag: '現在',
-        orchTopo: 'デュアルコア経路トポロジ', planner: '計画コア', runner: '実行コア',
-        inFlowDock: 'インラインドック', stage3d: '3Dステージ',
-        dockReturn: '入力欄下のインラインドックへ戻す (F)', stageExpand: '全画面 3D ステージを展開して自由回転 (F)',
-        unmute: 'メカニカル音を有効化', mute: 'ミュート', closeDock: 'ドックを閉じる (Esc / Enter)',
-        auxPrev: '前のサブキーページ', auxNext: '次のサブキーページ', pagePre: '', pageSuf: ' ページ',
-        radarAxes: ['AA v5', 'TermBench', 'HLE-D', 'SWE-Pro', '生成速度'],
-        radarVerts: ['AA', 'Term', '科学', 'SWE', '速度'],
-      },
-      ko: {
-        detailsOpen: '상세 ▾', detailsClose: '패널 접기 ▴',
-        teleOff: '텔레메트리 꺼짐', teleOffTitle: '텔레메트리 오프라인', teleDisabledTitle: '텔레메트리 비활성',
-        teleOffSub: '실시간 컨텍스트 지표만 표시 · 가상 데이터 비활성화',
-        badgeDisabled: '꺼짐', badgeOffline: '오프라인', badgeTight: '부족 TIGHT', badgeOptimal: '여유 OPTIMAL',
-        kv: '캐시 ', free: '여유 ', specBtn: '사양',
-        flipToSpec: 'MOD-01 벤치마크 사양으로 전환', flipToTele: 'MOD-02 512K 실시간 텔레메트리로 전환',
-        metaKicker: '기본 모델 메타데이터', metaModel: '모델', metaEffort: '추론 수준', metaDefault: '기본값', metaId: '태그 / ID',
-        metaNote: '2026Q4 벤치마크 미등재 · 호스트 메타데이터 표시 중',
-        ttHead: '2026Q4 벤치마크 및 사고 수준 안내',
-        infoAria: '벤치마크 지표 및 사고 수준 안내',
-        ttLines: ['AA v5: Artificial Analysis 종합 지능 지수 (0-100)', 'TermBench: 터미널·CLI 자율 작업 정확도 (%)', 'HLE-D / GPQA-D: 첨단 과학 및 심층 추론 (%)', 'SWE-Pro / AutoBench: 실제 소프트웨어 엔지니어링 (%)', '수준: Low 고속 · Med 균형 · High 심층 · XHigh 최대'],
-        locked: '잠김', hoverTag: '미리보기', activeTag: '활성',
-        orchTopo: '듀얼 코어 라우팅 토폴로지', planner: '플래너', runner: '러너',
-        inFlowDock: '인라인 독', stage3d: '3D 스테이지',
-        dockReturn: '입력창 아래 인라인 독으로 복귀 (F)', stageExpand: '전체 화면 3D 스테이지 및 자유 회전 (F)',
-        unmute: '키캡 사운드 켜기', mute: '음소거', closeDock: '독 닫기 (Esc / Enter)',
-        auxPrev: '이전 보조 키 페이지', auxNext: '다음 보조 키 페이지', pagePre: '', pageSuf: '페이지',
-        radarAxes: ['AA v5', 'TermBench', 'HLE-D', 'SWE-Pro', '처리 속도'],
-        radarVerts: ['AA', 'Term', '과학', 'SWE', '속도'],
-      },
-      es: {
-        detailsOpen: 'Detalles ▾', detailsClose: 'Ocultar ▴',
-        teleOff: 'Telemetría apagada', teleOffTitle: 'Telemetría desconectada', teleDisabledTitle: 'Telemetría desactivada',
-        teleOffSub: 'Solo métricas reales · Datos sintéticos desactivados',
-        badgeDisabled: 'APAGADA', badgeOffline: 'OFFLINE', badgeTight: 'JUSTO', badgeOptimal: 'ÓPTIMO',
-        kv: 'KV ', free: 'Libre ', specBtn: 'Espec.',
-        flipToSpec: 'Volver a especificaciones MOD-01', flipToTele: 'Cambiar a telemetría MOD-02 512K',
-        metaKicker: 'METADATOS DEL MODELO', metaModel: 'MODELO', metaEffort: 'ESFUERZO', metaDefault: 'Predet.', metaId: 'TAG / ID',
-        metaNote: 'Fuera de benchmarks 2026Q4 · Mostrando metadatos reales',
-        ttHead: 'Benchmarks 2026Q4 y niveles de esfuerzo',
-        infoAria: 'Explicación de métricas y niveles de razonamiento',
-        ttLines: ['AA v5: Índice de inteligencia Artificial Analysis (0-100)', 'TermBench: Precisión autónoma en terminal y CLI (%)', 'HLE-D / GPQA-D: Ciencia de frontera y razonamiento (%)', 'SWE-Pro / AutoBench: Ingeniería de software real (%)', 'Esfuerzo: Low Rápido · Med Equil. · High Prof. · XHigh Máx'],
-        locked: 'Bloqueado', hoverTag: 'Vista previa', activeTag: 'Activo',
-        orchTopo: 'Topología de doble núcleo', planner: 'PLANIF.', runner: 'EJECUTOR',
-        inFlowDock: 'Dock integrado', stage3d: 'Escena 3D',
-        dockReturn: 'Volver al dock bajo el editor (F)', stageExpand: 'Expandir escena 3D y órbita libre (F)',
-        unmute: 'Activar sonido', mute: 'Silenciar', closeDock: 'Contraer dock (Esc / Enter)',
-        auxPrev: 'Página anterior', auxNext: 'Página siguiente', pagePre: 'Página ', pageSuf: '',
-        radarAxes: ['AA v5', 'TermBench', 'HLE-D', 'SWE-Pro', 'Velocidad'],
-        radarVerts: ['AA', 'Term', 'Cienc.', 'SWE', 'Vel.'],
-      },
-      fr: {
-        detailsOpen: 'Détails ▾', detailsClose: 'Masquer ▴',
-        teleOff: 'Télémétrie coupée', teleOffTitle: 'Télémétrie hors ligne', teleDisabledTitle: 'Télémétrie désactivée',
-        teleOffSub: 'Métriques réelles uniquement · Secours synthétique coupé',
-        badgeDisabled: 'COUPÉE', badgeOffline: 'HORS LIGNE', badgeTight: 'SERRÉ', badgeOptimal: 'OPTIMAL',
-        kv: 'KV ', free: 'Libre ', specBtn: 'Spéc.',
-        flipToSpec: 'Revenir au panneau MOD-01', flipToTele: 'Passer à la télémétrie MOD-02 512K',
-        metaKicker: 'MÉTADONNÉES NATIVES', metaModel: 'MODÈLE', metaEffort: 'EFFORT', metaDefault: 'Défaut', metaId: 'TAG / ID',
-        metaNote: 'Absent des benchmarks 2026Q4 · Métadonnées hôte réelles',
-        ttHead: 'Benchmarks 2026Q4 et niveaux de réflexion',
-        infoAria: 'Explication des benchmarks et niveaux de réflexion',
-        ttLines: ['AA v5 : Indice d’intelligence Artificial Analysis (0-100)', 'TermBench : Précision autonome terminal & CLI (%)', 'HLE-D / GPQA-D : Science avancée & raisonnement (%)', 'SWE-Pro / AutoBench : Génie logiciel réel (%)', 'Effort : Low Rapide · Med Équil. · High Prof. · XHigh Max'],
-        locked: 'Verrouillé', hoverTag: 'Aperçu', activeTag: 'Actif',
-        orchTopo: 'Topologie double cœur', planner: 'PLANIF.', runner: 'EXÉC.',
-        inFlowDock: 'Dock intégré', stage3d: 'Scène 3D',
-        dockReturn: 'Revenir au dock sous la zone de saisie (F)', stageExpand: 'Agrandir la scène 3D en plein écran (F)',
-        unmute: 'Activer le son', mute: 'Couper le son', closeDock: 'Fermer le dock (Esc / Enter)',
-        auxPrev: 'Page précédente', auxNext: 'Page suivante', pagePre: 'Page ', pageSuf: '',
-        radarAxes: ['AA v5', 'TermBench', 'HLE-D', 'SWE-Pro', 'Vélocité'],
-        radarVerts: ['AA', 'Term', 'Sci', 'SWE', 'Vit.'],
-      },
-      de: {
-        detailsOpen: 'Details ▾', detailsClose: 'Ausblenden ▴',
-        teleOff: 'Telemetrie aus', teleOffTitle: 'Telemetrie offline', teleDisabledTitle: 'Telemetrie deaktiviert',
-        teleOffSub: 'Nur Live-Kontextmetriken · Synthetik deaktiviert',
-        badgeDisabled: 'AUS', badgeOffline: 'OFFLINE', badgeTight: 'KNAPP', badgeOptimal: 'OPTIMAL',
-        kv: 'KV ', free: 'Frei ', specBtn: 'Daten',
-        flipToSpec: 'Zurück zu MOD-01 Spezifikationen', flipToTele: 'Zu MOD-02 512K-Telemetrie wechseln',
-        metaKicker: 'NATIVE MODELL-METADATEN', metaModel: 'MODELL', metaEffort: 'AUFWAND', metaDefault: 'Standard', metaId: 'TAG / ID',
-        metaNote: 'Nicht in 2026Q4-Benchmarks · Zeige echte Host-Metadaten',
-        ttHead: '2026Q4-Benchmarks & Denkstufen',
-        infoAria: 'Erklärung zu Benchmarks und Denkstufen',
-        ttLines: ['AA v5: Artificial Analysis Intelligence Index (0-100)', 'TermBench: Autonome Terminal- & CLI-Aufgaben (%)', 'HLE-D / GPQA-D: Spitzenwissenschaft & Tiefenlogik (%)', 'SWE-Pro / AutoBench: Reale Softwareentwicklung (%)', 'Aufwand: Low Schnell · Med Ausgew. · High Tief · XHigh Max'],
-        locked: 'Gesperrt', hoverTag: 'Vorschau', activeTag: 'Aktiv',
-        orchTopo: 'Dual-Core-Routingtopologie', planner: 'PLANER', runner: 'RUNNER',
-        inFlowDock: 'Inline-Dock', stage3d: '3D-Bühne',
-        dockReturn: 'Zurück zum Inline-Dock unter dem Eingabefeld (F)', stageExpand: 'Vollbild-3D-Bühne & freies Drehen (F)',
-        unmute: 'Ton einschalten', mute: 'Stummschalten', closeDock: 'Dock schließen (Esc / Enter)',
-        auxPrev: 'Vorherige Aux-Seite', auxNext: 'Nächste Aux-Seite', pagePre: 'Seite ', pageSuf: '',
-        radarAxes: ['AA v5', 'TermBench', 'HLE-D', 'SWE-Pro', 'Tempo'],
-        radarVerts: ['AA', 'Term', 'Wiss.', 'SWE', 'Tempo'],
+      ar: {
+        detailsOpen: 'التفاصيل ▾', detailsClose: 'إخفاء اللوحة ▴',
+        teleOff: 'القياس متوقف', teleOffTitle: 'القياس غير متصل', teleDisabledTitle: 'القياس معطّل',
+        teleOffSub: 'مقاييس حيّة فقط · تم تعطيل البيانات التقديرية',
+        badgeDisabled: 'معطّل', badgeOffline: 'غير متصل', badgeTight: 'مرتفع', badgeOptimal: 'مثالي',
+        kv: 'ذاكرة مؤقتة ', free: 'متاح ', specBtn: 'المواصفات',
+        flipToSpec: 'التبديل إلى لوحة المواصفات والاختبارات MOD-01', flipToTele: 'التبديل إلى قياس السياق 512K MOD-02',
+        metaKicker: 'بيانات النموذج الأصلية', metaModel: 'النموذج', metaEffort: 'مستوى التفكير', metaDefault: 'افتراضي', metaId: 'المعرّف',
+        metaNote: 'غير مدرج في اختبارات 2026Q4 · عرض بيانات المضيف الحيّة فقط',
+        ttHead: 'اختبارات 2026Q4 ومستويات التفكير',
+        infoAria: 'شرح مؤشرات الأداء ومستويات التفكير',
+        ttLines: ['AA v5: مؤشر ذكاء Artificial Analysis الشامل (من 100)', 'TermBench: دقة المهام المستقلة في الطرفية وCLI (%)', 'HLE-D / GPQA-D: العلوم المتقدمة والاستدلال العميق (%)', 'SWE-Pro / AutoBench: هندسة البرمجيات الواقعية (%)', 'التفكير: منخفض سريع · متوسط متوازن · عالي عميق · فائق أقصى'],
+        locked: 'مقفل', hoverTag: 'معاينة', activeTag: 'نشط',
+        orchTopo: 'توجيه ثنائي النواة · DUAL-CORE', planner: 'المخطّط', runner: 'المنفّذ',
+        inFlowDock: 'الرصيف المدمج', stage3d: 'منصة 3D',
+        dockReturn: 'العودة إلى الرصيف المدمج أسفل مربع الإدخال (F)', stageExpand: 'توسيع منصة 3D بملء الشاشة وتدوير حر (F)',
+        unmute: 'تشغيل الصوت الميكانيكي', mute: 'كتم الصوت', closeDock: 'طي الرصيف (Esc / Enter)',
+        auxPrev: 'صفحة اللوحة المساعدة السابقة', auxNext: 'صفحة اللوحة المساعدة التالية', pagePre: 'صفحة ', pageSuf: '',
+        radarAxes: ['AA v5', 'TermBench', 'HLE-D', 'SWE-Pro', 'السرعة'],
+        radarVerts: ['الذكاء', 'الطرفية', 'العلوم', 'الهندسة', 'السرعة'],
       },
     };
 
     function normalizePeriodicLang(raw) {
       var s = String(raw || '').trim().toLowerCase().replace(/_/g, '-');
       if (!s || s === 'auto') return '';
-      if (s === 'yue' || s.indexOf('yue-') === 0 || s === 'zh-yue' || s.indexOf('cantonese') !== -1) return 'zh-CN';
-      if (/^zh-(tw|hant|hk|mo)/.test(s) || s === 'tw' || s === 'hant') return 'zh-TW';
-      if (/^zh(?:$|-)/.test(s)) return 'zh-CN';
-      if (/^(ja|jp)(?:$|-)/.test(s) || s === 'japanese') return 'ja';
-      if (/^(ko|kr)(?:$|-)/.test(s) || s === 'korean') return 'ko';
-      if (/^es(?:$|-)/.test(s) || s === 'spanish') return 'es';
-      if (/^fr(?:$|-)/.test(s) || s === 'french') return 'fr';
-      if (/^de(?:$|-)/.test(s) || s === 'german') return 'de';
+      if (/^ar(?:$|-)/.test(s) || s === 'arabic') return 'ar';
       if (/^en(?:$|-)/.test(s) || s === 'english') return 'en';
       return '';
     }
@@ -242,11 +109,10 @@
       return 'en';
     }
 
-    function getBentoI18nPack(langOrZh) {
-      if (typeof langOrZh === 'string') {
-        return BENTO_I18N[normalizePeriodicLang(langOrZh) || langOrZh] || BENTO_I18N.en;
+    function getBentoI18nPack(langOrFlag) {
+      if (typeof langOrFlag === 'string') {
+        return BENTO_I18N[normalizePeriodicLang(langOrFlag) || 'en'] || BENTO_I18N.en;
       }
-      if (langOrZh === true) return BENTO_I18N['zh-CN'];
       return BENTO_I18N.en;
     }
 
@@ -369,7 +235,7 @@
       '#ag-prism-periodic-picker-root{',
       'position:fixed;inset:0;z-index:2147483640;display:flex;flex-direction:column;align-items:center;justify-content:center;',
       'gap:8px;padding:10px 12px;box-sizing:border-box;overflow:hidden;isolation:isolate;contain:layout style paint;',
-      'font-family:"Inter","SF Pro Display","Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Noto Sans SC",sans-serif;',
+      'font-family:"Inter","SF Pro Display","Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans Arabic","IBM Plex Sans Arabic",sans-serif;',
       '--pp-ambient-mul:1;',
       '--ag-pp-model-accent:#3B82F6;--ag-pp-model-secondary:#67E8F9;--ag-pp-model-grad:linear-gradient(90deg,#3B82F6 0%,#67E8F9 100%);--ag-pp-model-glow:rgba(59,130,246,0.32);',
       '--pp-elem-halo:rgba(226,232,240,0.02);--pp-elem-ring:rgba(226,232,240,0.24);',
@@ -903,9 +769,12 @@
       return el;
     }
 
-    function isZhLocale(doc, rt) {
-      var l = resolveLocale(doc, rt);
-      return l === 'zh-CN' || l === 'zh-TW';
+    function isZhLocale() {
+      return false;
+    }
+
+    function isArLocale(doc, rt) {
+      return resolveLocale(doc, rt) === 'ar';
     }
 
     var _bentoRmMqlCache = typeof WeakMap === 'function' ? new WeakMap() : null;
@@ -1965,7 +1834,7 @@
     }
 
     function buildBentoTwinCards(doc, handlers, opts) {
-      var langInit = (opts && opts.lang) ? (normalizePeriodicLang(opts.lang) || 'en') : (handlers && handlers.lang) ? (normalizePeriodicLang(handlers.lang) || 'en') : ((opts && opts.zh !== undefined) ? (opts.zh ? 'zh-CN' : 'en') : (handlers && handlers.zh !== undefined) ? (handlers.zh ? 'zh-CN' : 'en') : resolveLocale(doc, opts && opts.root));
+      var langInit = (opts && opts.lang) ? (normalizePeriodicLang(opts.lang) || 'en') : (handlers && handlers.lang) ? (normalizePeriodicLang(handlers.lang) || 'en') : resolveLocale(doc, opts && opts.root);
       var packInit = getBentoI18nPack(langInit);
       var activeHandlers = handlers || {};
 
@@ -2064,7 +1933,7 @@
       var specCard = mkEl(doc, 'section', 'ag-pp-bento-card ag-pp-spec-card');
       specCard.setAttribute('data-testid', 'ag-pp-bento-spec-card');
       specCard.setAttribute('data-known-benchmark', '1');
-      // 独立零子节点倒角高光层，隔离光标 CSS 变量写入避免卡片子树样式重算
+      // Standalone zero-child chamfer highlight layer isolates pointer CSS variable writes from card subtree style recalculation
       var specCardRim = mkEl(doc, 'div', 'ag-pp-card-rim ag-pp-spec-rim');
       specCardRim.setAttribute('aria-hidden', 'true');
       specCard.appendChild(specCardRim);
@@ -2561,11 +2430,11 @@
       };
     }
 
-    function syncAuxPagerDom(bentoRefs, doc, auxPage, auxPageCount, langOrZh, handlers) {
+    function syncAuxPagerDom(bentoRefs, doc, auxPage, auxPageCount, langOrFlag, handlers) {
       if (!bentoRefs || !bentoRefs.auxPager) return;
       if (handlers) bentoRefs._handlers = handlers;
-      var pack = getBentoI18nPack(langOrZh);
-      var langKey = typeof langOrZh === 'string' ? (normalizePeriodicLang(langOrZh) || langOrZh) : (langOrZh ? 'zh-CN' : 'en');
+      var pack = getBentoI18nPack(langOrFlag);
+      var langKey = typeof langOrFlag === 'string' ? (normalizePeriodicLang(langOrFlag) || 'en') : 'en';
       var total = Math.max(1, Number(auxPageCount) || 1);
       var page = Math.max(0, Math.min(total - 1, Number(auxPage) || 0));
       if (bentoRefs._pagerState) {
@@ -2627,9 +2496,12 @@
       var bSpec = params.bSpec;
       var committed = params.committed || {};
       var tele = params.telemetry || { available: false, reason: 'offline' };
-      var lang = params.lang ? (normalizePeriodicLang(params.lang) || 'en') : (typeof params.zh === 'boolean' ? (params.zh ? 'zh-CN' : 'en') : resolveLocale(doc, rt));
+      var lang = params.lang ? (normalizePeriodicLang(params.lang) || 'en') : resolveLocale(doc, rt);
       var pack = getBentoI18nPack(lang);
-      var zh = lang === 'zh-CN' || lang === 'zh-TW';
+      var dir = lang === 'ar' ? 'rtl' : 'ltr';
+      if (bentoRefs.specCard && bentoRefs.specCard.getAttribute('dir') !== dir) bentoRefs.specCard.setAttribute('dir', dir);
+      if (bentoRefs.telePod && bentoRefs.telePod.getAttribute('dir') !== dir) bentoRefs.telePod.setAttribute('dir', dir);
+      if (bentoRefs.compactBar && bentoRefs.compactBar.getAttribute('dir') !== dir) bentoRefs.compactBar.setAttribute('dir', dir);
       var profile = params.profile || resolvePrismThemeProfile(doc, rt);
       var stageMode = params.stageMode || 'drawer';
       var muted = Boolean(params.muted);
@@ -3091,6 +2963,7 @@
       resolveLocale: resolveLocale,
       getBentoI18nPack: getBentoI18nPack,
       isZhLocale: isZhLocale,
+      isArLocale: isArLocale,
       isReducedMotion: isReducedMotion,
       invalidateComputedThemeCache: invalidateComputedThemeCache,
       detectLightDarkMode: detectLightDarkMode,

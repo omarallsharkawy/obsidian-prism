@@ -182,12 +182,12 @@ enum InstallerCore {
             if CdpHelper.isExpectedDaemonProcess(pid: pid, pluginDir: pluginDir) && terminatePid(pid) {
                 stoppedPids.insert(pid)
                 log?(InstallerI18n.tr(
-                    "已停止本地守护服务 (PID \(pid))",
+                    "تم إيقاف الخدمة الخلفية المحلية (PID \(pid))",
                     "Stopped local background daemon (PID \(pid))"
                 ))
             }
         }
-        // 清理命令行精确指向当前 pluginDir 入口脚本的残留孤儿 daemon（组合完整路径 + argv[0] 白名单 + 排除自身与父进程）
+        // Clean up orphan daemons targeting this pluginDir entry script (exact path + argv[0] allowlist + exclude self/parent)
         let rawStdDir = URL(fileURLWithPath: pluginDir).standardizedFileURL.path
         let stdDirClean = (rawStdDir.count > 1 && rawStdDir.hasSuffix("/")) ? String(rawStdDir.dropLast()) : rawStdDir
         let sysNormDir = normalizeSystemRootPrefix(pluginDir)
@@ -239,7 +239,7 @@ enum InstallerCore {
                 if terminatePid(pid) {
                     stoppedPids.insert(pid)
                     log?(InstallerI18n.tr(
-                        "已清理残留守护服务 (PID \(pid))",
+                        "تم تنظيف خدمة خلفية متبقية (PID \(pid))",
                         "Cleaned up lingering background daemon (PID \(pid))"
                     ))
                 }
@@ -417,7 +417,7 @@ enum InstallerCore {
                pid > 0 {
                 if CdpHelper.isExpectedDaemonProcess(pid: pid) && terminatePid(pid) {
                     log?(InstallerI18n.tr(
-                        "已停止运行中的守护进程 (PID \(pid))",
+                        "تم إيقاف عملية المراقب الجارية (PID \(pid))",
                         "Stopped running watcher process (PID \(pid))"
                     ))
                 }
@@ -472,7 +472,7 @@ enum InstallerCore {
                 cmd.contains("--watch") {
                 if terminatePid(pid) {
                     log?(InstallerI18n.tr(
-                        "已替换旧版 Node 守护进程 (PID \(pid))",
+                        "تم استبدال عملية مراقب Node القديمة (PID \(pid))",
                         "Replaced legacy Node watcher process (PID \(pid))"
                     ))
                 }
@@ -608,20 +608,20 @@ enum InstallerCore {
     private static func copyItemSafelyWithRetry(from src: String, to dest: String) throws {
         if isSymbolicLink(src) {
             throw CdpError(InstallerI18n.tr(
-                "检测到源文件为符号链接，已拒绝复制: \(src)",
+                "المسار المصدر عبارة عن رابط رمزي، تم رفض النسخ: \(src)",
                 "Source path is a symbolic link; copy refused: \(src)"
             ))
         }
         let destParent = (dest as NSString).deletingLastPathComponent
         if !destParent.isEmpty && isSymbolicLink(destParent) {
             throw CdpError(InstallerI18n.tr(
-                "检测到目标父目录为符号链接，已拒绝覆盖: \(destParent)",
+                "الدليل الأب الهدف عبارة عن رابط رمزي، تم رفض الكتابة فوقه: \(destParent)",
                 "Destination parent directory is a symbolic link; overwrite refused: \(destParent)"
             ))
         }
         if isSymbolicLink(dest) {
             throw CdpError(InstallerI18n.tr(
-                "检测到目标路径为符号链接，已拒绝覆盖: \(dest)",
+                "المسار الهدف عبارة عن رابط رمزي، تم رفض الكتابة فوقه: \(dest)",
                 "Destination path is a symbolic link; overwrite refused: \(dest)"
             ))
         }
@@ -634,24 +634,24 @@ enum InstallerCore {
             do {
                 if isSymbolicLink(dest) {
                     throw CdpError(InstallerI18n.tr(
-                        "检测到目标路径为符号链接，已拒绝覆盖: \(dest)",
+                        "المسار الهدف عبارة عن رابط رمزي، تم رفض الكتابة فوقه: \(dest)",
                         "Destination path is a symbolic link; overwrite refused: \(dest)"
                     ))
                 }
                 if isSymbolicLink(tmpPath) {
                     throw CdpError(InstallerI18n.tr(
-                        "检测到临时目标为符号链接，已拒绝写入: \(tmpPath)",
+                        "المسار المؤقت عبارة عن رابط رمزي، تم رفض الكتابة: \(tmpPath)",
                         "Temporary destination is a symbolic link; write refused: \(tmpPath)"
                     ))
                 }
                 var srcIsDir: ObjCBool = false
                 guard fm.fileExists(atPath: src, isDirectory: &srcIsDir) else {
                     throw CdpError(InstallerI18n.tr(
-                        "源文件不存在: \(src)",
+                        "الملف المصدر غير موجود: \(src)",
                         "Source file does not exist: \(src)"
                     ))
                 }
-                // 先拷贝至同目录唯一临时路径再原子替换，复制失败绝不丢失原目标
+                // Copy to a unique temporary sibling path before atomic replace so failures never lose the original target
                 try fm.copyItem(atPath: src, toPath: tmpPath)
                 copiedTmp = true
 
@@ -660,7 +660,7 @@ enum InstallerCore {
                 if !destExists {
                     if isSymbolicLink(dest) {
                         throw CdpError(InstallerI18n.tr(
-                            "检测到目标路径为符号链接，已拒绝覆盖: \(dest)",
+                            "المسار الهدف عبارة عن رابط رمزي، تم رفض الكتابة فوقه: \(dest)",
                             "Destination path is a symbolic link; overwrite refused: \(dest)"
                         ))
                     }
@@ -673,7 +673,7 @@ enum InstallerCore {
                 if !srcIsDir.boolValue && !destIsDir.boolValue {
                     if isSymbolicLink(dest) {
                         throw CdpError(InstallerI18n.tr(
-                            "检测到目标路径为符号链接，已拒绝覆盖: \(dest)",
+                            "المسار الهدف عبارة عن رابط رمزي، تم رفض الكتابة فوقه: \(dest)",
                             "Destination path is a symbolic link; overwrite refused: \(dest)"
                         ))
                     }
@@ -682,11 +682,11 @@ enum InstallerCore {
                     }
                 }
 
-                // 目录或 rename 受阻时采用可回滚 .old 两阶段替换
+                // Fall back to rollback-safe two-phase .old replacement when target is a directory or rename fails
                 clearReadOnlyPermissionsNoSymlink(dest)
                 if isSymbolicLink(dest) {
                     throw CdpError(InstallerI18n.tr(
-                        "检测到目标路径为符号链接，已拒绝覆盖: \(dest)",
+                        "المسار الهدف عبارة عن رابط رمزي، تم رفض الكتابة فوقه: \(dest)",
                         "Destination path is a symbolic link; overwrite refused: \(dest)"
                     ))
                 }
@@ -724,7 +724,7 @@ enum InstallerCore {
         let fm = FileManager.default
         if isSymbolicLink(pluginDir) {
             throw CdpError(InstallerI18n.tr(
-                "检测到插件目录为符号链接，已拒绝写入: \(pluginDir)",
+                "دليل الإضافة عبارة عن رابط رمزي، تم رفض الكتابة: \(pluginDir)",
                 "Plugin directory is a symbolic link; write refused: \(pluginDir)"
             ))
         }
@@ -744,13 +744,13 @@ enum InstallerCore {
             let dest = (pluginDir as NSString).appendingPathComponent(name)
             if isSymbolicLink(src) {
                 throw CdpError(InstallerI18n.tr(
-                    "检测到插件源条目为符号链接，已拒绝部署: \(src)",
+                    "عنصر مصدر الإضافة عبارة عن رابط رمزي، تم رفض النشر: \(src)",
                     "Plugin source entry is a symbolic link; deployment refused: \(src)"
                 ))
             }
             if isSymbolicLink(dest) {
                 throw CdpError(InstallerI18n.tr(
-                    "检测到插件目标路径为符号链接，已拒绝覆盖: \(dest)",
+                    "مسار هدف الإضافة عبارة عن رابط رمزي، تم رفض الكتابة فوقه: \(dest)",
                     "Plugin target path is a symbolic link; overwrite refused: \(dest)"
                 ))
             }
@@ -789,7 +789,7 @@ enum InstallerCore {
         clearReadOnlyPermissionsNoSymlink(legacyDir)
         if (try? fm.removeItem(atPath: legacyDir)) != nil {
             log?(InstallerI18n.tr(
-                "已清理旧临时插件目录: \(legacyDir)",
+                "تم تنظيف دليل الإضافة المؤقت القديم: \(legacyDir)",
                 "Cleaned up legacy temporary plugin directory: \(legacyDir)"
             ))
         }
@@ -856,19 +856,19 @@ enum InstallerCore {
 
     private static func atomicWriteFileNoFollow(data: Data, toFile path: String, mode: mode_t) throws {
         guard !path.isEmpty else {
-            throw CdpError(InstallerI18n.tr("目标文件路径为空", "Target file path is empty"))
+            throw CdpError(InstallerI18n.tr("مسار الملف الهدف فارغ", "Target file path is empty"))
         }
         let parentDir = (path as NSString).deletingLastPathComponent
         let stopRoot = resolveInstallChainStopRoot(parentDir)
         if hasSymbolicLinkInChain(parentDir, stopRoot: stopRoot) || isUnsafeSymlinkPath(parentDir) {
             throw CdpError(InstallerI18n.tr(
-                "目标父目录链路包含符号链接或无法验证，已拒绝写入: \(parentDir)",
+                "مسار الدليل الأب الهدف يحتوي على رابط رمزي أو تعذّر التحقق منه، تم رفض الكتابة: \(parentDir)",
                 "Target parent directory chain contains a symbolic link or cannot be verified; write refused: \(parentDir)"
             ))
         }
         if isUnsafeSymlinkPath(path) {
             throw CdpError(InstallerI18n.tr(
-                "目标路径为符号链接或无法验证，已拒绝写入: \(path)",
+                "المسار الهدف عبارة عن رابط رمزي أو تعذّر التحقق منه، تم رفض الكتابة: \(path)",
                 "Target path is a symbolic link or cannot be verified; write refused: \(path)"
             ))
         }
@@ -877,7 +877,7 @@ enum InstallerCore {
         if fd < 0 {
             let errCode = errno
             throw CdpError(InstallerI18n.tr(
-                "无法安全创建临时文件 \(tmpPath) (errno=\(errCode))",
+                "تعذّر إنشاء الملف المؤقت بأمان \(tmpPath) (errno=\(errCode))",
                 "Failed to safely create temporary file \(tmpPath) (errno=\(errCode))"
             ))
         }
@@ -898,13 +898,13 @@ enum InstallerCore {
                         if errno == EINTR { continue }
                         let errCode = errno
                         throw CdpError(InstallerI18n.tr(
-                            "写入临时文件失败 \(tmpPath) (errno=\(errCode))",
+                            "فشلت الكتابة إلى الملف المؤقت \(tmpPath) (errno=\(errCode))",
                             "Failed to write temporary file \(tmpPath) (errno=\(errCode))"
                         ))
                     }
                     if written == 0 {
                         throw CdpError(InstallerI18n.tr(
-                            "写入临时文件提前结束: \(tmpPath)",
+                            "انتهت الكتابة إلى الملف المؤقت قبل أوانها: \(tmpPath)",
                             "Short write while writing temporary file: \(tmpPath)"
                         ))
                     }
@@ -919,20 +919,20 @@ enum InstallerCore {
         if closeRc != 0 {
             let errCode = errno
             throw CdpError(InstallerI18n.tr(
-                "关闭临时文件失败 \(tmpPath) (errno=\(errCode))",
+                "فشل إغلاق الملف المؤقت \(tmpPath) (errno=\(errCode))",
                 "Failed to close temporary file \(tmpPath) (errno=\(errCode))"
             ))
         }
         if isUnsafeSymlinkPath(path) {
             throw CdpError(InstallerI18n.tr(
-                "目标路径为符号链接或无法验证，已拒绝覆盖: \(path)",
+                "المسار الهدف عبارة عن رابط رمزي أو تعذّر التحقق منه، تم رفض الكتابة فوقه: \(path)",
                 "Target path is a symbolic link or cannot be verified; overwrite refused: \(path)"
             ))
         }
         if rename(tmpPath, path) != 0 {
             let errCode = errno
             throw CdpError(InstallerI18n.tr(
-                "原子替换目标文件失败 \(path) (errno=\(errCode))",
+                "فشل الاستبدال الذري للملف الهدف \(path) (errno=\(errCode))",
                 "Failed to atomically replace target file \(path) (errno=\(errCode))"
             ))
         }
@@ -1017,7 +1017,7 @@ enum InstallerCore {
         let normalizedTarget = CdpHelper.normalizeAntigravityAppPath(targetApp)
         let quotedTarget = shellSingleQuote(normalizedTarget)
         let notFoundMsg = InstallerI18n.tr(
-            "未在 /Applications 或 ~/Applications 中找到 Antigravity.app。",
+            "لم يُعثر على Antigravity.app في /Applications أو ~/Applications.",
             "Antigravity.app was not found in /Applications or ~/Applications."
         )
         let quotedNotFoundMsg = shellSingleQuote(notFoundMsg)
@@ -1134,11 +1134,11 @@ enum InstallerCore {
             "    LOCALE_HINT=\"$(/usr/bin/defaults read -g AppleLanguages 2>/dev/null | /usr/bin/head -n 3 | /usr/bin/tr '\\n' ' ' || true)\"",
             "  fi",
             "  case \"$LOCALE_HINT\" in",
-            "    *zh*|*ZH*|*cn*|*CN*)",
-            "      PROMPT_BTN=\"立即重启并开启\"",
-            "      KEEP_BTN=\"保持现状\"",
+            "    *ar*|*AR*)",
+            "      PROMPT_BTN=\"إعادة التشغيل مع Prism\"",
+            "      KEEP_BTN=\"الإبقاء قيد التشغيل\"",
             "      PROMPT_TITLE=\"Antigravity Prism\"",
-            "      PROMPT_MSG=\"$(printf '检测到 Antigravity 当前正在运行，但未开启光学桥接端口（--remote-debugging-port=0）。\\n\\n是否温和重启 Antigravity 以激活 Obsidian Prism？')\"",
+            "      PROMPT_MSG=\"$(printf 'يعمل Antigravity حالياً بدون منفذ الجسر البصري (--remote-debugging-port=0).\\n\\nهل تريد إعادة تشغيل Antigravity بسلاسة الآن لتفعيل Obsidian Prism؟')\"",
             "      ;;",
             "    *)",
             "      PROMPT_BTN=\"Relaunch with Prism\"",
@@ -1211,18 +1211,18 @@ enum InstallerCore {
         let normAppPath = URL(fileURLWithPath: appPath).standardizedFileURL.path
         let parentDir = (normAppPath as NSString).deletingLastPathComponent
         guard !parentDir.isEmpty else {
-            throw CdpError(InstallerI18n.tr("无损启动器目标路径无效", "Invalid lossless launcher path"))
+            throw CdpError(InstallerI18n.tr("مسار المُطلِق غير صالح", "Invalid lossless launcher path"))
         }
         let stopRoot = resolveInstallChainStopRoot(parentDir)
         if hasSymbolicLinkInChain(parentDir, stopRoot: stopRoot) || isUnsafeSymlinkPath(parentDir) {
             throw CdpError(InstallerI18n.tr(
-                "启动器目录链路包含符号链接，已拒绝创建: \(parentDir)",
+                "مسار دليل المُطلِق يحتوي على رابط رمزي، تم رفض الإنشاء: \(parentDir)",
                 "Launcher directory chain contains a symbolic link; creation refused: \(parentDir)"
             ))
         }
         if isUnsafeSymlinkPath(normAppPath) {
             throw CdpError(InstallerI18n.tr(
-                "目标启动器路径为符号链接，已拒绝覆盖: \(normAppPath)",
+                "مسار المُطلِق الهدف عبارة عن رابط رمزي، تم رفض الاستبدال: \(normAppPath)",
                 "Target launcher path is a symbolic link; overwrite refused: \(normAppPath)"
             ))
         }
@@ -1231,7 +1231,7 @@ enum InstallerCore {
         if fm.fileExists(atPath: normAppPath) {
             guard isManagedLauncherBundle(at: normAppPath) else {
                 throw CdpError(InstallerI18n.tr(
-                    "检测到同名但非 Obsidian Prism 托管的应用，已拒绝覆盖: \(normAppPath)",
+                    "تم اكتشاف تطبيق بالاسم نفسه غير مُدار بواسطة Obsidian Prism، تم رفض الاستبدال: \(normAppPath)",
                     "Refused to overwrite existing unmanaged app with the same name: \(normAppPath)"
                 ))
             }
@@ -1240,7 +1240,7 @@ enum InstallerCore {
         try fm.createDirectory(atPath: parentDir, withIntermediateDirectories: true, attributes: nil)
         if hasSymbolicLinkInChain(parentDir, stopRoot: stopRoot) || isUnsafeSymlinkPath(normAppPath) {
             throw CdpError(InstallerI18n.tr(
-                "启动器目录校验失败，已拒绝写入: \(normAppPath)",
+                "فشل التحقق من دليل المُطلِق، تم رفض الكتابة: \(normAppPath)",
                 "Launcher directory verification failed; write refused: \(normAppPath)"
             ))
         }
@@ -1251,14 +1251,14 @@ enum InstallerCore {
         for dir in [normAppPath, contentsDir, macosDir, resourcesDir] {
             if isUnsafeSymlinkPath(dir) {
                 throw CdpError(InstallerI18n.tr(
-                    "启动器子目录为符号链接，已拒绝写入: \(dir)",
+                    "الدليل الفرعي للمُطلِق عبارة عن رابط رمزي، تم رفض الكتابة: \(dir)",
                     "Launcher subdirectory is a symbolic link; write refused: \(dir)"
                 ))
             }
             try fm.createDirectory(atPath: dir, withIntermediateDirectories: true, attributes: nil)
             if isUnsafeSymlinkPath(dir) {
                 throw CdpError(InstallerI18n.tr(
-                    "启动器子目录为符号链接，已拒绝写入: \(dir)",
+                    "الدليل الفرعي للمُطلِق عبارة عن رابط رمزي، تم رفض الكتابة: \(dir)",
                     "Launcher subdirectory is a symbolic link; write refused: \(dir)"
                 ))
             }
@@ -1299,7 +1299,7 @@ enum InstallerCore {
         }
 
         log?(InstallerI18n.tr(
-            "已创建无损启动器: \(normAppPath)（可拖进 Dock 一键启动）",
+            "تم إنشاء المُطلِق الآمن: \(normAppPath) (يمكنك سحبه إلى شريط Dock للتشغيل بنقرة واحدة)",
             "Created lossless launcher: \(normAppPath) (drag to Dock for 1-click launch)"
         ))
         return normAppPath
@@ -1316,14 +1316,14 @@ enum InstallerCore {
         let stopRoot = resolveInstallChainStopRoot(parentDir)
         if hasSymbolicLinkInChain(parentDir, stopRoot: stopRoot) || isUnsafeSymlinkPath(normAppPath) {
             log?(InstallerI18n.tr(
-                "[!] 检测到无损启动器路径或父目录为符号链接，已拒绝删除: \(normAppPath)",
+                "[!] مسار المُطلِق أو دليله الأب عبارة عن رابط رمزي، تم رفض الحذف: \(normAppPath)",
                 "[!] Launcher path or parent directory is a symbolic link; removal refused: \(normAppPath)"
             ))
             return false
         }
         guard isManagedLauncherBundle(at: normAppPath) else {
             log?(InstallerI18n.tr(
-                "[!] 跳过移除 \(normAppPath)：未检测到 Obsidian Prism 启动器托管标记",
+                "[!] تم تخطي إزالة \(normAppPath): لم يتم العثور على علامة إدارة Obsidian Prism",
                 "[!] Skipping removal of \(normAppPath): missing Obsidian Prism launcher marker"
             ))
             return false
@@ -1332,7 +1332,7 @@ enum InstallerCore {
         do {
             try FileManager.default.removeItem(atPath: normAppPath)
             log?(InstallerI18n.tr(
-                "已安全移除无损启动器: \(normAppPath)",
+                "تمت إزالة المُطلِق الآمن بنجاح: \(normAppPath)",
                 "Safely removed lossless launcher: \(normAppPath)"
             ))
             return true
@@ -1353,14 +1353,14 @@ enum InstallerCore {
             currentTargetPath = installDir
             if isDangerousRootPath(installDir) {
                 throw CdpError(InstallerI18n.tr(
-                    "已拒绝将受保护的系统或用户根目录作为安装目录: \(installDir)",
+                    "تم رفض استخدام دليل جذر محمي كدليل تثبيت: \(installDir)",
                     "Refused to use a protected system or user root directory as install directory: \(installDir)"
                 ))
             }
             if !pluginDir.isEmpty && isDangerousRootPath(pluginDir) {
                 currentTargetPath = pluginDir
                 throw CdpError(InstallerI18n.tr(
-                    "已拒绝将受保护的系统或用户根目录作为插件目录: \(pluginDir)",
+                    "تم رفض استخدام دليل جذر محمي كدليل للإضافة: \(pluginDir)",
                     "Refused to use a protected system or user root directory as plugin directory: \(pluginDir)"
                 ))
             }
@@ -1374,7 +1374,7 @@ enum InstallerCore {
             currentStep = "detect-host"
             currentTargetPath = ""
             report(10, InstallerI18n.tr(
-                "正在检测本机 Antigravity Desktop 环境...",
+                "جارٍ فحص بيئة Antigravity Desktop المحلية...",
                 "Detecting local Antigravity Desktop environment..."
             ))
             let ag = detectAntigravityDesktop()
@@ -1383,12 +1383,12 @@ enum InstallerCore {
             if let appPath = ag.appPath {
                 let verPart = (ag.version?.isEmpty == false) ? " (\(ag.version!))" : ""
                 report(18, InstallerI18n.tr(
-                    "已发现 Antigravity Desktop\(verPart): \(appPath)",
+                    "تم العثور على Antigravity Desktop\(verPart): \(appPath)",
                     "Found Antigravity Desktop\(verPart): \(appPath)"
                 ))
             } else {
                 report(18, InstallerI18n.tr(
-                    "未在默认目录检测到 Antigravity.app，仍将安装并启用 CDP 自动监听",
+                    "لم يُعثر على Antigravity.app في المسارات الافتراضية؛ سيستمر التثبيت مع تفعيل المراقبة التلقائية عبر CDP",
                     "Antigravity.app not found in default locations; installing anyway with automatic CDP monitoring"
                 ))
             }
@@ -1396,7 +1396,7 @@ enum InstallerCore {
             currentStep = "stop-legacy"
             currentTargetPath = installDir
             report(28, InstallerI18n.tr(
-                "正在停止旧版守护进程（如存在）...",
+                "جارٍ إيقاف عمليات المراقبة القائمة (إن وجدت)...",
                 "Stopping existing watcher/daemon processes (if any)..."
             ))
             stopWatcherInDir(installDir, noAutostart: opts.noAutostart) { msg in
@@ -1413,7 +1413,7 @@ enum InstallerCore {
 
             currentStep = "prepare-dirs"
             report(45, InstallerI18n.tr(
-                "正在部署本地插件与独立守护资源...",
+                "جارٍ نشر الإضافة المحلية وموارد المراقب المستقل...",
                 "Deploying local plugin and standalone watcher assets..."
             ))
             let fm = FileManager.default
@@ -1421,7 +1421,7 @@ enum InstallerCore {
             let installStopRoot = resolveInstallChainStopRoot(installDir)
             if isSymbolicLink(installDir) || hasSymbolicLinkInChain(installDir, stopRoot: installStopRoot) {
                 throw CdpError(InstallerI18n.tr(
-                    "检测到安装目录或其父目录链路包含符号链接，已拒绝操作: \(installDir)",
+                    "يحتوي دليل التثبيت أو مساره الأب على رابط رمزي، تم رفض العملية: \(installDir)",
                     "Install directory or its parent chain contains a symbolic link; operation refused: \(installDir)"
                 ))
             }
@@ -1431,7 +1431,7 @@ enum InstallerCore {
                 let pluginStopRoot = resolveInstallChainStopRoot(pluginDir)
                 if isSymbolicLink(pluginDir) || hasSymbolicLinkInChain(pluginDir, stopRoot: pluginStopRoot) {
                     throw CdpError(InstallerI18n.tr(
-                        "检测到插件目录或其父目录链路包含符号链接，已拒绝操作: \(pluginDir)",
+                        "يحتوي دليل الإضافة أو مساره الأب على رابط رمزي، تم رفض العملية: \(pluginDir)",
                         "Plugin directory or its parent chain contains a symbolic link; operation refused: \(pluginDir)"
                     ))
                 }
@@ -1441,13 +1441,13 @@ enum InstallerCore {
 
             guard let payloadDir = resolvePayloadDir() else {
                 throw CdpError(InstallerI18n.tr(
-                    "安装包内置资源 payload 缺失",
+                    "موارد حزمة payload المضمّنة مفقودة",
                     "Embedded installer payload resources are missing"
                 ))
             }
             guard let watcherSrc = resolveWatcherBinarySource() else {
                 throw CdpError(InstallerI18n.tr(
-                    "安装包内置守护程序 \(watcherExeName) 缺失",
+                    "ملف المراقب المضمّن \(watcherExeName) مفقود",
                     "Embedded watcher binary \(watcherExeName) is missing"
                 ))
             }
@@ -1508,7 +1508,7 @@ enum InstallerCore {
                 let regOk = CdpHelper.syncHostPluginRegistry(pluginDir: pluginDir, enable: true)
                 if !regOk {
                     let warn = InstallerI18n.tr(
-                        "[!] 未能自动写入 ~/.gemini/config/config.json 插件注册项（非致命），请确认目标文件可写",
+                        "[!] تعذّر تسجيل الإضافة تلقائياً في ~/.gemini/config/config.json (غير حرج)، تحقّق من صلاحية الكتابة",
                         "[!] Failed to auto-update ~/.gemini/config/config.json plugin registry (non-fatal); please verify write permissions"
                     )
                     result.warnings.append(warn)
@@ -1532,11 +1532,11 @@ enum InstallerCore {
             result.preservedExistingConfig = preservedConfig
             report(62, preservedConfig
                 ? InstallerI18n.tr(
-                    "已保留本机现有 config.json 用户配置并同步部署本地插件",
+                    "تم الاحتفاظ بملف config.json الحالي ونشر الإضافة المحلية",
                     "Preserved existing config.json and deployed local plugin"
                 )
                 : InstallerI18n.tr(
-                    "已部署本地插件并写入默认配置 config.json",
+                    "تم نشر الإضافة المحلية وكتابة ملف الإعدادات الافتراضي config.json",
                     "Deployed local plugin and wrote default config.json"
                 )
             )
@@ -1550,7 +1550,7 @@ enum InstallerCore {
             let motion = activeCfg["motionLevel"]?.stringValue ?? "standard"
             let omni = activeCfg["omniModule"]?.stringValue ?? "on"
             result.configSummary = InstallerI18n.tr(
-                "语言=\(lang) | 配色=\(palette) | 动效=\(motion) | Omni=\(omni)",
+                "اللغة=\(lang) | السمة=\(palette) | الحركة=\(motion) | Omni=\(omni)",
                 "Lang=\(lang) | Theme=\(palette) | Motion=\(motion) | Omni=\(omni)"
             )
 
@@ -1569,7 +1569,7 @@ enum InstallerCore {
                     result.launcherPath = createdPath
                 } catch {
                     let warn = InstallerI18n.tr(
-                        "[!] 创建无损启动器失败（非致命）: \(error.localizedDescription)",
+                        "[!] فشل إنشاء المُطلِق الآمن (غير حرج): \(error.localizedDescription)",
                         "[!] Failed to create lossless launcher (non-fatal): \(error.localizedDescription)"
                     )
                     result.warnings.append(warn)
@@ -1581,7 +1581,7 @@ enum InstallerCore {
             currentTargetPath = pluginDir
             if !opts.noNativeDaemon && result.nativePluginDeployed {
                 report(68, InstallerI18n.tr(
-                    "正在通过内置运行时启动本地守护服务...",
+                    "جارٍ تشغيل الخدمة الخلفية المحلية عبر البيئة المدمجة...",
                     "Starting local background daemon via bundled runtime..."
                 ))
                 result.nativeDaemonStarted = CdpHelper.ensureNativeDaemonRunning(
@@ -1597,7 +1597,7 @@ enum InstallerCore {
             var needDirectWatcherSpawn = opts.noAutostart
             if !opts.noAutostart {
                 report(74, InstallerI18n.tr(
-                    "正在配置 macOS LaunchAgent 登录自启...",
+                    "جارٍ تهيئة LaunchAgent للتشغيل التلقائي على macOS...",
                     "Configuring macOS LaunchAgent auto-start..."
                 ))
                 do {
@@ -1616,7 +1616,7 @@ enum InstallerCore {
                     }
                 } catch {
                     let warn = InstallerI18n.tr(
-                        "[!] 配置 LaunchAgent 登录自启失败（非致命，已降级直接启动后台守护）: \(error.localizedDescription)",
+                        "[!] فشلت تهيئة LaunchAgent (غير حرج، تم التحويل للتشغيل المباشر للمراقب): \(error.localizedDescription)",
                         "[!] Failed to configure LaunchAgent auto-start (non-fatal; falling back to direct background watcher): \(error.localizedDescription)"
                     )
                     result.warnings.append(warn)
@@ -1625,14 +1625,14 @@ enum InstallerCore {
                 }
             } else {
                 report(74, InstallerI18n.tr(
-                    "已按参数跳过 LaunchAgent 登录自启注册",
+                    "تم تخطي تسجيل LaunchAgent وفق خيار سطر الأوامر",
                     "Skipped LaunchAgent auto-start registration per CLI flag"
                 ))
             }
 
             if needDirectWatcherSpawn {
                 report(82, InstallerI18n.tr(
-                    "正在启动后台静默守护进程...",
+                    "جارٍ تشغيل المراقب الخلفي الصامت...",
                     "Starting silent background watcher process..."
                 ))
                 var spawnErr: Error? = nil
@@ -1659,9 +1659,9 @@ enum InstallerCore {
                 }
                 if !spawned {
                     if result.nativeDaemonStarted {
-                        let errDesc = spawnErr?.localizedDescription ?? InstallerI18n.tr("未知错误", "Unknown error")
+                        let errDesc = spawnErr?.localizedDescription ?? InstallerI18n.tr("خطأ غير معروف", "Unknown error")
                         let warn = InstallerI18n.tr(
-                            "[!] 启动独立守护 obsidian-prism-watcher 失败（非致命，本地守护服务已运行）: \(errDesc)",
+                            "[!] فشل تشغيل المراقب المستقل obsidian-prism-watcher (غير حرج، الخدمة الخلفية المحلية تعمل): \(errDesc)",
                             "[!] Failed to launch standalone obsidian-prism-watcher (non-fatal; local background daemon is running): \(errDesc)"
                         )
                         result.warnings.append(warn)
@@ -1675,7 +1675,7 @@ enum InstallerCore {
             currentStep = "verify-cdp"
             currentTargetPath = ""
             report(90, InstallerI18n.tr(
-                "正在检查 Antigravity Desktop 实时注入状态...",
+                "جارٍ التحقق من حالة الحقن المباشر في Antigravity Desktop...",
                 "Verifying live Antigravity Desktop injection status..."
             ))
             let port = CdpHelper.readPort(overridePort: opts.cdpPort)
@@ -1687,7 +1687,7 @@ enum InstallerCore {
                     if let pages = try? CdpHelper.listPages(port: port) {
                         cdpReachable = true
                         let logContent = (try? String(contentsOfFile: watchLogPath, encoding: .utf8)) ?? ""
-                        let watcherInjected = logContent.contains("[✓] 已注入 obsidian-prism:") ||
+                        let watcherInjected = logContent.contains("[✓] تم حقن obsidian-prism:") ||
                             logContent.contains("[✓] Injected obsidian-prism:") ||
                             (!pluginDir.isEmpty && CdpHelper.isNativeDaemonAlive(pluginDir: pluginDir))
                         if !pages.isEmpty && watcherInjected {
@@ -1724,45 +1724,45 @@ enum InstallerCore {
             result.ok = true
             if !result.injectedPages.isEmpty {
                 result.headline = InstallerI18n.tr(
-                    "安装成功！已实时激活 \(result.injectedPages.count) 个 Antigravity 窗口",
+                    "تم التثبيت بنجاح! جرى تفعيل \(result.injectedPages.count) من نوافذ Antigravity فوراً",
                     "Installed! Activated \(result.injectedPages.count) Antigravity window(s)"
                 )
                 result.detail = InstallerI18n.tr(
-                    "已部署本地插件与后台守护服务，并配置登录自启。后续打开新窗口或更新 Antigravity 后也会自动生效。",
+                    "تم نشر الإضافة المحلية والخدمة الخلفية وتهيئة التشغيل التلقائي. ستعمل تلقائياً مع كل نافذة جديدة أو تحديث لـ Antigravity.",
                     "Deployed the local plugin, standby watcher, and auto-start. New windows and future Antigravity updates will apply automatically."
                 )
                 for title in result.injectedPages {
                     report(98, InstallerI18n.tr(
-                        "已注入窗口: \(title)",
+                        "النافذة المحقونة: \(title)",
                         "Injected window: \(title)"
                     ))
                 }
             } else if cdpReachable, let port = port {
                 result.headline = InstallerI18n.tr(
-                    "已安装本地插件并启动守护！等待 Antigravity 窗口就绪",
+                    "تم تثبيت الإضافة وتشغيل المراقب! بانتظار جاهزية نوافذ Antigravity",
                     "Local plugin installed & watcher running! Waiting for Antigravity window"
                 )
                 result.detail = InstallerI18n.tr(
-                    "已部署本地插件并启动后台守护。检测到调试端口 \(port)，窗口就绪后将自动完成激活。",
+                    "تم نشر الإضافة وتشغيل المراقب الخلفي. تم رصد منفذ التصحيح \(port) وسيتم التفعيل تلقائياً فور جاهزية النافذة.",
                     "Deployed local plugin and background watcher. Debug port \(port) is reachable; activation will complete automatically once a window is ready."
                 )
             } else if opts.cdpPort == nil, CdpHelper.findBareAntigravityMainProcess() != nil {
                 result.bareHostDetected = true
                 result.headline = InstallerI18n.tr(
-                    "安装完成！重新打开一次 Antigravity 即可激活界面",
+                    "اكتمل التثبيت! أعد فتح Antigravity مرة واحدة لتفعيل الواجهة",
                     "Installed! Relaunch Antigravity once to activate Obsidian Prism"
                 )
                 result.detail = InstallerI18n.tr(
-                    "检测到当前 Antigravity (v2.33.0+) 未开启本地光学桥接端口（--remote-debugging-port=0），带参重新打开即可立即生效。",
+                    "تعمل نسخة Antigravity (v2.33.0+) الحالية بدون منفذ الجسر البصري المحلي (--remote-debugging-port=0)؛ أعد فتحه بالمعامل لتفعيله فوراً.",
                     "Antigravity (v2.33.0+) is currently running without the local optical bridge flag (--remote-debugging-port=0). Relaunch with the flag to activate immediately."
                 )
             } else {
                 result.headline = InstallerI18n.tr(
-                    "安装成功！本地插件与后台守护已就绪",
+                    "تم التثبيت بنجاح! الإضافة المحلية والمراقب الخلفي جاهزان",
                     "Installed! Local plugin & background watcher ready"
                 )
                 result.detail = InstallerI18n.tr(
-                    "当前未检测到运行中的 Antigravity Desktop；原生插件与守护进程已就绪，打开 Antigravity Desktop 后会自动立即生效。",
+                    "لم يُكتشف تشغيل Antigravity Desktop حالياً؛ الإضافة والمراقب جاهزان وسيعملان فور فتح Antigravity Desktop.",
                     "No running Antigravity Desktop detected. The native plugin and watcher are ready and will activate as soon as Antigravity opens."
                 )
             }
@@ -1771,7 +1771,7 @@ enum InstallerCore {
         } catch {
             let pathPart = currentTargetPath.isEmpty
                 ? ""
-                : InstallerI18n.tr(" | 路径: \(currentTargetPath)", " | Path: \(currentTargetPath)")
+                : InstallerI18n.tr(" | المسار: \(currentTargetPath)", " | Path: \(currentTargetPath)")
             throw CdpError("[\(currentStep)] \(error.localizedDescription)\(pathPart)")
         }
     }
@@ -1804,7 +1804,7 @@ enum InstallerCore {
         return false
     }
 
-    /// 检查路径是否为符号链接；除明确 ENOENT（目标不存在）外，所有 attributesOfItem 异常均 Fail-Closed 返回 true（视为不安全）。
+    /// Check whether path is a symlink; except explicit ENOENT, all attributesOfItem errors fail closed (return true).
     private static func isSymbolicLink(_ path: String) -> Bool {
         guard !path.isEmpty else { return true }
         do {
@@ -2060,7 +2060,7 @@ enum InstallerCore {
     }
 
     private static func purgeUserPluginData(pluginDir: String) {
-        // 绝对红线：严禁触碰 conversations_archive、Antigravity-Spark、prism-knowledge-space
+        // Hard redline: never touch conversations_archive, Antigravity-Spark, or prism-knowledge-space
         let fm = FileManager.default
         let hostCfgDir: String? = CdpHelper.resolveHostGeminiConfigDir(pluginDir: pluginDir)
         let geminiRoot: String? = {
@@ -2245,11 +2245,11 @@ enum InstallerCore {
         if isDangerousRootPath(installDir) || (!pluginDir.isEmpty && isDangerousRootPath(pluginDir)) {
             result.ok = false
             result.headline = InstallerI18n.tr(
-                "已拒绝在受保护目录执行卸载",
+                "تم رفض إلغاء التثبيت في دليل محمي",
                 "Refused to uninstall a protected directory"
             )
             result.detail = InstallerI18n.tr(
-                "目标路径受保护: \(installDir)",
+                "المسار الهدف محمي: \(installDir)",
                 "Protected target path: \(installDir)"
             )
             return result
@@ -2263,7 +2263,7 @@ enum InstallerCore {
 
         let cleanLaunchAgent = !opts.noAutostart || shouldCleanHostLaunchAgent(installDir: installDir)
         report(15, InstallerI18n.tr(
-            "正在停止后台守护进程...",
+            "جارٍ إيقاف عمليات المراقب الخلفي...",
             "Stopping background watcher and daemon processes..."
         ))
         stopWatcherInDir(installDir, noAutostart: !cleanLaunchAgent) { msg in
@@ -2274,7 +2274,7 @@ enum InstallerCore {
         }
 
         report(40, InstallerI18n.tr(
-            "正在通过 CDP 清理运行中的 Antigravity Desktop 界面...",
+            "جارٍ تنظيف الواجهة المحقونة في نوافذ Antigravity الجارية عبر CDP...",
             "Restoring active Antigravity Desktop windows via CDP..."
         ))
         let port = CdpHelper.readPort(overridePort: opts.cdpPort)
@@ -2299,7 +2299,7 @@ enum InstallerCore {
                         let title = redactSensitiveUrl(CdpHelper.shortTitle(page))
                         result.injectedPages.append(title)
                         report(55, InstallerI18n.tr(
-                            "已恢复原生界面: \(title)",
+                            "تمت استعادة الواجهة الأصلية: \(title)",
                             "Restored native UI: \(title)"
                         ))
                     }
@@ -2314,7 +2314,7 @@ enum InstallerCore {
                     if (try? session.evaluate(swarmRemoveExpr, awaitPromise: false)) != nil {
                         let title = redactSensitiveUrl(CdpHelper.shortTitle(target))
                         report(62, InstallerI18n.tr(
-                            "已恢复原生 Swarm 面板: \(title)",
+                            "تمت استعادة لوحة Swarm الأصلية: \(title)",
                             "Restored native Swarm pane: \(title)"
                         ))
                     }
@@ -2324,7 +2324,7 @@ enum InstallerCore {
 
         if cleanLaunchAgent {
             report(70, InstallerI18n.tr(
-                "正在移除 LaunchAgent 登录自启项...",
+                "جارٍ إزالة مدخل التشغيل التلقائي LaunchAgent...",
                 "Removing LaunchAgent auto-start item..."
             ))
             unloadLaunchAgent()
@@ -2343,7 +2343,7 @@ enum InstallerCore {
         }
         if !pluginDir.isEmpty && FileManager.default.fileExists(atPath: pluginDir) && !isSymbolicLink(pluginDir) {
             report(78, InstallerI18n.tr(
-                "正在清理本地插件目录: \(pluginDir)",
+                "جارٍ إزالة دليل الإضافة المحلية: \(pluginDir)",
                 "Removing local plugin directory: \(pluginDir)"
             ))
             try? FileManager.default.removeItem(atPath: pluginDir)
@@ -2358,7 +2358,7 @@ enum InstallerCore {
         }
 
         report(86, InstallerI18n.tr(
-            "正在清理安装目录: \(installDir)",
+            "جارٍ إزالة دليل التثبيت: \(installDir)",
             "Removing installation directory: \(installDir)"
         ))
         if FileManager.default.fileExists(atPath: installDir) && !isSymbolicLink(installDir) {
@@ -2367,7 +2367,7 @@ enum InstallerCore {
 
         if opts.purgeData {
             report(92, InstallerI18n.tr(
-                "正在清除插件配置与遥测缓存...",
+                "جارٍ مسح إعدادات الإضافة وذاكرة القياس المؤقتة...",
                 "Purging plugin configuration and telemetry caches..."
             ))
             purgeUserPluginData(pluginDir: pluginDir)
@@ -2375,16 +2375,16 @@ enum InstallerCore {
 
         result.ok = true
         result.headline = InstallerI18n.tr(
-            "已卸载并恢复 Antigravity Desktop 原生界面",
+            "تم إلغاء التثبيت واستعادة واجهة Antigravity Desktop الأصلية",
             "Uninstalled and restored native Antigravity Desktop UI"
         )
         result.detail = !result.injectedPages.isEmpty
             ? InstallerI18n.tr(
-                "已停止守护、移除自启，并立即还原了 \(result.injectedPages.count) 个打开的窗口。",
+                "تم إيقاف المراقب وإزالة التشغيل التلقائي واستعادة \(result.injectedPages.count) من النوافذ المفتوحة فوراً.",
                 "Stopped background processes, removed auto-start, and immediately restored \(result.injectedPages.count) open window(s)."
             )
             : InstallerI18n.tr(
-                "已停止守护、移除登录自启并清理安装目录。",
+                "تم إيقاف المراقب وإزالة التشغيل التلقائي وتنظيف دليل التثبيت.",
                 "Stopped background processes, removed auto-start, and cleaned up installation files."
             )
         report(100, result.headline)
@@ -2431,7 +2431,7 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate, NSWindowDeleg
         mainMenu.addItem(appMenuItem)
         let appMenu = NSMenu()
         appMenu.addItem(NSMenuItem(
-            title: InstallerI18n.tr("退出 Obsidian Prism", "Quit Obsidian Prism"),
+            title: InstallerI18n.tr("إنهاء Obsidian Prism", "Quit Obsidian Prism"),
             action: #selector(NSApplication.terminate(_:)),
             keyEquivalent: "q"
         ))
@@ -2439,14 +2439,14 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate, NSWindowDeleg
 
         let editMenuItem = NSMenuItem()
         mainMenu.addItem(editMenuItem)
-        let editMenu = NSMenu(title: InstallerI18n.tr("编辑", "Edit"))
+        let editMenu = NSMenu(title: InstallerI18n.tr("تحرير", "Edit"))
         editMenu.addItem(NSMenuItem(
-            title: InstallerI18n.tr("复制", "Copy"),
+            title: InstallerI18n.tr("نسخ", "Copy"),
             action: #selector(NSText.copy(_:)),
             keyEquivalent: "c"
         ))
         editMenu.addItem(NSMenuItem(
-            title: InstallerI18n.tr("全选", "Select All"),
+            title: InstallerI18n.tr("تحديد الكل", "Select All"),
             action: #selector(NSText.selectAll(_:)),
             keyEquivalent: "a"
         ))
@@ -2469,7 +2469,7 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate, NSWindowDeleg
             defer: false
         )
         win.title = InstallerI18n.tr(
-            "Obsidian Prism 安装与配置工具",
+            "مثبّت Obsidian Prism",
             "Obsidian Prism Installer"
         )
         win.appearance = NSAppearance(named: .aqua)
@@ -2492,7 +2492,7 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate, NSWindowDeleg
         header.addSubview(iconView)
 
         let titleLabel = NSTextField(labelWithString: InstallerI18n.tr(
-            "Obsidian Prism · 安装与配置工具",
+            "مثبّت Obsidian Prism",
             "Obsidian Prism Installer"
         ))
         titleLabel.frame = NSRect(x: 76, y: 15, width: 492, height: 24)
@@ -2501,7 +2501,7 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate, NSWindowDeleg
         header.addSubview(titleLabel)
 
         let subtitleLabel = NSTextField(labelWithString: InstallerI18n.tr(
-            "Antigravity Desktop 无损实时界面增强、思考滑块与 Token HUD",
+            "تحسين واجهة Antigravity Desktop الفوري وشريط جهد الاستدلال ومراقبة السياق",
             "Lossless real-time UI enhancements, effort slider & Token HUD for Antigravity Desktop"
         ))
         subtitleLabel.frame = NSRect(x: 76, y: 45, width: 492, height: 18)
@@ -2519,8 +2519,8 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate, NSWindowDeleg
         root.addSubview(card)
 
         statusHeadline = NSTextField(labelWithString: opts.uninstall
-            ? InstallerI18n.tr("准备卸载并恢复原版界面...", "Preparing to uninstall and restore native UI...")
-            : InstallerI18n.tr("正在检测本地 Antigravity 环境...", "Detecting local Antigravity environment..."))
+            ? InstallerI18n.tr("جارٍ التحضير لإلغاء التثبيت واستعادة الواجهة الأصلية...", "Preparing to uninstall and restore native UI...")
+            : InstallerI18n.tr("جارٍ فحص بيئة Antigravity المحلية...", "Detecting local Antigravity environment..."))
         statusHeadline.frame = NSRect(x: 14, y: 12, width: 520, height: 24)
         statusHeadline.textColor = Self.srgb(28, 25, 23)
         statusHeadline.font = NSFont.systemFont(ofSize: 14, weight: .bold)
@@ -2529,11 +2529,11 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate, NSWindowDeleg
 
         statusDetail = NSTextField(wrappingLabelWithString: opts.uninstall
             ? InstallerI18n.tr(
-                "请确认是否卸载 Obsidian Prism、停止后台守护并恢复原生界面。",
+                "يرجى تأكيد رغبتك في إلغاء تثبيت Obsidian Prism وإيقاف المراقب الخلفي واستعادة الواجهة الأصلية.",
                 "Please confirm uninstalling Obsidian Prism, stopping background processes, and restoring the native UI."
             )
             : InstallerI18n.tr(
-                "正在只读检测 Antigravity Desktop 与安装状态，等待你确认后再开始安装...",
+                "جارٍ فحص Antigravity Desktop وحالة التثبيت للقراءة فقط بانتظار تأكيدك قبل البدء...",
                 "Running read-only preflight checks on Antigravity Desktop; waiting for your confirmation..."
             ))
         statusDetail.frame = NSRect(x: 14, y: 40, width: 520, height: 40)
@@ -2543,7 +2543,7 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate, NSWindowDeleg
         card.addSubview(statusDetail)
 
         metaLabel = NSTextField(labelWithString: InstallerI18n.tr(
-            "插件目录: \(activePluginDir)",
+            "دليل الإضافة: \(activePluginDir)",
             "Plugin Dir: \(activePluginDir)"
         ))
         metaLabel.frame = NSRect(x: 14, y: 88, width: 520, height: 18)
@@ -2581,7 +2581,7 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate, NSWindowDeleg
         // Optional lossless wrapper launcher checkbox (checked by default)
         launcherCheckbox = NSButton(
             checkboxWithTitle: InstallerI18n.tr(
-                "创建无损启动器（~/Applications/Antigravity Prism.app，可拖进 Dock 一键开启）",
+                "إنشاء مُطلِق آمن (~/Applications/Antigravity Prism.app، قابل للسحب إلى Dock)",
                 "Create lossless launcher (~/Applications/Antigravity Prism.app, pin to Dock)"
             ),
             target: self,
@@ -2595,7 +2595,7 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate, NSWindowDeleg
 
         // Buttons
         uninstallBtn = NSButton(
-            title: InstallerI18n.tr("卸载并恢复原版", "Uninstall & Restore"),
+            title: InstallerI18n.tr("إلغاء التثبيت والاستعادة", "Uninstall & Restore"),
             target: self,
             action: #selector(handleUninstallClick)
         )
@@ -2605,7 +2605,7 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate, NSWindowDeleg
         root.addSubview(uninstallBtn)
 
         openDirBtn = NSButton(
-            title: InstallerI18n.tr("打开配置目录", "Open Config Dir"),
+            title: InstallerI18n.tr("فتح دليل الإعدادات", "Open Config Dir"),
             target: self,
             action: #selector(handleOpenDirClick)
         )
@@ -2615,7 +2615,7 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate, NSWindowDeleg
         root.addSubview(openDirBtn)
 
         installBtn = NSButton(
-            title: InstallerI18n.tr("立即安装", "Install Now"),
+            title: InstallerI18n.tr("التثبيت الآن", "Install Now"),
             target: self,
             action: #selector(handleInstallClick)
         )
@@ -2627,7 +2627,7 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate, NSWindowDeleg
         root.addSubview(installBtn)
 
         launchAgBtn = NSButton(
-            title: InstallerI18n.tr("启动 Antigravity", "Launch Antigravity"),
+            title: InstallerI18n.tr("تشغيل Antigravity", "Launch Antigravity"),
             target: self,
             action: #selector(handleLaunchAgClick)
         )
@@ -2638,7 +2638,7 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate, NSWindowDeleg
         root.addSubview(launchAgBtn)
 
         closeBtn = NSButton(
-            title: InstallerI18n.tr("取消", "Cancel"),
+            title: InstallerI18n.tr("إلغاء", "Cancel"),
             target: self,
             action: #selector(handleCloseClick)
         )
@@ -2706,14 +2706,14 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate, NSWindowDeleg
     private func startInitialAction() {
         if opts.uninstall {
             let alert = NSAlert()
-            alert.messageText = InstallerI18n.tr("卸载确认", "Confirm Uninstall")
+            alert.messageText = InstallerI18n.tr("تأكيد إلغاء التثبيت", "Confirm Uninstall")
             alert.informativeText = InstallerI18n.tr(
-                "确认要卸载 Obsidian Prism 并恢复 Antigravity Desktop 原生界面吗？",
+                "هل تريد بالتأكيد إلغاء تثبيت Obsidian Prism واستعادة واجهة Antigravity Desktop الأصلية؟",
                 "Are you sure you want to uninstall Obsidian Prism and restore the native Antigravity Desktop UI?"
             )
             alert.alertStyle = .informational
-            alert.addButton(withTitle: InstallerI18n.tr("确认卸载", "Uninstall"))
-            alert.addButton(withTitle: InstallerI18n.tr("取消", "Cancel"))
+            alert.addButton(withTitle: InstallerI18n.tr("إلغاء التثبيت", "Uninstall"))
+            alert.addButton(withTitle: InstallerI18n.tr("إلغاء", "Cancel"))
             if alert.runModal() == .alertFirstButtonReturn {
                 executeUninstall()
             } else {
@@ -2742,59 +2742,59 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate, NSWindowDeleg
                 self.antigravityApp = ag.appPath
                 if alreadyInstalled {
                     self.statusHeadline.stringValue = InstallerI18n.tr(
-                        "已检测到本地 Obsidian Prism · 请选择操作",
+                        "تم اكتشاف تثبيت حالي لـ Obsidian Prism · اختر الإجراء",
                         "Existing Obsidian Prism Installation Found"
                     )
                     self.statusHeadline.textColor = Self.srgb(28, 25, 23)
                     self.statusDetail.stringValue = InstallerI18n.tr(
-                        "点击「重新安装 / 升级」可覆盖更新插件并保留现有配置；点击「卸载并恢复原版」可彻底卸载并还原原生界面。",
+                        "انقر «إعادة التثبيت / الترقية» لتحديث الإضافة مع الحفاظ على إعداداتك؛ أو انقر «إلغاء التثبيت والاستعادة» لإزالتها بالكامل واستعادة الواجهة الأصلية.",
                         "Click \"Reinstall / Upgrade\" to update while keeping your settings, or \"Uninstall & Restore\" to remove and restore the native UI."
                     )
-                    self.installBtn.title = InstallerI18n.tr("重新安装 / 升级", "Reinstall / Upgrade")
+                    self.installBtn.title = InstallerI18n.tr("إعادة التثبيت / الترقية", "Reinstall / Upgrade")
                 } else {
                     self.statusHeadline.stringValue = InstallerI18n.tr(
-                        "是否安装 Obsidian Prism · 黑曜棱镜？",
+                        "هل تريد تثبيت Obsidian Prism؟",
                         "Install Obsidian Prism?"
                     )
                     self.statusHeadline.textColor = Self.srgb(28, 25, 23)
                     self.statusDetail.stringValue = InstallerI18n.tr(
-                        "将部署本地插件与 LaunchAgent 守护（不修改 Antigravity 核心程序文件）。请点击「立即安装」开始，或点击「取消」退出。",
+                        "سيتم نشر الإضافة المحلية ومراقب LaunchAgent (دون تعديل ملفات Antigravity الأساسية). انقر «التثبيت الآن» للبدء أو «إلغاء» للخروج.",
                         "Deploys the local plugin and LaunchAgent watcher without modifying Antigravity.app binaries. Click \"Install Now\" to proceed."
                     )
-                    self.installBtn.title = InstallerI18n.tr("立即安装", "Install Now")
+                    self.installBtn.title = InstallerI18n.tr("التثبيت الآن", "Install Now")
                 }
 
                 let agSummary: String
                 if let appPath = ag.appPath, !appPath.isEmpty {
                     let ver = (ag.version?.isEmpty == false)
                         ? "v\(ag.version!)"
-                        : InstallerI18n.tr("已检测到", "Detected")
+                        : InstallerI18n.tr("تم الاكتشاف", "Detected")
                     let runState: String
                     if ag.isRunning {
                         runState = port != nil
-                            ? InstallerI18n.tr("运行中 · 端口 \(port!)", "Running · Port \(port!)")
-                            : InstallerI18n.tr("运行中", "Running")
+                            ? InstallerI18n.tr("قيد التشغيل · المنفذ \(port!)", "Running · Port \(port!)")
+                            : InstallerI18n.tr("قيد التشغيل", "Running")
                     } else {
-                        runState = InstallerI18n.tr("未运行", "Not Running")
+                        runState = InstallerI18n.tr("غير مشغّل", "Not Running")
                     }
                     agSummary = "Antigravity: \(ver) (\(runState))"
                 } else {
                     agSummary = InstallerI18n.tr(
-                        "未检测到运行中的 Antigravity（支持预先安装）",
+                        "لم يُكتشف تشغيل Antigravity حالياً (يدعم التثبيت المسبق)",
                         "Antigravity not detected (pre-install supported)"
                     )
                 }
                 self.metaLabel.stringValue = "\(agSummary) | \(pluginDir)"
 
                 self.appendLog(InstallerI18n.tr(
-                    "环境只读预检完成，当前未对本机做任何修改，等待你确认操作。",
+                    "اكتمل الفحص المسبق للقراءة فقط دون إجراء أي تعديل؛ بانتظار تأكيدك.",
                     "Read-only preflight check completed; no changes have been made yet."
                 ))
-                self.appendLog(InstallerI18n.tr("原生插件目录: \(pluginDir)", "Native plugin dir: \(pluginDir)"))
-                self.appendLog(InstallerI18n.tr("后台守护目录: \(installDir)", "Watcher install dir: \(installDir)"))
+                self.appendLog(InstallerI18n.tr("دليل الإضافة الأصلية: \(pluginDir)", "Native plugin dir: \(pluginDir)"))
+                self.appendLog(InstallerI18n.tr("دليل المراقب الخلفي: \(installDir)", "Watcher install dir: \(installDir)"))
                 if let appPath = ag.appPath, !appPath.isEmpty {
                     self.appendLog(InstallerI18n.tr(
-                        "检测到 Antigravity Desktop: \(appPath)",
+                        "تم اكتشاف Antigravity Desktop: \(appPath)",
                         "Detected Antigravity Desktop: \(appPath)"
                     ))
                 }
@@ -2808,7 +2808,7 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate, NSWindowDeleg
                 self.launcherCheckbox.isEnabled = true
                 self.uninstallBtn.isEnabled = alreadyInstalled
                 self.openDirBtn.isEnabled = hasDir
-                self.closeBtn.title = InstallerI18n.tr("取消", "Cancel")
+                self.closeBtn.title = InstallerI18n.tr("إلغاء", "Cancel")
                 self.closeBtn.keyEquivalent = "\u{1b}"
                 self.closeBtn.isEnabled = true
             }
@@ -2824,12 +2824,12 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate, NSWindowDeleg
         busy = true
         opts.createLauncher = (launcherCheckbox.state == .on)
         statusHeadline.stringValue = InstallerI18n.tr(
-            "正在安装并配置本机 Antigravity Desktop...",
+            "جارٍ تثبيت وتهيئة Obsidian Prism لـ Antigravity Desktop...",
             "Installing and configuring Antigravity Desktop..."
         )
         statusHeadline.textColor = Self.srgb(28, 25, 23)
         statusDetail.stringValue = InstallerI18n.tr(
-            "正在部署本地插件与后台守护服务，请稍候...",
+            "جارٍ نشر الإضافة المحلية والخدمة الخلفية، يرجى الانتظار...",
             "Deploying local plugin and background watcher, please wait..."
         )
         progressBar.doubleValue = 5
@@ -2847,7 +2847,7 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate, NSWindowDeleg
                     self.statusHeadline.textColor = Self.srgb(21, 128, 61)
                     self.statusDetail.stringValue = res.detail
                     self.metaLabel.stringValue = InstallerI18n.tr(
-                        "配置: \(res.configSummary)",
+                        "الإعداد: \(res.configSummary)",
                         "Config: \(res.configSummary)"
                     )
                     self.openDirBtn.isEnabled = FileManager.default.fileExists(atPath: self.activePluginDir) || FileManager.default.fileExists(atPath: self.activeInstallDir)
@@ -2858,12 +2858,12 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate, NSWindowDeleg
                     self.launchAgBtn.isEnabled = showLaunch
                     self.installBtn.isHidden = showLaunch
                     if !showLaunch {
-                        self.installBtn.title = InstallerI18n.tr("重新安装", "Reinstall")
+                        self.installBtn.title = InstallerI18n.tr("إعادة التثبيت", "Reinstall")
                         self.installBtn.isEnabled = true
                         self.installBtn.keyEquivalent = ""
                     }
                     self.busy = false
-                    self.closeBtn.title = InstallerI18n.tr("完成并关闭", "Done & Close")
+                    self.closeBtn.title = InstallerI18n.tr("تم وإغلاق", "Done & Close")
                     self.closeBtn.keyEquivalent = "\r"
                     self.closeBtn.isEnabled = true
 
@@ -2876,16 +2876,16 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate, NSWindowDeleg
                        let bare = CdpHelper.findBareAntigravityMainProcess() {
                         let alert = NSAlert()
                         alert.messageText = InstallerI18n.tr(
-                            "立即激活 Obsidian Prism",
+                            "تفعيل Obsidian Prism الآن",
                             "Activate Obsidian Prism Now"
                         )
                         alert.informativeText = InstallerI18n.tr(
-                            "检测到正在运行的 Antigravity (v2.33.0+) 未开启本地光学桥接端口（--remote-debugging-port=0）。\n\n是否立即重新打开 Antigravity 使黑曜棱镜（Obsidian Prism）界面当场生效？",
+                            "تم اكتشاف تشغيل Antigravity (v2.33.0+) بدون منفذ الجسر البصري المحلي (--remote-debugging-port=0).\n\nهل تريد إعادة فتح Antigravity الآن لتفعيل واجهة Obsidian Prism فوراً؟",
                             "Antigravity (v2.33.0+) is currently running without the local optical bridge flag (--remote-debugging-port=0).\n\nRelaunch Antigravity now to activate the Obsidian Prism UI immediately?"
                         )
                         alert.alertStyle = .informational
-                        alert.addButton(withTitle: InstallerI18n.tr("立即重新打开", "Relaunch Now"))
-                        alert.addButton(withTitle: InstallerI18n.tr("稍后手动重开", "Later"))
+                        alert.addButton(withTitle: InstallerI18n.tr("إعادة الفتح الآن", "Relaunch Now"))
+                        alert.addButton(withTitle: InstallerI18n.tr("لاحقاً", "Later"))
                         let confirmed = (alert.runModal() == .alertFirstButtonReturn)
                         CdpHelper.recordPromptedForHost(
                             pid: bare.pid,
@@ -2898,7 +2898,7 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate, NSWindowDeleg
                             self.busy = true
                             self.closeBtn.isEnabled = false
                             self.statusHeadline.stringValue = InstallerI18n.tr(
-                                "正在带参重新打开 Antigravity 并激活界面...",
+                                "جارٍ إعادة فتح Antigravity وتفعيل الواجهة...",
                                 "Relaunching Antigravity with optical bridge flag..."
                             )
                             DispatchQueue.global(qos: .userInitiated).async {
@@ -2923,11 +2923,11 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate, NSWindowDeleg
                                 DispatchQueue.main.async {
                                     if ok {
                                         self.statusHeadline.stringValue = InstallerI18n.tr(
-                                            "安装成功！已带参重开并激活 Antigravity 界面",
+                                            "تم التثبيت بنجاح! أُعيد فتح Antigravity وتفعيل الواجهة",
                                             "Installed! Antigravity relaunched and activated"
                                         )
                                         self.statusDetail.stringValue = InstallerI18n.tr(
-                                            "已带 --remote-debugging-port=0 重新打开 Antigravity 并激活本地插件与后台守护服务。",
+                                            "تمت إعادة فتح Antigravity مع --remote-debugging-port=0 وتفعيل الإضافة المحلية والخدمة الخلفية.",
                                             "Relaunched Antigravity with --remote-debugging-port=0 and activated the local plugin and background daemon."
                                         )
                                     }
@@ -2940,21 +2940,21 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate, NSWindowDeleg
                 }
             } catch {
                 self.appendLog(InstallerI18n.tr(
-                    "[✗] 错误: \(error.localizedDescription)",
+                    "[✗] خطأ: \(error.localizedDescription)",
                     "[✗] Error: \(error.localizedDescription)"
                 ))
                 DispatchQueue.main.async {
-                    self.statusHeadline.stringValue = InstallerI18n.tr("安装失败", "Installation Failed")
+                    self.statusHeadline.stringValue = InstallerI18n.tr("فشل التثبيت", "Installation Failed")
                     self.statusHeadline.textColor = Self.srgb(185, 28, 28)
                     self.statusDetail.stringValue = error.localizedDescription
                     self.launchAgBtn.isHidden = true
                     self.installBtn.isHidden = false
-                    self.installBtn.title = InstallerI18n.tr("重试安装", "Retry Install")
+                    self.installBtn.title = InstallerI18n.tr("إعادة محاولة التثبيت", "Retry Install")
                     self.installBtn.isEnabled = true
                     self.installBtn.keyEquivalent = "\r"
                     self.launcherCheckbox.isEnabled = true
                     self.busy = false
-                    self.closeBtn.title = InstallerI18n.tr("关闭", "Close")
+                    self.closeBtn.title = InstallerI18n.tr("إغلاق", "Close")
                     self.closeBtn.keyEquivalent = "\u{1b}"
                     self.closeBtn.isEnabled = true
                 }
@@ -2964,14 +2964,14 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate, NSWindowDeleg
 
     @objc private func handleUninstallClick() {
         let alert = NSAlert()
-        alert.messageText = InstallerI18n.tr("卸载并恢复原版", "Uninstall & Restore Native UI")
+        alert.messageText = InstallerI18n.tr("إلغاء التثبيت والاستعادة", "Uninstall & Restore Native UI")
         alert.informativeText = InstallerI18n.tr(
-            "确认卸载 Obsidian Prism、停止后台守护并立即恢复 Antigravity 原生界面？",
+            "هل تؤكد إلغاء تثبيت Obsidian Prism وإيقاف المراقب الخلفي واستعادة واجهة Antigravity الأصلية فوراً؟",
             "Confirm uninstalling Obsidian Prism, stopping background processes, and immediately restoring the native Antigravity UI?"
         )
         alert.alertStyle = .warning
-        alert.addButton(withTitle: InstallerI18n.tr("确认卸载", "Uninstall"))
-        alert.addButton(withTitle: InstallerI18n.tr("取消", "Cancel"))
+        alert.addButton(withTitle: InstallerI18n.tr("إلغاء التثبيت", "Uninstall"))
+        alert.addButton(withTitle: InstallerI18n.tr("إلغاء", "Cancel"))
         if alert.runModal() == .alertFirstButtonReturn {
             executeUninstall()
         }
@@ -2981,12 +2981,12 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate, NSWindowDeleg
         if busy { return }
         busy = true
         statusHeadline.stringValue = InstallerI18n.tr(
-            "正在卸载 Obsidian Prism 并恢复原版界面...",
+            "جارٍ إلغاء تثبيت Obsidian Prism واستعادة الواجهة الأصلية...",
             "Uninstalling Obsidian Prism and restoring native UI..."
         )
         statusHeadline.textColor = Self.srgb(28, 25, 23)
         statusDetail.stringValue = InstallerI18n.tr(
-            "正在停止后台守护并清理插件文件，请稍候...",
+            "جارٍ إيقاف المراقب وتنظيف ملفات الإضافة، يرجى الانتظار...",
             "Stopping background processes and cleaning up plugin files, please wait..."
         )
         progressBar.doubleValue = 5
@@ -3000,19 +3000,19 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate, NSWindowDeleg
                 self.statusHeadline.textColor = Self.srgb(3, 105, 161)
                 self.statusDetail.stringValue = res.detail
                 self.metaLabel.stringValue = InstallerI18n.tr(
-                    "已清理目录: \(res.installDir)",
+                    "الدليل المُزال: \(res.installDir)",
                     "Cleaned directory: \(res.installDir)"
                 )
                 self.openDirBtn.isEnabled = false
                 self.uninstallBtn.isEnabled = false
                 self.launchAgBtn.isHidden = true
                 self.installBtn.isHidden = false
-                self.installBtn.title = InstallerI18n.tr("重新安装", "Reinstall")
+                self.installBtn.title = InstallerI18n.tr("إعادة التثبيت", "Reinstall")
                 self.installBtn.isEnabled = true
                 self.installBtn.keyEquivalent = ""
                 self.launcherCheckbox.isEnabled = true
                 self.busy = false
-                self.closeBtn.title = InstallerI18n.tr("完成并关闭", "Done & Close")
+                self.closeBtn.title = InstallerI18n.tr("تم وإغلاق", "Done & Close")
                 self.closeBtn.keyEquivalent = "\r"
                 self.closeBtn.isEnabled = true
             }
@@ -3194,7 +3194,7 @@ func runInstallerMain() -> Int32 {
                 let alert = NSAlert()
                 alert.alertStyle = .critical
                 alert.messageText = InstallerI18n.tr(
-                    "Obsidian Prism 操作失败",
+                    "فشلت عملية Obsidian Prism",
                     "Obsidian Prism Operation Failed"
                 )
                 alert.informativeText = error.localizedDescription

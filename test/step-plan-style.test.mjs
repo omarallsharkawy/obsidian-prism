@@ -88,7 +88,7 @@ test('step-plan checklist card and home-panel align with Obsidian Prism floating
   const minified = cdp.minifyCss(css);
   assert.ok(minified.includes('[data-testid="step-plan"]'), 'minified CSS must retain step-plan rules');
   assert.ok(minified.includes('[data-testid="step-plan-item"]'), 'minified CSS must retain step-plan-item rules');
-  for (const lang of ['auto', 'zh-CN', 'zh-TW', 'en', 'ja', 'ko', 'es', 'fr', 'de']) {
+  for (const lang of ['auto', 'en', 'ar']) {
     const ch1Bytes = Buffer.byteLength(cdp.buildInjectExpression({ ...cdp.DEFAULT_CONFIG, language: lang }, { bundleCachePath: '' }), 'utf8');
     assert.ok(ch1Bytes < 549500, `Channel 1 (${lang}) bundle (${ch1Bytes} B) must stay < 549,500 B`);
   }
@@ -339,12 +339,12 @@ test('prism-rim-canvas caps step-plan rims to newest 2 visible expanded cards, m
 
 test('model-selector trigger relaxes container cap to min(300px,100%) and excludes .ag-pp-mini-keycap badge from truncation/collapse', () => {
   const css = fs.readFileSync(path.join(ROOT, 'style.css'), 'utf8');
-  // 1) 外层容器允许在 300px 内完整展示模型名与 [10Ne] 徽章，超窄窗口按 flex:0 1 auto 等比收缩
+  // 1) Outer container displays full model name & [10Ne] badge up to 300px, shrinking proportionally via flex:0 1 auto on narrow windows
   assert.ok(
     css.includes('div.no-focus-agent-input{flex:0 1 auto !important;min-width:0 !important;max-width:min(300px,100%) !important;overflow:hidden !important;}'),
     'no-focus-agent-input must use flex:0 1 auto and max-width:min(300px,100%)',
   );
-  // 2) 常规与窄窗 data-t~="1" 折叠规则均排除 .ag-pp-mini-keycap，防止迷你快捷键徽章被截断或隐藏
+  // 2) Both normal and narrow-window data-t~="1" collapse rules exclude .ag-pp-mini-keycap so mini shortcut badges are never truncated or hidden
   assert.ok(
     css.includes('& [data-testid="model-selector-trigger"]>span:not(.ag-cs-model-glyph):not(.ag-pp-mini-keycap){'),
     'normal model-selector label span rule must exclude .ag-pp-mini-keycap',

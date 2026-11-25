@@ -1,16 +1,16 @@
 "use strict";
 
 /**
- * Antigravity Prism app.asar 无损清理、持久集成与热重载偏移守护工具 (tools/patch-asar.cjs)
+ * Antigravity Prism app.asar Lossless Cleanup, Persistent Integration & Hot-Reload Offset Guard (tools/patch-asar.cjs)
  *
- * 核心能力：
- * 1. --clean-legacy：干净剥离历史旧版 /* __AG_CLAUDE_STYLE_START__ * / 代码块并清理残留 .agcs-staged*，
- *    100% 保留 宿主界面本地化补丁与 __AG_CODEX_EFFORT_SLIDER_START__ 滑块，
- *    同步重算 .antigravity_chinese_meta.json SHA-1 指纹。
- * 2. 运行期 ASAR 内存偏移绝对保护：检测到宿主客户端运行中时，严禁原地覆盖 app.asar（避免 Ctrl+Shift+R 偏移错位），
- *    改为写入 staged 归档并通过 PowerShell Start-Process -WindowStyle Hidden 脱离终端 Job Object 派生独立守护进程，
- *    待宿主退出后原子落盘替换 app.asar 并同步汉化指纹！
- * 3. --install / --restore / --status：支持新版 /* __AG_PRISM_START__ * / 独立标记写入与无损还原。
+ * Core capabilities:
+ * 1. --clean-legacy: cleanly strips legacy /* __AG_CLAUDE_STYLE_START__ * / blocks and cleans leftover .agcs-staged*,
+ *    preserving 100% of host UI localization patches and the __AG_CODEX_EFFORT_SLIDER_START__ slider,
+ *    while recalculating the .antigravity_chinese_meta.json SHA-1 fingerprint.
+ * 2. Runtime ASAR memory-offset protection: when the host client is running, never overwrite app.asar in place (avoids Ctrl+Shift+R offset corruption);
+ *    instead writes a staged archive and spawns a detached helper via PowerShell Start-Process -WindowStyle Hidden outside the terminal Job Object,
+ *    atomically swapping app.asar and syncing metadata once the host exits.
+ * 3. --install / --restore / --status: supports modern /* __AG_PRISM_START__ * / marker injection and lossless restore.
  */
 
 const fs = require("node:fs");
@@ -369,7 +369,7 @@ function readPreloadFromAsar(asarPath) {
   const { header, payload } = parseAsarArchive(rawAsar);
   const preloadEntry = header.files?.dist?.files?.["preload.js"];
   if (!preloadEntry || preloadEntry.offset === undefined) {
-    throw new Error(`未在 ASAR 中找到 dist/preload.js: ${asarPath}`);
+    throw new Error(`dist/preload.js not found in ASAR: ${asarPath}`);
   }
   const off = Number(preloadEntry.offset);
   const text = payload.subarray(off, off + preloadEntry.size).toString("utf8");
@@ -406,7 +406,7 @@ function syncChineseLocalizationMeta(asarPath, bufferOpt) {
     fs.writeFileSync(metaPath, JSON.stringify(nextMeta, null, 2), "utf8");
     return fp;
   } catch (err) {
-    console.warn(`[Antigravity Prism Asar] 同步汉化指纹失败: ${err.message}`);
+    console.warn(`[Antigravity Prism Asar] Failed to sync localization fingerprint: ${err.message}`);
     return null;
   }
 }
@@ -644,9 +644,9 @@ function extractInjectExprFromAsarIfPresent(asarPath) {
 }
 
 /**
- * 在 Windows 下通过 WMI Win32_Process.Create + Win32_ProcessStartup(ShowWindow=0)
- * 由系统服务直接以 SW_HIDE 派生完全脱离当前终端 Job Object 的后台无窗进程（0 黑框 + 终端关闭不连坐）；
- * 受限沙盒或非 Windows 环境自动回退 detached child_process.spawn。
+ * On Windows, uses WMI Win32_Process.Create + Win32_ProcessStartup(ShowWindow=0)
+ * so the system service spawns a windowless background process completely outside the current terminal Job Object (no console flash, survives terminal close);
+ * falls back to detached child_process.spawn in restricted sandboxes or on non-Windows platforms.
  */
 function spawnBreakawayNodeProcess(nodeArgs, opts = {}) {
   const exe = process.execPath;
@@ -1069,7 +1069,7 @@ function writeBufferAtomically(targetPath, buffer, opts = {}) {
 function patchAsarFile(asarPath, opts = {}) {
   const resolved = path.resolve(asarPath);
   if (!fs.existsSync(resolved)) {
-    throw new Error(`未找到目标 app.asar: ${resolved}`);
+    throw new Error(`Target app.asar not found: ${resolved}`);
   }
   const removedLegacyStaged = cleanupLegacyAgcsStagedFiles(resolved);
   const injectExpr = opts.injectExpr || getCdp().buildInjectExpression(opts.config);
@@ -1101,7 +1101,7 @@ function restoreAsarFile(asarPath, opts = {}) {
   const removedLegacyStaged = cleanupLegacyAgcsStagedFiles(resolved);
   if (!fs.existsSync(resolved)) {
     cleanupStagedArtifacts(resolved);
-    throw new Error(`未找到目标 app.asar: ${resolved}`);
+    throw new Error(`Target app.asar not found: ${resolved}`);
   }
   const { preloadText } = readPreloadFromAsar(resolved);
   if (!preloadText.includes(PATCH_START_MARKER) && !preloadText.includes(LEGACY_PATCH_START_MARKER)) {
@@ -1134,19 +1134,19 @@ function restoreAsarFile(asarPath, opts = {}) {
 }
 
 /**
- * 清理历史旧版 /* __AG_CLAUDE_STYLE_START__ * / 代码块与残留 .agcs-staged* 文件，
- * 100% 保护汉化补丁与 Codex 滑块及运行期 ASAR 内存偏移！
+ * Clean legacy /* __AG_CLAUDE_STYLE_START__ * / blocks and leftover .agcs-staged* files,
+ * preserving host localization patches, Codex slider, and runtime ASAR memory offsets.
  */
 function cleanLegacyAsar(asarPath, opts = {}) {
   const resolved = path.resolve(asarPath);
   const removedLegacyStaged = cleanupLegacyAgcsStagedFiles(resolved);
   if (!fs.existsSync(resolved)) {
-    throw new Error(`未找到目标 app.asar: ${resolved}`);
+    throw new Error(`Target app.asar not found: ${resolved}`);
   }
   const { preloadText, rawAsar } = readPreloadFromAsar(resolved);
   const hadLegacyBlock = preloadText.includes(LEGACY_PATCH_START_MARKER);
   if (!hadLegacyBlock) {
-    // 磁盘 app.asar 不含旧版块：零覆写，仅在不运行时核验汉化指纹
+    // On-disk app.asar has no legacy block: zero overwrite, only verify localization fingerprint when not running
     let fingerprint = null;
     if (!isHostClientRunning(resolved, opts)) {
       fingerprint = syncChineseLocalizationMeta(resolved, rawAsar);

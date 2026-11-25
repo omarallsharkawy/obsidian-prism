@@ -1249,7 +1249,7 @@ test('Wave 3 P1-3d vendor/host-i18n: blur->focus with 0 DOM mutations does 0 ful
     removeEventListener: (t, fn) => winBus.remove(t, fn),
   };
 
-  const dict = { exact: { Settings: '设置', Save: '保存', Copy: '复制', Delete: '删除', Cancel: '取消' }, patterns: [] };
+  const dict = { exact: { Settings: 'الإعدادات', Save: 'حفظ', Copy: 'نسخ', Delete: 'حذف', Cancel: 'إلغاء' }, patterns: [] };
   const inst = runtime.mountHostI18n({
     root: win,
     doc,
@@ -1262,7 +1262,7 @@ test('Wave 3 P1-3d vendor/host-i18n: blur->focus with 0 DOM mutations does 0 ful
     cancelRafFn: clock.cancelAnimationFrame,
   });
 
-  assert.equal(probeBtn.textContent, '设置');
+  assert.equal(probeBtn.textContent, 'الإعدادات');
 
   // 1. Alt+Tab blur -> focus with ZERO DOM mutations -> 0 full-document scans!
   clock.advanceTimers(1500);
@@ -1297,8 +1297,8 @@ test('Wave 3 P1-3d vendor/host-i18n: blur->focus with 0 DOM mutations does 0 ful
   assert.equal(lateBtn1.textContent, 'Save');
 
   winBus.dispatch('focus');
-  assert.equal(lateBtn1.textContent, '保存', 'Focus wake must catch up mutations occurred during blur');
-  assert.equal(lateBtn2.textContent, '取消');
+  assert.equal(lateBtn1.textContent, 'حفظ', 'Focus wake must catch up mutations occurred during blur');
+  assert.equal(lateBtn2.textContent, 'إلغاء');
 
   // 3. document.hidden = true must NOT keep dirty probe connected, and visibility restore catches up
   doc.hidden = true;
@@ -1309,7 +1309,7 @@ test('Wave 3 P1-3d vendor/host-i18n: blur->focus with 0 DOM mutations does 0 ful
   body.append(hiddenBtn);
   doc.hidden = false;
   docBus.dispatch('visibilitychange');
-  assert.equal(hiddenBtn.textContent, '复制');
+  assert.equal(hiddenBtn.textContent, 'نسخ');
 
   // 4. pointerenter without floating hint skips 9-selector full-document querySelectorAll
   floatingQsaCalls = 0;
@@ -1327,7 +1327,7 @@ test('Wave 3 P1-3d vendor/host-i18n: blur->focus with 0 DOM mutations does 0 ful
   clock.advanceTimers(200);
   docBus.dispatch('pointerenter', { type: 'pointerenter', target: probeBtn });
   clock.advanceTimers(200);
-  assert.equal(tip.textContent, '复制', 'pointerenter with floating tooltip at body tail must translate it');
+  assert.equal(tip.textContent, 'نسخ', 'pointerenter with floating tooltip at body tail must translate it');
   // Remove tip from tail for contextmenu test
   body.childNodes.pop();
 
@@ -1340,7 +1340,7 @@ test('Wave 3 P1-3d vendor/host-i18n: blur->focus with 0 DOM mutations does 0 ful
   docBus.dispatch('contextmenu', { type: 'contextmenu', target: probeBtn });
   clock.advanceTimers(200);
   assert.equal(floatingQsaCalls, 1, 'contextmenu must perform full 9-selector floating QSA');
-  assert.equal(nestedContextMenu.textContent, '删除', 'contextmenu full scan must translate nested menu');
+  assert.equal(nestedContextMenu.textContent, 'حذف', 'contextmenu full scan must translate nested menu');
 
   inst.destroy();
   assert.equal(observerInstances[0].connected, false);

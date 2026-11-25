@@ -196,15 +196,15 @@
     {
       id: '11111111-2222-4333-8444-555555555551',
       pinned: false,
-      title: '项目主开发会话',
+      title: 'Primary Engineering Session',
       branch: 'feat_arch_001',
       time: '3m',
       running: false,
       turns: [
         {
-          prompt: '把预览台做成 1:1 复刻当前 Antigravity 桌面本体的样子，直接吃原装原生样式表和脱敏骨架，并且能一键切换原生本体与 Prism 实时注入对比。',
+          prompt: 'Build a 1:1 mirror of the Antigravity desktop host using native stylesheets and a clean DOM skeleton, with a one-click toggle between Native Host and Live Prism Injection.',
           workedFor: 'Worked for 38s',
-          thought: '已通过只读方式提取当前本机 Antigravity 的原生 jetbox.css + compiled_tailwind.css（473 KB，本地 .gitignore 隔离缓存不进 Git）与 17 枚原装 SVG 图标，并严格按照真实 DOM 层级构建 35px 顶栏、256px 侧栏、全宽对话流、右上角 320px 悬浮 Overview 卡片以及 .surface-composer 输入框。',
+          thought: 'Extracted native jetbox.css + compiled_tailwind.css (473 KB, local .gitignore cache) and 17 host SVG icons read-only, reproducing the exact DOM hierarchy: 35px titlebar, 256px sidebar, full-width conversation stream, top-right floating Overview card, and .surface-composer input.',
           tools: [
             { label: 'Read file', detail: 'workbench/server.cjs (L645-L692)' },
             {
@@ -258,87 +258,87 @@
             },
             { label: 'Ran command', detail: 'npm test — 62 pass, 0 fail' },
           ],
-          summary: '现在加载的就是 100% 原装 Antigravity 样式表、Google Sans Flex 字体与原装 SVG 图标。点击顶栏正中央的「原生本体 ⇄ Prism 实时注入」即可无损秒切对照。',
+          summary: 'This view loads authentic Antigravity stylesheets, Google Sans Flex typography, and native SVG icons. Click Native Host / Live Prism Inject in the top center pill to compare seamlessly.',
         },
         {
-          prompt: '主对话区里的工具折叠、Markdown 表格、引用块、五色警示卡片、56 行可折叠代码块和代码 Diff 审阅卡片都要能真实联动预览。',
+          prompt: 'Include interactive tool folding, Markdown tables, blockquotes, 5-tone alerts, collapsible 56-line code blocks, and code diff review cards in the conversation stream.',
           workedFor: 'Worked for 24s',
-          thought: '第二轮内嵌真实宿主同构的 .agy-md-table、blockquote、.markdown-alert、56 行代码块（自动触发 host-workbench-enhancer 折叠与吸顶）以及 files-changed-header + .monaco-diff-editor + Accept/Reject 胶囊。',
+          thought: 'Embedded host-isomorphic .agy-md-table, blockquote, .markdown-alert, a 56-line code block (triggering host-workbench-enhancer folding and sticky header), and files-changed-header + .monaco-diff-editor + Accept/Reject pills.',
           tools: [],
-          summary: '下方展示了全套宿主同构 Prose 细节与 Diff 审阅卡片。将鼠标移到最左侧 28px 进度圆点导轨，还可悬停呼出真实的提问导航大纲 Popover。',
+          summary: 'Below is the full set of host-isomorphic prose details and diff review cards. Hover the 28px progress dot rail on the far left to open the interactive prompt outline popover.',
         },
         {
-          prompt: '模型菜单里的 Orchestrator 无框棱镜滑块、512K 实体水试管和 9 大 Slash 双宠剧场也都验证一遍。',
+          prompt: 'Verify the borderless Orchestrator prism slider in the model menu, the 512K borosilicate vial, and all 9 dual-mascot slash theaters.',
           workedFor: 'Worked for 19s',
-          thought: '模型菜单挂有 4 层同构 React Fiber 契约供 upstream-client.js 实时接管；底部遥测位接入 agPulseHost 驱动 512K 实体水试管；输入框键入 /plan、/boost、/teamwork 等回车或从控台一键点播 9 大双宠微剧场。',
+          thought: 'Wired 4-layer isomorphic React Fiber contract on the model menu for upstream-client.js, connected agPulseHost telemetry to drive the 512K vial, and enabled all 9 dual-mascot slash theaters via input commands or the control drawer.',
           tools: [],
-          summary: '点击输入框左下角模型按钮可展开带真实 Orchestrator 棱镜条的模型菜单；点右上角「控台」可自由切换 5 套调色板、新建首页 `.agy-home`、水试管 86% 预警、失焦 0fps 模拟与四色光学 Toast。',
+          summary: 'Click the model selector at bottom-left to inspect the Orchestrator prism bar, or open Controls in the top pill to switch all 5 palettes, view .agy-home, trigger 86% vial warnings, blur 0fps sleep, and spawn 4-tone optical toasts.',
         },
       ],
     },
     {
       id: '11111111-2222-4333-8444-555555555552',
       pinned: false,
-      title: '项目性能优化会话',
+      title: 'Performance Optimization Session',
       branch: 'optimize_project_perf',
       time: '12m',
       running: true,
       turns: [
         {
-          prompt: '核验 M3 重构下 Orchestrator 棱镜水晶条与钛灰圆钮 100% 不受影响。',
+          prompt: 'Verify the Orchestrator prism crystal bar and titanium knob remain 100% unaffected by the M3 refactor.',
           workedFor: 'Worked for 15s',
-          thought: '检查 .ces-ag-effort-row[data-ag-orch-p] 与 :not(.ces-knob) 豁免规则。',
+          thought: 'Verified .ces-ag-effort-row[data-ag-orch-p] and :not(.ces-knob) exemption rules.',
           tools: [],
-          summary: '已 100% 豁免保护 Orchestrator 滑块与钛灰圆钮，点左下角模型菜单即可实景查看。',
+          summary: 'The Orchestrator slider and titanium knob are fully preserved; open the bottom-left model menu to inspect live.',
         },
       ],
     },
     {
       id: '11111111-2222-4333-8444-555555555553',
       pinned: false,
-      title: '项目创意架构落地会话',
+      title: 'Architecture & Ecology Session',
       branch: 'carbon_architecture_blue',
       time: '5h',
       running: false,
       turns: [
         {
-          prompt: '确认窗口失焦 1.2s 后全链路进入 0fps 停机并在聚焦 0ms 瞬醒。',
+          prompt: 'Confirm the full pipeline enters 0fps sleep 1.2s after window blur and wakes instantly on focus.',
           workedFor: 'Worked for 11s',
-          thought: '核对 dual-mascot-rig、conv-aura、pulse-vial-bridge、effort-slider 失焦停帧门禁。',
+          thought: 'Audited window-blur freeze gates across dual-mascot-rig, conv-aura, pulse-vial-bridge, and effort-slider.',
           tools: [],
-          summary: '可在右上角「控台」点击「失焦 0fps 模拟」或「水试管 86% 预警」直接测试。',
+          summary: 'Use Blur 0fps Sim or Vial 86% Warning inside Controls to test directly.',
         },
       ],
     },
     {
       id: '11111111-2222-4333-8444-555555555554',
       pinned: false,
-      title: '项目“chat”模块会话',
+      title: 'Chat Module Navigation Session',
       branch: 'sidebar_studio_develop',
       time: '7h',
       running: false,
       turns: [
         {
-          prompt: '验证切换左侧会话触发 data-cascade-id 变化时大纲过滤词自动复位。',
+          prompt: 'Verify that switching sidebar sessions updates data-cascade-id and resets the outline filter query.',
           workedFor: 'Worked for 9s',
-          thought: '左侧每个会话绑定了独立 data-cascade-id，切换即实时同步。',
+          thought: 'Each sidebar session carries its own data-cascade-id and syncs immediately on switch.',
           tools: [],
-          summary: '切换左侧不同会话后悬停最左 28px 导轨，可实测提问大纲与过滤词自动复位。',
+          summary: 'Switch sessions in the sidebar and hover the 28px left rail to verify outline sync and automatic filter reset.',
         },
       ],
     },
   ];
 
   const SLASH_COMMANDS = [
-    { cmd: '/plan', desc: '展开像素蓝图与分步架构规划', kbd: 'P' },
-    { cmd: '/goal', desc: '系上奋斗头带，开启长周期目标模式', kbd: 'G' },
-    { cmd: '/boost', desc: '多视角深度攻坚 + 四色星屑冰晶', kbd: 'B' },
-    { cmd: '/teamwork', desc: '举旗召唤迷你蟹列队协同 Swarm', kbd: 'T' },
-    { cmd: '/browser', desc: '戴墨镜踩冲浪板执行真实浏览器任务', kbd: 'W' },
-    { cmd: '/compact', desc: '合力压缩上下文云朵释放 Token 空间', kbd: 'C' },
-    { cmd: '/schedule', desc: '设定定时守望沙漏与周期任务', kbd: 'S' },
-    { cmd: '/grill-me', desc: '聚光灯深度对齐需求与边界反例', kbd: 'Q' },
-    { cmd: '/learn', desc: '翻阅笔记点亮灯泡沉淀长期经验', kbd: 'L' },
+    { cmd: '/plan', desc: 'Unfold pixel blueprint and step-by-step architecture plan', kbd: 'P' },
+    { cmd: '/goal', desc: 'Tie on the focus headband for long-horizon goal mode', kbd: 'G' },
+    { cmd: '/boost', desc: 'Deep multi-perspective problem solving with 4-color prism crystals', kbd: 'B' },
+    { cmd: '/teamwork', desc: 'Raise the banner to summon a mini-crab multi-agent swarm', kbd: 'T' },
+    { cmd: '/browser', desc: 'Surf the web in sunglasses for live browser automation', kbd: 'W' },
+    { cmd: '/compact', desc: 'Compress context clouds together to reclaim token headroom', kbd: 'C' },
+    { cmd: '/schedule', desc: 'Set a watch hourglass for recurring or scheduled tasks', kbd: 'S' },
+    { cmd: '/grill-me', desc: 'Spotlight interview to pressure-test requirements and edge cases', kbd: 'Q' },
+    { cmd: '/learn', desc: 'Review notes and light up insights to persist long-term lessons', kbd: 'L' },
   ];
 
   const MODEL_CATALOG = [
@@ -410,9 +410,9 @@
   const urlParams = new URLSearchParams(window.location.search);
 
   const PERM_MODES = [
-    { id: 'turbo', label: 'Turbo', desc: '全自动执行命令与文件编辑，仅高危外网/系统操作询问。' },
-    { id: 'auto', label: 'Balanced', desc: '常规读写自动放行，命令行执行前保持轻量确认。' },
-    { id: 'ask', label: 'Ask', desc: '每次修改文件或运行终端命令前均弹出审批卡片。' },
+    { id: 'turbo', label: 'Turbo', desc: 'Automatically run commands and edit files; ask only for high-risk external or system actions.' },
+    { id: 'auto', label: 'Balanced', desc: 'Allow routine file reads/writes automatically with lightweight confirmation before shell execution.' },
+    { id: 'ask', label: 'Ask', desc: 'Show an approval card before every file modification or terminal command.' },
   ];
 
   const sim = {
@@ -454,7 +454,7 @@
       homeLayout: 'studio',
       telemetryModule: 'on',
       effortSliderModule: 'on',
-      language: 'zh-CN',
+      language: urlParams.get('lang') === 'ar' ? 'ar' : 'en',
     },
     injectBusy: false,
   };
@@ -527,7 +527,7 @@
     window.agPulseHost = {
       getMetrics: async () => buildMetricsSnapshot(),
       getLatestSnapshot: () => buildMetricsSnapshot(),
-      getPreferences: async () => ({ language: sim.prismCfg.language || 'zh-CN' }),
+      getPreferences: async () => ({ language: sim.prismCfg.language || 'en' }),
       setPreferences: async (v) => v || {},
       report: () => {},
     };
@@ -762,8 +762,8 @@
             }
           </div>
           <div class="agy-row-actions">
-            <button type="button" data-testid="conversation-pin-button" class="agy-button agy-button-icon-sm inline-flex items-center justify-center w-5 h-5 rounded border-none bg-transparent text-muted-foreground hover:text-foreground hover:bg-secondary cursor-pointer" title="置顶会话">${iconHtml('pin')}</button>
-            <button type="button" data-testid="conversation-archive-button" class="agy-button agy-button-icon-sm inline-flex items-center justify-center w-5 h-5 rounded border-none bg-transparent text-muted-foreground hover:text-foreground hover:bg-secondary cursor-pointer" title="归档会话">${iconHtml('archive')}</button>
+            <button type="button" data-testid="conversation-pin-button" class="agy-button agy-button-icon-sm inline-flex items-center justify-center w-5 h-5 rounded border-none bg-transparent text-muted-foreground hover:text-foreground hover:bg-secondary cursor-pointer" title="Pin conversation">${iconHtml('pin')}</button>
+            <button type="button" data-testid="conversation-archive-button" class="agy-button agy-button-icon-sm inline-flex items-center justify-center w-5 h-5 rounded border-none bg-transparent text-muted-foreground hover:text-foreground hover:bg-secondary cursor-pointer" title="Archive conversation">${iconHtml('archive')}</button>
           </div>
         </div>`;
     };
@@ -937,7 +937,7 @@
     );
     if (cnt) cnt.textContent = `${matched.length} / ${CONVERSATIONS.length} conversations`;
     if (!matched.length) {
-      list.innerHTML = '<div class="py-8 text-center text-xs text-muted-foreground">没有匹配的历史会话</div>';
+      list.innerHTML = '<div class="py-8 text-center text-xs text-muted-foreground">No matching conversation history</div>';
       return;
     }
     list.innerHTML = matched
@@ -957,8 +957,8 @@
               <span>${esc(c.time)}</span>
             </div>
             <div class="agy-row-actions">
-              <button type="button" data-testid="conversation-pin-button" class="agy-button agy-button-icon-sm inline-flex items-center justify-center w-6 h-6 rounded border-none bg-transparent text-muted-foreground hover:text-foreground hover:bg-secondary cursor-pointer" title="置顶">${iconHtml('pin')}</button>
-              <button type="button" data-testid="conversation-archive-button" class="agy-button agy-button-icon-sm inline-flex items-center justify-center w-6 h-6 rounded border-none bg-transparent text-muted-foreground hover:text-foreground hover:bg-secondary cursor-pointer" title="归档">${iconHtml('archive')}</button>
+              <button type="button" data-testid="conversation-pin-button" class="agy-button agy-button-icon-sm inline-flex items-center justify-center w-6 h-6 rounded border-none bg-transparent text-muted-foreground hover:text-foreground hover:bg-secondary cursor-pointer" title="Pin">${iconHtml('pin')}</button>
+              <button type="button" data-testid="conversation-archive-button" class="agy-button agy-button-icon-sm inline-flex items-center justify-center w-6 h-6 rounded border-none bg-transparent text-muted-foreground hover:text-foreground hover:bg-secondary cursor-pointer" title="Archive">${iconHtml('archive')}</button>
             </div>
           </div>`;
       })
@@ -1000,9 +1000,9 @@
               <div class="flex items-center gap-2 shrink-0">
                 <div class="ag-cs-hist-search-wrap">
                   ${iconHtml('searchSm')}
-                  <input id="ag-hist-search-input" type="search" class="ag-cs-hist-search" placeholder="筛选历史会话..." value="${esc(sim.historyQuery)}" />
+                  <input id="ag-hist-search-input" type="search" class="ag-cs-hist-search" placeholder="Filter conversation history..." value="${esc(sim.historyQuery)}" />
                 </div>
-                <button type="button" data-sim-action="go-conv" class="agy-button agy-button-sm px-2.5 py-1 rounded-md border border-border bg-secondary text-foreground text-xs cursor-pointer">返回对话</button>
+                <button type="button" data-sim-action="go-conv" class="agy-button agy-button-sm px-2.5 py-1 rounded-md border border-border bg-secondary text-foreground text-xs cursor-pointer">Back to Chat</button>
               </div>
             </div>
             <div id="ag-history-list" class="flex flex-col"></div>
@@ -1036,7 +1036,7 @@
           const toolsHtml = (t.tools || [])
             .map((tl) => {
               const diffBadge = tl.diff
-                ? `<span role="button" tabindex="0" data-testid="diff-line-count" data-sim-action="scroll-diff" data-ag-diff-json="${esc(JSON.stringify(tl.diff))}" title="Prism 注入态单击原地展开/折叠 Diff；原生态跳往审阅区" class="text-xs flex flex-row gap-1 whitespace-nowrap cursor-pointer hover:bg-secondary rounded px-1.5 py-0.5 tabular-nums ml-auto"><span style="color:#4ade80;">+${tl.add}</span><span style="color:#f87171;">-${tl.del}</span></span>`
+                ? `<span role="button" tabindex="0" data-testid="diff-line-count" data-sim-action="scroll-diff" data-ag-diff-json="${esc(JSON.stringify(tl.diff))}" title="Click in Prism mode to toggle inline diff; in Native mode scrolls to review section" class="text-xs flex flex-row gap-1 whitespace-nowrap cursor-pointer hover:bg-secondary rounded px-1.5 py-0.5 tabular-nums ml-auto"><span style="color:#4ade80;">+${tl.add}</span><span style="color:#f87171;">-${tl.del}</span></span>`
                 : '';
               return `
                 <div data-testid="tool-call-row" data-ag-tool-row="1" class="flex flex-row items-center gap-2 px-2.5 py-1 rounded-md bg-muted/60 border border-border/50 text-xs text-secondary-foreground">
@@ -1079,7 +1079,7 @@
               </div>
 
               <div data-testid="planner-response-text" data-markdown-root="" class="text-[14.5px] leading-relaxed text-foreground flex flex-col gap-3 px-2 md-divider-spacing">
-                <p class="m-0">${esc(t.summary)}${isRichTurn ? ' 关联文件：<span class="context-scope-mention">@style.css</span> <span class="context-scope-mention">@workbench/replica.js</span>。' : ''}</p>
+                <p class="m-0">${esc(t.summary)}${isRichTurn ? ' Linked files: <span class="context-scope-mention">@style.css</span> <span class="context-scope-mention">@workbench/replica.js</span>.' : ''}</p>
                 ${
                   isRichTurn
                     ? `
@@ -1094,15 +1094,15 @@
                         <table class="md-table-el w-full border-collapse text-sm">
                           <thead>
                             <tr class="bg-card text-secondary-foreground">
-                              <th class="text-left px-3 py-2 font-medium border-b border-border">原生补齐模块</th>
-                              <th class="text-left px-3 py-2 font-medium border-b border-border">宿主真选择器 / 令牌</th>
-                              <th class="text-left px-3 py-2 font-medium border-b border-border">验收状态</th>
+                              <th class="text-left px-3 py-2 font-medium border-b border-border">Native Coverage Module</th>
+                              <th class="text-left px-3 py-2 font-medium border-b border-border">Host Selectors / Tokens</th>
+                              <th class="text-left px-3 py-2 font-medium border-b border-border">Verification Status</th>
                             </tr>
                           </thead>
                           <tbody>
-                            <tr class="border-b border-border/60"><td class="px-3 py-2">底层官方新令牌</td><td class="px-3 py-2">--nux-radius-* / --onyx-key / --editor-diff-*</td><td class="px-3 py-2">五主题全桥接</td></tr>
-                            <tr class="border-b border-border/60"><td class="px-3 py-2">高频对话边角</td><td class="px-3 py-2">.agy-shortcut-keycap / .agy-scroll-bottom / Tooltip</td><td class="px-3 py-2">暗浅双适配</td></tr>
-                            <tr><td class="px-3 py-2">新版富文本死角</td><td class="px-3 py-2">.md-table-host / .markdown-frontmatter / task-list</td><td class="px-3 py-2">零边框呼吸感</td></tr>
+                            <tr class="border-b border-border/60"><td class="px-3 py-2">Core Host Tokens</td><td class="px-3 py-2">--nux-radius-* / --onyx-key / --editor-diff-*</td><td class="px-3 py-2">Bridged Across 5 Themes</td></tr>
+                            <tr class="border-b border-border/60"><td class="px-3 py-2">Chat Micro-Controls</td><td class="px-3 py-2">.agy-shortcut-keycap / .agy-scroll-bottom / Tooltip</td><td class="px-3 py-2">Dark &amp; Light Parity</td></tr>
+                            <tr><td class="px-3 py-2">Rich Prose Surfaces</td><td class="px-3 py-2">.md-table-host / .markdown-frontmatter / task-list</td><td class="px-3 py-2">Borderless Clarity</td></tr>
                           </tbody>
                         </table>
                       </div>
@@ -1110,19 +1110,19 @@
                   </div>
 
                   <ul class="contains-task-list m-0 p-0 list-none flex flex-col gap-1 text-sm">
-                    <li class="task-list-item task-checked flex items-center"><input type="checkbox" checked readonly /><span class="task-checked-content">桥接 Antigravity 原生 --nux-radius-*、--onyx-key 与 --editor-diff-* 令牌</span></li>
-                    <li class="task-list-item flex items-center"><input type="checkbox" readonly /><span>Wave 2 继续补齐 Takeover 审批卡、全站表单与 Aux Pane / PDF SDK</span></li>
+                    <li class="task-list-item task-checked flex items-center"><input type="checkbox" checked readonly /><span class="task-checked-content">Bridge native Antigravity --nux-radius-*, --onyx-key, and --editor-diff-* tokens</span></li>
+                    <li class="task-list-item flex items-center"><input type="checkbox" readonly /><span>Wave 2 covers Takeover approval cards, global forms, and Aux Pane / PDF SDK</span></li>
                   </ul>
 
                   <hr />
 
                   <blockquote class="m-0 pl-3.5 py-2 border-l-2 border-primary bg-muted/50 rounded-r-lg text-sm text-secondary-foreground">
-                    95% 冷静微冷黑曜石墨 Tonal 层级 + 5% 顶缘镜面高光与动态语义棱镜光；顶栏一键秒切「原生本体 ⇄ Prism 实时注入」。
+                    95% calm obsidian-graphite tonal layering + 5% top-edge specular highlights and semantic prism glow; switch Native Host vs Live Prism Inject from the top pill.
                   </blockquote>
 
                   <div class="grid gap-2" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;">
-                    <div class="markdown-alert markdown-alert-tip rounded-lg border border-border bg-card px-3 py-2 text-xs"><strong>TIP</strong> · 鼠标悬停最左侧导轨即可呼出真实提问导航大纲。</div>
-                    <div class="markdown-alert markdown-alert-important rounded-lg border border-border bg-card px-3 py-2 text-xs"><strong>IMPORTANT</strong> · 右键双宠喂甜甜圈，Alt+左键喂热咖啡解气。</div>
+                    <div class="markdown-alert markdown-alert-tip rounded-lg border border-border bg-card px-3 py-2 text-xs"><strong>TIP</strong> · Hover the far-left progress rail to open the live prompt outline.</div>
+                    <div class="markdown-alert markdown-alert-important rounded-lg border border-border bg-card px-3 py-2 text-xs"><strong>IMPORTANT</strong> · Right-click mascots for donuts, or Alt+click for hot coffee.</div>
                   </div>
 
                   <pre class="m-0">
@@ -1195,13 +1195,13 @@
           </div>
           <!-- Floating Wave 1 Selection Pill & Tooltip Showcase (Toggleable via Drawer or ?floatkit=1) -->
           <div class="ag-floatkit-bar" id="ag-floatkit-bar" ${sim.floatKitOpen ? '' : 'hidden'}>
-            <div class="compact-tooltip px-2.5 py-1.5 text-xs">Tooltip · 同心圆角与 1px 顶缘镜面高光</div>
+            <div class="compact-tooltip px-2.5 py-1.5 text-xs">Tooltip · Concentric corners &amp; 1px top specular highlight</div>
             <button type="button" class="agy-selection-pill inline-flex items-center gap-1.5 px-3 py-1 text-xs border border-border bg-card text-foreground cursor-pointer" data-sim-action="toggle-floatkit">
               <span class="inline-flex items-center opacity-80">${iconHtml('sparkle')}</span><span>Ask Antigravity about selection</span><span class="agy-shortcut-keycap">Ctrl+L</span>
             </button>
           </div>
           <!-- Authentic Scroll-To-Bottom Floating Button (.agy-scroll-bottom) -->
-          <button type="button" class="agy-scroll-bottom ag-scroll-bottom-seat rounded-full bg-card text-foreground" data-sim-action="scroll-bottom" title="滚动到对话底部">
+          <button type="button" class="agy-scroll-bottom ag-scroll-bottom-seat rounded-full bg-card text-foreground" data-sim-action="scroll-bottom" title="Scroll to bottom">
             ${iconHtml('doubleChevDown')}
           </button>
           ${buildComposerHtml()}
@@ -1231,23 +1231,23 @@
     if (sim.settingsTab === 'appearance') {
       body.innerHTML = `
         <div class="p-6">
-          <h2 class="m-0 mb-1 text-lg font-semibold text-foreground">外观</h2>
-          <p class="m-0 text-xs text-muted-foreground">开启「Prism 实时注入」后，真实的 Obsidian Prism 可折叠设置中心会自动挂载到下方。</p>
+          <h2 class="m-0 mb-1 text-lg font-semibold text-foreground">Appearance</h2>
+          <p class="m-0 text-xs text-muted-foreground">When Live Prism Inject is active, the collapsible Obsidian Prism settings hub mounts automatically below.</p>
           <div class="space-y-2 mt-4">
             <div class="divide-y divide-border rounded-xl border border-card-border bg-card overflow-hidden">
               <div class="py-2 px-3.5 flex items-center justify-between gap-3">
                 <div>
-                  <div class="text-sm font-medium text-foreground">宿主明暗模式</div>
-                  <div class="text-xs text-muted-foreground">切换 Antigravity 本体 Dark / Light 基底</div>
+                  <div class="text-sm font-medium text-foreground">Host Color Mode</div>
+                  <div class="text-xs text-muted-foreground">Switch the native Antigravity Dark / Light base theme</div>
                 </div>
                 <button type="button" class="px-3 py-1.5 rounded-lg border border-border bg-secondary text-foreground text-xs cursor-pointer" data-sim-action="toggle-host-theme">${sim.hostTheme === 'light' ? 'Light' : 'Dark'}</button>
               </div>
               <div class="py-2 px-3.5 flex items-center justify-between gap-3">
                 <div>
-                  <div class="text-sm font-medium text-foreground">Prism 实时注入开关</div>
-                  <div class="text-xs text-muted-foreground">一键无损切换原装 Antigravity 与实时编译的 Obsidian Prism</div>
+                  <div class="text-sm font-medium text-foreground">Live Prism Injection</div>
+                  <div class="text-xs text-muted-foreground">Switch losslessly between native Antigravity and live-compiled Obsidian Prism</div>
                 </div>
-                <button type="button" class="px-3 py-1.5 rounded-lg border border-border bg-secondary text-foreground text-xs cursor-pointer" data-sim-action="set-prism" data-val="${sim.prismOn ? '0' : '1'}">${sim.prismOn ? '切回原生本体' : '开启 Prism 注入'}</button>
+                <button type="button" class="px-3 py-1.5 rounded-lg border border-border bg-secondary text-foreground text-xs cursor-pointer" data-sim-action="set-prism" data-val="${sim.prismOn ? '0' : '1'}">${sim.prismOn ? 'Return to Native Host' : 'Enable Prism Inject'}</button>
               </div>
             </div>
           </div>
@@ -1256,8 +1256,8 @@
       body.innerHTML = `
         <div class="p-6 flex flex-col gap-3">
           <div>
-            <h2 class="m-0 mb-1 text-lg font-semibold text-foreground">插件与 MCP 市场</h2>
-            <p class="m-0 text-xs text-muted-foreground">真实宿主 Bento 卡片与 .agy-sheet 表单控件</p>
+            <h2 class="m-0 mb-1 text-lg font-semibold text-foreground">Plugins &amp; MCP Marketplace</h2>
+            <p class="m-0 text-xs text-muted-foreground">Authentic host Bento cards and .agy-sheet form controls</p>
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div class="agy-plugin-card p-3 rounded-xl border border-card-border bg-card flex flex-col gap-1.5" data-testid="plugin-card">
@@ -1265,19 +1265,19 @@
                 <strong class="text-sm text-foreground">Obsidian Prism</strong>
                 <span class="text-xs text-primary">${sim.prismOn ? 'Injected' : 'Native Off'}</span>
               </div>
-              <span class="text-xs text-muted-foreground">黑曜棱镜光学与 0fps 休眠美化引擎</span>
+              <span class="text-xs text-muted-foreground">Obsidian Prism optical &amp; 0fps idle-sleep styling engine</span>
             </div>
             <div class="agy-bento-card p-3 rounded-xl border border-card-border bg-card flex flex-col gap-1.5" data-testid="mcp-server-card">
               <div class="flex items-center justify-between">
                 <strong class="text-sm text-foreground">gemini-decisions MCP</strong>
                 <span class="text-xs text-success">Connected</span>
               </div>
-              <span class="text-xs text-muted-foreground">零成本结构化门禁与多候选初筛</span>
+              <span class="text-xs text-muted-foreground">Zero-cost structured gate &amp; multi-candidate screening</span>
             </div>
           </div>
           <div class="agy-sheet p-3.5 rounded-xl border border-card-border bg-card flex flex-col gap-3">
             <div class="flex items-center justify-between">
-              <span class="text-sm font-medium text-foreground">Sheet 抽屉表单（2px 焦点光晕与胶囊开关）</span>
+              <span class="text-sm font-medium text-foreground">Sheet Drawer Form (2px focus ring &amp; pill switches)</span>
               <button type="button" role="switch" aria-checked="${sim.sheetSwitchOn}" data-sim-action="toggle-sheet-switch"
                 style="width:38px;height:20px;padding:2px;border-radius:999px;border:1px solid var(--card-border);background:${sim.sheetSwitchOn ? 'var(--primary)' : 'var(--secondary)'};display:inline-flex;align-items:center;justify-content:${sim.sheetSwitchOn ? 'flex-end' : 'flex-start'};cursor:pointer;">
                 <span style="width:14px;height:14px;border-radius:999px;background:#fff;display:block;"></span>
@@ -1286,9 +1286,9 @@
             <div class="grid grid-cols-2 gap-2.5">
               <input type="text" value="Obsidian Neutral" class="px-3 py-1.5 rounded-lg border border-border bg-background text-foreground text-sm" />
               <select class="px-3 py-1.5 rounded-lg border border-border bg-background text-foreground text-sm">
-                <option>Balanced (10px 外框 + 胶囊内件)</option>
-                <option>Soft (14px 外框 + 胶囊内件)</option>
-                <option>Crisp (6px 精密锐角)</option>
+                <option>Balanced (10px shell + pill controls)</option>
+                <option>Soft (14px shell + pill controls)</option>
+                <option>Crisp (6px sharp precision)</option>
               </select>
             </div>
           </div>
@@ -1306,8 +1306,8 @@
     const q = String(query || '').trim().toLowerCase();
     const items = [
       ...SLASH_COMMANDS.map((s) => ({ title: s.cmd, sub: s.desc, kbd: s.kbd, kind: 'slash', val: s.cmd })),
-      { title: 'style.css', sub: 'M3 五阶 Tonal 与四大死角主样式表', kbd: 'F', kind: 'file', val: 'style.css' },
-      { title: 'dual-mascot-rig.js', sub: '像素引擎、9 大 Slash 剧场与微缩栖息地', kbd: 'F', kind: 'file', val: 'dual-mascot-rig.js' },
+      { title: 'style.css', sub: 'M3 5-step tonal &amp; core surface stylesheet', kbd: 'F', kind: 'file', val: 'style.css' },
+      { title: 'dual-mascot-rig.js', sub: 'Pixel rig, 9 Slash theaters &amp; miniature habitats', kbd: 'F', kind: 'file', val: 'dual-mascot-rig.js' },
     ].filter((it) => !q || it.title.toLowerCase().includes(q) || it.sub.toLowerCase().includes(q));
 
     list.innerHTML = items
@@ -1328,16 +1328,16 @@
     const types = ['info', 'success', 'warning', 'error'];
     const tp = typeOverride || types[sim.toastCycleIdx++ % types.length];
     const copy = {
-      info: ['Info · Sidecar 令牌已同步', '5 阶 Tonal Surface 与 Google Sans 已推送到子面板'],
-      success: ['Success · 实时注入校验通过', 'style.css 0 非 ASCII · 281 项自动化门禁全绿'],
-      warning: ['Warning · 512K 水试管达 86%', '已写入 data-pv-warn="1"，流式结束后双宠将左端探头提醒'],
-      error: ['Error · 越界路径写入已拦截', 'Fail-Closed 安全护栏拦截了模拟符号链接逃逸'],
+      info: ['Info · Sidecar Tokens Synced', '5-step Tonal Surface & Google Sans pushed to child panels'],
+      success: ['Success · Live Injection Verified', 'style.css 0 non-ASCII · 281 automated checks green'],
+      warning: ['Warning · 512K Vial at 86%', 'Wrote data-pv-warn="1"; mascots will peek from the left after streaming ends'],
+      error: ['Error · Out-of-Bounds Write Blocked', 'Fail-Closed guard intercepted simulated symlink escape'],
     }[tp];
     const el = document.createElement('div');
     el.className = 'agy-toast px-3.5 py-2.5 rounded-xl border border-card-border bg-card shadow-xl flex items-start justify-between gap-3 text-xs';
     el.setAttribute('data-testid', 'toast-notification');
     el.setAttribute('data-type', tp);
-    el.innerHTML = `<div><div class="font-semibold text-foreground">${esc(copy[0])}</div><div class="text-muted-foreground mt-0.5">${esc(copy[1])}</div></div><button type="button" class="border-none bg-transparent text-muted-foreground hover:text-foreground cursor-pointer inline-flex items-center justify-center p-0.5" aria-label="关闭">${iconHtml('close')}</button>`;
+    el.innerHTML = `<div><div class="font-semibold text-foreground">${esc(copy[0])}</div><div class="text-muted-foreground mt-0.5">${esc(copy[1])}</div></div><button type="button" class="border-none bg-transparent text-muted-foreground hover:text-foreground cursor-pointer inline-flex items-center justify-center p-0.5" aria-label="Close">${iconHtml('close')}</button>`;
     el.querySelector('button').addEventListener('click', () => el.remove());
     host.appendChild(el);
     while (host.children.length > 3) host.firstElementChild.remove();
@@ -1368,11 +1368,11 @@
     conv.turns.push({
       prompt: text,
       workedFor: 'Worked for 3s',
-      thought: '1:1 真身镜像已处理指令：' + text,
+      thought: '1:1 host mirror processed command: ' + text,
       tools: [],
       summary: m
-        ? `已发送 ${m[0]} 指令；在开启「Prism 实时注入」时，输入框上方的双宠舞台会同步演绎 2~3 秒专属微剧场。`
-        : '已将该轮对话实时追加至 1:1 复刻对话流中。',
+        ? `Sent ${m[0]} command; when Live Prism Inject is enabled, the dual-mascot stage above the composer plays its dedicated 2-3s micro-theater.`
+        : 'Appended this turn live to the 1:1 mirrored conversation stream.',
     });
     renderMainStage();
     const vp = document.querySelector('[data-testid="autoscroll-viewport"]');
@@ -1429,10 +1429,10 @@
     if (ovBadge) ovBadge.textContent = sim.prismOn ? 'Prism Live' : 'Native';
 
     if (status) {
-      const mirrorTag = sim.mirrorLive ? '真身CSS' : '兜底CSS';
+      const mirrorTag = sim.mirrorLive ? 'Host CSS' : 'Fallback CSS';
       status.textContent = sim.prismOn
-        ? `当前态：Obsidian Prism 实时注入 (${mirrorTag}) · ${sim.prismCfg.palette}/${sim.hostTheme}`
-        : `当前态：原生 Antigravity 1:1 镜像 (${mirrorTag} · ${sim.hostTheme})`;
+        ? `Current State: Obsidian Prism Live Inject (${mirrorTag}) · ${sim.prismCfg.palette}/${sim.hostTheme}`
+        : `Current State: Native Antigravity 1:1 Mirror (${mirrorTag} · ${sim.hostTheme})`;
     }
 
     const activePreset =

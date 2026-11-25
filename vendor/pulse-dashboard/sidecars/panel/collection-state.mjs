@@ -1,7 +1,7 @@
 // Upstream: ATtacK030130/antigrative-dashboard v0.9.1 (MIT License — Copyright (c) 2026 AG Pulse contributors)
 // Integrated & adapted for Obsidian Prism under GPL-3.0-only compatibility terms.
 // Safe, numeric collection diagnostics; never carries raw API text or credentials.
-const messages={'retained-fields':'会话统计数据超过采集上限','projected-json':'会话统计数据超过内存预算',field:'会话统计字段超过采集上限'};
+const messages={'retained-fields':'Session statistics exceeded the collection limit','projected-json':'Session statistics exceeded the memory budget',field:'Session statistics field exceeded the collection limit'};
 export function budgetError(kind,observed,limit){
  const error=new Error(messages[kind]||messages['retained-fields']);
  error.collection={code:'budget-exceeded',kind,unit:kind==='field'?'characters':'bytes',observed,limit,complete:false};

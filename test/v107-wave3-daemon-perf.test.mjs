@@ -442,7 +442,7 @@ test('Wave3 P1-6b & P2-7a: Channel 2~5 share .bundle-cache.json, detect same-len
     // 4) Same-length, same-mtime 1-byte source edits invalidate each channel cleanly via SHA-256
     const omniPath = path.join(snap.pluginDir, 'vendor', 'omni-viewer', 'omni-client.js');
     const sidebarPath = path.join(snap.pluginDir, 'vendor', 'sidebar-studio', 'sidebar-client.js');
-    const hostDictPath = path.join(snap.pluginDir, 'vendor', 'host-i18n', 'zh-CN.json');
+    const hostDictPath = path.join(snap.pluginDir, 'vendor', 'host-i18n', 'ar.json');
     const thoughtClientPath = path.join(snap.pluginDir, 'vendor', 'thought-translator', 'thought-client.js');
 
     const flipFirstAsciiInLiteral = (src) => {
@@ -460,7 +460,7 @@ test('Wave3 P1-6b & P2-7a: Channel 2~5 share .bundle-cache.json, detect same-len
     mutateSameLengthSameMtime(sidebarPath, flipFirstAsciiInLiteral);
     mutateSameLengthSameMtime(hostDictPath, (raw) => {
       const idx = raw.indexOf('Settings');
-      assert.ok(idx >= 0, 'Expected Settings key in zh-CN.json');
+      assert.ok(idx >= 0, 'Expected Settings key in ar.json');
       return raw.slice(0, idx) + 'Settin9s' + raw.slice(idx + 8);
     });
     mutateSameLengthSameMtime(thoughtClientPath, flipFirstAsciiInLiteral);
@@ -846,11 +846,12 @@ test('Wave3 P1-6a & P2-7b: async OS proxy probe deduplicates concurrent calls wi
 
     // 3) P2-7b: _ensureCacheLoadedAsync avoids fs.readFileSync on first translateThought and deduplicates concurrent loads
     const thoughtSample = 'Inspecting asynchronous cache hydration behavior without blocking the Node sidecar event loop.';
-    const cacheKey = hashThoughtKey(thoughtSample, 'mt');
+    const cacheKey = hashThoughtKey(thoughtSample, 'mt_ar');
     const cacheFile = path.join(tmpDir, 'async-thought-cache.json');
+    const cachedArText = 'جارٍ فحص سلوك تحميل الكاش غير المتزامن دون تعطيل حلقة الأحداث الرئيسية.';
     fs.writeFileSync(
       cacheFile,
-      JSON.stringify({ version: 1, entries: { [cacheKey]: '正在检查异步缓存预热行为，不阻塞主事件循环。' } }),
+      JSON.stringify({ version: 1, entries: { [cacheKey]: cachedArText } }),
       'utf8'
     );
 
@@ -888,7 +889,7 @@ test('Wave3 P1-6a & P2-7b: async OS proxy probe deduplicates concurrent calls wi
       for (const r of [r1, r2, r3]) {
         assert.equal(r.ok, true);
         assert.equal(r.cached, true);
-        assert.equal(r.text, '正在检查异步缓存预热行为，不阻塞主事件循环。');
+        assert.equal(r.text, cachedArText);
       }
 
       // Race check: clearCache() during in-flight async load must prevent stale disk entries from resurrecting
@@ -1198,7 +1199,7 @@ test('SetFix #5/#6/#7b/#7d: legacy alias normalization, thoughtView off removal,
           },
         },
       },
-      navigator: { language: 'zh-CN' },
+      navigator: { language: 'en' },
     };
     const offRes = vm.runInNewContext(offRefreshExpr, refreshCtx);
     assert.equal(offRes.refreshed, true);
@@ -1247,7 +1248,7 @@ test('SetFix #5/#6/#7b/#7d: legacy alias normalization, thoughtView off removal,
             tag_name: 'v1.0.6',
             draft: false,
             prerelease: false,
-            html_url: 'https://github.com/RMvdesi/obsidian-prism/releases/tag/v1.0.6',
+            html_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/tag/v1.0.6',
             assets: [],
           }),
         };
@@ -1261,7 +1262,7 @@ test('SetFix #5/#6/#7b/#7d: legacy alias normalization, thoughtView off removal,
               tag_name: 'v1.0.7-beta.1',
               draft: false,
               prerelease: true,
-              html_url: 'https://github.com/RMvdesi/obsidian-prism/releases/tag/v1.0.7-beta.1',
+              html_url: 'https://github.com/omarallsharkawy/obsidian-prism/releases/tag/v1.0.7-beta.1',
               assets: [],
             },
           ],

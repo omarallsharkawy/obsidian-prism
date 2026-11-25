@@ -111,8 +111,8 @@ function rendererBridge(binding, allowNested = false) {
   if (window.__agPulseRuntimeBridge && window.agPulseHost) return;
   window.__agPulseRuntimeBridge?.dispose();
   const pending = new Map(); let sequence = 0;
-  const isZhUi = () => { try { const l = document?.documentElement?.getAttribute?.('data-ag-cs-lang') || ''; return !l || /^(?:zh|yue)\b/i.test(l); } catch { return true; } };
-  const reconMsg = () => (isZhUi() ? '等待 Antigrative Dashboard 重新连接' : 'Waiting for Antigrative Dashboard to reconnect');
+  const isArUi = () => { try { const l = document?.documentElement?.getAttribute?.('data-ag-cs-lang') || ''; return /^ar\b/i.test(l); } catch { return false; } };
+  const reconMsg = () => (isArUi() ? 'بانتظار إعادة اتصال Antigrative Dashboard' : 'Waiting for Antigrative Dashboard to reconnect');
   const empty = () => ({ connection: 'offline', error: reconMsg(), speed: null, groups: [], enabled: false });
   const call = (type, input) => new Promise(resolve => {
     if (pending.size >= 8) { resolve(empty()); return; }

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,46 +9,43 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
     rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Noto+Sans+SC:wght@400;500;600&family=Noto+Serif+SC:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
     media="print"
     onload="this.media='all'"
   />
-  <!-- 100% 复用现役 Obsidian Prism 原版全套样式体系 -->
+  <!-- Reuse the full Obsidian Prism base design token and component style system -->
   <link rel="stylesheet" href="/styles/v2-tokens.css" />
   <link rel="stylesheet" href="/styles/v2-components.css" />
   <link rel="stylesheet" href="/styles/workbench-shell.css" />
-  <!-- 双极 Studio 终版动效、零 Emoji 单色侧栏与图四→图五增量样式 -->
+  <!-- Bipolar Studio motion, monochrome sidebar, and incremental layout styles -->
   <link rel="stylesheet" href="/styles/studio-preview.css" />
 </head>
 <body>
   <div class="st-shell-root" id="st-shell-root">
-    <!-- 顶部开发者调试条（1280px 单行零重叠，含 4 主题 / 5 语 / 动效档位 / 后台模拟 / 权限审计） -->
+    <!-- Top developer bar (single-row at 1280px: 4 themes / en-ar locale / motion tier / background sim / permission audit) -->
     <header class="st-devbar" data-testid="studio-devbar">
       <div class="st-dev-left">
-        <a class="st-back-link" href="/" title="返回主光学工程台">← Workbench</a>
+        <a class="st-back-link" href="/" title="Back to Optical Workbench">← Workbench</a>
         <div class="st-dev-title">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M12 1.2c.25 0 .47.17.53.41c.21.79.48 1.56.8 2.31c1.23 2.86 3.39 5.02 6.25 6.25c.75.32 1.52.59 2.31.8c.24.06.41.28.41.53s-.17.47-.41.53a16 16 0 0 0-2.31.8c-2.86 1.23-5.02 3.39-6.25 6.25c-.32.75-.59 1.52-.8 2.31a.55.55 0 0 1-.53.41a.55.55 0 0 1-.53-.41a16 16 0 0 0-.8-2.31c-1.23-2.86-3.39-5.02-6.25-6.25a15 15 0 0 0-2.31-.8A.55.55 0 0 1 1.2 12c0-.25.17-.47.41-.53c.79-.21 1.56-.48 2.31-.8c2.86-1.23 5.02-3.39 6.25-6.25c.32-.75.59-1.52.8-2.31c.06-.24.28-.41.53-.41Z" fill="#669DF6"/>
           </svg>
           <span>Prism Studio</span>
         </div>
-        <span class="st-sandbox-chip" id="st-sandbox-chip" data-testid="studio-sandbox-chip" title="隔离沙盒实例">SANDBOX</span>
+        <span class="st-sandbox-chip" id="st-sandbox-chip" data-testid="studio-sandbox-chip" title="Isolated sandbox instance">SANDBOX</span>
       </div>
 
       <div class="st-dev-mid">
-        <div class="st-pill-group" role="group" aria-label="四大旗舰主题快切">
+        <div class="st-pill-group" role="group" aria-label="Flagship 4-theme quick presets">
           <button type="button" class="st-pill-btn" data-st-preset="obsidian-dark" data-active="1">Obsidian</button>
           <button type="button" class="st-pill-btn" data-st-preset="warm-dark">Warm</button>
-          <button type="button" class="st-pill-btn" data-st-preset="daylight-crystal">冷晶</button>
-          <button type="button" class="st-pill-btn" data-st-preset="warm-alabaster">暖白</button>
+          <button type="button" class="st-pill-btn" data-st-preset="daylight-crystal">Crystal</button>
+          <button type="button" class="st-pill-btn" data-st-preset="warm-alabaster">Alabaster</button>
         </div>
 
-        <select class="st-dev-select" id="sel-studio-locale" data-testid="studio-locale-select" aria-label="语言切换" title="5 语问候与界面切换">
-          <option value="zh-CN" selected>简中</option>
-          <option value="zh-TW">繁體</option>
-          <option value="yue">粵語</option>
-          <option value="en">EN</option>
-          <option value="ja">日本語</option>
+        <select class="st-dev-select" id="sel-studio-locale" data-testid="studio-locale-select" aria-label="Language switcher" title="Switch English (LTR) / Arabic (RTL)">
+          <option value="en" selected>English</option>
+          <option value="ar">العربية</option>
         </select>
 
         <button
@@ -56,20 +53,20 @@
           class="st-pill-btn"
           id="btn-toggle-username"
           data-testid="studio-username-toggle"
-          title="切换示例用户名 (Alex) 与无名兜底问候"
+          title="Toggle sample username (Alex) vs anonymous fallback greeting"
         >Alex</button>
 
-        <select class="st-dev-select" id="sel-studio-motion" data-testid="studio-motion-select" aria-label="动效档位" title="Motion Level 动效控制">
-          <option value="ultra" selected>动效 Ultra</option>
+        <select class="st-dev-select" id="sel-studio-motion" data-testid="studio-motion-select" aria-label="Motion level" title="Motion Level control">
+          <option value="ultra" selected>Motion Ultra</option>
           <option value="standard">Standard</option>
           <option value="subtle">Subtle</option>
-          <option value="off">动效 Off</option>
+          <option value="off">Motion Off</option>
         </select>
 
-        <div class="st-pill-group" role="group" aria-label="模拟后台任务状态">
+        <div class="st-pill-group" role="group" aria-label="Simulate background task state">
           <button type="button" class="st-pill-btn" id="btn-sim-running" data-testid="sim-bg-running">Run</button>
           <button type="button" class="st-pill-btn" id="btn-sim-blocked" data-testid="sim-bg-blocked">Block</button>
-          <button type="button" class="st-pill-btn" id="btn-sim-idle" data-testid="sim-bg-idle">清</button>
+          <button type="button" class="st-pill-btn" id="btn-sim-idle" data-testid="sim-bg-idle">Clear</button>
         </div>
       </div>
 
@@ -79,17 +76,17 @@
           id="st-global-audit-pill"
           data-testid="global-code-audit-pill"
           data-status="clean"
-          title="项目级零干扰权限隔离审计"
+          title="Project-scoped zero-interference permission isolation audit"
         >
           <span class="st-audit-dot"></span>
           <span id="st-global-audit-text">Global Writes: 0</span>
         </div>
-        <button type="button" class="st-pill-btn" id="btn-toggle-audit" data-testid="toggle-audit-drawer" data-active="1">审计</button>
-        <button type="button" class="st-pill-btn st-btn-danger" id="btn-studio-reset" data-testid="studio-reset-btn">重置</button>
+        <button type="button" class="st-pill-btn" id="btn-toggle-audit" data-testid="toggle-audit-drawer" data-active="1">Audit</button>
+        <button type="button" class="st-pill-btn st-btn-danger" id="btn-studio-reset" data-testid="studio-reset-btn">Reset</button>
       </div>
     </header>
 
-    <!-- 主工作区：左 1:1 现役 Obsidian Prism 双极舞台 + 右侧可收起权限审计抽屉 -->
+    <!-- Main workspace: left 1:1 Obsidian Prism bipolar stage + right collapsible permission audit drawer -->
     <div class="st-workspace-grid" id="st-workspace-grid" data-audit-open="1">
       <div
         class="ag-v2-stage st-prism-stage"
@@ -102,20 +99,20 @@
         data-active-mode="code"
         data-sidebar-collapsed="0"
       >
-        <!-- 1:1 真实 Antigravity display: block 侧栏父壳（刻意非 flex，检验 height: 100% 防塌陷） -->
+        <!-- 1:1 host display: block sidebar shell (intentionally non-flex to verify height: 100% anti-collapse) -->
         <div class="st-host-sidebar-outer" data-testid="host-sidebar-block-shell">
           <div class="st-sidebar-height-guard" id="st-sidebar-mount"></div>
         </div>
 
-        <!-- 现役 Obsidian Prism 原版主画布（Code 专属字符海 / Chat 专属增强版彩色环境氛围光） -->
+        <!-- Obsidian Prism main canvas (Code ASCII wave backdrop / Chat ambient breathing aura) -->
         <div class="ag-v2-main st-prism-main" id="st-main-shell">
-          <!-- Code 专属字符海波浪背景（Chat 模式隐藏） -->
+          <!-- Code-only ASCII wave backdrop (hidden in Chat mode) -->
           <div class="ag-v2-ripple-backdrop" id="st-ripple-backdrop" data-dormant="false">
             <canvas class="ag-cs-brand-glow ag-v2-brand-glow" data-testid="onboarding-brand-glow" aria-hidden="true"></canvas>
             <canvas class="ag-cs-ripple-canvas" aria-hidden="true"></canvas>
           </div>
 
-          <!-- Chat 专属动态呼吸环境氛围光（Knowledge 蓝绿 Gemini 极光 / Spark Antigravity 失重棱镜光） -->
+          <!-- Chat-only ambient breathing aura (Knowledge blue-cyan Gemini aurora / Spark Antigravity prism light) -->
           <div
             class="st-chat-aura-layer"
             id="st-chat-aura"
@@ -140,14 +137,14 @@
           </div>
         </div>
 
-        <!-- 浮层挂载根（右键菜单 / [+] 菜单 / 权限围栏 / 后台角标预览 / WSL2 Modal / 拖拽标签 / Toast） -->
+        <!-- Overlay mount root (context menu / [+] menu / permission fence / background badge preview / WSL2 modal / drag chip / toast) -->
         <div id="st-overlay-root"></div>
       </div>
 
-      <!-- 右侧开发者实时状态机与项目级权限隔离审计抽屉 -->
+      <!-- Right developer state machine & project-scoped permission isolation audit drawer -->
       <aside class="st-audit-drawer" id="st-audit-drawer" data-testid="studio-audit-drawer">
         <div class="st-audit-head">
-          <span class="st-audit-title">状态机与权限隔离审计</span>
+          <span class="st-audit-title">State Machine &amp; Permission Audit</span>
           <span class="st-audit-meta" id="st-rev-meta">rev=0 · nav=0</span>
         </div>
         <div class="st-audit-body" id="st-audit-body"></div>
@@ -155,7 +152,7 @@
     </div>
   </div>
 
-  <!-- 原版 Obsidian Prism 共享视觉内核脚本 -->
+  <!-- Shared Obsidian Prism core visual runtime scripts -->
   <script src="/shared/ripple-core.js"></script>
   <script src="/shared/motion-engine.js"></script>
   <script src="/shared/animated-icons.js"></script>

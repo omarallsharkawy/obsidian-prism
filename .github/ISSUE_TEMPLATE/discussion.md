@@ -1,12 +1,12 @@
 ---
-name: Discussion / 社区讨论与留言
-about: 日常交流、使用体验反馈、优化想法或通用建议（社区留言板）
-title: "[讨论] "
-labels: 讨论
+name: Discussion / مناقشة مجتمعية
+about: General feedback, usage experience, design ideas, or open questions
+title: "[Discussion] "
+labels: discussion
 ---
 
-## 讨论主题 / Topic
-欢迎畅所欲言——可以是使用体验、界面审美建议、新想法或任何想交流的问题。
+## Topic / الموضوع
+Share your experience, visual feedback, feature ideas, or any questions you would like to discuss.
 
-## 补充信息 / Context (Optional)
-如有界面截图、系统版本或插件配置，可按需附在这里方便大家一起讨论。
+## Context (Optional) / سياق إضافي (اختياري)
+Attach screenshots, OS version, or relevant plugin settings if helpful.

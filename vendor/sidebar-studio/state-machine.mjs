@@ -1,10 +1,10 @@
 /**
- * Obsidian Prism v1.0.2 双极工作台共享纯状态机（vendor/sidebar-studio/state-machine.mjs）
+ * Obsidian Prism v1.0.2 Bipolar Workbench Shared Pure State Machine (vendor/sidebar-studio/state-machine.mjs)
  *
- * 架构约束：
- * - 零 DOM、零 Node I/O、零时钟、零随机数依赖：Node 与浏览器原生 ESM 直接消费，100% 确定性纯函数。
- * - 唯一逻辑源：渲染层客户端、sidebar-service.mjs 与 Workbench `/studio` 预览台共用同一份导出与契约。
- * - 项目级权限隔离适配器严格限定 `projectSettingsProvider` 4 个项目级 setter，零接触全局 Code 权限。
+ * Architectural constraints:
+ * - Zero DOM, zero Node I/O, zero clock, zero randomness: consumed directly by Node and browser native ESM as 100% deterministic pure functions.
+ * - Single source of truth: renderer client, sidebar-service.mjs, and Workbench `/studio` preview share the same exports and contracts.
+ * - Project-level permission isolation adapter is strictly limited to the 4 project-level setters on `projectSettingsProvider`, never touching global Code permissions.
  */
 
 export const SCHEMA_VERSION = 2;
@@ -95,48 +95,9 @@ export const DEFAULT_CHAT_POLICY = Object.freeze({
 });
 
 /**
- * 5 语随机问候词库（带用户名与无用户名兜底，绝不硬编码特定人名）
+ * Bilingual (English / Arabic) greeting pool with username and anonymous fallbacks.
  */
 export const GREETING_POOLS = Object.freeze({
-  'zh-CN': Object.freeze({
-    withUser: Object.freeze([
-      '{user}，你来啦！',
-      '嗨，{user}！',
-      '今天想聊点什么，{user}？',
-      '随时开始，{user}。',
-    ]),
-    anonymous: Object.freeze([
-      '你来啦！',
-      '今天想聊点什么？',
-      '随时开始。',
-    ]),
-  }),
-  'zh-TW': Object.freeze({
-    withUser: Object.freeze([
-      '{user}，你來啦！',
-      '嗨，{user}！',
-      '今天想聊些什麼，{user}？',
-      '隨時開始，{user}。',
-    ]),
-    anonymous: Object.freeze([
-      '你來啦！',
-      '今天想聊些什麼？',
-      '隨時開始。',
-    ]),
-  }),
-  yue: Object.freeze({
-    withUser: Object.freeze([
-      '{user}，你嚟啦！',
-      '哈囉，{user}！',
-      '今日想傾啲咩，{user}？',
-      '隨時可以開始，{user}。',
-    ]),
-    anonymous: Object.freeze([
-      '你嚟啦！',
-      '今日想傾啲咩？',
-      '隨時可以開始。',
-    ]),
-  }),
   en: Object.freeze({
     withUser: Object.freeze([
       'Hi, {user}!',
@@ -150,33 +111,30 @@ export const GREETING_POOLS = Object.freeze({
       "What's on your mind?",
     ]),
   }),
-  ja: Object.freeze({
+  ar: Object.freeze({
     withUser: Object.freeze([
-      '{user}さん、おかえり！',
-      'こんにちは、{user}さん。',
-      '今日は何を話しましょうか、{user}さん？',
-      'いつでも始められます、{user}さん。',
+      'مرحباً، {user}!',
+      'أهلاً بعودتك، {user}!',
+      'جاهز عندما تكون مستعداً، {user}.',
+      'بماذا تفكر اليوم، {user}؟',
     ]),
     anonymous: Object.freeze([
-      'おかえりなさい！',
-      '今日は何を話しましょうか？',
-      'いつでも始められます。',
+      'أهلاً بك!',
+      'جاهز عندما تكون مستعداً.',
+      'بماذا تفكر اليوم؟',
     ]),
   }),
 });
 
 export function normalizeGreetingLang(rawLang) {
-  const s = String(rawLang || 'zh-CN').trim().toLowerCase();
-  if (s === 'zh-tw' || s === 'zh-hk' || s === 'zh-hant') return 'zh-TW';
-  if (s === 'yue' || s === 'zh-yue') return 'yue';
-  if (s.startsWith('ja')) return 'ja';
-  if (s.startsWith('en')) return 'en';
-  return 'zh-CN';
+  const s = String(rawLang || 'en').trim().toLowerCase().replace(/_/g, '-');
+  if (s === 'ar' || s.startsWith('ar-') || s === 'arabic') return 'ar';
+  return 'en';
 }
 
-export function formatGreeting(lang = 'zh-CN', userName = '', seedIndex = 0) {
+export function formatGreeting(lang = 'en', userName = '', seedIndex = 0) {
   const key = normalizeGreetingLang(lang);
-  const pool = GREETING_POOLS[key] || GREETING_POOLS['zh-CN'];
+  const pool = GREETING_POOLS[key] || GREETING_POOLS.en;
   const cleanUser = typeof userName === 'string' && !hasControlChars(userName) && !hasLoneSurrogate(userName)
     ? Array.from(userName.trim()).slice(0, 48).join('') : '';
   const list = cleanUser ? pool.withUser : pool.anonymous;
@@ -186,63 +144,10 @@ export function formatGreeting(lang = 'zh-CN', userName = '', seedIndex = 0) {
 }
 
 /**
- * Gemini 官方双层居中问候语池（第一行：图标 + 轻柔副标；第二行：轻字重主问候）。
- * 100% 开源中性，支持 5 语言按种子随机组合，零私密硬编码、采用中性自然表达。
+ * Gemini-style two-tier centered hero greeting pool (row 1: icon + subtle eyebrow; row 2: light-weight main headline).
+ * Bilingual English / Arabic with deterministic seed-based selection.
  */
 export const HERO_GREETING_POOLS = Object.freeze({
-  'zh-CN': Object.freeze({
-    eyebrowWithUser: Object.freeze([
-      '你好，{user}',
-      '嗨，{user}',
-      '欢迎回来，{user}',
-      '{user}，很高兴见到你',
-    ]),
-    eyebrowAnonymous: Object.freeze([
-      '你好',
-      '欢迎回来',
-      '随时开始',
-    ]),
-    headlines: Object.freeze([
-      '今天需要我为你做些什么？',
-      '想从哪里开始探索？',
-      '随时聊聊你的新想法。',
-      '有什么我可以帮你的？',
-    ]),
-  }),
-  'zh-TW': Object.freeze({
-    eyebrowWithUser: Object.freeze([
-      '你好，{user}',
-      '嗨，{user}',
-      '歡迎回來，{user}',
-    ]),
-    eyebrowAnonymous: Object.freeze([
-      '你好',
-      '歡迎回來',
-      '隨時開始',
-    ]),
-    headlines: Object.freeze([
-      '今天需要我為你做些什麼？',
-      '想從哪裡開始探索？',
-      '隨時聊聊你的新想法。',
-    ]),
-  }),
-  yue: Object.freeze({
-    eyebrowWithUser: Object.freeze([
-      '哈囉，{user}',
-      '你好呀，{user}',
-      '歡迎返嚟，{user}',
-    ]),
-    eyebrowAnonymous: Object.freeze([
-      '哈囉',
-      '歡迎返嚟',
-      '隨時開始',
-    ]),
-    headlines: Object.freeze([
-      '今日想我幫你做啲乜？',
-      '想由邊度開始傾起？',
-      '有咩新想法隨時講。',
-    ]),
-  }),
   en: Object.freeze({
     eyebrowWithUser: Object.freeze([
       'Hi, {user}',
@@ -260,28 +165,28 @@ export const HERO_GREETING_POOLS = Object.freeze({
       'What would you like to explore?',
     ]),
   }),
-  ja: Object.freeze({
+  ar: Object.freeze({
     eyebrowWithUser: Object.freeze([
-      'こんにちは、{user}さん',
-      'おかえりなさい、{user}さん',
-      '{user}さん、準備はいいですか',
+      'مرحباً، {user}',
+      'أهلاً، {user}',
+      'أهلاً بعودتك، {user}',
     ]),
     eyebrowAnonymous: Object.freeze([
-      'こんにちは',
-      'おかえりなさい',
-      'いつでも始められます',
+      'مرحباً',
+      'أهلاً بعودتك',
+      'جاهز للبدء',
     ]),
     headlines: Object.freeze([
-      '今日は何をお手伝いしましょうか？',
-      'どこから始めましょうか？',
-      'どんなアイデアでも気軽にどうぞ。',
+      'من أين نبدأ اليوم؟',
+      'كيف يمكنني مساعدتك اليوم؟',
+      'ما الذي تود استكشافه؟',
     ]),
   }),
 });
 
-export function formatHeroGreeting(lang = 'zh-CN', userName = '', seedIndex = 0) {
+export function formatHeroGreeting(lang = 'en', userName = '', seedIndex = 0) {
   const key = normalizeGreetingLang(lang);
-  const pool = HERO_GREETING_POOLS[key] || HERO_GREETING_POOLS['zh-CN'];
+  const pool = HERO_GREETING_POOLS[key] || HERO_GREETING_POOLS.en;
   const cleanUser = typeof userName === 'string' && !hasControlChars(userName) && !hasLoneSurrogate(userName)
     ? Array.from(userName.trim()).slice(0, 48).join('') : '';
   const n = Number.isFinite(Number(seedIndex)) ? Math.abs(Math.trunc(Number(seedIndex))) : 0;
@@ -519,8 +424,8 @@ export function createDefaultStateV2(opts = {}) {
 }
 
 /**
- * 严格解析视图路径：仅接受 `/` 与单段规范 `/c/<id>`。
- * ID 仅解码一次，拒绝分隔符、控制字符、保留键与非规范/双重编码。
+ * Strictly parse view paths: accept only `/` and single-segment canonical `/c/<id>`.
+ * ID is decoded once; rejects separators, control characters, reserved keys, and non-canonical/double encoding.
  */
 export function parseView(rawPath) {
   if (typeof rawPath !== 'string') {
@@ -558,7 +463,7 @@ export function parseView(rawPath) {
     return fail(ERROR_CODES.INVALID_ARGUMENT, 'Malformed UTF-16 sequence in view');
   }
 
-  // 拒绝非规范编码（例如把普通字符或 `%` 二次编码成 `%25...`、或将 `/` 编码为 `%2F` 等）
+  // Reject non-canonical encoding (e.g. double-encoding ordinary characters or `%` as `%25...`, or encoding `/` as `%2F`)
   if (rawSeg.includes('%')) {
     if (decoded !== rawSeg && rawSeg !== canonical) {
       return fail(ERROR_CODES.INVALID_ARGUMENT, 'Non-canonical percent-encoding in view');
@@ -566,7 +471,7 @@ export function parseView(rawPath) {
     if (decoded === rawSeg) {
       return fail(ERROR_CODES.INVALID_ARGUMENT, 'Ambiguous percent-encoding in view');
     }
-    // 禁止对已允许直接书写的 ASCII 字母/数字/._-~ 做冗余百分号编码
+    // Forbid redundant percent-encoding of unreserved ASCII letters/digits/._-~
     if (canonical === decoded) {
       return fail(ERROR_CODES.INVALID_ARGUMENT, 'Unnecessary percent-encoding in view');
     }
@@ -674,9 +579,9 @@ function isPendingReservedSession(state, cascadeId) {
 }
 
 /**
- * 在指定模式下解析记忆或目标视图：
- * - 非法视图、归属模式已变更、或目录已就绪且确认删除 -> 回退 `/`
- * - 目录加载中或暂时断连 -> 保留原记忆等待确认
+ * Resolve remembered or target view in a given mode:
+ * - Invalid view, changed mode ownership, or catalog ready with confirmed deletion -> fallback to `/`
+ * - Catalog loading or temporarily disconnected -> keep remembered view pending confirmation
  */
 export function resolveView(state, catalog, mode, rawView) {
   if (!MODES.includes(mode)) {
@@ -716,7 +621,7 @@ export function resolveView(state, catalog, mode, rawView) {
 }
 
 /**
- * 全字段白名单、限额与引用完整性校验。
+ * Full-field allowlist, quota, and referential integrity validation.
  */
 export function validateState(raw) {
   const diagnostics = [];
@@ -774,7 +679,7 @@ export function validateState(raw) {
     }
   }
 
-  // 校验 knowledgeFolders
+  // Validate knowledgeFolders
   const knowledgeFolders = [];
   const folderIdSet = new Set();
   if (!Array.isArray(raw.knowledgeFolders)) {
@@ -797,7 +702,7 @@ export function validateState(raw) {
     }
   }
 
-  // 校验 sparkProjects
+  // Validate sparkProjects
   const sparkProjects = [];
   const projectIdSet = new Set();
   if (!Array.isArray(raw.sparkProjects)) {
@@ -826,7 +731,7 @@ export function validateState(raw) {
     }
   }
 
-  // 校验 chatDraft 引用完整性
+  // Validate chatDraft referential integrity
   let chatDraft = createDefaultChatDraft();
   if (!isPlainObject(raw.chatDraft) || !CHAT_KINDS.includes(raw.chatDraft.kind)) {
     diagnostics.push('invalid-chatDraft');
@@ -852,7 +757,7 @@ export function validateState(raw) {
     }
   }
 
-  // 校验稀疏 assignments 引用完整性
+  // Validate sparse assignments referential integrity
   const assignments = {};
   if (!isPlainObject(raw.assignments)) {
     diagnostics.push('invalid-assignments');
@@ -971,11 +876,11 @@ export function validateState(raw) {
 }
 
 /**
- * v1 -> v2 无损迁移纯函数：
- * - 全部 v1 字段（含旧 assignments / pinnedIds / savedCodePermissionSnapshot）原样归档至 legacyV1；
- * - v2 assignments 严格从空 `{}` 开始（极简隔离）；
- * - 经白名单校验且仍适用的主题、偏好与 sparkRoot 映射至 V2Prefs；
- * - 损坏结构或未知未来版本返回显式诊断失败。
+ * Lossless v1 -> v2 pure migration function:
+ * - All v1 fields (including old assignments / pinnedIds / savedCodePermissionSnapshot) are archived verbatim to legacyV1;
+ * - v2 assignments strictly start from empty `{}` (minimal isolation);
+ * - Allowlisted and still-applicable theme, prefs, and sparkRoot map to V2Prefs;
+ * - Corrupted structures or unknown future versions return an explicit diagnostic failure.
  */
 export function migrateV1(raw, opts = {}) {
   if (!isPlainObject(raw)) {
@@ -1038,7 +943,7 @@ export function migrateV1(raw, opts = {}) {
     storeId: opts.storeId || 'studio-migrated',
     prefs: mappedPrefs,
   });
-  // v2 assignments 明确从空开始；完整 v1 数据无损归档（含 savedCodePermissionSnapshot）
+  // v2 assignments explicitly start empty; full v1 data is losslessly archived (including savedCodePermissionSnapshot)
   next.legacyV1 = cloneJsonSafe(raw);
 
   const verified = validateState(next);
@@ -1061,8 +966,8 @@ function compareSidebarItems(a, b) {
 }
 
 /**
- * 将显式 Chat 归属投影到 Knowledge（固定第一组：根目录 + 单层子文件夹）、Spark（固定第二组：按项目分组）与已归档列表。
- * 目录未就绪时保留最后已知数据并标记 loading 态。
+ * Project explicit Chat assignments into Knowledge (fixed first group: root + single-level subfolders), Spark (fixed second group: grouped by project), and archived list.
+ * When catalog is not ready, retain last-known data and mark loading state.
  */
 export function selectChatSidebar(state, catalog = null) {
   const idx = buildCatalogIndex(catalog);
@@ -1181,10 +1086,10 @@ function statusPriority(status) {
 }
 
 /**
- * 从非激活模式筛选 blocked 与 running 会话，生成确定性后台任务角标：
- * - status 取最高优先级（blocked > running）
- * - count 为两者总数
- * - 主会话按（状态优先级 -> 状态开始时间从早到晚 -> ID 字典序）确定
+ * Filter blocked and running sessions from the inactive mode to generate a deterministic background task badge:
+ * - status uses highest priority (blocked > running)
+ * - count is the combined total
+ * - primary session is ordered by (status priority -> earliest statusStartedAt -> lexical ID)
  */
 export function selectBackgroundBadge(state, catalog = null) {
   const idx = buildCatalogIndex(catalog);
@@ -1242,8 +1147,8 @@ export function selectBackgroundBadge(state, catalog = null) {
 }
 
 /**
- * 统一 RPC 与 Workbench `/studio` 的公开状态快照投影：
- * 严格省略权限基线、内部路径、确认令牌、回执表与 legacyV1。
+ * Unified public state snapshot projection for RPC and Workbench `/studio`:
+ * Strictly omits permission baselines, internal paths, confirmation tokens, receipt tables, and legacyV1.
  */
 export function selectSnapshot(state, runtime = {}) {
   const catalog = runtime && runtime.catalog ? runtime.catalog : null;
@@ -1424,8 +1329,8 @@ function isPlacementValidForState(state, placement) {
 }
 
 /**
- * 共享纯状态机规约函数：
- * 输入 `(state, event, facts)`，永不原地修改 `state`，返回 `{ ok, nextState, result, intents, error? }`。
+ * Shared pure state machine reducer:
+ * Takes `(state, event, facts)`, never mutates `state` in place, returns `{ ok, nextState, result, intents, error? }`.
  */
 export function reduce(state, event, facts = {}) {
   if (!isPlainObject(state) || state.schemaVersion !== SCHEMA_VERSION) {
@@ -2146,7 +2051,7 @@ export function reduce(state, event, facts = {}) {
         };
       }
 
-      // 同一 Knowledge 空间内移动/拖拽子文件夹仅变更侧栏归类引用，不阻塞运行中会话；跨项目/跨 kind 移入需空闲屏障
+      // Moving/dragging subfolders within the same Knowledge space only updates sidebar categorization and does not block running sessions; moving across projects/kinds requires an idle barrier
       const crossProjectMove =
         !prev ||
         prev.kind !== normPlacement.kind ||
@@ -2230,7 +2135,7 @@ export function reduce(state, event, facts = {}) {
         continuation: 'ready',
       };
 
-      // 仅当 draftRev 仍匹配发起时的草稿版本，才恢复默认 Knowledge 根草稿
+      // Only restore the default Knowledge root draft if draftRev still matches the draft version when initiated
       let draftCleared = false;
       if (event.originDraftRev === state.draftRev) {
         next.chatDraft = createDefaultChatDraft();
@@ -2238,7 +2143,7 @@ export function reduce(state, event, facts = {}) {
         draftCleared = true;
       }
 
-      // 仅当仍停留在发起那次 Chat `/` 访问，才把路由切到 `/c/<newUuid>`
+      // Only navigate to `/c/<newUuid>` if still on the originating Chat `/` visit
       const newView = `/c/${encodeURIComponent(cid)}`;
       let navigated = false;
       const intents = [];
@@ -2290,7 +2195,7 @@ export function reduce(state, event, facts = {}) {
             curPolicy
           )
         : curPolicy;
-      // 分模式主题仅保留迁移兼容数据。实际主题由宿主全局设置管理。
+      // Per-mode theme is retained only for migration compatibility; actual theme is managed by host global settings.
       next.prefs = sanitizePrefsV2(
         {
           ...next.prefs,
@@ -2328,7 +2233,7 @@ export function reduce(state, event, facts = {}) {
         };
       }
       const next = cloneState(state);
-      // 目录是可见性镜像，不是会话所有权来源；缺项不等于永久删除。
+      // Catalog is a visibility mirror, not a session ownership source; missing items do not imply permanent deletion.
       const removedIds = [];
       let changed = false;
       const intents = [];
@@ -2366,9 +2271,9 @@ export function reduce(state, event, facts = {}) {
 }
 
 /**
- * 项目级零干扰权限适配器（严格限定 4 个项目级 setter，绝不触碰全局 Code 权限）。
+ * Project-level zero-interference permission adapter (strictly limited to 4 project-level setters; never touches global Code permissions).
  *
- * 允许写入面：
+ * Allowed write surface:
  * - projectSettingsProvider.setProjectAutoExecutionPolicy(scopeRef, policy)
  * - projectSettingsProvider.setProjectFileAccessPolicy(scopeRef, policy)
  * - projectSettingsProvider.setProjectInternetPolicy(scopeRef, policy)
@@ -2441,7 +2346,7 @@ export async function applyProjectPermissionIsolation({
     };
   }
 
-  // 预检 policyValues 结构与枚举值合法性（零宿主写入前即拦截非法枚举）
+  // Pre-validate policyValues structure and enum values before any host writes
   if (policyValues !== null && policyValues !== undefined && !isPlainObject(policyValues)) {
     return {
       ok: false,
@@ -2483,7 +2388,7 @@ export async function applyProjectPermissionIsolation({
     }
   }
 
-  // 同目录双栖非破坏兼容模式：凡 sharedWithCode===true 或共享非破坏模式，无条件短路 0 写入（即便宿主误报 scopeIsolated=true）
+  // Shared-directory non-destructive compatibility mode: whenever sharedWithCode===true or shared non-destructive mode is active, short-circuit with 0 writes (even if host misreports scopeIsolated=true)
   if (sharedWithCode === true || (scopeIsolated === false && allowSharedNonDestructive === true)) {
     return {
       ok: true,
@@ -2503,7 +2408,7 @@ export async function applyProjectPermissionIsolation({
     };
   }
 
-  // Code 零干扰硬门禁：未启用同目录双栖且无法证明项目作用域独立于 Code，则 0 次写入直接拒绝
+  // Code zero-interference hard gate: if not in shared-directory mode and project scope isolation from Code cannot be proven, reject with 0 writes
   if (scopeIsolated !== true) {
     return {
       ok: false,
@@ -2573,7 +2478,7 @@ export async function applyProjectPermissionIsolation({
     }
   }
 
-  // 1. 先采集并固化项目级基线，再执行任何写入
+  // 1. Capture and persist the project-level baseline before performing any writes
   let baseline = null;
   try {
     if (typeof psp.getProjectPermissionGrants === 'function') {
@@ -2642,7 +2547,7 @@ export async function applyProjectPermissionIsolation({
         try {
           await onFieldApplied(fieldKey, val, { ...applied });
         } catch {
-          // 持久化追踪回调异常不得掩盖实际已发生的宿主写入状态
+          // Persistence tracking callback errors must not mask host writes that have already occurred
         }
       }
       return true;
@@ -2723,9 +2628,9 @@ export async function applyProjectPermissionIsolation({
 }
 
 /**
- * 解绑项目作用域时安全恢复项目级基线：
- * 仅在作用域仍受控制且当前项目值与本次 applied 匹配时恢复 baseline；外部已改值则进入 needs-reconciliation。
- * 支持部分写入失败后对已生效子集逐项回滚，防止半写状态死锁不可恢复。
+ * Safely restore the project-level baseline when unbinding a project scope:
+ * Only restore baseline if scope is still controlled and current project values match applied values; if modified externally, enter needs-reconciliation.
+ * Supports rolling back the applied subset item-by-item after partial write failure to prevent unrecoverable half-written deadlocks.
  */
 export async function restoreProjectPermissionBaseline({
   scopeRef,
@@ -2750,7 +2655,7 @@ export async function restoreProjectPermissionBaseline({
     return rejectRestore('Project permission baseline scopeRef does not match target scope');
   }
   const fields = Object.keys(applied);
-  // 先核验全部已生效字段与能力，禁止恢复到一半才发现缺失或损坏；允许部分写入后的已生效子集回滚。
+  // Verify all applied fields and capabilities upfront before restoring; allows rolling back the applied subset after partial writes.
   if (fields.length === 0 ||
       !fields.every((field) => Object.hasOwn(PROJECT_PERMISSION_FIELDS, field) &&
         hasProjectPermissionValue(baseline, field) && hasProjectPermissionValue(applied, field) &&

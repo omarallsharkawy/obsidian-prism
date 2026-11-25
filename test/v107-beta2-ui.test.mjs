@@ -417,7 +417,7 @@ test('v1.0.7-beta.2 Task 3 (PR #23 hardening): syncHostAnimatedIcons detects Rea
     document: doc,
     window: null,
     location: { pathname: '/' },
-    navigator: { language: 'zh-CN' },
+    navigator: { language: 'en' },
     performance: { now: () => 1000 },
     localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
     getComputedStyle: () => ({ getPropertyValue: () => '', backgroundColor: 'rgb(14,16,22)' }),
@@ -522,7 +522,7 @@ test('v1.0.7-beta.2 Task 3 (PR #23 hardening): syncHostAnimatedIcons detects Rea
       document: null,
       window: null,
       location: { pathname: '/' },
-      navigator: { language: 'zh-CN' },
+      navigator: { language: 'en' },
       performance: { now: () => 1000 },
       localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
       getComputedStyle: () => ({ getPropertyValue: () => '', backgroundColor: 'rgb(14,16,22)' }),
@@ -673,7 +673,7 @@ test('v1.0.7-beta.2 Task 6 (/btw context menu capture phase): beats host #root s
     return el;
   };
 
-  const html = makeEl('html', { 'data-ag-cs-lang': 'zh-CN' });
+  const html = makeEl('html', { 'data-ag-cs-lang': 'ar' });
   const body = makeEl('body');
   const root = makeEl('div', { id: 'root' });
   const conv = makeEl('div', { 'data-testid': 'conversation-view' });
@@ -699,7 +699,7 @@ test('v1.0.7-beta.2 Task 6 (/btw context menu capture phase): beats host #root s
     innerWidth: 1280,
     innerHeight: 800,
     location: { pathname: '/c/beta2-conv' },
-    navigator: { language: 'zh-CN' },
+    navigator: { language: 'en' },
     __agPrismInlineDiff: { closeMenuIfOpen() { diffCloseCalls += 1; } },
     getSelection: () => ({ isCollapsed: selection.isCollapsed, anchorNode: selection.anchorNode, toString: () => selection.text }),
     addEventListener(type, fn) {
@@ -845,8 +845,8 @@ test('v1.0.7-beta.2 Task 6 (/btw context menu capture phase): beats host #root s
   }
 });
 
-test('v1.0.7-beta.2 Task 7 (Issue #18 Layer A): vendor/host-i18n/zh-CN.json covers all 6 builtin Swarm host strings, preserves Swarm, and restores losslessly', () => {
-  const dict = JSON.parse(fs.readFileSync(path.join(ROOT, 'vendor', 'host-i18n', 'zh-CN.json'), 'utf8'));
+test('v1.0.7-beta.2 Task 7 (Issue #18 Layer A): vendor/host-i18n/ar.json covers all 6 builtin Swarm host strings, preserves Swarm, and restores losslessly', () => {
+  const dict = JSON.parse(fs.readFileSync(path.join(ROOT, 'vendor', 'host-i18n', 'ar.json'), 'utf8'));
   const expectedKeys = [
     'Unlock the power of agent swarms.',
     "Live view of the native swarm board, roster and @mention graph for the current conversation's swarm.",
@@ -859,7 +859,7 @@ test('v1.0.7-beta.2 Task 7 (Issue #18 Layer A): vendor/host-i18n/zh-CN.json cove
     const val = dict.exact[key];
     assert.equal(typeof val, 'string', `Missing Swarm host-i18n key: ${key}`);
     assert.ok(val.includes('Swarm'), `Translation must preserve "Swarm": ${val}`);
-    assert.ok(/[\u4e00-\u9fff]/.test(val), `Translation must contain Simplified Chinese text: ${val}`);
+    assert.ok(/[\u0600-\u06FF]/.test(val), `Translation must contain Arabic text: ${val}`);
   }
   assert.ok(typeof i18nRuntime.createHostI18nEngine === 'function');
   const eng = i18nRuntime.createHostI18nEngine(dict);

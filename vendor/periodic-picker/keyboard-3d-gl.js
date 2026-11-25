@@ -54,7 +54,7 @@
     }
 
     /**
-     * C² 二阶导连续五次曲线（进出近场边界处斜率与曲率严格为 0，彻底消除进出圈跳变）
+     * C2-continuous quintic curve (strictly zero slope and curvature at near-field boundary, eliminating entry/exit snap)
      */
     function smootherstepScalar(edge0, edge1, x) {
       var denom = edge1 - edge0;
@@ -75,7 +75,7 @@
     }
 
     /* ============================================================================
-     * 0. 高定 PBR 丝绒微纹、128x64 摄影棚金属环境贴图与 NOVELTY_ICONS / OLED 模块接入
+     * 0. PBR Micro-Grain Heightfield, 128x64 Studio Metal Envmap & NOVELTY_ICONS / OLED Integration
      * ============================================================================ */
     function resolveGrainPackage(runtimeRoot) {
       return (
@@ -117,9 +117,9 @@
     var _fallbackGrainCache = null;
 
     /**
-     * 程序化生成 128x64 (gl.RGB8) 戏剧化高对比摄影棚斜向柔光灯带环境贴图兜底：
-     * 水平 u 周期无缝环绕，包含左前上斜向主柔光灯箱、右后冷钛轮廓高光条、
-     * 右侧暖香槟补光反光板与高反差深空消光幕布，供阳极铝机身与顶部 PVD 镜面配重窄条实时采样
+     * Procedurally generates a 128x64 (gl.RGB8) high-contrast studio softbox environment map fallback:
+     * Horizontally periodic in u, featuring a front-left overhead softbox, rear-right cool titanium rim strip,
+     * warm champagne side bounce card, and deep matte studio backdrop for anodized aluminum and PVD mirror weights
      */
     function getFallbackStudioMetalEnvRGB(envW, envH) {
       var W = envW || 128;
@@ -139,27 +139,27 @@
           var dx = Math.cos(phi) * sinT;
           var dz = Math.sin(phi) * sinT;
 
-          /* 深邃摄影棚消光幕布底色（拉开阳极金属与镜面 PVD 高反差） */
+          /* Deep matte studio backdrop base (separates anodized metal from mirror PVD contrast) */
           var skyMix = smoothstepScalar(-0.22, 0.86, dy);
           var r = 0.036 + 0.125 * skyMix;
           var g = 0.042 + 0.140 * skyMix;
           var b = 0.056 + 0.172 * skyMix;
 
-          /* 1. 左前上柔化大面积摄影棚主漫射柔光箱（使用 C² 平滑过渡，杜绝任何水平扫描色带） */
+          /* 1. Front-left overhead main studio diffuse softbox (C2 smooth falloff to avoid banding) */
           var diagCoord = dx * -0.56 + dz * 0.52 + (1.0 - dy) * 0.28;
           var stripMain = smootherstepScalar(0.58, 0.04, Math.abs(diagCoord - 0.06)) * smootherstepScalar(-0.12, 0.45, dy);
           r += 0.90 * stripMain;
           g += 0.92 * stripMain;
           b += 0.96 * stripMain;
 
-          /* 2. 右后上冷钛银蓝轮廓逆光柔带 */
+          /* 2. Rear-right cool titanium silver-blue rim backlight strip */
           var rimDot = Math.max(0.0, dx * 0.64 + dy * 0.48 + dz * -0.60);
           var rimBand = Math.pow(rimDot, 6.0) * 0.88 + smootherstepScalar(0.28, 0.03, Math.abs(dy - 0.34 - 0.14 * Math.sin(phi * 2.0))) * 0.36;
           r += 0.62 * rimBand;
           g += 0.74 * rimBand;
           b += 0.94 * rimBand;
 
-          /* 3. 右前侧暖香槟金反光板 */
+          /* 3. Front-right warm champagne-gold fill bounce card */
           var fillDot = Math.max(0.0, dx * 0.54 + dy * 0.40 + dz * 0.74);
           var fillCard = Math.pow(fillDot, 5.2) * 0.64;
           r += 0.78 * fillCard;
@@ -177,8 +177,8 @@
     }
 
     /**
-     * 当沙盒未注入 pbr-grain-assets.js 时，生成 128x128 无缝周期平铺的细腻丝绒微纹高度场 (RG8)
-     * 与 128x64 摄影棚金属环境反射图 (RGB8) 兜底
+     * When pbr-grain-assets.js is not injected, generates a tileable 128x128 micro-grain heightfield (RG8)
+     * and 128x64 studio metal reflection envmap (RGB8) fallback
      */
     function getFallbackVelvetGrainData() {
       if (_fallbackGrainCache) return _fallbackGrainCache;
@@ -327,12 +327,12 @@
     }
 
     /* ============================================================================
-     * 1. V7 扎实楔形无螺丝 CNC 阳极机身尺寸与玉石重镇纸高阻尼弹簧物理常量（1U = 1.0 = 19.05mm）
+     * 1. V7 Solid Wedge Screwless CNC Anodized Chassis Dimensions & High-Damping Spring Physics Constants (1U = 1.0 = 19.05mm)
      * ============================================================================ */
     var KEY_PITCH = 1.0;
     var ROW_Z_OFFSET = 0.44;
 
-    /* V10 重型 CNC 客制化铝坨坨加厚壁厚与双层 Step-Bezel 包络（G2 连续圆角 R = 0.56U） */
+    /* V10 heavy CNC custom aluminum chassis thick walls & dual Step-Bezel envelope (G2 corner radius R = 0.56U) */
     var CASE_HALF_W = 9.68;
     var CASE_Z_MIN = -3.86;
     var CASE_Z_MAX = 4.62;
@@ -342,7 +342,7 @@
     var CASE_STEP_Y = 0.222;
     var PLATE_Y = -0.18;
 
-    /* 第 1 行满配列硬件坐标：左 1U 金属棱镜键 (col=2,row=1) 与右 5U PVD 硬件控制舱 (col=13..17,row=1) */
+    /* Row 1 hardware deck coordinates: left 1U metal prism key (col=2,row=1) & right 5U PVD control deck (col=13..17,row=1) */
     var ROW1_Z = -2.56;
     var ARTISAN_WAVE_X = -7.50;
     var HW_DECK_X0 = 2.99;
@@ -355,100 +355,100 @@
     var CTRL_CLOSE_X = 7.40;
     var CONTROL_IDS = ['prism-wave', 'reset-view', 'mute', 'close'];
 
-    /* 键槽沉降内腔开口边界（V10 微米级 CNC 线切割严丝合缝公差收紧） */
+    /* Recessed keywell inner cavity opening bounds (V10 tight CNC wire-cut tolerances) */
     var WELL_X_MIN = -9.01;
     var WELL_X_MAX = 9.01;
     var WELL_Z_MIN = -3.07;
     var WELL_Z_MAX = 3.93;
     var WELL_CORNER_R = 0.20;
 
-    /* V13.1 右侧紧贴磁吸对接真 3D「2×3 非元素模型扩展小键盘（AUX-06）」空间几何包络（经 0.28U CNC 磁吸导轨桥紧扣主盘） */
+    /* V13.1 right-side magnetically docked 3D 2x3 non-element macro pad (AUX-06) geometry envelope (joined via 0.28U CNC rail bridge) */
     var AUX_SLOT_COUNT = 6;
     var AUX_COLS = 2;
     var AUX_ROWS = 3;
     var AUX_CENTER_X = 11.21;
     var AUX_COL0_X = 10.71;
     var AUX_COL1_X = 11.71;
-    var AUX_ROW_ZS = [1.44, 2.44, 3.44];  /* 纵向精准对齐主键盘下半核心键区 Row 5..7 */
+    var AUX_ROW_ZS = [1.44, 2.44, 3.44];  /* Vertically aligned with main keyboard lower core rows 5..7 */
     var AUX_CENTER_Z = 2.44;
     var AUX_WELL_X_MIN = 10.20;
     var AUX_WELL_X_MAX = 12.22;
     var AUX_WELL_Z_MIN = 0.93;
     var AUX_WELL_Z_MAX = 3.95;
     var AUX_WELL_CORNER_R = 0.17;
-    var AUX_CASE_X_MIN = 9.96;            /* 距主盘右缘 +9.68U 仅 0.28U，由实体 CNC 磁吸导轨桥精密拼接 */
-    var AUX_CASE_X_MAX = 12.46;           /* 双外设紧致总包络覆盖 [-9.68, +12.46] */
+    var AUX_CASE_X_MIN = 9.96;            /* Only 0.28U from main right edge +9.68U, joined by solid CNC magnetic rail bridge */
+    var AUX_CASE_X_MAX = 12.46;           /* Compact dual-peripheral span covering [-9.68, +12.46] */
     var AUX_CASE_Z_MIN = 0.32;
-    var AUX_CASE_Z_MAX = 4.62;            /* 前手托楔形折边与主盘 +4.62U 100% 齐平共线 */
+    var AUX_CASE_Z_MAX = 4.62;            /* Front wedge lip strictly flush with main chassis +4.62U */
     var AUX_CASE_CORNER_R = 0.36;
 
-    /* V13.1 去糖果化工业球帽几何、悬停 +0.08U 微升、四档思考算力阶梯悬浮高度与邻键失重共鸣参数 */
+    /* V13.1 industrial sculpted keycap geometry, +0.08U hover lift, 4-tier effort levitation heights & neighbor sympathy physics */
     var CAP_Y_BASE = 0.015;
     var CAP_HEIGHT = 0.58;
     var CAP_BASE_HALF = 0.460;
     var CAP_TOP_HALF = 0.354;
-    var CAP_PRESS_TRAVEL = 0.11;          /* 真实十字轴心扣回触底行程 -0.11U（与定位板保留精密止挡安全余量） */
-    var CAP_HOVER_LIFT = 0.080;           /* 悬停其他可选模型键轻盈微浮 +0.08U，配合顶部微光 LED 槽与左翼对比雷达 */
-    var CAP_SELECT_LIFT = 0.64;           /* 默认 Medium (Tier 1) 基准悬浮高度 0.64U */
+    var CAP_PRESS_TRAVEL = 0.11;          /* Tactile cross-stem bottom-out travel -0.11U (retains plate stop clearance) */
+    var CAP_HOVER_LIFT = 0.080;           /* Subtle +0.08U hover lift on available model keys alongside top LED slot & compare radar */
+    var CAP_SELECT_LIFT = 0.64;           /* Default Medium (Tier 1) base levitation height 0.64U */
     var EFFORT_TIER_LIFTS = [0.40, 0.64, 0.88, 1.06]; /* Low: 0.40U -> Medium: 0.64U -> High: 0.88U -> Extra: 1.06U */
-    var NEIGHBOR_SYMPATHY_LIFTS = [0.0, 0.0, 0.042, 0.076]; /* High: ~0.042U, Extra: ~0.076U 邻键失重共鸣微浮 */
-    var NEIGHBOR_SYMPATHY_RADIUS = 1.65;  /* 同盘紧邻一圈中心距 <= 1.65U 反重力边缘牵引半径 */
-    var NEIGHBOR_SYMPATHY_TILT_MAX = 1.85 * DEG2RAD; /* Extra 档邻键朝向浮空中心的微弱向心倾角 */
-    var CAP_SELECT_SCALE = 1.14;          /* 协调精致微距放大 1.14x */
-    var CAP_MAGNETIC_DRIFT = 0.09;        /* 近场沉稳水平磁吸微移收敛至 ±0.09U (X / Z) */
-    var CAP_NORM_DRIFT_COMPAT = 0.12;     /* setPointerNorm 归一化兼容磁吸幅度 */
-    var CAP_TILT_MAX_RAD = 13.0 * DEG2RAD;/* 近场最大目标倾角收敛至 ±13° (≈ 0.227 rad) Pitch / Roll */
-    var CAP_YAW_MAX_RAD = 3.5 * DEG2RAD;  /* 近场 ±3.5° Yaw 沉稳微旋 */
-    var NEAR_PEAK_NORM_GAIN = 2.65;       /* 配合 C² smootherstep 使近场停留平滑抵达稳态 */
-    var INPUT_SMOOTH_TAU = 0.038;         /* 第一级重物惯性输入低通滤波时间常数（滤除路过微抖，呈现液压慢起感） */
+    var NEIGHBOR_SYMPATHY_LIFTS = [0.0, 0.0, 0.042, 0.076]; /* High: ~0.042U, Extra: ~0.076U neighbor zero-G sympathy lift */
+    var NEIGHBOR_SYMPATHY_RADIUS = 1.65;  /* Same-chassis immediate ring center distance <= 1.65U antigravity pull radius */
+    var NEIGHBOR_SYMPATHY_TILT_MAX = 1.85 * DEG2RAD; /* Slight inward tilt on neighbors toward the levitated center in Extra tier */
+    var CAP_SELECT_SCALE = 1.14;          /* Balanced macro magnification 1.14x */
+    var CAP_MAGNETIC_DRIFT = 0.09;        /* Composed near-field horizontal magnetic drift capped at +/-0.09U (X / Z) */
+    var CAP_NORM_DRIFT_COMPAT = 0.12;     /* Normalized compatibility drift amplitude for setPointerNorm */
+    var CAP_TILT_MAX_RAD = 13.0 * DEG2RAD;/* Near-field max target tilt capped at +/-13 deg (~0.227 rad) Pitch / Roll */
+    var CAP_YAW_MAX_RAD = 3.5 * DEG2RAD;  /* Subtle near-field +/-3.5 deg Yaw rotation */
+    var NEAR_PEAK_NORM_GAIN = 2.65;       /* Pairs with C2 smootherstep so near-field dwell settles smoothly */
+    var INPUT_SMOOTH_TAU = 0.038;         /* Stage-1 heavy inertia input low-pass time constant (filters pass-through jitter for hydraulic onset) */
 
-    /* 第二级大质量玉石重镇纸浓稠磁流体弹簧（wn = 11.0 rad/s, zeta = 0.765 -> 归位仅 ~2.4% <=3% 极微油润余韵，绝不乱颤） */
+    /* Stage-2 heavy paperweight damped ferrofluid spring (wn = 11.0 rad/s, zeta = 0.765 -> ~2.4% <=3% silky settle overshoot) */
     var TILT_SPRING_WN = 11.0;
     var TILT_SPRING_ZETA = 0.765;
     var DRIFT_SPRING_WN = 11.0;
     var DRIFT_SPRING_ZETA = 0.765;
 
-    /* 确认时清脆扣回轴座（Bottom-Out Slam）快响应无回弹弹簧（~65ms 干脆扣死进十字轴心触底） */
+    /* Crisp confirmation bottom-out slam non-bouncing spring (~65ms snappy return onto cross stem) */
     var SLAM_SPRING_WN = 48.0;
     var SLAM_SPRING_ZETA = 0.94;
 
-    /* V12 `#0 Orch` 机械下沉自锁开关行程与动态盲键熄灯过渡参数 */
-    var ORCH_LATCH_TRAVEL = 0.135;             /* `#0 Orch` 咔哒机械下沉自锁行程 -0.135U（绝不升空悬浮） */
-    var ORCH_LATCH_WN = 32.0;                  /* 机械自锁卡簧固有频率 32.0 rad/s */
-    var ORCH_LATCH_ZETA = 0.86;                /* 清脆到位高阻尼比 0.86 */
-    var AVAIL_DIM_RATE = 14.0;                 /* 不支持模型键平滑熄灯/点亮收敛速率 ~14/s */
+    /* V12 #0 Orch mechanical latching travel & dynamic non-planner dim transition parameters */
+    var ORCH_LATCH_TRAVEL = 0.135;             /* #0 Orch tactile latch-down travel -0.135U (never levitates) */
+    var ORCH_LATCH_WN = 32.0;                  /* Latch detent spring natural frequency 32.0 rad/s */
+    var ORCH_LATCH_ZETA = 0.86;                /* Crisp high damping ratio 0.86 */
+    var AVAIL_DIM_RATE = 14.0;                 /* Smooth dim/relight convergence rate ~14/s for unsupported keys */
 
-    /* V11 Apple 官网级 1:1 跟手旋转、动量惯性滑停（damping ≈ 6.0）与双外设磁吸共轨物理常量 */
-    var ORBIT_YAW_LIMIT = 0.78;                /* ±0.78 rad (~±44.7°) 大角度侧视检视限幅 */
-    var ORBIT_PITCH_MIN = -0.62;               /* -0.62 rad (~-35.5°) 仰视底壳大配重与侧腰腰线 */
-    var ORBIT_PITCH_MAX = 0.56;                /* +0.56 rad (~+32.1°) 俯视全配列与微晶力场 */
-    var ORBIT_PIVOT_SINGLE = [0.0, -0.22, 0.38];  /* 单主盘几何质心旋转枢轴 */
-    var ORBIT_PIVOT_SUITE = [1.26, -0.22, 0.42];  /* 主盘+紧贴磁吸 AUX-06 双外设共轨旋转枢轴 */
-    var ORBIT_SERVO_WN = 38.0;                 /* 38.0 rad/s 高带宽紧耦合伺服，消除粘滞拖泥带水感 */
-    var ORBIT_SERVO_ZETA = 0.96;               /* 近临界高阻尼 zeta = 0.96（1:1 指哪转哪、零果冻震荡） */
-    var ORBIT_HYDRAULIC_COUPLE = 0.94;         /* 0.94 高前馈直驱耦合，拖拽时紧贴鼠标零迟滞 */
-    var ORBIT_FLING_DAMP = 6.0;                /* 松手后顺滑指数阻尼惯性滑停 (damping = 6.0, <160 帧准时归入 0fps) */
-    var ORBIT_RESET_WN = 18.5;                 /* 视角复位柔顺弹簧固有频率 */
-    var ORBIT_RESET_ZETA = 0.88;               /* 视角复位高阻尼无震荡飞回正视角 */
-    var AUX_COORBIT_LAG_RATIO = 0.032;         /* 右侧 2×3 副盘共轨旋转 ~3.2% 优雅失重惯性相位差 */
+    /* V11 1:1 responsive orbit tracking, momentum coasting (damping ~6.0) & dual-chassis co-orbit physics constants */
+    var ORBIT_YAW_LIMIT = 0.78;                /* +/-0.78 rad (~+/-44.7 deg) wide-angle side inspection yaw limit */
+    var ORBIT_PITCH_MIN = -0.62;               /* -0.62 rad (~-35.5 deg) underside weight & waistline inspection pitch min */
+    var ORBIT_PITCH_MAX = 0.56;                /* +0.56 rad (~+32.1 deg) top-down full layout & crystal field pitch max */
+    var ORBIT_PIVOT_SINGLE = [0.0, -0.22, 0.38];  /* Single main-chassis centroid orbit pivot */
+    var ORBIT_PIVOT_SUITE = [1.26, -0.22, 0.42];  /* Main + docked AUX-06 dual-peripheral co-orbit pivot */
+    var ORBIT_SERVO_WN = 38.0;                 /* 38.0 rad/s high-bandwidth tightly coupled orbit servo */
+    var ORBIT_SERVO_ZETA = 0.96;               /* Near-critical damping zeta = 0.96 (1:1 tracking with zero wobble) */
+    var ORBIT_HYDRAULIC_COUPLE = 0.94;         /* 0.94 high feedforward coupling for zero-lag drag tracking */
+    var ORBIT_FLING_DAMP = 6.0;                /* Smooth exponential coast damping on release (damping = 6.0, settles to 0fps in <160 frames) */
+    var ORBIT_RESET_WN = 18.5;                 /* Orbit reset spring natural frequency */
+    var ORBIT_RESET_ZETA = 0.88;               /* Orbit reset high damping for overshoot-free return */
+    var AUX_COORBIT_LAG_RATIO = 0.032;         /* Right 2x3 aux pad ~3.2% graceful zero-G inertial lag during co-orbit */
 
-    var GYRO_COUNTER_RATIO = 0.40;             /* 浮空主角键 ~40% 反重力陀螺仪世界向上抗倾平衡比例 */
-    var GYRO_COUNTER_MAX_RAD = 20.5 * DEG2RAD; /* 防穿模抗倾软限幅 */
-    var ZERO_G_DURATION = 2.46;                /* 交互充能后 ~2.46s (≈154帧 <180帧) 驱动屏内光学流转与微晶升腾后准时归入 0fps */
-    var ZERO_G_FLING_CAP = 2.02;               /* 惯性滑停松手后窗口上限 (~126帧 <160帧)，严保 endChassisOrbitDrag <160帧停稳 */
-    var ZERO_G_BOB_AMP = 0.028;                /* 太空零重力慢呼吸垂直微浮 ±0.028U */
-    var ZERO_G_TILT_AMP = 1.1 * DEG2RAD;       /* 太空零重力慢呼吸微倾 ±1.1° */
+    var GYRO_COUNTER_RATIO = 0.40;             /* Levitated hero key ~40% antigravity gyro world-up counter-balance ratio */
+    var GYRO_COUNTER_MAX_RAD = 20.5 * DEG2RAD; /* Soft anti-clipping counter-tilt clamp */
+    var ZERO_G_DURATION = 2.46;                /* Post-interaction ~2.46s (~154 frames <180) optical flow & crystal float window before 0fps sleep */
+    var ZERO_G_FLING_CAP = 2.02;               /* Post-fling window cap (~126 frames <160) guaranteeing endChassisOrbitDrag settles in <160 frames */
+    var ZERO_G_BOB_AMP = 0.028;                /* Zero-G slow vertical breathing bob +/-0.028U */
+    var ZERO_G_TILT_AMP = 1.1 * DEG2RAD;       /* Zero-G slow breathing tilt +/-1.1 deg */
 
-    var INTRO_WAKE_DURATION = 0.34;            /* triggerIntroWake: ~340ms 失重升空定格 + 从左至右棱镜扫光 */
-    var INTRO_SINK_Y = -0.28;                  /* 入场起始失重微沉 -0.28U */
-    var INTRO_PITCH_RAD = 8.0 * DEG2RAD;       /* 入场起始微俯仰 +8° */
-    var WAVE_RIPPLE_SPEED = 32.0;              /* triggerWaveRipple: ~32 U/s 贯穿主盘+副盘三维机械涟漪波速 */
-    var WAVE_RIPPLE_PEAK = 0.048;              /* 机械涟漪波峰值下沉 ~0.048U */
-    var WAVE_RIPPLE_DURATION = 0.56;           /* ~560ms 横跨主/副双盘自然散尽归入 0fps */
-    var AUX_PAGE_WAVE_DURATION = 0.28;         /* 副盘 2×3 分页切换轻巧波次下压回弹时长 (~280ms) */
-    var ENERGY_PULSE_DURATION = 0.32;          /* triggerEnergyPulse: ~320ms 切档流明共振脉冲 */
+    var INTRO_WAKE_DURATION = 0.34;            /* triggerIntroWake: ~340ms zero-G rise + left-to-right prism sweep */
+    var INTRO_SINK_Y = -0.28;                  /* Intro starting zero-G dip -0.28U */
+    var INTRO_PITCH_RAD = 8.0 * DEG2RAD;       /* Intro starting pitch offset +8 deg */
+    var WAVE_RIPPLE_SPEED = 32.0;              /* triggerWaveRipple: ~32 U/s 3D mechanical wave speed across main + aux pads */
+    var WAVE_RIPPLE_PEAK = 0.048;              /* Mechanical wave ripple peak dip ~0.048U */
+    var WAVE_RIPPLE_DURATION = 0.56;           /* ~560ms decay across both pads back to 0fps */
+    var AUX_PAGE_WAVE_DURATION = 0.28;         /* Aux pad 2x3 page-switch light wave bounce duration (~280ms) */
+    var ENERGY_PULSE_DURATION = 0.32;          /* triggerEnergyPulse: ~320ms effort-switch lumen resonance pulse */
 
-    /* 对齐 prism-rim-canvas.js 的 6 套家族棱镜色散光谱枚举 */
+    /* 6 family prism dispersion spectrum enum aligned with prism-rim-canvas.js */
     var RIM_TONE_TO_INDEX = {
       default: 0,
       warm: 1,
@@ -458,19 +458,19 @@
       mono: 5,
     };
 
-    /* R1~R4 真实客制化人体工学阶梯倾角与高度微调（Row 1..7） */
+    /* R1-R4 ergonomic sculpted row tilt & height biases (Row 1..7) */
     var ROW_SCULPT_PROFILE = [
       null,
       { pitch: 4.0 * DEG2RAD, scaleY: 1.06, yBias: 0.016 },  /* Row 1: R1 */
       { pitch: 2.3 * DEG2RAD, scaleY: 1.02, yBias: 0.007 },  /* Row 2: R1/R2 */
       { pitch: 0.8 * DEG2RAD, scaleY: 0.98, yBias: 0.000 },  /* Row 3: R2 */
-      { pitch: -0.7 * DEG2RAD, scaleY: 0.95, yBias: -0.005 },/* Row 4: R3 核心基准行 */
+      { pitch: -0.7 * DEG2RAD, scaleY: 0.95, yBias: -0.005 },/* Row 4: R3 core home row */
       { pitch: -2.3 * DEG2RAD, scaleY: 0.98, yBias: 0.002 }, /* Row 5: R4 */
-      { pitch: -3.6 * DEG2RAD, scaleY: 1.01, yBias: 0.009 }, /* Row 6: R4 镧系 */
-      { pitch: -4.5 * DEG2RAD, scaleY: 1.03, yBias: 0.014 }, /* Row 7: R4 锕系 */
+      { pitch: -3.6 * DEG2RAD, scaleY: 1.01, yBias: 0.009 }, /* Row 6: R4 lanthanoids */
+      { pitch: -4.5 * DEG2RAD, scaleY: 1.03, yBias: 0.014 }, /* Row 7: R4 actinoids */
     ];
 
-    /* 第 3~12 族（Col 3..12, Row 1..3）圆角 CNC 斜切内凹边框 2.5D 熏黑蓝宝石 OLED 屏（逻辑 1600x480 -> 物理 800x240，3× 超采且上传体积 -75%） */
+    /* Groups 3-12 (Col 3..12, Row 1..3) rounded CNC recessed 2.5D smoked sapphire OLED screen (logical 1600x480 -> physical 800x240, 3x supersampled, -75% upload) */
     var DECK_X_MIN = -6.90;
     var DECK_X_MAX = 2.90;
     var DECK_Z_MIN = -3.02;
@@ -482,14 +482,14 @@
     var OLED_WIDTH = 800;
     var OLED_HEIGHT = 240;
 
-    /* 71.5° 高俯视略露前侧楔形折角满画幅相机（自动适配单主盘、全屏双盘或横向紧凑三联底坞视觉中心） */
+    /* 71.5-deg elevated full-frame camera showing front wedge lip (auto-fits single, fullscreen dual, or compact dock) */
     var CAM_FOV_Y = 18.0 * DEG2RAD;
     var CAM_PITCH = 71.5 * DEG2RAD;
     var CAM_TARGET_SINGLE = [0.0, -0.05, 0.36];
     var CAM_TARGET_SUITE = [1.34, -0.05, 0.38];
     var CAM_TARGET_SUITE_DRAWER = [1.39, -0.06, 0.39];
 
-    /* 1024×1024 实时阴影贴图（像素量 -75%，仍是主画布 ~2.8× 超采，配合 6-tap IGN Vogel 柔和细腻）与左前上斜侧顶主光 */
+    /* 1024x1024 real-time shadow map (~2.8x supersampled with 6-tap IGN Vogel PCF) & front-left overhead key light */
     var SHADOW_MAP_SIZE = 1024;
     var SHADOW_MAP_SIZE_ULTRA = 1024;
     var SHADOW_MAP_SIZE_REDUCED = 1024;
@@ -545,11 +545,11 @@
     }
 
     /* ============================================================================
-     * 2. V13.1 精密 CNC 6063 喷砂阳极铝色卡（Obsidian 深钛枪灰 / Warm 古铜香槟 / Alabaster 银铝）× 去糖果化工业键帽
+     * 2. V13.1 Precision CNC 6063 Bead-Blasted Anodized Aluminum Palettes (Obsidian / Warm / Crystal / Alabaster) & Industrial Keycaps
      * ============================================================================ */
     var THEME_PALETTES = {
       'obsidian-dark': {
-        /* 深钛枪灰 CNC 6063 喷砂铝 + 45° 亮银高光倒角 + 深石墨微凹 PBT 盲键 + 暖瓷灰双色可选键（零荧光绿！） */
+        /* Deep titanium gunmetal CNC 6063 anodized aluminum + 45-deg bright silver chamfer + dark graphite PBT blind keys + ceramic available keys */
         caseBody: '#2B3038',
         caseStep: '#1F232A',
         caseSide: '#1C2026',
@@ -589,7 +589,7 @@
         shadowAlpha: 0.56,
       },
       'warm-dark': {
-        /* 深古铜黑钛 CNC 阳极铝 + 香槟金 45° 倒角 + 暖石墨 PBT 盲键 + 温润象牙瓷可选键 */
+        /* Deep bronze-titanium CNC anodized aluminum + champagne 45-deg chamfer + warm graphite PBT blind keys + ivory ceramic available keys */
         caseBody: '#322922',
         caseStep: '#251E19',
         caseSide: '#201A15',
@@ -629,7 +629,7 @@
         shadowAlpha: 0.58,
       },
       'crystal-light': {
-        /* Apple Studio / Braun 银白喷砂阳极铝 + 抛光纯银 45° 倒角 + 冰雾浅灰 PBT 盲键 + 瓷白可选键 */
+        /* Silver-white bead-blasted anodized aluminum + polished silver 45-deg chamfer + mist-gray PBT blind keys + porcelain available keys */
         caseBody: '#DCE1E8',
         caseStep: '#CBD2DC',
         caseSide: '#BEC6D2',
@@ -669,7 +669,7 @@
         shadowAlpha: 0.24,
       },
       'alabaster-light': {
-        /* Apple Studio / Braun 暖银白瓷喷砂阳极铝 + 抛光银 45° 倒角 + 浅雾灰 PBT 盲键 + 暖白瓷可选键 */
+        /* Warm silver-alabaster bead-blasted anodized aluminum + polished silver 45-deg chamfer + light mist PBT blind keys + warm ceramic available keys */
         caseBody: '#E2E0DA',
         caseStep: '#D1CEC6',
         caseSide: '#C5C2B9',
@@ -710,7 +710,7 @@
       },
     };
 
-    /* V14 Google DeepMind 官方四大元素光谱：半透磨砂琉璃宝石键帽 + 清透烟熏/冰透浮空帽 + 双色光谱水晶轴柱 */
+    /* V14 Google DeepMind four-element spectrum: translucent frosted gemstone keycaps + clear smoked/iced levitated cap + dual-tone crystal stem */
     var ARTISAN_BY_Z = {
       1: {
         restDarkCap: '#134763',
@@ -724,7 +724,7 @@
         stem: '#0284C7',
         stemTop: '#BAE6FD',
         led: '#38BDF8',
-      }, /* 1 H  · 清透天青冰蓝 */
+      }, /* 1 H  - Clear azure ice-blue */
       6: {
         restDarkCap: '#1E469E',
         restDarkLegend: '#F6FAFF',
@@ -737,7 +737,7 @@
         stem: '#1D4ED8',
         stemTop: '#67E8F9',
         led: '#3B82F6',
-      }, /* 6 C  · Google 官方皇家钴蓝 × 多面冰青虹彩棱镜 */
+      }, /* 6 C  - Google royal cobalt x faceted ice-cyan iridescent prism */
       10: {
         restDarkCap: '#962E1E',
         restDarkLegend: '#FFF8F5',
@@ -750,7 +750,7 @@
         stem: '#F04424',
         stemTop: '#FFC247',
         led: '#FF7849',
-      }, /* 10 Ne · 高能纯净珊瑚红橙 -> 液态暖金（零泥棕！） */
+      }, /* 10 Ne - Pure coral red-orange -> liquid warm gold */
       18: {
         restDarkCap: '#2E1C76',
         restDarkLegend: '#F7F5FF',
@@ -763,10 +763,10 @@
         stem: '#3749E8',
         stemTop: '#C084FC',
         led: '#7C5CFF',
-      }, /* 18 Ar · 高贵电光靛紫 × 皇家蓝宝石玻璃 */
+      }, /* 18 Ar - Electric indigo-violet x royal sapphire glass */
     };
 
-    /* 其余族系低饱和工业金属/矿石色（严禁高饱和糖果色与荧光绿） */
+    /* Desaturated industrial mineral/metal tones for remaining groups */
     var GROUP_ARTISAN_FALLBACK = {
       alkali: { cap: '#6E3F34', legend: '#FFF8F6', stem: '#C98A72', led: '#E2AC96' },
       alkaline: { cap: '#685132', legend: '#FFFBF5', stem: '#C9A46E', led: '#E2C496' },
@@ -780,7 +780,7 @@
       actinoid: { cap: '#543C4E', legend: '#FFF7FB', stem: '#B894AE', led: '#D8B8CE' },
     };
 
-    /* V14 右侧 2×3 AUX-06 品牌光谱 6 槽契约（#0 ORCH 星云紫蓝×暖金渐变阳极金属 + 品牌灯槽与微距透光底裙） */
+    /* V14 right-side 2x3 AUX-06 brand spectrum 6-slot contract (#0 ORCH nebula violet-gold anodized metal + brand LED slot & translucent skirt) */
     var DEFAULT_AUX_MODELS = [
       {
         slotIndex: 0,
@@ -861,7 +861,7 @@
       }
       if (!Array.isArray(rawList)) return result;
 
-      /* 若外部显式传入 auxModels 数组，则未覆盖槽位自动降级为精致暗刻金属盲键 */
+      /* Unpopulated slots in an explicitly supplied auxModels array degrade cleanly to dark-etched metal blind keys */
       for (var k = 0; k < AUX_SLOT_COUNT; k++) {
         result[k] = {
           slotIndex: k,
@@ -901,7 +901,7 @@
     }
 
     /* ============================================================================
-     * 3. 量子化学基态电子排布生成器（覆盖 Z = 1..103 及真实洪特半满/全满特例）
+     * 3. Ground-State Electron Configuration Generator (Covers Z = 1..103 Including Hund Half/Full-Shell Exceptions)
      * ============================================================================ */
     var SUPERSCRIPT_DIGITS = ['⁰', '¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹'];
     var SUBSHELL_SEQUENCE = [
@@ -991,13 +991,13 @@
     }
 
     /* ============================================================================
-     * 4. 零分配 4x4 矩阵与三维几何射线工具库（Column-Major）
+     * 4. Zero-Allocation 4x4 Matrix & 3D Ray-Intersection Utilities (Column-Major)
      * ============================================================================ */
     function clamp(v, lo, hi) {
       return v < lo ? lo : v > hi ? hi : v;
     }
 
-    /* Zero-GC 十六进制色值只读缓存（封顶 256 条），消除 96 键逐帧正则解析与临时 RGB 数组分配 */
+    /* Zero-GC hex color read-only cache (capped at 256 entries) eliminating per-frame regex parsing and RGB array allocations */
     var _hexRgbCache = new Map();
     var _HEX_FALLBACK_RGB = [0.23, 0.60, 0.88];
     function hexToRgb01(hex, fallback) {
@@ -1209,7 +1209,7 @@
       return out;
     }
 
-    /* 支持可选 out 预分配 Float32Array 复用写入，零 GC 分配并保持未传 out 时向后兼容 */
+    /* Supports optional pre-allocated Float32Array out parameter for zero-GC writes while staying backward-compatible */
     function transformPoint4(m, x, y, z, w, out) {
       var ww = w === undefined ? 1.0 : w;
       var dst = out || [0, 0, 0, 0];
@@ -1286,7 +1286,7 @@
     }
 
     /* ============================================================================
-     * 5. 高精度程序化 G2 CNC 极简无螺丝机身与 R1~R4 雕塑球帽网格生成器（CCW 法线）
+     * 5. Procedural G2 CNC Minimal Screwless Chassis & R1-R4 Sculpted Keycap Mesh Builders (CCW Normals)
      * ============================================================================ */
     function sampleG2RectLoop(x0, z0, x1, z1, radius, cornerSegs, superExp) {
       var cx = (x0 + x1) * 0.5;
@@ -1350,7 +1350,7 @@
         return idx;
       }
 
-      /* 专用于 GPU 顶点着色器驱动的磁通环径向偏移 (kind=7.0) 与散景星尘半径 (kind=8.0)：严禁对 a_normal 做单位归一化！ */
+      /* Dedicated to GPU vertex-shader radial offset for flux rings (kind=7.0) and bokeh radius (kind=8.0): DO NOT normalize a_normal! */
       function pushVertexRawNormal(px, py, pz, nx, ny, nz, r, g, b, rough, metal, emis, kind, u, v) {
         var idx = positions.length / 3;
         positions.push(px, py, pz);
@@ -1463,7 +1463,7 @@
       }
 
       /**
-       * 连续曲面圆角过渡环带（上下环各自承载平滑连续法线、色彩插值与 3D 倒角棱镜掩码 [rimLow, rimHigh]）
+       * Smooth continuous chamfer fillet strip (upper/lower rings carry smooth normals, color interpolation & 3D prism chamfer mask [rimLow, rimHigh])
        */
       function addSmoothFilletStrip(loopLow, yLowFn, nyLow, colLow, loopHigh, yHighFn, nyHigh, colHigh, mat, inward, rimLow, rimHigh) {
         var n = loopLow.length;
@@ -1603,10 +1603,10 @@
     }
 
     /**
-     * 生成 V10 经典 GMK / Cherry 原厂雕塑键帽模板网格：
-     * - 干净利落的四斜面梯形收腰侧壁（40 段顺滑方圆角 R=0.068U）+ 极窄注塑微圆角肩棱转折
-     * - 16x16 原厂 Cherry 横向圆柱微凹指肚顶面（彻底移除外缘反常 +0.34 外翻法线，消除顶面外圈泛白塑料描边！）
-     * - 真实微距底腔内构：0.065U 厚壁外裙底沿 + 深凹双色注塑内胆台阶 + 四向加强筋 + 中央 [+] 十字菊花母座
+     * Builds V10 GMK / Cherry sculpted keycap template mesh:
+     * - Clean 4-face trapezoidal tapered walls (smooth G2 rounded corners R=0.068U) + crisp molded shoulder fillet
+     * - Cylindrical scooped fingertip top surface with clean normals (zero artificial bright rim edge)
+     * - Detailed macro underside cavity: 0.065U thick outer skirt + doubleshot inner step + 4-way ribs + central [+] cross stem socket
      */
     var _cachedSculptedKeycapGeom = null;
     function buildSculptedKeycapGeometry() {
@@ -1648,7 +1648,7 @@
         emitCapQuad([x0, y0, z0], [x0, y0, z1], [x0, y1, z1], [x0, y1, z0], -1, 0, 0, flag);
       }
 
-      /* 轻量化高精度外观分段：每角 6 段 G2 超椭圆（24 段周长）+ 10×10 圆柱微凹指肚顶面 = 440 tris/键（-71.5%），视觉零折角 */
+      /* Lightweight crisp tessellation: 6 G2 superellipse segments/corner (24 perimeter) + 10x10 cylindrical top = 440 tris/key (-71.5%) */
       var SEG_CORNER = 6;
       var RING_COUNT = SEG_CORNER * 4;
 
@@ -1656,7 +1656,7 @@
         return sampleG2RectLoop(-halfW, -halfD + zShift, halfW, halfD + zShift, radius, SEG_CORNER, 2.24);
       }
 
-      /* 原厂 Cherry 经典横向圆柱微凹指肚曲面（X 向柔和圆柱凹弧 + Z 向极微工学弧） */
+      /* Classic Cherry horizontal cylindrical fingertip scoop (gentle X concave arc + subtle Z ergonomic curve) */
       function dishHeight(nx, nz) {
         var cylX = Math.max(0.0, 1.0 - nx * nx * 0.96);
         var subtleZ = Math.max(0.0, 1.0 - nz * nz * 0.85);
@@ -1668,7 +1668,7 @@
       var topZShift = -0.013;
       var topCornerR = 0.068;
 
-      /* GMK / Cherry 干净利落四斜面梯形侧壁 + 极窄微圆角肩棱过渡环（精简中段冗余环，100% 保留外轮廓与肩棱受光） */
+      /* Clean GMK/Cherry 4-slope tapered walls + narrow rounded shoulder transition rings */
       var profileRings = [
         { hw: CAP_BASE_HALF, hd: CAP_BASE_HALF, r: 0.064, y: 0.000, zS: 0.000, ny: 0.19, flag: 0.0 },
         { hw: 0.414, hd: 0.413, r: 0.067, y: 0.265, zS: -0.006, ny: 0.198, flag: 0.0 },
@@ -1743,7 +1743,7 @@
           var rimFlatten = Math.max(edgeXFlatten * 0.55, edgeZFlatten * 0.45);
           var pyTop = CAP_HEIGHT - 0.0022 * rimFlatten + d * (1.0 - rimFlatten * 0.65);
 
-          /* 纯正原厂圆柱微凹顶面法线（0 外翻泛白塑料圈！左倾微朝右、右倾微朝左，与四斜面侧壁干净转折） */
+          /* True cylindrical top-face normals cleanly transitioning from the 4 sloped walls */
           var dnx = -(px / topHalfW) * 0.148 * (1.0 - edgeXFlatten * 0.35);
           var dnz = -(pzLocal / topHalfD) * 0.032 * (1.0 - edgeZFlatten * 0.45);
           var u = clamp(0.5 + px / (topHalfW * 2.02), 0.015, 0.985);
@@ -1763,14 +1763,14 @@
         }
       }
 
-      /* 段 0 结束：全部 96 颗键帽仅需绘制轻量高质量外壳（440 tris/键），彻底剔除 95 颗落地键不可见底腔废面 */
+      /* End segment 0: all 96 keycaps draw only the lightweight 440-tri outer shell, culling unseen cavities on resting keys */
       var outerIndexCount = indices.length;
 
       /* ======================================================================
-       * 段 1（仅对 1 颗浮空磁悬浮键按需绘制，复用同一 keycapVao 零新增 VAO）：
-       * 1) 精确 0.065U 厚壁外裙底端面（hw: 0.460 -> 0.395, y = 0.0）
-       * 2) 深凹双阶梯形内腔壁（y = 0.0 -> 0.064 台阶 -> 0.276 深腔顶）+ 四向微距加强筋
-       * 3) 正中央凸出圆柱形 [+] 十字菊花套筒母座（Cross Stem Mount, r = 0.122, 含深凹十字插孔）
+       * Segment 1 (drawn on demand for the single levitated keycap, reusing keycapVao with zero extra VAOs):
+       * 1) 0.065U thick outer skirt bottom rim (hw: 0.460 -> 0.395, y = 0.0)
+       * 2) Dual-step inner cavity walls (y = 0.0 -> 0.064 step -> 0.276 ceiling) + 4-way structural ribs
+       * 3) Central protruding cylindrical [+] cross stem mount (r = 0.122 with recessed cross socket)
        * ====================================================================== */
       var wallThick = 0.065;
       var outerBotPts = sampleCapRing(CAP_BASE_HALF, CAP_BASE_HALF, 0.064, 0.0);
@@ -1780,7 +1780,7 @@
       var stepY = 0.064;
       var cavityDepth = 0.276;
 
-      /* (a) 0.065U 厚壁外裙底端环（朝下） */
+      /* (a) 0.065U thick outer skirt bottom face (downward normal) */
       var botOuterStart = positions.length / 3;
       for (var bi0 = 0; bi0 < RING_COUNT; bi0++) {
         emitV(outerBotPts[bi0].x, 0.0, outerBotPts[bi0].z, 0, -1, 0, 0, 0, 0.18);
@@ -1790,7 +1790,7 @@
         emitV(wallBotPts[bi1].x, 0.0, wallBotPts[bi1].z, 0, -1, 0, 0, 0, 0.18);
       }
 
-      /* (b) 第一阶内壁下口 -> y=0.064 双色内胆台阶 */
+      /* (b) Lower inner wall opening -> y=0.064 doubleshot inner step */
       var wallStepBotStart = positions.length / 3;
       for (var bi2 = 0; bi2 < RING_COUNT; bi2++) {
         emitV(wallBotPts[bi2].x, 0.0, wallBotPts[bi2].z, -wallBotPts[bi2].nx, -0.22, -wallBotPts[bi2].nz, 0, 0, 0.34);
@@ -1800,7 +1800,7 @@
         emitV(wallBotPts[bi3].x, stepY, wallBotPts[bi3].z, -wallBotPts[bi3].nx, -0.22, -wallBotPts[bi3].nz, 0, 0, 0.34);
       }
 
-      /* (c) y=0.064 双色注塑内胆台阶环（朝下） */
+      /* (c) y=0.064 doubleshot inner liner step ring (downward normal) */
       var stepOutStart = positions.length / 3;
       for (var bi4 = 0; bi4 < RING_COUNT; bi4++) {
         emitV(wallBotPts[bi4].x, stepY, wallBotPts[bi4].z, 0, -1, 0, 0, 0, 0.38);
@@ -1810,7 +1810,7 @@
         emitV(stepInPts[bi5].x, stepY, stepInPts[bi5].z, 0, -1, 0, 0, 0, 0.38);
       }
 
-      /* (d) 深腔主内壁 y=0.064 -> y=0.276 与深腔顶盖 */
+      /* (d) Deep cavity main inner walls y=0.064 -> y=0.276 and cavity ceiling */
       var cavWallBotStart = positions.length / 3;
       for (var bi6 = 0; bi6 < RING_COUNT; bi6++) {
         emitV(stepInPts[bi6].x, stepY, stepInPts[bi6].z, -stepInPts[bi6].nx, -0.28, -stepInPts[bi6].nz, 0, 0, 0.34);
@@ -1846,7 +1846,7 @@
         indices.push(cavRoofCenter, cavRoofStart + bs, cavRoofStart + bsNext);
       }
 
-      /* (e) 内腔四向微距加强筋（连接中心菊花母座外壁与四向陶瓷内壁） */
+      /* (e) Four-way inner cavity structural ribs linking stem mount to inner walls */
       var ribHalfT = 0.015;
       var ribY0 = 0.115;
       var ribY1 = cavityDepth - 0.002;
@@ -1855,7 +1855,7 @@
       emitCapSubBox(-ribHalfT, ribY0, 0.116, ribHalfT, ribY1, 0.336, 0.38, true, false);
       emitCapSubBox(-ribHalfT, ribY0, -0.336, ribHalfT, ribY1, -0.116, 0.38, true, false);
 
-      /* (f) 正中央凸出圆柱形十字菊花套筒母座（12 段圆柱筒 + 底端护环 + 立体深凹 [+] 十字母口） */
+      /* (f) Central cylindrical cross-stem socket (12-seg cylinder + bottom rim + recessed [+] cross slot) */
       var bossSegs = 12;
       var bossOuterR = 0.122;
       var bossInnerR = 0.084;
@@ -1875,7 +1875,7 @@
         emitV(Math.cos(ang1) * bossOuterR, bossTopY, Math.sin(ang1) * bossOuterR, Math.cos(ang1), -0.12, Math.sin(ang1), 0, 0, 0.44);
       }
 
-      /* 套筒底端圆环（r: 0.084 .. 0.122, y = 0.012）与内孔筒壁 */
+      /* Stem socket bottom ring (r: 0.084 .. 0.122, y = 0.012) and inner bore wall */
       var bossRimOut = positions.length / 3;
       for (var cs2 = 0; cs2 < bossSegs; cs2++) {
         var ang2 = (cs2 / bossSegs) * TWO_PI;
@@ -1915,7 +1915,7 @@
         indices.push(boreRoofCenter, boreWallTop + csi, boreWallTop + csiNext);
       }
 
-      /* 菊花套筒内部四象限夹持凸齿：恰好在正中央围出清晰的立体深凹 [+] 十字插孔！ */
+      /* Four-quadrant inner grip teeth framing the crisp recessed [+] cross socket */
       var qSpan = 0.066;
       emitCapSubBox(crossHalfT, bossBotY, crossHalfT, qSpan, slotDepthY, qSpan, 0.44, true, false);
       emitCapSubBox(-qSpan, bossBotY, crossHalfT, -crossHalfT, slotDepthY, qSpan, 0.44, true, false);
@@ -1937,11 +1937,11 @@
 
     var _cachedChassisMeshMap = new Map();
     /**
-     * 生成 V10 重型 CNC 客制化铝坨坨外壳网格（buildChassisMesh）：
-     * - 加厚阳极氧化铝壁厚（±9.68U × [-3.86, 4.62]）+ Mode/Keycult 标志性双层内沉阶梯倒角（Step-Bezel）
-     * - 侧腰隐藏式极细匀光棱镜导光腰线（呼应 Obsidian Prism 主题，克制深嵌）
-     * - 彻底移除顶部错位银灰长条暗槽，顶额呈完整纯粹重型阳极铝面
-     * - 第 3~12 列、第 1~3 行升级为 R=0.16U 圆角 CNC 内凹斜面金属屏幕外框（随视角与鼠标流转冷冽微光谱高光，零直角生硬白线）
+     * Builds V10 heavy CNC custom aluminum chassis mesh (buildChassisMesh):
+     * - Thick anodized walls (+/-9.68U x [-3.86, 4.62]) + signature dual recessed Step-Bezel chamfer
+     * - Recessed ultra-fine perimeter prism lightguide waistline seam
+     * - Clean uninterrupted solid anodized top forehead
+     * - Cols 3..12, Rows 1..3 feature an R=0.16U rounded CNC beveled metal OLED screen frame
      */
     function buildChassisMesh(palette, includeAuxPad) {
       var chCacheKey = (palette && palette.id ? palette.id : 'obsidian-dark') + ':' + (includeAuxPad ? 1 : 0);
@@ -1961,10 +1961,10 @@
       var colFootPad = hexToRgb01(palette.footPad || '#060709');
 
       /* matKind:
-       *   0 = 220 目各向同性微晶珠光阳极铝合金
-       *   1 = 45° 钻石折角 / Step-Bezel 斜切面 / PVD 镜面配重
-       *   4 = 360° 隐藏式极细匀光棱镜导光腰线槽 (Crystal Waistline Lightguide)
-       *   6 = 沉降消光定位板 / 微距消光缓冲脚垫 */
+       *   0 = 220-grit isotropic micro-blasted anodized aluminum
+       *   1 = 45-deg diamond chamfer / Step-Bezel bevel / PVD mirror weight
+       *   4 = 360-deg recessed ultra-fine prism waistline lightguide
+       *   6 = Recessed matte switch plate / micro matte bumper feet */
       var matAnodized = [palette.isLight ? 0.24 : 0.26, palette.isLight ? 0.89 : 0.87, 0.0, 0];
       var matDiamondChamfer = palette.isLight
         ? [0.15, 0.94, 0.0, 0]
@@ -1986,7 +1986,7 @@
       var wellBevelCol = mixRgb(colStep, colChamfer, palette.isLight ? 0.30 : 0.26);
       var waistLipCol = mixRgb(colSide, colChamfer, palette.isLight ? 0.26 : 0.20);
 
-      /* 1. 重型 CNC 铝坨坨立体轮廓环路：楔形底壳 + 隐藏式极细导光腰线 + 厚壁上壳 + 45° 钻石亮边 + 内沉 Step-Bezel */
+      /* 1. Heavy CNC chassis profile rings: tapered underbody + recessed waistline seam + thick upper wall + 45-deg chamfer + Step-Bezel */
       var CASE_SEGS = 16;
       var underFootLoop = sampleG2RectLoop(
         -CASE_HALF_W + 0.62, CASE_Z_MIN + 0.52,
@@ -2034,7 +2034,7 @@
         CASE_CORNER_R - 0.068, CASE_SEGS, 2.32
       );
 
-      /* Mode / Keycult 双层内沉阶梯倒角环路（Step-Bezel Outer Top -> Step Shelf -> Well Outer -> Well Inner） */
+      /* Dual recessed Step-Bezel rings (Step-Bezel Outer Top -> Step Shelf -> Well Outer -> Well Inner) */
       var stepBevelOuterLoop = sampleG2RectLoop(
         WELL_X_MIN - 0.245, WELL_Z_MIN - 0.245,
         WELL_X_MAX + 0.245, WELL_Z_MAX + 0.245,
@@ -2056,7 +2056,7 @@
         WELL_CORNER_R, CASE_SEGS, 2.20
       );
 
-      /* 二段式楔形高度函数：后厚前敏人体工学黄金楔角 + 侧腰隐藏式极细匀光棱镜导光腰线 */
+      /* Two-stage ergonomic wedge height profile + recessed waistline seam */
       function zRatio(pt) {
         return clamp((pt.z - CASE_Z_MIN) / (CASE_Z_MAX - CASE_Z_MIN), 0, 1);
       }
@@ -2085,7 +2085,7 @@
         return (CASE_Y_TOP - 0.010) - zRatio(pt) * 0.004;
       }
 
-      /* 1A. 立体底壳主平面 + 底部中央大面积镜面配重 CNC 精密镶嵌暗槽 + 四角微距隐形缓冲垫条 */
+      /* 1A. Underbody base plane + central recessed PVD mirror weight pocket + 4 corner matte bumper strips */
       var backSlotOuter = sampleG2RectLoop(-4.88, -2.20, 4.88, 2.80, 0.24, CASE_SEGS, 2.24);
       var backSlotInner = sampleG2RectLoop(-4.84, -2.16, 4.84, 2.76, 0.22, CASE_SEGS, 2.24);
       mb.addPlanarAnnulus(underFootLoop, CASE_Y_BOT, backSlotOuter, CASE_Y_BOT, colUnder, matAnodized, true);
@@ -2114,7 +2114,7 @@
       addMicroStealthFoot(-8.02, 3.52, -6.34, 3.76);
       addMicroStealthFoot(6.34, 3.52, 8.02, 3.76);
 
-      /* 1B. 下段二段式大内收楔形下壳斜面（Sculpted Tapered Underbody） */
+      /* 1B. Sculpted tapered lower underbody bevel */
       mb.addSmoothFilletStrip(
         underFootLoop, CASE_Y_BOT, -0.84, colUnder,
         underBevelLoop, underBevelY, -0.58, mixRgb(colUnder, waistLipCol, 0.42),
@@ -2126,7 +2126,7 @@
         matUnderSlope, false, 0.28, 0.56
       );
 
-      /* 1C. 侧腰隐藏式极细哑光微金属导光暗槽（Recessed Matte Micro-Metal Waistline Seam，平时极低调，近场/脉冲掠过冷白微色散） */
+      /* 1C. Recessed matte micro-metal waistline seam (subtle at rest, cool prism shimmer on near-field/pulse) */
       mb.addSmoothFilletStrip(
         waistLowerLip, waistLowerLipY, 0.66, waistLipCol,
         waistGrooveLoop, waistGrooveBotY, 0.46, colWaist,
@@ -2143,7 +2143,7 @@
         matDiamondChamfer, false, 0.54, 0.38
       );
 
-      /* 1D. 上段重型哑光阳极侧壳 + 外缘 45° 钻石亮边倒角 */
+      /* 1D. Upper matte anodized side walls + outer 45-deg diamond chamfer */
       mb.addSmoothFilletStrip(
         waistUpperLip, waistUpperLipY, 0.05, colSide,
         outerWallHigh, wedgeShoulderLowY, 0.12, colSide,
@@ -2165,7 +2165,7 @@
         matAnodized, false, 0.34, 0.00
       );
 
-      /* 1E. Mode / Keycult 双层内沉阶梯倒角顶框（外层宽厚阳极平顶 + 内沉 45° Step-Bezel 斜切 + 内沉阶梯台 + 定位板口倒角） */
+      /* 1E. Dual recessed Step-Bezel top frame (outer flat rim + 45-deg step bevel + recessed shelf + plate chamfer) */
       var yWellBevelBot = CASE_STEP_Y - 0.032;
       mb.addPlanarAnnulus(outerTopLoop, CASE_Y_TOP, stepBevelOuterLoop, CASE_Y_TOP, colBody, matAnodized, false);
       mb.addSmoothFilletStrip(
@@ -2182,7 +2182,7 @@
       mb.addLoopWallStrip(wellInnerLoop, PLATE_Y, wellInnerLoop, yWellBevelBot, 0.04, colInner, matAnodized, true, 0.0);
       mb.addLoopCap(wellInnerLoop, PLATE_Y, colPlate, matPlate, false);
 
-      /* 2. 第 3~12 族 R=0.16U 高细分圆角 CNC 内凹斜面金属屏幕外框（干掉 0 圆角纯白直角细线！） */
+      /* 2. Groups 3-12 R=0.16U smooth rounded CNC beveled metal OLED screen bezel */
       var DECK_SEGS = 14;
       var rimTopY = DECK_GLASS_Y + 0.034;
       var glassSeatY = DECK_GLASS_Y - 0.004;
@@ -2225,7 +2225,7 @@
         matScreenBevel, true, 0.74, 0.82
       );
 
-      /* 2B. V13.1 主盘与 AUX-06 紧贴拼接的 CNC 6063 磁吸金属导轨桥（Magnetic CNC Rail Bridge，合批于主盘 VAO） */
+      /* 2B. V13.1 Magnetic CNC 6063 rail bridge docking main chassis to AUX-06 (batched into main chassis VAO) */
       if (includeAuxPad) {
         var brX0 = CASE_HALF_W - 0.05;
         var brX1 = AUX_CASE_X_MIN + 0.05;
@@ -2237,14 +2237,14 @@
         var bridgeBodyCol = mixRgb(colBody, colStep, 0.35);
         var bridgeSpineCol = mixRgb(colBody, colChamfer, palette.isLight ? 0.58 : 0.76);
         var bridgeSlotDark = shadeRgb(colInner, 0.72);
-        /* 导轨桥基座与 45° 斜角端面 */
+        /* Rail bridge base and 45-deg beveled end faces */
         mb.addChamferedBlock(
           brX0, brYBot, brZ0,
           brX1, brYTop - 0.032, brZ1,
           0.024, bridgeBodyCol, bridgeSpineCol, colSide,
           matAnodized, matDiamondChamfer, true
         );
-        /* 左右双平行磁吸定位凹缝 + 中央亮银 45° 钻石脊梁 */
+        /* Parallel left/right magnetic alignment grooves + central bright silver 45-deg diamond spine */
         mb.addBox(
           brMidX - 0.085, brYTop - 0.040, brZ0 + 0.12,
           brMidX - 0.052, brYTop - 0.022, brZ1 - 0.12,
@@ -2263,7 +2263,7 @@
         );
       }
 
-      /* 2C. V13.1 主盘右下边框精密激光蚀刻微铭牌：PRISM-118 // CNC-6063（纯矢量合批至静态 chassisGpu，0 新增 GPU 资源） */
+      /* 2C. V13.1 precision laser-etched micro badge on lower-right bezel: PRISM-118 // CNC-6063 (vector-batched into static chassisGpu) */
       var LASER_FONT = {
         P: [[0, 1, 0, 0], [0, 0, 0.82, 0], [0.82, 0, 1, 0.16], [1, 0.16, 1, 0.42], [1, 0.42, 0.82, 0.56], [0.82, 0.56, 0, 0.56]],
         R: [[0, 1, 0, 0], [0, 0, 0.82, 0], [0.82, 0, 1, 0.16], [1, 0.16, 1, 0.40], [1, 0.40, 0.82, 0.54], [0.82, 0.54, 0, 0.54], [0.55, 0.54, 1, 1]],
@@ -2304,7 +2304,7 @@
               if (len < 1e-4) continue;
               var ux = dx / len;
               var uz = dz / len;
-              /* 轻微延伸端头 0.35*hw 使转折连接严丝合缝 */
+              /* Extend endpoints by 0.35*hw for tight stroke miter joins */
               var ex0 = x0 - ux * hw * 0.35;
               var ez0 = z0 - uz * hw * 0.35;
               var ex1 = x1 + ux * hw * 0.35;
@@ -2338,7 +2338,7 @@
         laserInkCol, matLaserEtch
       );
 
-      /* 2E. 主盘底壳永不变形的 PVD 镜面棱镜大配重铭牌 + 前后二段式楔形折翼（由动态 widgetsGpu 迁入静态 chassisGpu，消除每帧重复构建与上传） */
+      /* 2E. Static main underbody PVD mirror prism weight plate + fore/aft wedge wings (moved into static chassisGpu to avoid per-frame rebuilds) */
       var matPvdFacet = palette.isLight ? [0.065, 0.98, 0.0, 1] : [0.090, 0.95, 0.0, 1];
       var matPvdCrown = palette.isLight ? [0.080, 0.97, 0.0, 1] : [0.090, 0.95, 0.0, 1];
       var bwBodyCol = hexToRgb01(palette.backWeightBody || palette.caseChamfer);
@@ -2477,7 +2477,7 @@
 
       var mainIndexCount = mb.getIndexCount();
 
-      /* 3. V11 并排同源真 3D「2×3 非元素模型扩展小键盘（Aux Macro Pad）」Step-Bezel CNC 铝壳合批进同一 chassisGpu VAO */
+      /* 3. V11 docked 3D 2x3 non-element Aux Macro Pad Step-Bezel CNC aluminum chassis batched into chassisGpu VAO */
       if (includeAuxPad) {
         var AUX_SEGS = 12;
         var auxUnderFootLoop = sampleG2RectLoop(
@@ -2547,7 +2547,7 @@
           AUX_WELL_CORNER_R, AUX_SEGS, 2.18
         );
 
-        /* 3A. 副盘立体底壳主平面 + 中央镜面棱镜小配重暗槽 + 四角微距消光防滑脚垫 */
+        /* 3A. Aux pad underbody base + central PVD weight pocket + 4 corner matte feet */
         var auxBackSlotOuter = sampleG2RectLoop(10.58, 1.42, 11.84, 3.46, 0.16, AUX_SEGS, 2.20);
         var auxBackSlotInner = sampleG2RectLoop(10.61, 1.45, 11.81, 3.43, 0.14, AUX_SEGS, 2.20);
         mb.addPlanarAnnulus(auxUnderFootLoop, CASE_Y_BOT, auxBackSlotOuter, CASE_Y_BOT, colUnder, matAnodized, true);
@@ -2563,7 +2563,7 @@
         addMicroStealthFoot(10.36, 3.88, 10.80, 4.06);
         addMicroStealthFoot(11.62, 3.88, 12.06, 4.06);
 
-        /* 3B. 副盘二段式楔形底壳斜面 + 360° 环绕侧腰隐藏式极细匀光棱镜导光腰线（与主盘同高度水平贯通！） */
+        /* 3B. Aux pad tapered underbody bevel + 360-deg waistline seam aligned flush with main chassis */
         mb.addSmoothFilletStrip(
           auxUnderFootLoop, CASE_Y_BOT, -0.84, colUnder,
           auxUnderBevelLoop, underBevelY, -0.58, mixRgb(colUnder, waistLipCol, 0.42),
@@ -2590,7 +2590,7 @@
           matDiamondChamfer, false, 0.54, 0.38
         );
 
-        /* 3C. 副盘重型阳极侧壁 + 外缘 45° 钻石亮边 + 双层内沉 Step-Bezel 顶框 + 2×3 消光定位板 */
+        /* 3C. Aux pad heavy anodized walls + 45-deg chamfer + dual Step-Bezel top frame + 2x3 matte plate */
         mb.addSmoothFilletStrip(
           auxWaistUpperLip, waistUpperLipY, 0.05, colSide,
           auxOuterWallHigh, wedgeShoulderLowY, 0.12, colSide,
@@ -2627,7 +2627,7 @@
         mb.addLoopWallStrip(auxWellInnerLoop, PLATE_Y, auxWellInnerLoop, yWellBevelBot, 0.04, colInner, matAnodized, true, 0.0);
         mb.addLoopCap(auxWellInnerLoop, PLATE_Y, colPlate, matPlate, false);
 
-        /* 3D. 副盘顶额精致 CNC 激光蚀刻微铭牌：AUX-06（随副盘共轨旋转，与主盘 PRISM-118 // CNC-6063 呼应） */
+        /* 3D. Aux pad top-bezel CNC laser-etched micro badge: AUX-06 (co-orbits with aux pad) */
         addLaserEtchedText(
           'AUX-06',
           AUX_CENTER_X + 0.43, 0.535, CASE_Y_TOP + 0.0032,
@@ -2635,7 +2635,7 @@
           laserInkCol, matLaserEtch
         );
 
-        /* 3E. 副盘底壳静态镶嵌式 PVD 镜面棱镜小配重铭牌（并入静态 chassisGpu 一次上传复用） */
+        /* 3E. Aux pad underbody static inlaid PVD mirror prism weight (uploaded once in static chassisGpu) */
         var abx0 = 10.62, abx1 = 11.80;
         var abz0 = 1.46, abz1 = 3.42;
         var abBev = 0.09;
@@ -2703,8 +2703,8 @@
     }
 
     /**
-     * 精雕 V8 拔起键槽内的微距五脚聚光镜客制化机械轴（buildActiveSwitchMesh）：
-     * 支持切档位能量共振脉冲（energyPulse）温润增亮南向弧面凸透镜聚光镜
+     * Builds V8 macro 5-pin condenser-lens mechanical switch inside the active levitated socket (buildActiveSwitchMesh):
+     * Supports effort-switch energyPulse brightening of the south-facing convex LED condenser lens
      */
     function buildActiveSwitchMesh(mb, switchInfo, palette, ambientMul, energyPulse) {
       var sx = switchInfo.x;
@@ -2727,7 +2727,7 @@
       var litPcRgb = ledActive ? mixRgb(pcBaseRgb, ledRgb, clamp(0.22 * glowStrength, 0, 0.52)) : pcBaseRgb;
       var pcEdgeRgb = mixRgb(litPcRgb, [0.88, 0.93, 0.99], 0.38);
 
-      /* 1. 五脚轴底壳定位法兰底座 + 左右两侧 PCB 防呆塑料侧柱凸耳 + 北侧金属簧片内透细节 */
+      /* 1. 5-pin switch bottom housing flange + left/right PCB alignment lugs + north metal leaf detail */
       mb.addBox(
         sx - 0.382, PLATE_Y, sz - 0.382,
         sx + 0.382, PLATE_Y + 0.068, sz + 0.382,
@@ -2756,7 +2756,7 @@
         matGoldLeaf, matGoldLeaf, true
       );
 
-      /* 2. 半透雾面轴体上盖（梯形斜切四棱台翼面 + 左右微距卡扣翼台阶） */
+      /* 2. Translucent frosted switch top housing (tapered bevel wings + side latch tabs) */
       var hy0 = PLATE_Y + 0.068;
       var hyMid = PLATE_Y + 0.168;
       var hyTop = PLATE_Y + 0.252;
@@ -2803,7 +2803,7 @@
         [0.06, 0.07, 0.09], [0.05, 0.06, 0.08], [0.52, 0.10, 0, 6], null, true
       );
 
-      /* 3. 南向高透弧面凸透镜 LED 聚光镜（Convex Condenser Lens，8x5 连续球冠网格） */
+      /* 3. South-facing clear convex LED condenser lens (8x5 smooth spherical cap mesh) */
       var lensXHalf = 0.148;
       var lensZHalf = 0.062;
       var lensCz = sz + 0.252;
@@ -2860,7 +2860,7 @@
         }
       }
 
-      /* 4. 顶部中央精雕 V14 官方双色光谱透明切割棱镜水晶轴柱（Dual-Tone Faceted Crystal Switch Stem + Box Shroud + Cross [+]，色度保护防冲白） */
+      /* 4. Central V14 dual-tone faceted crystal switch stem + box shroud + cross [+] (chroma-preserving against blowout) */
       var stemTopSpec = switchInfo.stemTopRgb || ledRgb;
       var stemBot = PLATE_Y + 0.236;
       var boxWallTop = PLATE_Y + 0.456;
@@ -2875,7 +2875,7 @@
       var stemSideCol = mixRgb(stemBaseCol, stemMidCol, 0.46);
       var stemWallCol = mixRgb(stemMidCol, stemTopCol, 0.54);
 
-      /* 透明多棱切割晶体底座裙领（12 切面斜切棱镜晶冠，自下而上绽放官方双色光谱内部折射） */
+      /* Translucent 12-facet beveled crystal base collar refracting dual-tone spectrum upward */
       var crBaseLoop = sampleCircleLoop(sx, sz, 0.285, 12, Math.PI / 12);
       var crMidLoop = sampleCircleLoop(sx, sz, 0.232, 12, Math.PI / 12);
       var crCrownLoop = sampleCircleLoop(sx, sz, 0.194, 12, Math.PI / 12);
@@ -2926,7 +2926,7 @@
     }
 
     /**
-     * 辅助环路采样：生成与 sampleG2RectLoop 绕向严格一致的圆环 / 钻石滚花多棱环顶点序列
+     * Helper ring sampler: generates circular / diamond-knurled polygon loops with winding matching sampleG2RectLoop
      */
     function sampleCircleLoop(cx, cz, radiusOrFn, segs, phaseOffset) {
       var pts = [];
@@ -2947,7 +2947,7 @@
     }
 
     /**
-     * 辅助刚体旋转微雕亮条（用于旋钮刻度槽、`×` 立体十字亮纹、准星与双平行棱镜蚀刻脊）
+     * Helper rotated micro-engraved bar (for knob indicator notch, 3D cross glyph, reticle & parallel prism grooves)
      */
     function addRotatedChamferBar(mb, cx, cz, y0, y1, halfLen, halfWid, angleRad, bevel, colTop, colChamfer, colSide, matBody, matChamfer, rimMask) {
       var ca = Math.cos(angleRad);
@@ -3004,10 +3004,10 @@
     }
 
     /**
-     * 左 1U 缺口 (col=2, row=1 => x=-7.5, z=-2.56)：
-     * 构建 1U CNC 拉丝钛/黑钛磁吸棱镜个性键（Artisan Metal Prism Keycap, action: 'prism-wave'）
-     * - 底部精密阳极磁吸护座封死定位板黑坑
-     * - 四斜面 CNC 钛金属键裙 + 顶面内沉八角盘 + 立体八面体金字塔棱镜浮雕切面高光
+     * Left 1U cutout (col=2, row=1 => x=-7.5, z=-2.56):
+     * Builds 1U CNC brushed-titanium artisan metal prism keycap (action: 'prism-wave')
+     * - Anodized magnetic socket shroud sealing the plate opening
+     * - 4-slope CNC titanium skirt + recessed octagonal top + 3D octahedral pyramid prism relief facets
      */
     function buildArtisanPrismKeyMesh(mb, palette, hwCtrl, ambientMul) {
       var cx = ARTISAN_WAVE_X;
@@ -3028,7 +3028,7 @@
       var matTiSkirt = [palette.isLight ? 0.14 : 0.15, 0.95, hover * 0.04 * ambientMul, 1];
       var matTiFacet = [palette.isLight ? 0.075 : 0.085, 0.98, (0.02 + hover * 0.11) * ambientMul, 1];
 
-      /* 1. 底部 CNC 磁吸金属底座护圈（严丝合缝封住 col=2, row=1 槽底） */
+      /* 1. Lower CNC magnetic metal shroud sealing col=2, row=1 socket floor */
       var collarBot = sampleG2RectLoop(cx - 0.485, cz - 0.485, cx + 0.485, cz + 0.485, 0.085, 6, 2.2);
       var collarTop = sampleG2RectLoop(cx - 0.472, cz - 0.472, cx + 0.472, cz + 0.472, 0.078, 6, 2.2);
       mb.addSmoothFilletStrip(
@@ -3038,7 +3038,7 @@
       );
       mb.addLoopCap(collarTop, 0.032, shadeRgb(collarCol, 0.68), matCollar, false);
 
-      /* 2. 1U 钛金属个性键主体四斜面梯形收腰键裙（对齐 Row 1 R1 高度 + 支持悬停微升与点击下压行程） */
+      /* 2. 1U titanium artisan keycap 4-slope tapered skirt (aligned to Row 1 R1 height, supports hover/press travel) */
       var y0 = CAP_Y_BASE + 0.018 + hover * 0.030 - press * 0.105 + waveDip;
       var yMid = y0 + 0.48;
       var yShoulder = y0 + 0.565;
@@ -3066,7 +3066,7 @@
       );
       mb.addLoopCap(loopTopIn, yWell, shadeRgb(tiBody, 0.82), matTiSkirt, false);
 
-      /* 3. 顶面正中央：立体八面体金字塔棱镜浮雕切面冠（8 独立平面法线切面汇聚中央尖峰，流转冷冽光谱火彩） */
+      /* 3. Center top crown: 8-facet octahedral pyramid prism relief with flat-faceted specular fire */
       var pCz = cz - 0.008;
       var octR = 0.228;
       var octBaseY = yWell - 0.002;
@@ -3115,12 +3115,12 @@
     }
 
     /**
-     * 右 5U 空沟 (col=13..17, row=1 => x∈[3.0, 8.0], cx=5.5, z=-2.56)：
-     * 构建严丝合缝镶嵌的 5U PVD 重金属硬件控制铭牌舱（Hardware Control Deck）：
-     *   1) x ∈ [3.08, 4.84]：PVD 黑钛/银钛铭牌蚀刻区（双平行棱镜刻槽 + 菱形微徽）
-     *   2) (cx=5.36, z=-2.56)：视角回正物理微动圆键（reset-view，旋转态亮青白指示光环）
-     *   3) (cx=6.38, z=-2.56)：24 齿 CNC 滚花金属音效旋钮（mute，平滑旋转刻度 + 右侧翡翠/琥珀指示灯珠）
-     *   4) (cx=7.40, z=-2.56)：触底收合关闭物理微动键（close，圆角金属方键 + 立体微雕 × 亮纹）
+     * Right 5U cutout (col=13..17, row=1 => x in [3.0, 8.0], cx=5.5, z=-2.56):
+     * Builds flush-mounted 5U PVD heavy-metal Hardware Control Deck:
+     *   1) x in [3.08, 4.84]: PVD engraved nameplate zone (dual parallel prism grooves + diamond micro-emblem)
+     *   2) (cx=5.36, z=-2.56): Reset-view tactile round button (cyan-white indicator ring when orbited)
+     *   3) (cx=6.38, z=-2.56): CNC knurled rotary encoder knob (mute/effort wheel + pinhole indicator LEDs)
+     *   4) (cx=7.40, z=-2.56): Close tactile rounded square button (3D engraved X highlight)
      */
     function buildHardwareControlDeckMesh(mb, palette, hwCtrl, ambientMul) {
       var deckCol = hexToRgb01(palette.hwDeckBody || palette.caseStep || palette.caseBody);
@@ -3146,7 +3146,7 @@
       var isMuted = Boolean(hwCtrl && hwCtrl.muted);
       var rotMag = hwCtrl ? (hwCtrl.orbitMag || 0) : 0;
 
-      /* 0. 5U 控制舱一体重金属底座（严丝合缝填满 x∈[2.99, 8.01], z∈[-3.03, -2.07]，消除黑洞沟壑） */
+      /* 0. Flush 5U solid metal deck base filling x in [2.99, 8.01], z in [-3.03, -2.07] */
       var yDeckShoulder = HW_DECK_Y_TOP - 0.026;
       var deckLoopBot = sampleG2RectLoop(HW_DECK_X0, HW_DECK_Z0, HW_DECK_X1, HW_DECK_Z1, 0.125, 10, 2.18);
       var deckLoopMid = sampleG2RectLoop(HW_DECK_X0 + 0.008, HW_DECK_Z0 + 0.008, HW_DECK_X1 - 0.008, HW_DECK_Z1 - 0.008, 0.120, 10, 2.18);
@@ -3164,7 +3164,7 @@
       );
       mb.addLoopCap(deckLoopTop, HW_DECK_Y_TOP, deckCol, matDeckAnod, false);
 
-      /* 1. 左段 x ∈ [3.08, 4.84]：PVD 黑钛/银钛铭牌蚀刻区（微雕双平行棱镜刻槽 + 立体菱形棱镜徽记） */
+      /* 1. Left zone x in [3.08, 4.84]: PVD engraved nameplate (dual parallel prism grooves + 3D diamond emblem) */
       var badgeY = HW_DECK_Y_TOP + 0.020;
       mb.addChamferedBlock(
         3.09, HW_DECK_Y_TOP - 0.002, -2.90,
@@ -3172,7 +3172,7 @@
         0.022, panelCol, btnChamferCol, shadeRgb(panelCol, 0.82),
         matDeckPvd, matDeckPvd, true
       );
-      /* 双平行精雕 V 型棱镜导光刻槽（一暗一亮形成真实金属蚀刻阴刻反差） */
+      /* Dual parallel V-cut prism grooves (dark/bright contrast for crisp metallic engraving) */
       var grooveZList = [-2.635, -2.485];
       for (var gi = 0; gi < grooveZList.length; gi++) {
         var gz = grooveZList[gi];
@@ -3191,7 +3191,7 @@
           [0.24, 0.55], [0.24, 0.55], [0.24, 0.85], [0.24, 0.85]
         );
       }
-      /* 铭牌左侧立体微雕菱形棱镜徽记 (cx = 3.30, cz = -2.56) */
+      /* Left nameplate 3D micro-engraved diamond prism emblem (cx = 3.30, cz = -2.56) */
       addRotatedChamferBar(
         mb, 3.30, ROW1_Z, badgeY - 0.001, badgeY + 0.022,
         0.084, 0.084, Math.PI * 0.25, 0.018,
@@ -3199,7 +3199,7 @@
         matDeckPvd, matDeckPvd, 0.90
       );
 
-      /* 2. (cx = 5.36, z = -2.56)：视角回正物理微动圆键（action: 'reset-view'，旋转态点亮清透青白微光环） */
+      /* 2. (cx = 5.36, z = -2.56): Reset-view round tactile button (illuminates cyan-white ring when orbited) */
       var rSegs = 24;
       var rotActive = smootherstepScalar(0.015, 0.065, rotMag);
       var haloOnCol = palette.isLight ? [0.22, 0.62, 0.88] : [0.72, 0.92, 1.00];
@@ -3238,15 +3238,15 @@
       );
       mb.addLoopCap(rBtnDish, yResetDish, shadeRgb(resetCol, 0.90), matResetBtn, false);
 
-      /* 回正键顶面微雕准星十字刻度 */
+      /* Reset button top-face micro-engraved reticle cross */
       var reticleBase = palette.isLight ? etchInkCol : mixRgb(resetCol, rimCol, 0.74);
       var reticleCol = rotActive > 0.05 ? mixRgb(reticleBase, haloOnCol, 0.58) : reticleBase;
       var matReticle = [0.09, 0.96, rotActive * 0.18 * ambientMul, 1];
       addRotatedChamferBar(mb, CTRL_RESET_X, ROW1_Z, yResetDish - 0.002, yResetDish + 0.013, 0.115, 0.017, 0.0, 0.006, reticleCol, etchBevelCol, resetCol, matReticle, matReticle, 0.82);
       addRotatedChamferBar(mb, CTRL_RESET_X, ROW1_Z, yResetDish - 0.002, yResetDish + 0.013, 0.017, 0.115, 0.0, 0.006, reticleCol, etchBevelCol, resetCol, matReticle, matReticle, 0.82);
 
-      /* 3. (cx = 6.38, z = -2.56)：V13.1 双层交错 32 齿菱形滚花 CNC 编码器旋钮（支持滚轮/拖拽旋转切档 + 3 颗针孔 LED） */
-      var kSegs = 64; /* 32 齿双层错相菱形滚花（64 段高密波峰波谷） */
+      /* 3. (cx = 6.38, z = -2.56): V13.1 dual-tier 32-tooth diamond-knurled CNC rotary encoder knob (effort wheel + 3 pinhole LEDs) */
+      var kSegs = 64; /* 32-tooth staggered diamond knurling (64 crest/valley segments) */
       var yKnobBase = HW_DECK_Y_TOP + 0.018;
       var yKnobTop = HW_DECK_Y_TOP + 0.258 + muteHover * 0.016 - mutePress * 0.052;
       var yKnobShoulder = yKnobTop - 0.026;
@@ -3275,7 +3275,7 @@
       var kCapRim = sampleCircleLoop(CTRL_MUTE_X, ROW1_Z, 0.288, kSegs, knobAngle);
       var kCapInner = sampleCircleLoop(CTRL_MUTE_X, ROW1_Z, 0.240, 28, knobAngle);
 
-      /* 双层反向错相 32 齿菱形滚花侧壁（呈现微距图 4 的精密交错钻石滚花切面高光） */
+      /* Dual counter-phased 32-tooth diamond-knurled side walls for crisp macro faceted highlights */
       for (var ki = 0; ki < kSegs; ki++) {
         var kiNext = (ki + 1) % kSegs;
         var pB0 = kKnurlBot[ki];
@@ -3320,7 +3320,7 @@
       mb.addLoopCap(kCapRim, yKnobTop, mixRgb(knobCol, rimCol, 0.28), matKnobTop, false);
       mb.addLoopCap(kCapInner, yKnobWell + 0.010, mixRgb(knobCol, rimCol, 0.16), matKnobTop, false);
 
-      /* 旋钮顶面随 knobAngle 实时旋转的金属刻度槽亮条 */
+      /* Top indicator notch rotating live with knobAngle */
       var notchR = 0.140;
       var notchCx = CTRL_MUTE_X + Math.sin(knobAngle) * notchR;
       var notchCz = ROW1_Z - Math.cos(knobAngle) * notchR;
@@ -3334,7 +3334,7 @@
         matKnobTop, matKnobTop, 0.94
       );
 
-      /* V13.1 旋钮旁 3 颗精密微型针孔指示 LED（按思考档位 Low=1 / Med=2 / High=3 / XHigh=3强光，静音时熄暗） */
+      /* V13.1 3 micro pinhole indicator LEDs beside knob (Low=1 / Med=2 / High=3 / XHigh=3 bright; dimmed when muted) */
       var effTierLed = hwCtrl && Number.isFinite(Number(hwCtrl.effortTier)) ? clamp(Math.round(Number(hwCtrl.effortTier)), 0, 3) : 2;
       var litPinholeCount = isMuted ? 0 : Math.min(3, effTierLed + 1);
       var ledOnRgb = hexToRgb01(palette.statusLedOn || '#EEF4FC');
@@ -3364,7 +3364,7 @@
         mb.addLoopCap(phCrown, HW_DECK_Y_TOP + 0.027, mixRgb(phRgb, [1.0, 1.0, 1.0], phLit ? 0.50 : 0.04), matPhLens, false);
       }
 
-      /* 4. (cx = 7.40, z = -2.56)：触底收合关闭物理微动键（action: 'close'，阳极圆角方键 + 顶面立体微雕 × 亮纹） */
+      /* 4. (cx = 7.40, z = -2.56): Close tactile anodized rounded square button (action: 'close', top 3D engraved X) */
       var clWellOut = sampleG2RectLoop(CTRL_CLOSE_X - 0.345, ROW1_Z - 0.345, CTRL_CLOSE_X + 0.345, ROW1_Z + 0.345, 0.115, 6, 2.2);
       var clWellIn = sampleG2RectLoop(CTRL_CLOSE_X - 0.315, ROW1_Z - 0.315, CTRL_CLOSE_X + 0.315, ROW1_Z + 0.315, 0.102, 6, 2.2);
       mb.addSmoothFilletStrip(
@@ -3395,7 +3395,7 @@
       );
       mb.addLoopCap(clDish, yCloseWell, shadeRgb(closeCol, 0.90), matCloseBtn, false);
 
-      /* 顶面立体微雕 `×` 十字金属亮纹 */
+      /* Top-face 3D micro-engraved X metallic highlight */
       var xGlyphBase = palette.isLight ? etchInkCol : mixRgb(closeCol, rimCol, 0.78);
       var xGlyphCol = closeHover > 0.05
         ? mixRgb(xGlyphBase, [0.95, 0.42, 0.38], 0.40 * closeHover)
@@ -3414,11 +3414,11 @@
     }
 
     /**
-     * 生成 V10 动态高定部件网格（widgetsGpu，严格 0 新增 Program/VAO/Texture/FBO）：
-     * 1. 左 1U CNC 拉丝钛/黑钛磁吸棱镜个性键 (col=2, row=1 => action: 'prism-wave')
-     * 2. 右 5U PVD 重金属硬件控制铭牌舱 (col=13..17, row=1 => badge + 'reset-view' + 'mute' + 'close')
-     * 3. 底壳背面中央大面积镶嵌式 PVD 镜面棱镜大配重铭牌 + 前后二段式楔形斜坡背配重折翼（移除旧版顶部错位配重长条！）
-     * 4. 拔键空槽内的微距五脚弧面凸透镜聚光镜真轴体 + 反重力棱镜力场双环与星尘
+     * Builds V10 dynamic hardware widgets mesh (widgetsGpu, zero extra Programs/VAOs/Textures/FBOs):
+     * 1. Left 1U CNC brushed-titanium artisan prism keycap (col=2, row=1 => action: 'prism-wave')
+     * 2. Right 5U PVD heavy-metal Hardware Control Deck (col=13..17, row=1 => badge + 'reset-view' + 'mute' + 'close')
+     * 3. Static underside PVD weights are now in chassisGpu; widgetsGpu keeps only dynamic animated components
+     * 4. Active 5-pin condenser-lens mechanical switch + antigravity flux rings, crystals & bokeh motes
      */
     function buildDynamicWidgetsMesh(params) {
       var mb = createMeshBuilder();
@@ -3428,24 +3428,24 @@
       var energyPulse = params.energyPulse || 0;
       var hwCtrl = params.hwCtrl || null;
 
-      /* 1. 左 1U 金属棱镜个性键 + 右 5U PVD 硬件控制铭牌舱（静态主/副盘底壳 PVD 配重已拆入静态 chassisGpu，仅保留纯动态组件） */
+      /* 1. Left 1U metal prism artisan key + right 5U PVD hardware control deck (static PVD weights live in chassisGpu) */
       buildArtisanPrismKeyMesh(mb, palette, hwCtrl, ambientMul);
       buildHardwareControlDeckMesh(mb, palette, hwCtrl, ambientMul);
 
-      /* 2. 主盘拔起主角键原位暴露的微距五脚弧面凸透镜聚光镜真轴体 */
+      /* 2. Exposed macro 5-pin condenser-lens mechanical switch under levitated main key */
       if (switchInfo && !switchInfo.isAux) {
         buildActiveSwitchMesh(mb, switchInfo, palette, ambientMul, energyPulse);
       }
 
       var mainOpaqueCount = mb.getIndexCount();
 
-      /* 3. 副盘不透明动态部件（副盘浮空键原位透明晶柱真轴体 + #0 Orch 锁存缝隙背光，绑定 auxChassisMat 共轨） */
+      /* 3. Aux pad opaque dynamic widgets (exposed crystal switch under levitated aux key + #0 Orch latch seam backlight, bound to auxChassisMat) */
       if (params.includeAuxPad) {
         if (switchInfo && switchInfo.isAux) {
           buildActiveSwitchMesh(mb, switchInfo, palette, ambientMul, energyPulse);
         }
 
-        /* V12 `#0 Orch` 机械下沉自锁开关基座缝隙紫金锁存背光（绝不升起浮空光柱，仅在沉降轴座缝隙透出克制紫金微光圈） */
+        /* V12 #0 Orch mechanical latch seam violet-gold backlight (subtle base glow only, never levitates) */
         var orchLatchGlow = clamp(Number(params.orchLatchGlow) || 0.0, 0.0, 1.0);
         if (orchLatchGlow > 0.008 && ambientMul > 0.01) {
           var ocx = AUX_COL0_X;
@@ -3476,8 +3476,8 @@
       var opaqueIndexCount = mb.getIndexCount();
       var auxOpaqueCount = opaqueIndexCount - mainOpaqueCount;
 
-      /* 4. 拔起轴座气隙内的 V11 随思考档位演化的「反重力全息环 + 轴底聚光柱 + 三维八面体折光微晶簇 + 散景光尘」
-       *    （复用 widgetsGpu + progSolid，严格 0 新增 Program/VAO/Texture，自动区分主盘 chassisMat 与副盘 auxChassisMat！） */
+      /* 4. Air-gap V11 effort-scaled antigravity holographic rings + condenser light pillar + 3D octahedral micro-crystals + bokeh motes
+       *    (reuses widgetsGpu + progSolid with zero extra GPU objects; distinguishes main chassisMat vs auxChassisMat) */
       if (params.fluxCfg && !params.fluxCfg.isAux) {
         appendAntigravFluxToMesh(mb, params.fluxCfg);
       }
@@ -3501,12 +3501,12 @@
     }
 
     /**
-     * 在动态部件网格末尾追加 V11 随思考档位阶梯演化的「反重力场 + 三维八面体切面折光微晶托举 + 轴底光柱 + 散景星尘」：
-     * - Low    (tier=0): 1 圈纤细聚光基环 + 6 颗三维八面体折光微晶 + 4 粒微散景光尘
-     * - Medium (tier=1): 2 圈反向双磁通环 + 12 颗三维八面体折光微晶 + 8 粒散景光尘
-     * - High   (tier=2): 2 圈双磁通环 + 高亮轴底垂直聚光光柱 + 20 颗高升腾八面体微晶 + 12 粒散景光尘
-     * - Extra  (tier=3): 3 层全息交织磁通环 + 高亮轴底聚光光柱 + 28 颗螺旋升腾八面体微晶 + 16 粒散景光尘
-     * - 支持双色棱镜折射（如 #0 Orchestrator 皇室紫晶 × 璀璨琥珀金双色微晶交替辉映），0 新增 Program/VAO/Texture！
+     * Appends V11 effort-scaled antigravity field + 3D octahedral micro-crystals + light pillar + bokeh motes to widgetsGpu:
+     * - Low    (tier=0): 1 fine base flux ring + 6 octahedral micro-crystals + 4 bokeh motes
+     * - Medium (tier=1): 2 counter-rotating flux rings + 12 octahedral micro-crystals + 8 bokeh motes
+     * - High   (tier=2): 2 flux rings + vertical condenser light pillar + 20 rising micro-crystals + 12 bokeh motes
+     * - Extra  (tier=3): 3 interwoven holographic flux rings + vertical light pillar + 28 spiral micro-crystals + 16 bokeh motes
+     * - Supports dual-tone prism refraction (e.g. #0 Orchestrator violet x amber-gold) with zero extra GPU objects
      */
     function appendAntigravFluxToMesh(mb, cfg) {
       var ox = cfg.originX;
@@ -3530,7 +3530,7 @@
         ? mixRgb(secRgb, mixRgb(orchPurpleRgb, orchGoldRgb, 0.46), 0.38 * orchBlend)
         : secRgb;
 
-      /* 1. 随 effortTier 演化的全息磁通环（kind = 7.0）：Low 1 环 -> Medium/High 双磁通环 -> Extra 三层全息环 */
+      /* 1. Effort-scaled holographic flux rings (kind = 7.0): Low 1 ring -> Medium/High 2 rings -> Extra 3 rings */
       var RING_SEGS = 48;
       var rings;
       if (tier === 0) {
@@ -3574,7 +3574,7 @@
           var lxOut = ca * rOut;
           var lzOut = sa * rOut;
 
-          /* 将真实局部径向偏移原样写入 a_normal(lx, 0, lz)（不做归一化！），由 SOLID_VS 按 u_envParams.w 在 GPU 实时驱动呼吸脉动与空间摇摆 */
+          /* Store unnormalized local radial offset in a_normal(lx, 0, lz) so SOLID_VS drives GPU breathing & wobble via u_envParams.w */
           var vIn = mb.pushVertexRawNormal(
             ox + lxIn, oy + yInBase, oz + lzIn,
             lxIn, 0, lzIn,
@@ -3601,7 +3601,7 @@
         }
       }
 
-      /* 2. High (tier=2) & Extra (tier=3) 专属：高亮轴底垂直聚光能量光柱（Condenser Light Pillar, kind = 7.3） */
+      /* 2. High (tier=2) & Extra (tier=3) vertical condenser energy light pillar (kind = 7.3) */
       if (tier >= 2) {
         var PILLAR_SEGS = 20;
         var pillarVis = visAlpha * (tier === 3 ? 0.96 : 0.78);
@@ -3643,8 +3643,8 @@
         }
       }
 
-      /* 3. 三维八面体/菱形切面折光微晶簇（Faceted Octahedral Micro-Crystals, kind = 7.6）：
-       *    数量严格随 effortTier 阶梯倍增：Low: 6 颗 -> Medium: 12 颗 -> High: 20 颗 -> Extra: 28 颗 */
+      /* 3. Faceted 3D octahedral micro-crystal cluster (kind = 7.6):
+       *    Count scales strictly by effortTier: Low: 6 -> Medium: 12 -> High: 20 -> Extra: 28 */
       var CRYSTAL_COUNTS_BY_TIER = [6, 12, 20, 28];
       var crystalCount = CRYSTAL_COUNTS_BY_TIER[tier];
       var spiralHeightBoost = 0.84 + tier * 0.085;
@@ -3659,7 +3659,7 @@
           collapseScale;
         if (cFade <= 0.005) continue;
 
-        /* 奇偶交替映射主/辅双色棱镜晶体；当 orchLatched 开启时，~35% (7/20) 微晶混入紫晶×琥珀金双色编排微晶 */
+        /* Alternates primary/secondary prism hues; when orchLatched, mixes ~35% (7/20) violet x amber-gold orchestrator crystals */
         var baseCCol = (ci % 2 === 0) ? elemRgb : mixRgb(elemRgb, secRgb, 0.85);
         var isOrchShard = ((ci * 7 + 3) % 20) < 7;
         var orchShardRgb = (((ci * 3) % 2) === 0) ? orchPurpleRgb : orchGoldRgb;
@@ -3678,7 +3678,7 @@
         var halfH = baseHalfW * (1.58 + (ci % 2) * 0.24);
         var cVis = visAlpha * cFade * (0.90 + tier * 0.05);
 
-        /* 每个八面体微晶独立慢速三维自旋姿态正交基 (eX, eY, eZ) */
+        /* Independent slow 3D tumbling orthonormal basis (eX, eY, eZ) per octahedral micro-crystal */
         var spinYaw = ci * 1.13;
         var spinTilt = (ci % 3 - 1) * 0.24;
         var csY = Math.cos(spinYaw), snY = Math.sin(spinYaw);
@@ -3702,7 +3702,7 @@
           var pA = eqPts[f];
           var pB = eqPts[fNext];
 
-          /* 上半锥切面 (topPt, pB, pA) */
+          /* Upper pyramid facets (topPt, pB, pA) */
           var u1x = pB[0] - topPt[0], u1y = pB[1] - topPt[1], u1z = pB[2] - topPt[2];
           var v1x = pA[0] - topPt[0], v1y = pA[1] - topPt[1], v1z = pA[2] - topPt[2];
           var fn1x = u1y * v1z - u1z * v1y;
@@ -3713,7 +3713,7 @@
           var vt2 = mb.pushVertex(pA[0], pA[1], pA[2], fn1x, fn1y, fn1z, cr, cg, cb, cSeed + f * 0.13, cVis, slamCollapse, 7.6, 0.0, 0.0);
           mb.pushTri(vt0, vt1, vt2);
 
-          /* 下半锥切面 (botPt, pA, pB) */
+          /* Lower pyramid facets (botPt, pA, pB) */
           var u2x = pA[0] - botPt[0], u2y = pA[1] - botPt[1], u2z = pA[2] - botPt[2];
           var v2x = pB[0] - botPt[0], v2y = pB[1] - botPt[1], v2z = pB[2] - botPt[2];
           var fn2x = u2y * v2z - u2z * v2y;
@@ -3726,7 +3726,7 @@
         }
       }
 
-      /* 4. 柔焦光学散景微星尘（Bokeh Motes, kind = 8.0，由 SOLID_VS 按 u_camPos 与 u_envParams.w 动态正对相机 Billboard 展开） */
+      /* 4. Soft optical bokeh motes (kind = 8.0, camera-facing billboards expanded in SOLID_VS via u_camPos & u_envParams.w) */
       var MOTE_COUNTS_BY_TIER = [4, 8, 12, 16];
       var moteCount = MOTE_COUNTS_BY_TIER[tier];
       for (var mi = 0; mi < moteCount; mi++) {
@@ -3776,13 +3776,13 @@
     }
 
     /* ============================================================================
-     * 6. 2x HiDPI 纹理生成器：
-     *    - 2048x2048 图集：4 颗主角键 700 Bold 大字 + NOVELTY_ICONS 徽标 vs 86 颗静默键 500 字重微雕暗刻
-     *    - 1600x480 昼夜自适应屏幕内置兜底（支持 palette.isLight 雾白/白玉底深炭黑字）
+     * 6. 2x HiDPI Texture Generators:
+     *    - Legend atlas: 4 hero keys (700 Bold + NOVELTY_ICONS emblems) vs 86 resting keys (500 Medium dark-etched)
+     *    - 1600x480 dark/light adaptive built-in OLED screen fallback
      * ============================================================================ */
     var ATLAS_COLS = 10;
     var ATLAS_ROWS = 9;
-    /* 1024x1024 物理键帽字模图集（单键 102x102 px ≈ 2.7× 超采，逻辑 2048 坐标系等比缩放；热开上传与 Mipmap 耗时直降 75%） */
+    /* 1024x1024 physical keycap legend atlas (102x102 px/key ~2.7x supersampled from logical 2048 coords; cuts upload/mipmap cost by 75%) */
     var ATLAS_DESIGN_SIZE = 2048;
     var ATLAS_SIZE = 1024;
     var ATLAS_SCALE = ATLAS_SIZE / ATLAS_DESIGN_SIZE;
@@ -3798,19 +3798,19 @@
             if (ctx) return { canvas: c, ctx: ctx };
           }
         } catch (_e) {
-          /* Node VM 沙盒无真实 Canvas 时静默回退 */
+          /* Silent fallback when Node VM sandbox lacks a real Canvas */
         }
       }
       return null;
     }
 
     /**
-     * 在无 Path2D 或未注入 NOVELTY_ICONS 时，为 4 颗主角元素（1H / 6C / 10Ne / 18Ar）绘制几何微雕副刻兜底
+     * Draws geometric novelty sub-legend fallback for the 4 hero elements (1H / 6C / 10Ne / 18Ar) when Path2D or NOVELTY_ICONS is absent
      */
     function drawFallbackNoveltyGlyph(ctx, z, cx, cy, r) {
       ctx.save();
       ctx.translate(cx, cy);
-      /* R+G 双通道 (#FFFF00) 独立标识右上角元素专色微标，与主字 (#FF0000) 100% 无损分离 */
+      /* R+G dual channel (#FFFF00) isolates top-right element-tinted emblem cleanly from main legend (#FF0000) */
       ctx.strokeStyle = '#FFFF00';
       ctx.fillStyle = '#FFFF00';
       ctx.lineWidth = 3.2;
@@ -3918,12 +3918,12 @@
     }
 
     /**
-     * V9 图集烘焙（2048x2048，R/G 通道分离驱动“高对比主字 + 元素色右上微标”）：
-     * - 4 颗核心可用键（1H / 6C / 10Ne / 18Ar）：
-     *   大号 700 Bold 符号 + 左上 600 序数写入 R=1.0, G=0.0；右上 NOVELTY_ICONS 矢量微标写入 R=1.0, G=1.0 (#FFFF00)
-     * - 86 颗静默底座盲键：
-     *   字号缩小 ~20%、字重 500 Medium 极低对比度丝绒微雕暗刻（R 通道 0.22 + B 通道抗锯齿微雕轮廓）
-     * - 模块级按主题/槽位签名复用缓存：同主题二次 open() 0ms 复用，支持 evictLegendAtlasCache() 清理释放
+     * V9 legend atlas baker (logical 2048x2048, R/G channel split for high-contrast main legend + tinted top-right emblem):
+     * - 4 core available keys (1H / 6C / 10Ne / 18Ar):
+     *   Bold 700 symbol + 600 atomic number in R=1.0, G=0.0; top-right NOVELTY_ICONS vector emblem in R=1.0, G=1.0 (#FFFF00)
+     * - 86 resting blind keys:
+     *   ~20% smaller 500 Medium subtle dark-etched legends (R=0.22 + B anti-aliased edge profile)
+     * - Module-level signature cache for 0ms warm-open reuse; cleared via evictLegendAtlasCache()
      */
     function renderLegendAtlasCanvas(doc, slots, grainAssets, optAuxModels, optThemeKey) {
       var pkg = resolveGrainPackage(moduleRoot);
@@ -3981,7 +3981,7 @@
         var sym = String(slot.symbol || '');
 
         if (isCoreHero) {
-          /* 主角键：左上 600 SemiBold 序数 + 居中 700 Bold 醒目大字 (#FF0000) + 右上 NOVELTY_ICONS 精致徽标 (#FFFF00) */
+          /* Hero keys: top-left 600 SemiBold atomic number + centered 700 Bold symbol (#FF0000) + top-right NOVELTY_ICONS emblem (#FFFF00) */
           var heroNumPx = isRange ? 27 : numStr.length === 3 ? 32 : 37;
           ctx.fillStyle = '#FF0000';
           ctx.textAlign = 'left';
@@ -4033,7 +4033,7 @@
             drawFallbackNoveltyGlyph(ctx, zNum, x0 + cellW - 40, y0 + 36, 17);
           }
         } else {
-          /* 收集 86 颗静默盲键，批处理合并 Canvas 状态切换 */
+          /* Batch 86 resting blind keys to minimize Canvas state switches */
           var stealthNumPx = isRange ? 21 : numStr.length === 3 ? 25 : 29;
           var stealthSymPx = sym.length >= 3 ? 51 : sym.length === 2 ? 70 : 76;
           stealthDraws.push({
@@ -4078,7 +4078,7 @@
 
       ctx.restore();
 
-      /* 初始化同步烘焙底部富余第 9 行（物理 y ∈ [922, 1024], v ∈ [0.9004, 1.00]）的 6 槽副盘键帽印字与定制棱镜符号 */
+      /* Synchronously bake bottom spare row 9 (physical y in [922, 1024], v in [0.9004, 1.00]) for the 6 aux pad legends & prism emblems */
       renderAuxAtlasCellsToContext(ctx, targetAuxList, false);
 
       surf.sharedCached = true;
@@ -4105,16 +4105,16 @@
     }
 
     var AUX_ATLAS_DESIGN_Y0 = 1844;
-    var AUX_ATLAS_DESIGN_H = ATLAS_DESIGN_SIZE - AUX_ATLAS_DESIGN_Y0; /* 204 逻辑 px */
-    var AUX_ATLAS_Y0 = Math.round(AUX_ATLAS_DESIGN_Y0 * ATLAS_SCALE); /* 922 物理 px */
-    var AUX_ATLAS_H = ATLAS_SIZE - AUX_ATLAS_Y0; /* 102 物理 px */
+    var AUX_ATLAS_DESIGN_H = ATLAS_DESIGN_SIZE - AUX_ATLAS_DESIGN_Y0; /* 204 logical px */
+    var AUX_ATLAS_Y0 = Math.round(AUX_ATLAS_DESIGN_Y0 * ATLAS_SCALE); /* 922 physical px */
+    var AUX_ATLAS_H = ATLAS_SIZE - AUX_ATLAS_Y0; /* 102 physical px */
 
     /**
-     * 为右侧 2×3 副盘非元素模型绘制高辨识度定制右上几何棱镜微标（写入 #FFFF00 R+G 双通道）：
-     * - #0 Orchestrator：紫金双核交织轨道环 + 八面体双金字塔中心棱镜核
-     * - Flash：超导高速折光流光梭
-     * - Claude (Opus / Sonnet)：八芒日冕多面几何晶体
-     * - GPT：六边全息拓扑矩阵核
+     * Draws custom top-right geometric prism emblems for right 2x3 aux pad models (#FFFF00 R+G channels):
+     * - #0 Orchestrator: interwoven dual-core orbital rings + central octahedral prism core
+     * - Flash: high-velocity refractive prism shuttle
+     * - Claude (Opus / Sonnet): 8-point starburst faceted crystal
+     * - GPT: hexagonal holographic topology matrix core
      */
     function drawAuxNoveltyGlyph(ctx, idStr, slotIdx, cx, cy, r) {
       var lowId = String(idStr || '').toLowerCase();
@@ -4127,7 +4127,7 @@
       ctx.lineJoin = 'round';
 
       if (slotIdx === 0 || lowId.indexOf('orch') >= 0) {
-        /* 双核交叉椭圆星轨 + 中央高定八面棱镜钻核 */
+        /* Interwoven dual-core elliptical orbits + central octahedral prism core */
         if (typeof ctx.ellipse === 'function') {
           ctx.beginPath();
           ctx.ellipse(0, 0, r * 0.96, r * 0.42, Math.PI * 0.25, 0, TWO_PI);
@@ -4200,7 +4200,7 @@
     }
 
     /**
-     * 将 6 个副盘模型槽位渲染至全图集第 9 行（物理 y = AUX_ATLAS_Y0）或独立 1024×102 局部刷新条带画布（localStrip = true => y0 = 0）
+     * Renders the 6 aux model slots into atlas row 9 (physical y = AUX_ATLAS_Y0) or a standalone 1024x102 strip canvas (localStrip = true => y0 = 0)
      */
     function renderAuxAtlasCellsToContext(ctx, auxList, localStripFlag) {
       if (!ctx) return;
@@ -4233,7 +4233,7 @@
         );
 
         if (isAvail || hasModelGlyph) {
-          /* V13.1 极简去噪工业排版：移除 2-3px 模糊微小子标，清爽 SemiBold 字重与舒展字距避免 mipmap 粘连，确保 ORCH/Flash/Opus/Sonnet/GPT 100% 锐利完整居中 */
+          /* V13.1 clean industrial typography: crisp SemiBold centered labels (ORCH/Flash/Opus/Sonnet/GPT) without tiny mipmap-blurred sublabels */
           ctx.save();
           ctx.fillStyle = '#FF0000';
           var rawMainTxt = shortLbl || 'Aux';
@@ -4262,7 +4262,7 @@
           ctx.fillText(truncateText(ctx, mainTxt, maxLabelW + 6), x0 + cellW * 0.50, y0 + cellH * 0.60);
           ctx.restore();
         } else {
-          /* 空槽 available: false -> 精致暗刻金属盲键（R=0.22 + B=1.0 微雕几何菱形纹，零杂乱文字） */
+          /* Empty slot (available: false) -> dark-etched metallic blind key (R=0.22 + B=1.0 micro diamond glyph) */
           ctx.save();
           var cxB = x0 + cellW * 0.50;
           var cyB = y0 + cellH * 0.54;
@@ -4320,7 +4320,7 @@
     }
 
     /**
-     * 计算 OLED 1600x480 屏幕内右下舒展分段胶囊触控栏的共享几何布局（内置无外部模块时兜底）
+     * Computes shared geometry layout for the lower-right segmented effort capsule bar on the 1600x480 OLED fallback screen
      */
     function computeScreenEffortCapsules(deckInfo, effortPressArr, effortHoverArr) {
       var info = deckInfo;
@@ -4381,9 +4381,9 @@
     }
 
     /**
-     * V9 内置 1600x480 昼夜双生兜底屏幕渲染器（无外部 oled-cyber-screen.js 时启用）：
-     * - 左区开启半透光学透景视窗（透出 SCREEN_FS 逐像素丝绸焦散光翼）+ 雕塑感巨幅元素主符号
-     * - 右下采用一体内嵌磨砂石英凹槽 + 微凸高光玻璃滑块
+     * V9 built-in 1600x480 dark/light fallback screen renderer (used when external oled-cyber-screen.js is unavailable):
+     * - Left translucent optical window revealing SCREEN_FS silk caustic ribbons + large sculpted element symbol
+     * - Lower-right recessed frosted quartz well + glossy optical glass effort slider
      */
     function renderOledDeckCanvas(surf, deckInfo, palette, accentHex, isMono, _grainAssets, capsuleLayout) {
       if (!surf) return;
@@ -4431,7 +4431,7 @@
       }
       var brightAccent = isLight ? shadeRgb(accentRgb, 0.88, 0.0) : shadeRgb(accentRgb, 1.20, 0.10);
 
-      /* 纯 2D 无外部模块兜底时的深/浅流体微雾晕 */
+      /* Dark/light fluid mist halo for pure 2D fallback mode */
       if (info.isAvailable) {
         var mist = ctx.createRadialGradient(256, 240, 16, 280, 240, 380);
         mist.addColorStop(0, rgb01ToCss(accentRgb, isLight ? 0.12 : 0.16));
@@ -4444,7 +4444,7 @@
       var fgSub = isLight ? '#334155' : '#94A3B8';
       var fgMuted = isLight ? '#64748B' : '#64748B';
 
-      /* 1. 左区黄金焦点（cx = 246, cy = 244）：大留白雕塑感巨幅元素排版图腾 */
+      /* 1. Left focal zone (cx = 246, cy = 244): spacious sculpted element totem */
       var rawNum = String(info.numLabel !== undefined && info.numLabel !== '' ? info.numLabel : info.z || '6').trim();
       var padNum = rawNum.length === 1 ? '0' + rawNum : rawNum;
       ctx.textAlign = 'left';
@@ -4461,7 +4461,7 @@
       ctx.fillStyle = isLight ? fgPrimary : 'rgba(248, 250, 252, 0.94)';
       ctx.fillText(symStr, 246, 250);
 
-      /* 2. 右区（x: 556..1504）：Editorial 呼吸感标题与电子排布微标 */
+      /* 2. Right zone (x: 556..1504): airy editorial title & electron configuration badge */
       var mainX = 556;
       var rightEdge = 1504;
       var contentMaxW = rightEdge - mainX;
@@ -4504,7 +4504,7 @@
       ctx.font = '500 24px ' + sansStack;
       ctx.fillText(truncateText(ctx, subText, contentMaxW), mainX, 188);
 
-      /* 3. 一体内嵌磨砂石英凹槽 + 微凸高光光学玻璃块（x: 556..1504, y: 296..388） */
+      /* 3. Recessed frosted quartz well + convex optical glass slider (x: 556..1504, y: 296..388) */
       var caps = capsuleLayout || computeScreenEffortCapsules(info, null, null);
       if (caps.track && caps.items.length > 0) {
         var trX = 556, trY = 296, trW = 948, trH = 92, trR = 20;
@@ -4577,7 +4577,7 @@
     }
 
     /* ============================================================================
-     * 7. WebGL2 GLSL 300 es 着色器管线（V8 Space Black 微晶阳极 × 真 3D 法线色散棱镜边 × 反重力力场环）
+     * 7. WebGL2 GLSL 300 es Shader Pipeline (Micro-Anodized Space Black x 3D Normal Prism Edge x Antigravity Field)
      * ============================================================================ */
     var SHADOW_SOLID_VS = [
       '#version 300 es',
@@ -4676,7 +4676,7 @@
       '  return vec2(u, v);',
       '}',
       '',
-      '/* 对齐项目 prism-rim-canvas.js 的 6 套家族棱镜光谱（default / warm / cobalt / iris / amber / mono） */',
+      '/* 6 family prism spectra aligned with prism-rim-canvas.js (default / warm / cobalt / iris / amber / mono) */',
       'vec3 mix4Stops(vec3 c0, vec3 c1, vec3 c2, vec3 c3, float t) {',
       '  float p = fract(t);',
       '  float s = p * 4.0;',
@@ -4732,7 +4732,7 @@
       '  return mix(specLin, coreLin * mix(1.38, 1.12, isLight), kCore * mix(0.88, 0.56, isLight));',
       '}',
       '',
-      '/* V9 手术刀级 1px 纯白镜面亮丝棱镜边（Razor-Sharp Specular Filament：82% 纯白镜面核 + 18% 清透微色散余韵） */',
+      '/* V9 razor-sharp 1px specular filament prism edge (82% pure white specular core + 18% crisp subtle dispersion) */',
       'vec3 evalTrue3DPrismRim(',
       '  vec3 localPos,',
       '  vec3 worldN,',
@@ -4745,7 +4745,7 @@
       '  float isLight',
       ') {',
       '  if (chamferMask <= 0.02 || ambientMul <= 0.01) return vec3(0.0);',
-      '  /* 严格提高倒角斜率幂次，仅点亮屏幕外侧 0.04U 单内唇窄脊与机身外沿 45° 钻石折角（1px~1.5px 手术刀细丝） */',
+      '  /* Steep chamfer power lights only the 0.04U screen inner lip and outer 45-deg diamond bevel as a 1-1.5px razor filament */',
       '  float razorMask = pow(clamp(chamferMask, 0.0, 1.0), 3.6);',
       '  if (razorMask <= 0.002) return vec3(0.0);',
       '  float toneIdx = prismCfg.x;',
@@ -4764,7 +4764,7 @@
       '  float softSheen = pow(max(dot(worldN, Hprism), 0.0), 8.0);',
       '',
       '  vec3 outRim = vec3(0.0);',
-      '  /* V13.1 精密 CNC 6063 45° 亮银/香槟金属倒角镜面扫光（极克制零彩虹霓虹，凸显机械切面锋利度） */',
+      '  /* V13.1 precision CNC 6063 45-deg silver/champagne metallic chamfer sweep (restrained, highlighting machined edge sharpness) */',
       '  float idlePhase = fract(edgeArcPhase * 1.45 + worldN.x * 0.28 - worldN.z * 0.24 + V.x * 0.35);',
       '  vec3 idleSpecCol = mix(pureWhiteLin, samplePrismSpectrum6(idlePhase, 0.45, toneIdx, isLight), 0.06);',
       '  outRim += idleSpecCol * (razorMask * (0.18 * specFilament + 0.052 * softSheen) * fres3D * mix(1.08, 0.78, isLight));',
@@ -4809,12 +4809,12 @@
       'vec3 sampleStudioHDRI(vec3 R, float roughness, float isLightTheme) {',
       '  vec3 d = normalize(R);',
       '  float blur = mix(0.016, 0.54, roughness * roughness);',
-      '  /* Space Black 纯正中性暗房天幕：彻底根除深色外壳发蓝灰/发闷雾感！ */',
+      '  /* Space Black neutral studio dome: eliminates blue-gray cast and haze on dark chassis */',
       '  vec3 zenith = mix(vec3(0.036, 0.038, 0.044), vec3(0.34, 0.36, 0.41), isLightTheme);',
       '  vec3 nadir = mix(vec3(0.009, 0.010, 0.013), vec3(0.12, 0.13, 0.15), isLightTheme);',
       '  vec3 env = mix(nadir, zenith, smoothstep(-0.32, 0.78, d.y));',
       '',
-      '  /* 左前上斜侧顶主柔光箱镜像 */',
+      '  /* Front-left overhead main softbox reflection */',
       '  if (d.y > 0.04) {',
       '    vec2 ceilUv = d.xz / max(d.y, 0.10);',
       '    vec2 sbDelta = abs(ceilUv - vec2(-0.42, 0.44)) - vec2(1.18, 0.44);',
@@ -4825,19 +4825,19 @@
       '    env += vec3(2.55, 2.52, 2.48) * sbScale * sbMask * silkFalloff * smoothstep(0.04, 0.28, d.y);',
       '  }',
       '',
-      '  /* 底部摄影棚柔银补光反光板（大角度旋转检视二段式底壳与镜面大配重时提供通透金属切面层次） */',
+      '  /* Lower studio silver bounce reflector for clear metallic separation when inspecting tapered underbody & PVD weight */',
       '  if (d.y < -0.12) {',
       '    float underBounce = smoothstep(-0.12, -0.72, d.y) * smoothstep(-0.45, 0.65, d.z);',
       '    env += mix(vec3(0.42, 0.45, 0.52), vec3(0.56, 0.58, 0.64), isLightTheme) * underBounce * (1.0 - roughness * 0.55);',
       '  }',
       '',
-      '  /* 右后上戏剧化轮廓逆光灯条 */',
+      '  /* Rear-right dramatic rim backlight bar */',
       '  vec3 rimDir = normalize(vec3(0.62, 0.46, -0.63));',
       '  float rimDot = max(dot(d, rimDir), 0.0);',
       '  float rimBand = smoothstep(0.83 - blur * 0.48, 0.968, rimDot);',
       '  env += vec3(1.18, 1.32, 1.62) * rimBand;',
       '',
-      '  /* 右前暖香槟补光反光卡 */',
+      '  /* Front-right warm champagne fill bounce card */',
       '  vec3 fillDir = normalize(vec3(0.52, 0.38, 0.76));',
       '  float fillDot = max(dot(d, fillDir), 0.0);',
       '  float fillCard = smoothstep(0.78 - blur * 0.50, 0.945, fillDot);',
@@ -4876,7 +4876,7 @@
       '  float ign = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715)))) * 6.2831853;',
       '  float ca = cos(ign);',
       '  float sa = sin(ign);',
-      '  /* 6-tap 预计算 Vogel Disk PCF + IGN 旋转抖动：纹理采样与三角函数开销 -50%+，柔影边缘依然平滑细腻 */',
+      '  /* 6-tap precomputed Vogel Disk PCF + IGN rotation jitter: cuts texture/trig cost by >50% with smooth soft shadow edges */',
       '  const vec2 vogel6[6] = vec2[6](',
       '    vec2( 0.000678,  0.000000),',
       '    vec2(-0.000866,  0.000794),',
@@ -5006,7 +5006,7 @@
       '    outColor = vec4(0.0, 0.0, 0.0, alpha);',
       '    return;',
       '  }',
-      '  /* kind > 6.5: V11 随思考档位演化的「反重力磁通环 (7.0) + 轴底聚光柱 (7.3) + 三维八面体切面折光微晶 (7.6) + 散景光尘 (8.0)」 */',
+      '  /* kind > 6.5: V11 effort-scaled antigravity flux rings (7.0) + condenser pillar (7.3) + 3D octahedral crystals (7.6) + bokeh motes (8.0) */',
       '  if (kind > 6.5) {',
       '    float liftGate = smoothstep(0.02, 0.30, u_liftCapShadow.w);',
       '    float visAlpha = v_params.y * liftGate;',
@@ -5032,7 +5032,7 @@
       '      float rAlpha = clamp(radialCore * (0.56 + 0.52 * wave1 * wave2) * visAlpha * mix(0.96, 0.82, isLightF) * (1.0 + ePulseF * 0.35), 0.0, 0.98);',
       '      outColor = vec4(ringSrgb * rAlpha, rAlpha * mix(0.30, 0.72, isLightF));',
       '    } else if (kind < 7.45) {',
-      '      /* High / Extra 档专属：高亮轴底垂直聚光能量光柱 */',
+      '      /* High / Extra exclusive: luminous vertical condenser energy pillar */',
       '      float pHeightT = clamp(v_uv.y, 0.0, 1.0);',
       '      vec3 Vpil = normalize(u_camPos - v_worldPos);',
       '      vec3 Npil = normalize(v_normal);',
@@ -5045,7 +5045,7 @@
       '      float pAlpha = clamp(centerCore * vertEnv * shimmerP * visAlpha * mix(0.46, 0.34, isLightF), 0.0, 0.85);',
       '      outColor = vec4(pilSrgb * pAlpha, pAlpha * mix(0.24, 0.58, isLightF));',
       '    } else if (kind < 7.85) {',
-      '      /* 三维八面体切面折光微晶：真实切面法线 Fresnel 钻石火彩 + 镜面星芒闪耀 */',
+      '      /* 3D faceted octahedral micro-crystals: true face-normal Fresnel diamond fire + specular glint */',
       '      vec3 Vcr = normalize(u_camPos - v_worldPos);',
       '      vec3 Ncr = normalize(v_normal);',
       '      vec3 Lcr = normalize(u_lightDir);',
@@ -5088,7 +5088,7 @@
       '  vec3 baseN = normalize(v_normal);',
       '  vec3 N = baseN;',
       '  if (kind < 0.5) {',
-      '    /* 220 目各向同性苹果级 Space Black / 星光银超细微晶阳极氧化铝：三平面无接缝微晶采样 */',
+      '    /* 220-grit isotropic Space Black / Starlight micro-blasted anodized aluminum: seamless triplanar micro-grain sampling */',
       '    vec3 triW = pow(abs(baseN), vec3(4.0));',
       '    triW /= max(triW.x + triW.y + triW.z, 1e-4);',
       '    float gScale = 2.95;',
@@ -5126,7 +5126,7 @@
       '  float ndh = max(dot(N, H), 0.0);',
       '  float vdh = max(dot(V, H), 0.0);',
       '',
-      '  /* kind == 4: 机身侧腰极细哑光微金属导光暗槽（常亮霓虹饱和度下调 ~45%+，仅近场掠过或能量脉冲浮现冷白微色散光泽） */',
+      '  /* kind == 4: ultra-fine matte micro-metal waistline seam (subdued static saturation; reveals cool prism sheen on near-field or pulse) */',
       '  if (kind > 3.5 && kind < 4.5) {',
       '    vec3 Rw = reflect(-V, baseN);',
       '    float fresW = 0.06 + 0.94 * pow(1.0 - max(dot(baseN, V), 0.0), 3.8);',
@@ -5151,7 +5151,7 @@
       '    shadow *= 1.0 - smoothstep(0.38, -0.16, sd) * 0.54 * u_liftCapShadow.w;',
       '  }',
       '',
-      '  /* V10/V11 微米级严丝合缝 CNC 公差 Cavity AO（同时覆盖主盘 91 键槽与右侧 2×3 副盘 6 键槽接触暗缝） */',
+      '  /* V10/V11 tight CNC tolerance Cavity AO (covers 91 main sockets and 6 right-side aux pad sockets) */',
       '  float hemiAo = 0.72 + 0.28 * clamp(baseN.y * 0.65 + 0.35, 0.0, 1.0);',
       '  float cavityAo = hemiAo;',
       '  vec3 activeWellGlow = vec3(0.0);',
@@ -5202,7 +5202,7 @@
       '    }',
       '  }',
       '',
-      '  /* 全场仅当前唯一拔起键槽内凸透镜聚光镜在原槽底微距漫射一抹克制微光 */',
+      '  /* Restrained local condenser-lens scatter strictly inside the single levitated key socket */',
       '  if (u_switchLightPos.w > 0.01 && v_localPos.y < 0.08 && v_localPos.y > -0.35) {',
       '    float dSw = length(v_localPos.xz - u_switchLightPos.xz);',
       '    if (dSw < 0.56) {',
@@ -5213,7 +5213,7 @@
       '',
       '  float alphaRough = max(0.0036, rough * rough);',
       '  float maxCh = max(albedo.r, max(albedo.g, albedo.b));',
-      '  /* 纯正 Space Black (#0F1218) 与黑金曜石 (#13100E) 微晶阳极氧化层 F0：不掺脏蓝偏色！ */',
+      '  /* Neutral Space Black (#0F1218) and Warm Obsidian (#13100E) anodized micro-grain F0 without muddy blue cast */',
       '  vec3 warmCoolTint = albedo.r > albedo.b ? vec3(0.044, 0.032, 0.020) : vec3(0.024, 0.028, 0.036);',
       '  vec3 darkAnodizedF0 = clamp(albedo * 2.15 + warmCoolTint, 0.038, 0.97);',
       '  vec3 metalBaseF0 = mix(darkAnodizedF0, clamp(albedo * 1.04, 0.08, 0.99), smoothstep(0.10, 0.40, maxCh));',
@@ -5235,7 +5235,7 @@
       '  vec3 mainLightRad = vec3(2.54, 2.50, 2.45) * shadow;',
       '  vec3 Lo = (diffColor / PI + specBrdf * studioSweep) * mainLightRad * ndl;',
       '',
-      '  /* 右后上戏剧化冷/暖轮廓逆光（Rim Light） */',
+      '  /* Rear-right cool/warm rim backlight */',
       '  vec3 rimDir = normalize(vec3(0.62, 0.46, -0.63));',
       '  vec3 Hrim = normalize(V + rimDir);',
       '  float ndlRim = max(dot(N, rimDir), 0.0);',
@@ -5250,7 +5250,7 @@
       '  vec3 kS = F_SchlickRoughness(ndv, f0, rough);',
       '  vec3 kD = max(vec3(0.0), (1.0 - kS) * max(1.0 - metal, oxideDiffWeight * 0.65));',
       '  float specOcc = mix(0.38, 1.0, shadow * 0.64 + 0.36) * cavityAo;',
-      '  /* V13.1 CNC 6063 深钛枪灰喷砂阳极铝 + 45° 亮银镜面倒角（告别死黑团块，显露精密机加工金属体积） */',
+      '  /* V13.1 CNC 6063 gunmetal bead-blasted anodized aluminum + 45-deg bright silver specular chamfer */',
       '  float darkMatteAbsorb = (kind < 0.5 && isLight < 0.5) ? 0.66 : 1.0;',
       '  float bevelSlopeT = 1.0 - smoothstep(0.76, 0.95, abs(baseN.y));',
       '  float darkPvdGain = mix(1.18, 2.05, bevelSlopeT);',
@@ -5276,7 +5276,7 @@
       '    return;',
       '  }',
       '',
-      '  /* 叠加真 3D 法线色散棱镜边（仅在 chamferMask > 0.01 的倒角/折边/单内唇/配重切边绽放！） */',
+      '  /* Add true 3D normal-dispersed prism edge (activates only where chamferMask > 0.01 on bevels/lip/weight edges) */',
       '  if (chamferMask > 0.01) {',
       '    totalLin += evalTrue3DPrismRim(',
       '      v_localPos, baseN, V, chamferMask, edgeArcPhase,',
@@ -5373,7 +5373,7 @@
       GLSL_PBR_COMMON,
       '',
       'vec3 resolveHeroBadgeSrgb(float zId, vec3 capSrgb, vec3 localPos) {',
-      '  /* V14 Google DeepMind 官方模型光谱：1H 天青冰蓝, 6C 皇家钴蓝×冰青虹彩, 10Ne 珊瑚红橙→暖金, 18Ar 电光靛紫, AUX-06 品牌光谱 */',
+      '  /* V14 Google DeepMind model spectrum: 1H azure, 6C royal cobalt x ice-cyan, 10Ne coral->gold, 18Ar electric indigo, AUX-06 brand spectrum */',
       '  float onBrightCap = step(0.42, dot(capSrgb, vec3(0.299, 0.587, 0.114)));',
       '  float diagT = clamp((localPos.x * 1.35 + localPos.z * 1.15) + 0.5, 0.0, 1.0);',
       '  if (zId <= -99.5) {',
@@ -5409,7 +5409,7 @@
       '  float isOrchKey = step(zSeed, -99.5) * step(-100.5, zSeed);',
       '  float isElemGemKey = step(0.5, zSeed) * isAvail * (1.0 - isMonoKey);',
       '',
-      '  /* V14 `#0 ORCH` 拉丝阳极氧化金属键帽：暗色深邃星云钛紫×暗香槟金（锁存增辉），浅色柔和薰衣草银紫×香槟阳极铝配深靛墨字 */',
+      '  /* V14 #0 ORCH brushed anodized metal keycap: dark nebula titanium-violet x champagne gold (brightens on latch); light lavender-silver x deep indigo ink */',
       '  if (isOrchKey > 0.5 && isAvail > 0.01 && isMonoKey < 0.5) {',
       '    float orchDiag = clamp((v_localPos.x * 1.18 + v_localPos.z * 0.96) + 0.50, 0.0, 1.0);',
       '    vec3 orchDarkRest = mix(vec3(0.16, 0.13, 0.31), vec3(0.32, 0.23, 0.14), orchDiag);',
@@ -5428,7 +5428,7 @@
       '    capLin = mix(capLin, availCapLin, isAvail);',
       '  }',
       '',
-      '  /* 盲键与动态降暗键悬停微光提亮 */',
+      '  /* Subtle hover highlight for blind and dynamically dimmed keys */',
       '  if (isAvail < 0.99 && keyHover > 0.01) {',
       '    vec3 hoverTint = mix(vec3(0.016, 0.020, 0.030), vec3(0.040, 0.046, 0.058), u_envParams.x);',
       '    capLin += hoverTint * keyHover * (1.0 - isAvail);',
@@ -5451,7 +5451,7 @@
       '    float legHalf = fw * mix(0.78, 0.56, isAuxKey);',
       '    float legAlpha = smoothstep(legMid - legHalf, legMid + legHalf, heroShape);',
       '    float seamDip = legAlpha * (1.0 - legAlpha) * 0.032;',
-      '    /* 右上象限 + G 通道双重锁：未选中跳色陶瓷键右上微标呈现鲜明元素专色，主字保持纯粹高对比 */',
+      '    /* Top-right quadrant + G-channel dual mask: vivid element-tinted emblem on unselected ceramic keys while main legend stays crisp */',
       '    float inTopRight = step(0.08, v_localPos.x) * step(v_localPos.z, -0.04);',
       '    float badgeMask = smoothstep(0.26, 0.64, mask.g) * inTopRight;',
       '    float isMonoMode = u_prismConfig.x > 4.5 ? 1.0 : 0.0;',
@@ -5463,7 +5463,7 @@
       '    float inkLuma = dot(availInkLin, vec3(0.2126, 0.7152, 0.0722));',
       '    float availEmis = clamp(legAlpha, 0.0, 1.0) * mix((0.06 * smoothstep(0.15, 0.65, inkLuma)) + 0.26 * badgeMask, 0.14, heroChroma);',
       '',
-      '    /* 86 颗 GMK 盲键 + 动态熄灯降暗不支持模型键（保留淡淡暗刻字迹供辨认，褪去高亮彩印） */',
+      '    /* 86 GMK blind keys + dynamically dimmed unsupported keys (retain subtle dark-etched legend without bright chroma) */',
       '    float isHeroGlyphOnly = step(0.05, mask.r) * (1.0 - step(0.05, mask.b));',
       '    float stealthShape = mix(max(mask.b, mask.r * 4.5), heroShape, isHeroGlyphOnly);',
       '    float fwS = max(fwidth(stealthShape), 0.032);',
@@ -5501,7 +5501,7 @@
       '    albedo = capLin * 0.90;',
       '  }',
       '',
-      '  /* 陶瓷/亮面可用键跳过 3 次 u_grainTex 采样，仅 86 颗哑光 PBT 盲键采样细腻微磨砂高度场 */',
+      '  /* Gloss ceramic available keys skip 3x u_grainTex fetches; only the 86 matte PBT blind keys sample micro-grain heightfield */',
       '  float grainMask = mix(mix(1.0, 0.32, legGrainHalo), 0.0, isAvail);',
       '  vec3 baseN = normalize(v_normal);',
       '  vec3 N = baseN;',
@@ -5525,7 +5525,7 @@
       '    N = normalize(baseN - T * (dHx * 1.50) - B * (dHz * 1.50));',
       '  }',
       '',
-      '  /* 86 颗盲键细腻 PBT 微磨砂漫反射 vs 可用键纯净亮面陶瓷清漆光泽 */',
+      '  /* Fine matte PBT diffuse for 86 blind keys vs clean glossy ceramic clearcoat for available keys */',
       '  float stealthRough = clamp(0.65 + (0.5 - grainR) * 0.028 * grainMask + engraveDip * 0.10, 0.62, 0.69);',
       '  float availBaseRough = mix(0.195, 0.145, heroChroma);',
       '  float ceramicRough = mix(availBaseRough, 0.13, legSmoothMix);',
@@ -5549,7 +5549,7 @@
       '    shadow *= 1.0 - smoothstep(1.05, 0.34, dHoriz) * 0.40 * u_liftCapShadow.w;',
       '  }',
       '',
-      '  /* 收紧键帽底裙邻键沟槽 Cavity AO，营造微米级严丝合缝嵌槽公差与四斜面侧壁立体明暗 */',
+      '  /* Tightened inter-key skirt groove Cavity AO for crisp machined gap depth and 4-face wall shading */',
       '  float trenchVertical = 0.16 + 0.84 * smoothstep(0.0, 0.36, v_localPos.y);',
       '  float sideFacing = 1.0 - clamp(baseN.y, 0.0, 1.0);',
       '  float cavityAo = mix(mix(1.0, trenchVertical, sideFacing * 0.92 + 0.08), 0.98, lift);',
@@ -5565,7 +5565,7 @@
       '  vec3 F = F_Schlick(vdh, f0);',
       '  vec3 specBrdf = D * Vis * F;',
       '',
-      '  /* 86 颗盲键 (clearcoat == 0) 早退跳过清漆双层 GGX 与 envCoat 采样，零视觉差异、片段计算骤降 */',
+      '  /* Early-out skipping dual-lobe GGX clearcoat & envCoat sampling on 86 blind keys (clearcoat == 0) */',
       '  float clearcoat = mix(0.0, mix(0.68, 0.90, heroChroma), isAvail);',
       '  float clearcoatRoughness = mix(0.34, mix(0.125, 0.098, heroChroma), isAvail);',
       '  float ccAlpha = max(0.0036, clearcoatRoughness * clearcoatRoughness);',
@@ -5595,7 +5595,7 @@
       '  float carbonSmokeMix = 0.0;',
       '  float restGemSmokeMix = 0.0;',
       '  float restGemTopMask = 0.0;',
-      '  /* V14 半透烟熏海玻璃宝石键帽（暗色凹弧顶面深潜烟熏海玻璃 + 真实肩棱/半透底裙内折射对标 Concept D；浅色保持粉彩冰翡玉） + 浮空清透水晶玻璃帽 */',
+      '  /* V14 translucent smoked sea-glass gemstone keycaps (deep smoked top + shoulder/skirt internal refraction on dark; pastel frosted jade on light) + clear crystal levitated cap */',
       '  if (isElemGemKey > 0.02 && v_part >= 0.0) {',
       '    float restGemWeight = (1.0 - smoothstep(0.0, 0.55, lift)) * isElemGemKey;',
       '    if (restGemWeight > 0.01) {',
@@ -5640,7 +5640,7 @@
       '    float dishCatch = isTopFace * pow(max(dot(Nc, normalize(V + vec3(-0.38, 0.86, 0.34))), 0.0), 26.0) * (1.0 - legSmoothMix * 0.88);',
       '    vec3 dualBadgeLin = srgbToLinear(resolveHeroBadgeSrgb(zSeed, vec3(0.06), v_localPos));',
       '    vec3 prismCoreCol = u_switchLightPos.w > 0.01 ? mix(srgbToLinear(u_switchLightColor), dualBadgeLin, 0.56) : dualBadgeLin;',
-      '    /* Dark 态：清透烟熏磨砂光学水晶玻璃帽；Light 态：晶莹冰透磨砂彩晶玻璃帽（严防浅色键帽死白不透！） */',
+      '    /* Dark mode: clear smoked frosted optical crystal cap; Light mode: translucent iced tinted crystal cap */',
       '    vec3 glassBodyTint = mix(vec3(0.024, 0.032, 0.050), mix(capLin, prismCoreCol, 0.22), u_envParams.x);',
       '    float loAtten = mix(mix(0.44, 0.36, isTopFace), mix(0.72, 0.80, isTopFace), u_envParams.x);',
       '    Lo = mix(Lo, Lo * loAtten + glassBodyTint * mix(0.15, 0.12, u_envParams.x), smokedMix * (1.0 - legSmoothMix * 0.88));',
@@ -5649,7 +5649,7 @@
       '      + vec3(0.95, 0.98, 1.0) * (fresEdgeCrisp * 0.24 * (1.0 - isTopFace * 0.58) + dishCatch * 0.28) * smokedMix;',
       '  }',
       '',
-      '  /* 大幅收敛盲键顶面边缘的 LoRim 泛白塑料圈，仅保留侧壁极微妙体积轮廓与陶瓷键温润釉边 */',
+      '  /* Suppress white plastic LoRim ring on blind key tops while keeping subtle wall volume contour and ceramic glaze rim */',
       '  vec3 rimDir = normalize(vec3(0.62, 0.46, -0.63));',
       '  vec3 Hrim = normalize(V + rimDir);',
       '  float ndlRim = max(dot(Nc, rimDir), 0.0);',
@@ -5695,7 +5695,7 @@
       '    totalLin = mix(totalLin, matteInkLin, clamp(lightStealthInk * (0.74 + keyHover * 0.14), 0.0, 0.90));',
       '  }',
       '',
-      '  /* 全场仅当前拔起浮空的 1 颗熏黑雾面键帽底部裙腔受正下方切割晶柱透光点亮（收敛外斜壁防惨白，保护深烟熏玻璃立体透光） */',
+      '  /* Only the single levitated keycap cavity transmits upward light from the faceted crystal stem below */',
       '  if (u_switchLightPos.w > 0.01 && lift > 0.03) {',
       '    vec3 swColorLin = srgbToLinear(u_switchLightColor);',
       '    vec3 toLight = u_switchLightPos.xyz - v_chassisPos;',
@@ -5709,7 +5709,7 @@
       '    totalLin += mix(swColorLin, capLin * 1.15, mix(0.24, 0.14, carbonSmokeMix)) * atten * underFactor * mix(0.46, 0.18, carbonSmokeMix);',
       '  }',
       '',
-      '  /* V14 AUX-06 副盘键帽：顶部 Razor-Thin 微光 LED 细槽 + 底部微距半透导光底裙（严守零地面泛光） */',
+      '  /* V14 AUX-06 aux keycaps: razor-thin top LED slot + subtle translucent bottom lightguide skirt (zero floor spill) */',
       '  if (isAvail > 0.20 && v_part > 0.85 && zSeed < -50.0 && orchLatch < 0.02 && ambientMul > 0.01) {',
       '    vec2 slitP = vec2(abs(v_localPos.x) - 0.145, abs(v_localPos.z + 0.278) - 0.015);',
       '    float slitD = length(max(slitP, 0.0)) + min(max(slitP.x, slitP.y), 0.0);',
@@ -5735,7 +5735,7 @@
       '    }',
       '  }',
       '',
-      '  /* V13.1 周期表光学脉冲涟漪（单色冷白/微元素光沿键缝柔和扩散，<500ms 归于 0fps 休眠） */',
+      '  /* V13.1 periodic optical pulse ripple (cool white / subtle element glow diffusing across key gaps, settles to 0fps in <500ms) */',
       '  float sweepW = u_prismConfig.z;',
       '  if ((waveGlow > 0.004 || sweepW > 0.004) && ambientMul > 0.01) {',
       '    float shoulderMask = smoothstep(0.46, 0.74, v_part) * (1.0 - smoothstep(0.84, 0.98, v_part)) * 0.85 + pow(1.0 - ndvC, 3.2) * 0.38;',
@@ -5753,7 +5753,7 @@
       '    }',
       '  }',
       '',
-      '  /* V13.1 `#0 Orch` 机械下沉自锁态：低饱和阳极紫金锁存微光环（isMono 下严格退回银灰单色光环） */',
+      '  /* V13.1 #0 Orch mechanical latch-down state: desaturated anodized violet-gold halo (silver-gray under isMono) */',
       '  if (orchLatch > 0.005 && ambientMul > 0.01) {',
       '    float rimRing = smoothstep(0.50, 0.76, v_part) * (1.0 - smoothstep(0.84, 0.96, v_part));',
       '    float topBezel = step(0.85, v_part) * smoothstep(0.285, 0.348, max(abs(v_localPos.x), abs(v_localPos.z)));',
@@ -5766,7 +5766,7 @@
       '    totalLin += orchRimLin * (haloMask * orchLatch * pulseLatch * max(0.30, ambientMul) * mix(0.56, 0.42, u_envParams.x));',
       '  }',
       '',
-      '  /* 盲键与动态降暗键悬停微自发光柔晕 */',
+      '  /* Subtle emissive hover halo on blind and dimmed keys */',
       '  if (isAvail < 0.99 && keyHover > 0.01) {',
       '    float topGlow = smoothstep(0.35, 0.58, v_localPos.y) * keyHover * 0.036 * (1.0 - isAvail);',
       '    totalLin += mix(vec3(0.42, 0.54, 0.78), vec3(0.60, 0.68, 0.82), u_envParams.x) * topGlow;',
@@ -5825,8 +5825,8 @@
       '  return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);',
       '}',
       '',
-      '/* 单边非对称物理折叠焦散丝带算子（Fold Catastrophe Silk Ribbon）：',
-      ' * 折痕 d=0 处凝聚纤柔丝滑折光亮脊，d>0 侧舒展丝绒漫射翼，d<0 侧留出深邃负空间，彻底消除圆手电筒雾团感 */',
+      '/* One-sided asymmetric fold-catastrophe silk caustic ribbon operator:',
+      ' * Focuses a fine bright ridge at d=0, velvety diffuse wing for d>0, and deep negative space for d<0 */',
       'vec2 evalSilkRibbon(float d, float along, float cuspSharp, float wingDecay) {',
       '  float longEnv = exp(-along * along * 0.26);',
       '  float cusp = exp(-d * d * cuspSharp) * longEnv;',
@@ -5834,9 +5834,9 @@
       '  return vec2(wing, cusp);',
       '}',
       '',
-      '/* V9 Zero-Polygon GPU 逐像素连续丝绸折光丝带（无穷阶可微 C-infinity，0 折线、0 圆雾团、0 竖切印）：',
-      ' * 在 v_uv.x in [0.0, 0.58] 经超宽五次 smootherstep5(0.58, 0.08, v_uv.x) 零痕迹汇入纯净底色，',
-      ' * 呈现 2~3 道如 iPhone Pro 钛金包装盒般斜向舒展、丝滑柔韧的光学丝绸折光脊线 */',
+      '/* V9 zero-polygon GPU per-pixel continuous silk caustic ribbons (C-infinity smooth, zero seams):',
+      ' * Blends seamlessly into the clean backdrop over v_uv.x in [0.0, 0.58] via smootherstep5(0.58, 0.08, v_uv.x),',
+      ' * forming 2-3 sweeping diagonal optical silk ridges */',
       'vec3 evalGpuSilkCausticBase(vec2 uv, vec3 R, float isLight) {',
       '  float isWarm = u_glassTint.r > u_glassTint.b ? 1.0 : 0.0;',
       '  vec3 baseDark = mix(vec3(0.0275, 0.0353, 0.0549), vec3(0.0431, 0.0353, 0.0314), isWarm);',
@@ -5862,7 +5862,7 @@
       '  float ePulse = u_prismConfig.w;',
       '  float eGain = 0.74 + 0.42 * energy + ePulse * 0.24;',
       '',
-      '  /* 舒展宽画幅丝带坐标系（脱离各向同性圆团约束，允许斜向丝带优雅流淌跨越左中区） */',
+      '  /* Wide-aspect ribbon coordinate space allowing diagonal ribbons to sweep gracefully across left-center */',
       '  vec2 p = vec2((uv.x - 0.215) * 2.85, (uv.y - 0.50) * 1.72);',
       '  vec2 refractOff = vec2(yaw * 0.48 + R.x * 0.12, -pitch * 0.40 - R.z * 0.10);',
       '  float phaseShift = yaw * 1.95 - pitch * 1.55 + ePulse * 0.62;',
@@ -5877,7 +5877,7 @@
       '  vec3 colHighlightSrgb = vec3(0.94, 0.98, 1.00);',
       '',
       '  if (abs(zId - 6.0) < 0.5) {',
-      '    /* Z=6 Carbon: 三道斜向舒展交织的冰青白钻折叠钛金丝绸折光带 */',
+      '    /* Z=6 Carbon: three sweeping ice-cyan & diamond folded titanium silk caustic ribbons */',
       '    float s = q.x * 0.84 - q.y * 0.54;',
       '    float n = q.x * 0.54 + q.y * 0.84;',
       '    float d1 = n - 0.22 * sin(s * 2.15 + phaseShift * 0.75) + 0.09 * cos(s * 3.30 - yaw * 1.40) + 0.05;',
@@ -5894,7 +5894,7 @@
       '    colMidSrgb = vec3(0.56, 0.62, 0.70);',
       '    colHighlightSrgb = vec3(0.96, 0.98, 1.00);',
       '  } else if (abs(zId - 1.0) < 0.5) {',
-      '    /* Z=1 Hydrogen: 三道弧形流淌的天青液态水波焦散折光丝带 */',
+      '    /* Z=1 Hydrogen: three arcing azure liquid-wave caustic ribbons */',
       '    float s1 = q.x * 0.88 - q.y * 0.47;',
       '    float n1 = q.x * 0.47 + q.y * 0.88;',
       '    float d1 = n1 - 0.25 * sin(s1 * 2.05 + phaseShift * 0.72) + 0.08 * sin(n1 * 2.4 - yaw * 1.3) + 0.09;',
@@ -5911,7 +5911,7 @@
       '    colMidSrgb = vec3(0.34, 0.65, 0.87);',
       '    colHighlightSrgb = vec3(0.91, 0.97, 1.00);',
       '  } else if (abs(zId - 10.0) < 0.5) {',
-      '    /* Z=10 Neon: 两主一副大曲率吹制玻璃珊瑚琥珀等离子流光丝带 */',
+      '    /* Z=10 Neon: two primary and one accent high-curvature coral-amber blown-glass plasma ribbons */',
       '    float s = q.x * 0.86 - q.y * 0.51;',
       '    float n = q.x * 0.51 + q.y * 0.86;',
       '    float d1 = n - 0.27 * sin(s * 1.95 - 0.32 + phaseShift * 0.70) + 0.10 * cos(n * 2.2 - pitch * 1.3) + 0.06;',
@@ -5928,7 +5928,7 @@
       '    colMidSrgb = vec3(0.85, 0.41, 0.30);',
       '    colHighlightSrgb = vec3(1.00, 0.93, 0.85);',
       '  } else if (abs(zId - 18.0) < 0.5) {',
-      '    /* Z=18 Argon: 三道 -36° 斜向修长皇家钴蓝瑾瑜极光丝绸帷幔 */',
+      '    /* Z=18 Argon: three -36-deg slender royal cobalt-indigo aurora silk curtains */',
       '    float vDiag = q.x * 0.80 - q.y * 0.60;',
       '    float uDiag = q.x * 0.60 + q.y * 0.80;',
       '    float d1 = uDiag + 0.23 * sin(vDiag * 2.20 + phaseShift * 0.78) + 0.05;',
@@ -5955,7 +5955,7 @@
       '  }',
       '',
       '  if (isLight > 0.5) {',
-      '    /* 白昼模式：温润石英底上舒展清透水彩折光丝带与柔和纯白脊线 */',
+      '    /* Light mode: translucent watercolor caustic ribbons & soft white ridges over warm quartz substrate */',
       '    vec3 wcTint = mix(pureBgSrgb, colMidSrgb, 0.40);',
       '    vec3 wcDeep = mix(pureBgSrgb, colDeepSrgb * 1.32 + 0.16, 0.30);',
       '    vec3 lightWing = pureBgSrgb;',
@@ -5965,7 +5965,7 @@
       '    return clamp(lightWing, 0.0, 1.0);',
       '  }',
       '',
-      '  /* 暗夜模式：深邃暗曜负空间中舒展 iPhone Pro 钛金包装盒级折叠焦散丝绸脊线 */',
+      '  /* Dark mode: folded caustic silk ridges sweeping through deep obsidian negative space */',
       '  vec3 baseLin = srgbToLinear(pureBgSrgb);',
       '  vec3 wingLin = srgbToLinear(colDeepSrgb) * (silkBody * 0.62)',
       '    + srgbToLinear(colMidSrgb) * (silkMid * 0.88)',
@@ -5976,7 +5976,7 @@
       '}',
       '',
       'void main() {',
-      '  /* 1. R=0.16U 圆角 SDF 抗锯齿边缘裁切与 2.5D 弧面熏黑蓝宝石玻璃法线梯度 */',
+      '  /* 1. R=0.16U rounded-rect SDF anti-aliased clipping & 2.5D curved smoked sapphire glass normal gradient */',
       '  vec2 pScr = v_localPos.xz - vec2(-2.00, -1.58);',
       '  vec2 halfScr = vec2(4.896, 1.436);',
       '  float rScr = 0.158;',
@@ -6000,9 +6000,9 @@
       '  vec3 V = normalize(u_camPos - v_worldPos);',
       '  vec3 R = reflect(-V, N);',
       '  float ndv = max(dot(N, V), 1e-4);',
-      '  /* SCREEN_FS 跳过昂贵多点阴影采样（原仅调制 <=4% 亮度），由 GPU 直接驱动柔和呼吸流光与扫描微光，0 Canvas2D 重绘 */',
+      '  /* SCREEN_FS skips costly multi-tap shadow lookups and drives soft breathing/scanline sheen directly on GPU (0 Canvas2D redraws) */',
       '',
-      '  /* 2. 深/浅双模满幅海报无损合成：100% 忠实还原白昼明亮瓷白海报与暗夜深绒海报（零压暗冲灰！） */',
+      '  /* 2. Lossless dark/light full-bleed banner compositing preserving crisp daylight porcelain and deep velvet dark tones */',
       '  float isLightScr = clamp(u_envParams.x, 0.0, 1.0);',
       '  float oledA = clamp(oled.a, 0.0, 1.0);',
       '  vec3 compositedSrgb = oled.rgb;',
@@ -6011,7 +6011,7 @@
       '    compositedSrgb = mix(gpuSilkBaseSrgb, oled.rgb, oledA * 2.0);',
       '  }',
       '',
-      '  /* 3. 2.5D 弧面光学玻璃边缘微折射高光 + 指针掠过/视角旋转时的细腻斜向玻璃镜面掠光 */',
+      '  /* 3. 2.5D curved optical glass edge micro-refraction + subtle diagonal specular sheen on pointer/orbit motion */',
       '  float yaw = u_screenOptics.z;',
       '  float pitch = u_screenOptics.w;',
       '  float sweep1 = v_uv.x * 0.78 + v_uv.y * 0.46 + yaw * 0.52 - pitch * 0.36 + R.x * 0.34;',
@@ -6035,7 +6035,7 @@
       '  vec3 edgeRefractGlint = mix(vec3(0.84, 0.91, 1.00), vec3(1.00, 1.00, 1.00), isLightScr) * (rimArcBand * (0.022 + 0.088 * catchTopLeft + 0.036 * catchBotRight));',
       '',
       '  float microSeatShade = mix(0.90 + 0.10 * smoothstep(-0.002, -0.030, dScr), 0.975 + 0.025 * smoothstep(-0.001, -0.018, dScr), isLightScr);',
-      '  /* GPU 零成本动态光学呼吸流光 + 极微细扫描线光泽 + 切档/能量脉冲亮度微调制（替代 Canvas2D 逐帧重绘与上传） */',
+      '  /* Zero-cost GPU dynamic optical breathing glow + subtle scanline sheen + effort/pulse modulation (replaces per-frame Canvas2D uploads) */',
       '  float gpuTime = u_envParams.w;',
       '  float ePulseScr = u_prismConfig.w;',
       '  float breathWave = 0.5 + 0.5 * sin(gpuTime * 1.15);',
@@ -6060,7 +6060,7 @@
     ].join('\n');
 
     /* ============================================================================
-     * 8. 主工厂函数 createKeyboard3DRenderer
+     * 8. Main Factory Function createKeyboard3DRenderer
      * ============================================================================ */
     function createKeyboard3DRenderer(options) {
       var opts = options || {};
@@ -6110,7 +6110,7 @@
       }
       var mainRowBuckets = Array.from(mainRowBucketMap.values());
 
-      /* 右侧 2×3 副盘 6 颗雕塑球帽局部坐标（对齐主盘下半核心键区 Row 5..7 人体工学倾角） */
+      /* Local coordinates for right 2x3 aux pad 6 sculpted keycaps (aligned with main rows 5..7 ergonomics) */
       var auxSlotCoords = new Array(AUX_SLOT_COUNT);
       for (var asi = 0; asi < AUX_SLOT_COUNT; asi++) {
         var aCol = asi % AUX_COLS;
@@ -6128,7 +6128,7 @@
         };
       }
 
-      /* 视口尺寸、亚像素 DPR 与零回流几何边界缓存 */
+      /* Viewport dimensions, subpixel DPR & zero-reflow geometry bounds cache */
       var cssWidth = 1040;
       var cssHeight = 552;
       var dpr = 1;
@@ -6213,7 +6213,7 @@
         }
       }
 
-      /* 场景外部输入状态（V11 扩展支持 6 槽 auxModels 单选互锁与 stageMode 双空间舞台） */
+      /* External scene input state (V11 supports 6-slot auxModels mutual-exclusion & dual stageMode) */
       var state = {
         themeProfile: {
           id: 'obsidian-dark',
@@ -6247,10 +6247,10 @@
       };
 
       /* ============================================================================
-       * V11 物理引擎状态：
-       * 1) 玉石重镇纸近场浓稠磁流体弹簧（主盘与 2×3 副盘浮空键共享）
-       * 2) Apple 级 1:1 跟手旋转伺服 + 0.88 动量惯性滑停 + 主/副双盘 ~3.2% 失重惯性相位差共轨
-       * 3) 四档思考阶梯悬浮高度（0.40U..1.06U）+ 三维八面体折光微晶场 + 邻键 <=1.65U 失重共鸣
+       * V11 Physics Engine State:
+       * 1) Heavy damped near-field magnetic spring (shared by levitated main & 2x3 aux keys)
+       * 2) 1:1 responsive orbit servo + 0.88 momentum coasting + ~3.2% dual-pad zero-G co-orbit lag
+       * 3) 4-tier effort levitation heights (0.40U..1.06U) + 3D octahedral crystal field + <=1.65U neighbor sympathy
        * ============================================================================ */
       var pointerMode = 'none'; /* 'none' | 'client' | 'norm' */
       var lastClientX = -9999;
@@ -6272,14 +6272,14 @@
       var tgtLiftMagZ = 0;
       var nearTrackingActive = false;
 
-      /* 第一级沉稳重物惯性输入滤波器状态 */
+      /* Stage-1 heavy inertia input filter state */
       var fltLiftPitch = 0;
       var fltLiftRoll = 0;
       var fltLiftYaw = 0;
       var fltLiftMagX = 0;
       var fltLiftMagZ = 0;
 
-      /* 主盘与副盘 3D 共轨旋转状态（主盘 orbitPitchCur/YawCur，副盘叠加 ~3.2% 失重惯性相位差并在静止/回正时 100% 严丝合缝归零） */
+      /* Main & aux pad 3D co-orbit state (aux adds ~3.2% zero-G inertial lag, converging cleanly to zero at rest/reset) */
       var orbitPitchCur = 0;
       var orbitYawCur = 0;
       var orbitTargetPitch = 0;
@@ -6297,7 +6297,7 @@
       var auxOrbitYawVel = 0;
       var auxPhaseLiftY = 0;
 
-      /* 浮空主角键反重力陀螺仪抗倾解耦状态与太空微失重慢漂浮状态 */
+      /* Levitated hero key antigravity gyro counter-tilt & slow zero-G float state */
       var gyroPitchCur = 0;
       var gyroRollCur = 0;
       var gyroYawCur = 0;
@@ -6311,14 +6311,14 @@
       var zeroGBobCur = 0;
       var fluxPhase = 0;
 
-      /* 思考档位演化的阶梯悬浮高度与邻键失重共鸣弹簧状态 */
+      /* Effort-tier levitation height & neighbor zero-G sympathy spring state */
       var effortTierCur = 1;
       var effortLiftHeightCur = EFFORT_TIER_LIFTS[1];
       var effortLiftHeightVel = 0;
       var neighborSympathyCur = 0;
       var neighborSympathyVel = 0;
 
-      /* 全局动效三件套状态 */
+      /* Global animation trio state (intro wake / wave ripple / energy pulse) */
       var introActive = false;
       var introElapsed = 0;
       var sweepWaveX = -16.0;
@@ -6335,7 +6335,7 @@
       var auxKeyWavePitch = new Float32Array(AUX_SLOT_COUNT);
       var auxKeyWaveRoll = new Float32Array(AUX_SLOT_COUNT);
 
-      /* 副盘 2×3 分页切换轻巧弹性波次下压回弹动效状态 */
+      /* Aux pad 2x3 page-switch light elastic wave bounce state */
       var auxPageWaveActive = false;
       var auxPageWaveElapsed = 0;
       var auxPageWaveDir = 1;
@@ -6347,7 +6347,7 @@
       var energyPulseAmp = 0;
       var energyPulseVal = 0;
 
-      /* 鼠标在机身三维空间交点缓存 [x, y, z, activeWeight] */
+      /* Cached pointer 3D intersection on chassis [x, y, z, activeWeight] */
       var prismFocusVec = [0, CASE_Y_TOP, 0, 0];
 
       var liftYawCur = 0;
@@ -6372,7 +6372,7 @@
       var auxKeyPressCur = new Float32Array(AUX_SLOT_COUNT);
       var auxKeyHoverCur = new Float32Array(AUX_SLOT_COUNT);
 
-      /* V12 `#0 Orch` 机械下沉自锁开关弹簧 + 主/副盘不支持模型键平滑熄灯过渡 + 副盘锁定微震状态 */
+      /* V12 #0 Orch mechanical latch spring + smooth dim transition for unsupported keys + aux lock shake state */
       var orchLatchCur = state.orchLatched ? 1.0 : 0.0;
       var orchLatchVel = 0;
       var slotAvailCur = new Float32Array(slotCount);
@@ -6389,7 +6389,7 @@
       var effortPressCur = new Float32Array(8);
       var effortHoverCur = new Float32Array(8);
 
-      /* V10 第 1 行 4 枚 3D 物理硬件控件弹簧状态（0:'prism-wave', 1:'reset-view', 2:'mute', 3:'close'） */
+      /* V10 Row 1 4 physical 3D hardware control spring states (0:'prism-wave', 1:'reset-view', 2:'mute', 3:'close') */
       var ctrlHoverCur = new Float32Array(4);
       var ctrlPressCur = new Float32Array(4);
       var ctrlPulseRemain = new Float32Array(4);
@@ -6403,7 +6403,7 @@
       var BLIND_TAP_DURATION = 0.18;
       var artisanWaveDipCur = 0;
 
-      /* 矩阵缓存（主盘 chassisMat 与右侧 2×3 副盘 auxChassisMat 共轨双矩阵） */
+      /* Matrix cache (co-orbiting main chassisMat & right 2x3 auxChassisMat) */
       var projMat = mat4Identity();
       var viewMat = mat4Identity();
       var viewProjMat = mat4Identity();
@@ -6440,7 +6440,7 @@
         auxKeyLocalInvMats[ami] = mat4Identity();
       }
 
-      /* 预计算左前上斜侧顶主光正交阴影视图矩阵（覆盖主盘 -9.68 至右侧 2×3 副盘 +12.90 及全旋转包络） */
+      /* Precomputed front-left overhead key-light ortho shadow view matrix (covers main -9.68 to aux +12.90 across full orbit) */
       var shadowCenterX = enableAuxPad ? 1.56 : 0.0;
       var shadowHalfSpanX = enableAuxPad ? 13.85 : 11.80;
       mat4Ortho(lightProjMat, -shadowHalfSpanX, shadowHalfSpanX, -8.85, 8.85, 3.0, 42.0);
@@ -6456,7 +6456,7 @@
       );
       mat4Multiply(lightViewProjMat, lightProjMat, lightViewMat);
 
-      /* 2x HiDPI 离屏动态画布按需懒初始化（避免 oledPainter 就绪时额外创建冗余 1600x480 2D 画布） */
+      /* Lazy-init 2x HiDPI offscreen fallback canvas (avoids redundant 1600x480 2D canvas when oledPainter is active) */
       var oledSurf = null;
       var activeOledCanvas = null;
       var oledTexAllocated = false;
@@ -6479,7 +6479,7 @@
       var lastChassisThemeId = '';
       var lastChassisAuxFlag = enableAuxPad ? 1 : 0;
       var hasLiftedKeycapCavity = false;
-      /* Zero-GC 帧级预分配缓冲：消除每帧数组字面量与实例换槽临时对象分配 */
+      /* Zero-GC per-frame preallocated scratch buffers eliminating array literals & instance swap allocations */
       var _tmpInstSwap32 = new Float32Array(32);
       var _framePrismCfg4 = new Float32Array(4);
       var _frameEnvVec4 = new Float32Array(4);
@@ -6504,7 +6504,7 @@
         return auxStripSurf;
       }
 
-      /* WebGL2 或 Canvas 2D 初始化探测 */
+      /* WebGL2 or Canvas 2D initialization probe */
       var gl = null;
       var ctx2d = null;
       var rendererMode = 'canvas2d';
@@ -6517,7 +6517,7 @@
       var hasInitialRender = false;
       var camDistCur = 32;
 
-      /* 动态高刷限帧、动效分级、静态阴影缓存、失焦 0fps 休眠与遥测统计 */
+      /* Dynamic FPS cap, motion level tiers, static shadow cache, background 0fps sleep & telemetry counters */
       var explicitTargetFps = (opts.targetFps !== undefined && opts.targetFps !== null && opts.targetFps !== '')
         ? normalizeTargetFps(opts.targetFps)
         : null;
@@ -6714,7 +6714,7 @@
         }
       }
 
-      /* Khronos WebGL2 最佳实践：分离提交与检查阶段，使 GPU 后台并行编译全部着色器且成功路径零 getShaderParameter IPC 阻塞 */
+      /* Khronos WebGL2 best practice: split compile/link submission from status checks for parallel GPU compilation with zero hot-path IPC stalls */
       function beginLinkProgram(vsSrc, fsSrc) {
         var vs = gl.createShader(gl.VERTEX_SHADER);
         var fs = gl.createShader(gl.FRAGMENT_SHADER);
@@ -6738,7 +6738,7 @@
       function finishLinkProgram(handle) {
         if (!handle || !handle.prog) return null;
         if (!gl.getProgramParameter(handle.prog, gl.LINK_STATUS)) {
-          /* 仅在链接失败的极少数异常路径才读取 shader 状态并释放全部句柄 */
+          /* Read shader info logs and clean up handles only on the rare link-failure error path */
           if (handle.vs) gl.deleteShader(handle.vs);
           if (handle.fs) gl.deleteShader(handle.fs);
           gl.deleteProgram(handle.prog);
@@ -6834,7 +6834,7 @@
           return null;
         }
 
-        /* 若 deferLink 为 true，则仅提交编译链接不在此处同步阻塞，留待所有 VAO/纹理上传后与 3 个主 PBR 程序一并检查 */
+        /* When deferLink is true, submit compile/link asynchronously and check status together with main PBR programs after uploads */
         var hShadowSolid = beginLinkProgram(SHADOW_SOLID_VS, SHADOW_EMPTY_FS);
         var hShadowKeycap = beginLinkProgram(SHADOW_KEYCAP_VS, SHADOW_EMPTY_FS);
         if (!hShadowSolid || !hShadowKeycap) {
@@ -6899,7 +6899,7 @@
         return shadowObj;
       }
 
-      /* 仅在 motionLevel 跨级切换（ultra 2048 <-> medium/low/subtle/off 1024）时按需重建 FBO 深度纹理 */
+      /* Rebuild shadow FBO depth texture only when motionLevel crosses resolution tier (ultra 2048 <-> others 1024) */
       function ensureShadowMapSize(desiredSize) {
         var nextSize = desiredSize === SHADOW_MAP_SIZE_REDUCED ? SHADOW_MAP_SIZE_REDUCED : SHADOW_MAP_SIZE_ULTRA;
         activeShadowMapSize = nextSize;
@@ -6977,7 +6977,7 @@
 
       function initWebGLPipeline() {
         if (!gl) return false;
-        /* 阶段 1：第一时间并发提交全部 5 个着色器程序（3 主 PBR + 2 阴影 Pass）给 GPU 后台并行编译，与后续 CPU VAO/Buffer/纹理上传 100% 重叠 */
+        /* Phase 1: submit all 5 shader programs (3 main PBR + 2 shadow passes) upfront for parallel GPU compilation overlapping CPU uploads */
         var hSolid = beginLinkProgram(SOLID_VS, SOLID_FS);
         var hKeycap = beginLinkProgram(KEYCAP_VS, KEYCAP_FS);
         var hScreen = beginLinkProgram(SCREEN_VS, SCREEN_FS);
@@ -6987,10 +6987,10 @@
           discardPendingProgram(hScreen);
           return false;
         }
-        /* 1024×1024 实时软阴影 FBO 提前建好并延迟检查链接状态，确保 5 程序并行编译零中途 stall */
+        /* Create 1024x1024 soft shadow FBO early with deferred link check so all 5 programs compile in parallel without stalls */
         var pendingShadowPass = initShadowMapResources(resolveTargetShadowMapSize(), true);
 
-        /* 1. 雕塑球帽 VAO + (90 主盘 + 6 副盘) 合批实例缓冲区（每实例 32 floats = 128 bytes，0 新增 VAO/Buffer） */
+        /* 1. Sculpted keycap VAO + batched (90 main + 6 aux) instance buffer (32 floats = 128 bytes/instance, zero extra VAOs) */
         var capGeom = buildSculptedKeycapGeometry();
         var capVao = gl.createVertexArray();
         glRes.vaos.push(capVao);
@@ -7027,7 +7027,7 @@
         gl.bindVertexArray(null);
         void capPosBuf; void capNormBuf; void capUvBuf; void capPartBuf; void capIdxBuf;
 
-        /* 2. 机身静态 VAO 与顶/底嵌入式 PVD 镜面大配重/动态机械轴体 VAO */
+        /* 2. Static chassis VAO & dynamic widgets/switch/crystal VAO */
         function createSolidVao(usage) {
           var vao = gl.createVertexArray();
           glRes.vaos.push(vao);
@@ -7055,7 +7055,7 @@
         var chassisGpu = createSolidVao(gl.STATIC_DRAW);
         var widgetsGpu = createSolidVao(gl.DYNAMIC_DRAW);
 
-        /* 3. 一体极窄单内唇 AR 镀膜昼夜玻璃大屏 VAO */
+        /* 3. Integrated narrow-lip AR-coated dark/light OLED glass screen VAO */
         var scrVao = gl.createVertexArray();
         glRes.vaos.push(scrVao);
         gl.bindVertexArray(scrVao);
@@ -7076,7 +7076,7 @@
         createGlBuffer(gl.ELEMENT_ARRAY_BUFFER, scrIdx, gl.STATIC_DRAW);
         gl.bindVertexArray(null);
 
-        /* 4. 2048x2048 主盘 90 键 + 第 9 行副盘 6 槽动态图集纹理 (#1/5) */
+        /* 4. Legend atlas texture for 90 main keys + row-9 6 aux slots (#1/5) */
         var anisoExt =
           gl.getExtension('EXT_texture_filter_anisotropic') ||
           gl.getExtension('WEBKIT_EXT_texture_filter_anisotropic');
@@ -7104,7 +7104,7 @@
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-        /* 5. RG8 细腻丝绒微纹高度场无缝平铺纹理 128x128 (#2/5) */
+        /* 5. Tileable 128x128 RG8 micro-grain heightfield texture (#2/5) */
         var grainTex = gl.createTexture();
         glRes.textures.push(grainTex);
         gl.bindTexture(gl.TEXTURE_2D, grainTex);
@@ -7129,7 +7129,7 @@
           gl.texParameterf(gl.TEXTURE_2D, anisoExt.TEXTURE_MAX_ANISOTROPY_EXT, maxAniso);
         }
 
-        /* 6. 128x64 RGB8 戏剧光摄影棚金属环境反射贴图 (#3/5) */
+        /* 6. 128x64 RGB8 studio metal reflection envmap texture (#3/5) */
         var metalEnvTex = gl.createTexture();
         glRes.textures.push(metalEnvTex);
         gl.bindTexture(gl.TEXTURE_2D, metalEnvTex);
@@ -7149,7 +7149,7 @@
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, repeatWrap);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-        /* 7. 1600x480 昼夜双生动态屏幕纹理 (#4/5) */
+        /* 7. Dynamic dark/light OLED screen texture (#4/5) */
         var oledTex = gl.createTexture();
         glRes.textures.push(oledTex);
         gl.bindTexture(gl.TEXTURE_2D, oledTex);
@@ -7163,7 +7163,7 @@
           gl.texParameterf(gl.TEXTURE_2D, anisoExt.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(4, maxAniso));
         }
 
-        /* 8. 阶段 2：全部几何/纹理/阴影 FBO 已准备就绪后统一检验全部 5 个程序 LINK_STATUS（GPU 后台已完成并行编译） */
+        /* 8. Phase 2: validate LINK_STATUS across all 5 programs once geometry, textures & shadow FBO are ready */
         var progSolid = finishLinkProgram(hSolid);
         var progKeycap = finishLinkProgram(hKeycap);
         var progScreen = finishLinkProgram(hScreen);
@@ -7262,7 +7262,7 @@
         }
       }
 
-      /* WebGL Context Lost 对称保护 */
+      /* Symmetric WebGL context-lost guard */
       function onWebglContextLost(ev) {
         if (ev && typeof ev.preventDefault === 'function') ev.preventDefault();
         contextLost = true;
@@ -7299,7 +7299,7 @@
       }
 
       /* ============================================================================
-       * 9. 主题色散推导、三维轨迹球旋转、反重力陀螺仪抗倾与物理弹簧步进
+       * 9. Theme Dispersion Derivation, 3D Trackball Orbit, Antigravity Gyro & Spring Physics Step
        * ============================================================================ */
       function getPalette() {
         var tp = state.themeProfile || {};
@@ -7342,9 +7342,9 @@
       }
 
       /**
-       * V14 半透磨砂琉璃宝石键帽（4 颗可选元素键）× 浮空清透光学玻璃帽 × GMK 盲键色阶解析：
-       * - 3 颗未选中可选元素键 (heroChromaT = 0.0)：直接呈现各自官方光谱的半透磨砂琉璃/海玻璃色（1H 天青玉 / 6C 钴蓝晶 / 10Ne 珊瑚橙 / 18Ar 靛紫晶）；
-       * - 当前唯一选中的浮空键 (heroChromaT > 0.0)：丝滑过渡为清透烟熏（Dark）或冰透（Light）磨砂光学玻璃帽，透出正下方双色水晶轴柱折射光！
+       * V14 translucent frosted gemstone keycaps (4 available elements) x clear levitated optical glass cap x GMK blind key palette resolver:
+       * - 3 unselected available element keys (heroChromaT = 0.0): display translucent frosted gemstone tones (1H azure / 6C cobalt / 10Ne coral / 18Ar indigo);
+       * - Single active levitated key (heroChromaT > 0.0): smoothly transitions into clear smoked (Dark) or iced (Light) frosted optical glass revealing the crystal stem below
        */
       function resolveKeyColors(slot, palette, isAvail, heroChromaOpt) {
         var tp = state.themeProfile || {};
@@ -7451,7 +7451,7 @@
       }
 
       /**
-       * 从 state.deckInfo（activeEffort 或 levels 激活项阶梯/名称 'low'|'medium'|'high'|'extra'/'xhigh'）解析 effortTier (0..3，默认 1)
+       * Resolves effortTier (0..3, default 1) from state.deckInfo activeEffort or active level ('low'|'medium'|'high'|'extra'/'xhigh')
        */
       function resolveEffortTier(di) {
         if (!di || typeof di !== 'object') return effortTierCur;
@@ -7540,9 +7540,9 @@
       }
 
       /**
-       * V12 右侧 2×3 副盘键帽材质配色解析：
-       * - #0 Orchestrator：未锁存静息态为低调沉稳紫钛灰金；机械下沉锁存态（orchLatchCur -> 1）亮起高辨识度皇室紫金釉与暖金字符；
-       * - #1..#5 模型键：支持 auxAvailCur (0..1) 动态平滑熄灯降暗为低对比暗哑盲键质感，恢复 available:true 时平滑重新点亮。
+       * V12 right-side 2x3 aux pad keycap material palette resolver:
+       * - #0 Orchestrator: subdued violet-titanium at rest; lights up with royal violet-gold anodized sheen when latched (orchLatchCur -> 1);
+       * - #1..#5 model keys: smoothly dim toward low-contrast matte blind keys via auxAvailCur (0..1) when unavailable and relight when available.
        */
       function resolveAuxKeyColors(auxSlot, auxIdx, palette, heroChromaOpt) {
         var tp = state.themeProfile || {};
@@ -7573,7 +7573,7 @@
         var isOrch = auxIdx === 0 || /orch/i.test(String((auxSlot && auxSlot.id) || '') + ' ' + String((auxSlot && auxSlot.shortLabel) || ''));
         var latchT = (auxIdx === 0) ? clamp(orchLatchCur, 0.0, 1.0) : 0.0;
 
-        /* #0 Orch 采用 Gemini 星云紫蓝×暖金渐变阳极金属（Dark 锐白字 / Light 深靛墨字）；#1..#4 Aux 保持沉稳深炭/白瓷顶面以护字，品牌色集中在顶槽与透光底裙 */
+        /* #0 Orch uses Gemini nebula violet x warm gold anodized metal; #1..#4 Aux keep neutral charcoal/porcelain tops for legibility with brand accents on top LED slot & skirt */
         var restCapHex = isOrch
           ? (palette.isLight ? '#D6CFF5' : '#2C2352')
           : (palette.auxRestCap || palette.availRestCap || (palette.isLight ? '#E4E8F0' : '#222730'));
@@ -7638,8 +7638,8 @@
       }
 
       /**
-       * V14 按当前激活模型精准映射反重力微晶与磁通环官方双色光谱：
-       * 1H 天青→冰白蓝、6C 皇家钴蓝→冰青虹彩、10Ne 珊瑚红橙→液态暖金、18Ar 皇家蓝→电光靛紫、Orchestrator 星云紫金
+       * V14 maps active model to dual-tone antigravity crystal & flux ring spectrum:
+       * 1H azure->ice-blue, 6C royal cobalt->ice-cyan, 10Ne coral->liquid gold, 18Ar royal blue->electric indigo, Orchestrator nebula violet-gold
        */
       function resolveFluxCrystalColors(switchInfo) {
         var tp = state.themeProfile || {};
@@ -7651,8 +7651,8 @@
           var isOrch = switchInfo.auxIndex === 0 || /orch/i.test(String(auxSlot.id || '') + ' ' + String(auxSlot.shortLabel || ''));
           if (isOrch) {
             return {
-              primary: [0.58, 0.40, 0.99],   /* 星云紫蓝 */
-              secondary: [0.98, 0.76, 0.30], /* 暖香槟金 */
+              primary: [0.58, 0.40, 0.99],   /* Nebula violet-blue */
+              secondary: [0.98, 0.76, 0.30], /* Warm champagne gold */
             };
           }
           var pRgb = hexToRgb01(auxSlot.accentHex || '#00D4FF');
@@ -7663,10 +7663,10 @@
           };
         }
         var zNum = switchInfo && switchInfo.z !== undefined ? Number(switchInfo.z) : Number(state.selectedZ);
-        if (zNum === 1) return { primary: [0.22, 0.74, 0.98], secondary: [0.80, 0.95, 1.00] };  /* 1H 天青 -> 冰白蓝 */
-        if (zNum === 6) return { primary: [0.20, 0.48, 0.98], secondary: [0.42, 0.91, 0.99] };  /* 6C 皇家钴蓝 -> 冰青虹彩 */
-        if (zNum === 10) return { primary: [1.00, 0.38, 0.22], secondary: [1.00, 0.75, 0.28] }; /* 10Ne 珊瑚红橙 -> 液态暖金 */
-        if (zNum === 18) return { primary: [0.26, 0.42, 0.98], secondary: [0.66, 0.38, 1.00] }; /* 18Ar 皇家蓝 -> 电光靛紫 */
+        if (zNum === 1) return { primary: [0.22, 0.74, 0.98], secondary: [0.80, 0.95, 1.00] };  /* 1H azure -> ice-white blue */
+        if (zNum === 6) return { primary: [0.20, 0.48, 0.98], secondary: [0.42, 0.91, 0.99] };  /* 6C royal cobalt -> ice-cyan iridescence */
+        if (zNum === 10) return { primary: [1.00, 0.38, 0.22], secondary: [1.00, 0.75, 0.28] }; /* 10Ne coral red-orange -> liquid warm gold */
+        if (zNum === 18) return { primary: [0.26, 0.42, 0.98], secondary: [0.66, 0.38, 1.00] }; /* 18Ar royal blue -> electric indigo-violet */
         var baseLed = (switchInfo && switchInfo.ledRgb) || [0.45, 0.68, 0.98];
         return { primary: baseLed, secondary: shadeRgb(baseLed, 1.12, 0.08) };
       }
@@ -7746,7 +7746,7 @@
         return -1;
       }
 
-      /* 预分配硬件控件参数对象与射线/投影临时向量，消除每帧高频 GC 对象分配 */
+      /* Preallocated hardware widget args & ray/projection scratch vectors eliminating per-frame GC churn */
       var _hwCtrlCache = {
         muted: false,
         effortTier: 0,
@@ -7904,8 +7904,8 @@
       }
 
       /**
-       * 计算鼠标射线在机身局部空间的三维棱镜焦点交点 u_prismFocusPos = vec4(x, y, z, activeWeight)
-       * 同时覆盖主盘 [-9.68, +9.68] 与右侧 2×3 副盘 [+10.40, +12.90] 真 3D 法线色散棱镜边实时流转！
+       * Computes pointer ray intersection in chassis-local space u_prismFocusPos = vec4(x, y, z, activeWeight)
+       * Covers both main chassis [-9.68, +9.68] and right 2x3 aux pad [+10.40, +12.90] for live 3D prism edge dispersion
        */
       function updatePrismFocusPosition() {
         var rotMag = Math.hypot(orbitPitchCur, orbitYawCur);
@@ -7987,7 +7987,7 @@
       }
 
       /**
-       * 局部近场方位解算（同时支持主盘 selectedZ 浮空键与右侧 2×3 副盘 selectedAuxIndex 浮空键！）
+       * Local near-field orientation solver (supports both main selectedZ and right 2x3 aux selectedAuxIndex levitated keys)
        */
       function recomputePointerTargets() {
         if (isConfirmSlamActiveGlobal()) {
@@ -8103,7 +8103,7 @@
             dirY /= dirLen;
           }
 
-          /* 将屏幕平面方向映射到当前旋转底盘局部切平面，保证任意偏航角下牵引方向跟手自然 */
+          /* Map screen-plane direction onto the orbited chassis local tangent plane for natural pull at any yaw */
           var cyOrb = Math.cos(curOrbYaw);
           var syOrb = Math.sin(curOrbYaw);
           var localDirX = dirX * cyOrb - dirY * syOrb;
@@ -8158,9 +8158,9 @@
       }
 
       /**
-       * V11 双外设全角度视锥安全包络求解器（computeOrbitSafetyZoom）：
-       * 精确覆盖主盘左缘 -9.68 至右侧副盘右缘 +12.90（以及最高 1.06U Extra 悬浮键帽顶冠），
-       * 确保任意宽高比与任意 3D 旋转角下双盘 100% 零裁切！
+       * V11 dual-peripheral full-angle frustum safety zoom solver (computeOrbitSafetyZoom):
+       * Encloses main left edge -9.68 to aux right edge +12.90 (plus 1.06U Extra levitated crown),
+       * guaranteeing zero clipping at any aspect ratio or 3D orbit angle
        */
       function computeOrbitSafetyZoom(baseDist, aspect, tanHalfFov, camTarget, sinCam, cosCam, isDrawerMode, rotNorm) {
         var safeNdcX = isDrawerMode ? 0.968 : (rotNorm > 1e-4 ? 0.892 : 0.960);
@@ -8168,7 +8168,7 @@
         var frustumReq = baseDist;
 
         function accumBoxCorners(modelM, x0, x1, y0, y1, z0, z1) {
-          /* Zero-GC 8 角点投影计算：直接复用 _tmpVec4A，消灭每帧 16~48 次临时数组分配 */
+          /* Zero-GC 8-corner projection reusing _tmpVec4A to eliminate 16-48 temp array allocations/frame */
           for (var xi = 0; xi < 2; xi++) {
             var vx = xi === 0 ? x0 : x1;
             for (var yi = 0; yi < 2; yi++) {
@@ -8192,7 +8192,7 @@
 
         var maxCapCrownY = CASE_Y_TOP + 1.18;
         if (isDrawerMode && rotNorm <= 1e-4) {
-          /* V12 横向紧凑三联坞精准分段楔形包络：消除虚构膨胀角点造成的上下空旷留白，同时严保任意宽高比双盘 0 裁边 */
+          /* V12 compact dock segmented wedge hull: eliminates wasted vertical margins while guaranteeing zero edge clipping */
           accumBoxCorners(
             chassisMat,
             -CASE_HALF_W - 0.04, CASE_HALF_W + 0.04,
@@ -8278,7 +8278,7 @@
         var distForHeight = heightHalfSpan / tanHalfFov;
         var baseDist = Math.max(distForWidth, distForHeight);
 
-        /* 1. 构建主盘 chassisMat 与共轨 ~3.2% 失重惯性相位差副盘 auxChassisMat（围绕同一舞台枢轴 activePivot 旋转） */
+        /* 1. Build main chassisMat and co-orbiting auxChassisMat (~3.2% inertial lag around shared activePivot) */
         var introLiftY = 0.0;
         var introPitchAdd = 0.0;
         if (introActive && introElapsed < INTRO_WAKE_DURATION) {
@@ -8297,7 +8297,7 @@
         var auxEffLiftY = introLiftY * (1.0 + AUX_COORBIT_LAG_RATIO) + auxPhaseLiftY;
         buildOrbitMatrixAroundPivot(auxChassisMat, invAuxChassisMat, auxEffPitch, auxEffYaw, auxEffLiftY, activePivot);
 
-        /* 2. 计算视锥零裁边安全相机距离 */
+        /* 2. Compute frustum zero-clipping safe camera distance */
         var rotNorm = Math.hypot(Math.abs(orbitPitchCur), Math.abs(orbitYawCur));
         var sinCam = Math.sin(CAM_PITCH);
         var cosCam = Math.cos(CAM_PITCH);
@@ -8319,7 +8319,7 @@
 
         updatePrismFocusPosition();
 
-        /* 3. 预计算主盘 90 键 + 副盘 6 键三维机械涟漪波 */
+        /* 3. Precompute 3D mechanical wave ripple across 90 main + 6 aux keys */
         keyWaveDip.fill(0);
         keyWaveGlow.fill(0);
         keyWavePitch.fill(0);
@@ -8387,7 +8387,7 @@
           }
         }
 
-        /* 3b. 副盘 2×3 分页切换轻巧弹性波次下压回弹（保持 2×3 = 6 颗实体键帽物理工业比例不变） */
+        /* 3b. Aux pad 2x3 page-switch light elastic bounce wave (preserves 2x3 physical keycap proportions) */
         if (auxPageWaveActive && enableAuxPad && !reducedNow) {
           var staggerStep = 0.026;
           var keyDur = Math.max(0.14, AUX_PAGE_WAVE_DURATION - staggerStep * 3.5);
@@ -8404,7 +8404,7 @@
           }
         }
 
-        /* 4. 计算浮空键微失重慢漂浮、四档思考悬浮高度 effortLiftHeightCur 与 High/Extra 邻键失重共鸣 */
+        /* 4. Compute levitated key zero-G float, 4-tier effortLiftHeightCur & High/Extra neighbor sympathy */
         var springBusy = Math.hypot(liftMagXCur, liftRollCur) + Math.hypot(liftMagXVel, liftRollVel) * 0.08;
         var quietGate = smootherstepScalar(0.16, 0.008, springBusy);
         var effZeroG = zeroGEnvCur * quietGate;
@@ -8439,7 +8439,7 @@
             shakeX = Math.sin(p * Math.PI * 5.0) * (1.0 - p) * 0.082;
           }
 
-          /* High / Extra 档邻键失重共鸣（距离浮空中心 <= 1.65U 的非选中同盘邻键受反重力边缘牵引微浮与向心微倾） */
+          /* High / Extra neighbor sympathy: non-selected same-pad keys within <= 1.65U gently float & tilt inward */
           var symLiftY = 0.0;
           var symPitch = 0.0;
           var symRoll = 0.0;
@@ -8541,7 +8541,7 @@
           }
         }
 
-        /* 5. 计算右侧 2×3 副盘 6 颗雕塑球帽局部矩阵（共享反重力阶梯悬浮、陀螺仪抗倾、近场磁吸与邻键失重共鸣！） */
+        /* 5. Compute right 2x3 aux pad 6 keycap local matrices (sharing effort levitation, gyro, magnetic drift & sympathy) */
         if (enableAuxPad) {
           var activeAuxHeroIdx = (state.selectedAuxIndex !== null && state.selectedAuxIndex !== undefined)
             ? clamp(Math.round(Number(state.selectedAuxIndex)), 0, AUX_SLOT_COUNT - 1)
@@ -8732,7 +8732,7 @@
         var prevOrbYaw = orbitYawCur;
         var maxErr = 0;
 
-        /* 1. 推进 Apple 官网级 1:1 紧耦合旋转伺服 (wn=38.0, zeta=0.96)、动量惯性滑停 (damping=6.0) 与双盘磁吸共轨 */
+        /* 1. Step 1:1 tightly coupled orbit servo (wn=38.0, zeta=0.96), momentum coasting (damping=6.0) & dual-pad co-orbit */
         if (reduced) {
           if (orbitMode === 'reset') {
             orbitPitchCur = 0;
@@ -8819,7 +8819,7 @@
           if (Math.abs(chassisInstVelPitch) < 0.002) chassisInstVelPitch = 0;
           if (Math.abs(chassisInstVelYaw) < 0.002) chassisInstVelYaw = 0;
 
-          /* 右侧 2×3 副盘围绕同一舞台原点磁吸共轨旋转（叠加 ~3.2% 优雅失重惯性相位差，停稳后 100% 归零对齐） */
+          /* Right 2x3 aux pad co-orbits around shared pivot with ~3.2% zero-G inertial lag, aligning flush at rest */
           var tgtAuxPitch = clamp(
             orbitPitchCur - chassisInstVelPitch * AUX_COORBIT_LAG_RATIO,
             ORBIT_PITCH_MIN,
@@ -8848,7 +8848,7 @@
           }
         }
 
-        /* 1b. 推进思考档位阶梯悬浮高度（0.40U..1.06U）与 High/Extra 邻键失重共鸣（<= 1.65U） */
+        /* 1b. Step effort-tier levitation height (0.40U..1.06U) & High/Extra neighbor sympathy (<= 1.65U) */
         effortTierCur = resolveEffortTier(state.deckInfo);
         var effortLiftTarget = EFFORT_TIER_LIFTS[effortTierCur];
         var hasAnyFloating = !slamGlobal && (
@@ -8881,7 +8881,7 @@
           maxErr = Math.max(maxErr, sEffH[2], sSym[2]);
         }
 
-        /* 2. 推进全局动效三件套（Intro Wake / 90+6 Key Wave Ripple / Energy Pulse） */
+        /* 2. Step global animation trio (Intro Wake / 90+6 Key Wave Ripple / Energy Pulse) */
         if (introActive) {
           if (reduced) {
             introActive = false;
@@ -8955,7 +8955,7 @@
           energyPulseVal = 0.0;
         }
 
-        /* 3. 推进浮空键帽「反重力陀螺仪抗倾解耦 (~40% World-Up Counter-Balance)」与「太空微失重慢漂浮 (~2.46s -> 0fps)」 */
+        /* 3. Step levitated keycap antigravity gyro (~40% world-up counter-balance) & zero-G slow float (~2.46s -> 0fps) */
         var tgtGyroPitch = 0;
         var tgtGyroRoll = 0;
         var tgtGyroYaw = 0;
@@ -9017,7 +9017,7 @@
           }
         }
 
-        /* 4. 推进近场玉石重镇纸二阶浓稠磁流体弹簧（主盘与副盘浮空键共享） */
+        /* 4. Step stage-2 heavy damped near-field magnetic spring (shared by main & aux levitated keys) */
         recomputePointerTargets();
 
         if (reduced) {
@@ -9103,7 +9103,7 @@
         var expHover = reduced ? 1.0 : 1.0 - Math.exp(-20.0 * dt);
         var expAvailDim = reduced ? 1.0 : 1.0 - Math.exp(-AVAIL_DIM_RATE * dt);
 
-        /* 4.0 V12 `#0 Orch` 机械下沉自锁开关二阶卡簧物理推进 */
+        /* 4.0 V12 #0 Orch mechanical latch-down detent spring step */
         var wantOrchLatch = state.orchLatched ? 1.0 : 0.0;
         if (reduced) {
           orchLatchCur = wantOrchLatch;
@@ -9120,7 +9120,7 @@
           }
         }
 
-        /* 4a. 主盘 90 颗球帽升降/下压/悬停弹簧 + ~14/s 动态可用度熄灯/点亮过渡 + 114 颗盲键物理按压解压行程 */
+        /* 4a. 90 main keycap lift/press/hover springs + ~14/s availability dim transition + tactile blind key press travel */
         var blindTapPulse = 0;
         if (blindTapIdx >= 0 && blindTapRemain > 0) {
           if (reduced) {
@@ -9197,7 +9197,7 @@
           }
         }
 
-        /* 4b. 右侧 2×3 副盘 6 颗雕塑球帽升降/自锁不升空/动态熄灯过渡弹簧 */
+        /* 4b. Right 2x3 aux pad 6 keycap lift / latch-no-levitate / availability dim springs */
         if (enableAuxPad) {
           for (var ai = 0; ai < AUX_SLOT_COUNT; ai++) {
             var aSlot = state.auxModels[ai] || DEFAULT_AUX_MODELS[ai];
@@ -9266,7 +9266,7 @@
           maxErr = Math.max(maxErr, Math.abs(wEp - effortPressCur[ei]), Math.abs(wEh - effortHoverCur[ei]));
         }
 
-        /* 5. 推进第 1 行 4 枚 3D 硬件控件微动下压/悬停脉冲与滚花金属音效旋钮角度弹簧 */
+        /* 5. Step Row 1 4 hardware control press/hover springs & knurled rotary knob angle spring */
         var hwSt = state.hardwareState || {};
         var hovCtrlIdx = resolveControlIndex(hwSt.hoveredControl);
         var prsCtrlIdx = resolveControlIndex(hwSt.pressedControl);
@@ -9443,7 +9443,7 @@
       }
 
       /* ============================================================================
-       * 10. WebGL2 多 Pass 硬件渲染（双外设合批阴影 + 主/副 CNC 铝壳 + 屏幕 + 90+6 键 + 折光微晶簇）
+       * 10. WebGL2 Multi-Pass Hardware Renderer (Batched Shadows + Main/Aux CNC Chassis + Screen + 90+6 Keys + Micro-Crystals)
        * ============================================================================ */
       function uploadSolidMesh(gpuTarget, mesh, usage) {
         var canSub = usage === gl.DYNAMIC_DRAW && typeof gl.bufferSubData === 'function';
@@ -9540,8 +9540,8 @@
       }
 
       /**
-       * 当 state.auxModels 变化时，在现有 2048×2048 u_atlasTex 底部第 9 行富余条带（y: 1844..2048）
-       * 重绘 6 个副盘键位并通过 gl.texSubImage2D 局部刷新（0 新增纹理对象）
+       * When state.auxModels changes, redraws the 6 aux slots into atlas spare row 9
+       * and uploads via partial gl.texSubImage2D (zero new texture objects)
        */
       function syncAuxAtlasTexture() {
         if (!enableAuxPad) return;
@@ -9603,7 +9603,7 @@
           typeof painter.isAnimating === 'function' &&
           painter.isAnimating(animClockMs)
         );
-        /* V14 静态艺术为主：平时静止不重复重绘 1600x480 海报；仅在切模型/深浅叠化、切档滑块滑动或状态签名变化时刷新贴图 */
+        /* V14 static-first art: skip redundant OLED redraws at rest; refresh only on model/theme crossfade, slider motion, or state change */
         var continuousZeroGOled = false;
 
         var oledSig = [
@@ -9662,7 +9662,7 @@
 
         if (needOledWork) {
           var elapsedSinceUpload = animClockMs >= lastOledUploadMs ? (animClockMs - lastOledUploadMs) : OLED_SWEEP_THROTTLE_MS;
-          /* 高速扫键预览节流 36ms（且由 oledPendingFlush 保证尾帧必补刷落地）；主动点击切模型/盲键后的首步叠化在 >=15.5ms 立即呈现新图层，后续动画推进按 33ms 节流 */
+          /* Throttle fast hover sweeps to 36ms (oledPendingFlush guarantees trailing frame flush); active clicks paint first step at >=15.5ms, then 33ms */
           var minOledGap = (!coreChanged && stateSwitched)
             ? OLED_SWEEP_THROTTLE_MS
             : (oledCoreTransitionStep ? 15.5 : OLED_ANIM_THROTTLE_MS);
@@ -9678,7 +9678,7 @@
             return computeEffortButtonLayouts();
           }
 
-          /* 高速连续扫键预览（非选定变更且间隔较短）瞬切海报避免拖出 200ms 双图叠化重绘风暴 */
+          /* Snap key art during rapid hover sweeps to avoid stacking 200ms crossfade storms */
           var isFastHoverSweep = Boolean(!firstUpload && !coreChanged && stateSwitched && elapsedSinceUpload < 120);
 
           var uploadCanvas = null;
@@ -9850,7 +9850,7 @@
             inst[aBase + 20] = aLegRgb[0];
             inst[aBase + 21] = aLegRgb[1];
             inst[aBase + 22] = aLegRgb[2];
-            /* 对 #0 Orch：机械下沉锁存时在 v_legColor.a 编码负值 -orchLatchCur，由 KEYCAP_FS 解码点亮顶面字符与边缘紫金微光圈 */
+            /* For #0 Orch: encode negative -orchLatchCur in v_legColor.a when latched so KEYCAP_FS lights the legend and violet-gold rim */
             inst[aBase + 23] = (aIsOrch && aLatchT > 0.001 && auxKeyLiftCur[0] <= 0.002)
               ? -aLatchT
               : clamp(auxKeyLiftCur[ai], 0, 1);
@@ -9863,11 +9863,11 @@
             inst[aBase + 28] = auxKeyHoverCur[ai];
             inst[aBase + 29] = auxKeyWaveGlow[ai];
             inst[aBase + 30] = aHeroChroma;
-            inst[aBase + 31] = -(100 + ai); /* 负值专色种子：-(100+ai) 在 KEYCAP_FS 中映射高定紫金双核或副盘微标 */
+            inst[aBase + 31] = -(100 + ai); /* Negative accent seed -(100+ai) maps to violet-gold dual-core or aux brand accents in KEYCAP_FS */
           }
         }
 
-        /* 将唯一浮空磁悬浮键交换至 instance 0（KEYCAP_VS/FS 不依赖 gl_InstanceID，主 Pass 仅对 instance 0 补绘 1 次微距立体底腔，strict 4 VAO 零新增） */
+        /* Swap the single levitated keycap to instance 0 so main pass draws its underside cavity once (strict 4-VAO budget) */
         var bestLiftVal = 0.015;
         var liftedInstIdx = -1;
         for (var li = 0; li < slotCount; li++) {
@@ -9901,7 +9901,7 @@
       function computeShadowGeomSignature(palette, shadowMapSize) {
         var q1000 = function (v) { return Math.round((Number(v) || 0) * 1000); };
         var q500 = function (v) { return Math.round((Number(v) || 0) * 500); };
-        /* 近场悬浮微倾角对柔和 6-tap PCF 阴影影响极小，按 ~0.08 rad (4.5°) 粗量化；剔除纯配色与相机距离，确保纯扫键/换主题 0 次 ShadowPass */
+        /* Quantize minor hover tilt (~0.08 rad) and omit color/camera distance from shadow key so pure hover/theme swaps trigger 0 shadow passes */
         var q12 = function (v) { return Math.round((Number(v) || 0) * 12); };
         var parts = [
           shadowMapSize,
@@ -10088,7 +10088,7 @@
           lastChassisAuxFlag = enableAuxPad ? 1 : 0;
           var chMesh = buildChassisMesh(palette, enableAuxPad);
           uploadSolidMesh(glObjs.chassisGpu, chMesh, gl.STATIC_DRAW);
-          /* 仅在首次建底盘或副盘结构切换时重算阴影，纯切换主题配色不改变几何深度，避免热开冗余 ShadowPass */
+          /* Dirty shadows only on initial build or structural aux toggle; pure palette changes preserve depth geometry */
           if (prevEmptyChassis || auxLayoutChanged) {
             shadowDirty = true;
             lastShadowGeomSig = '';
@@ -10178,7 +10178,7 @@
         gl.enable(gl.CULL_FACE);
         gl.cullFace(gl.BACK);
 
-        /* ================= Stage A: 2048/1024 按需静态阴影深度贴图 Pass（纯悬停高亮/微光/纯 OLED 帧直接跳过复用；高刷连续微动限频 30Hz！） ================= */
+        /* ================= Stage A: On-Demand 2048/1024 Shadow Depth Pass (reused on pure hover/OLED frames; capped at 30Hz during continuous motion) ================= */
         if (shPass) {
           var shadowChanged = curShadowSig !== lastShadowGeomSig;
           var shadowThrottleReady =
@@ -10233,7 +10233,7 @@
               gl.uniformMatrix4fv(shPass.uKeycap.chassisMat, false, chassisMat);
               gl.uniformMatrix4fv(shPass.uKeycap.auxChassisMat, false, auxChassisMat);
               gl.bindVertexArray(glObjs.capVao);
-              /* 阴影 Pass 仅绘制轻量高质量键帽外壳（440 tris/键），彻底剔除内部不可见底腔，三角面直降 71.5% */
+              /* Shadow pass draws only the 440-tri outer keycap shell, culling unseen cavities (-71.5% triangles) */
               gl.drawElementsInstanced(gl.TRIANGLES, glObjs.capOuterIndexCount, gl.UNSIGNED_SHORT, 0, totalKeyInstances);
             }
 
@@ -10252,7 +10252,7 @@
           }
         }
 
-        /* ================= Stage B: Early-Z Front-to-Back 渲染（先键帽写满深度 -> 再底盘/定位板剔除 ~2× Overdraw -> 再 OLED 屏与半透明微晶） ================= */
+        /* ================= Stage B: Early-Z Front-to-Back Pass (keycaps fill depth -> chassis/plate culls ~2x overdraw -> OLED & translucent crystals) ================= */
         _frameEnvVec4[0] = palette.isLight ? 1.0 : 0.0;
         _frameEnvVec4[1] = shadowEnabled;
         _frameEnvVec4[2] = ambientMul;
@@ -10273,7 +10273,7 @@
         gl.viewport(0, 0, canvas.width, canvas.height);
         gl.clearColor(0, 0, 0, 0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        /* Pass 1 & 2 全为不透明实体：关闭混合省带宽，利用 Front-to-Back Early-Z 消除被 96 颗键帽遮挡的定位板 Overdraw */
+        /* Passes 1 & 2 are fully opaque: disable blend and rely on Front-to-Back Early-Z to cull plate overdraw behind 96 keycaps */
         if (typeof gl.disable === 'function') {
           gl.disable(gl.BLEND);
         }
@@ -10285,7 +10285,7 @@
         gl.activeTexture(texUnit3);
         gl.bindTexture(gl.TEXTURE_2D, glObjs.metalEnvTex);
 
-        /* Pass 1 (Early-Z 前景): 96 颗不透明键帽轻量外壳 + 仅 1 颗浮空磁悬浮键（instance 0）微距立体底腔 */
+        /* Pass 1 (Early-Z front): 96 opaque keycap shells + single levitated keycap (instance 0) macro cavity */
         if (totalKeyInstances > 0) {
           gl.useProgram(glObjs.progKeycap);
           gl.uniformMatrix4fv(glObjs.uKeycap.viewProj, false, viewProjMat);
@@ -10334,7 +10334,7 @@
           gl.bindVertexArray(null);
         }
 
-        /* Pass 2 (Early-Z 受益层): 主盘与右侧 2×3 副盘 Step-Bezel CNC 铝壳 + 导光腰线 + 静态 PVD 镜面配重 + 轴座 */
+        /* Pass 2 (Early-Z beneficiary): main & right 2x3 aux CNC aluminum chassis + waistline + static PVD weights + switch housing */
         gl.useProgram(glObjs.progSolid);
         gl.uniformMatrix4fv(glObjs.uSolid.viewProj, false, viewProjMat);
         gl.uniformMatrix4fv(glObjs.uSolid.model, false, chassisMat);
@@ -10403,7 +10403,7 @@
           }
         }
 
-        /* Pass 3: 第 3~12 族 10U×3U 2.5D 蓝宝石圆角 OLED 大屏（开启混合以平滑融合 1px 圆角抗锯齿边至 CNC 内框） */
+        /* Pass 3: Groups 3-12 10Ux3U 2.5D rounded sapphire OLED screen (alpha-blended for smooth 1px rounded SDF edge) */
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         var diScreen = state.deckInfo || null;
@@ -10445,7 +10445,7 @@
         gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
         gl.bindVertexArray(null);
 
-        /* Pass 4: Antigravity 轴座气隙「磁通全息环 + 光柱 + 6..28 颗三维八面体折光微晶 + 散景光尘」（复用 progSolid + widgetsGpu） */
+        /* Pass 4: Antigravity socket air-gap flux rings + light pillar + 6..28 3D octahedral crystals + bokeh motes (progSolid + widgetsGpu) */
         if (glObjs.widgetsGpu.fluxCount > 0) {
           if (typeof gl.disable === 'function') {
             gl.disable(gl.CULL_FACE);
@@ -10502,7 +10502,7 @@
       }
 
       /* ============================================================================
-       * 11. Canvas 2D 透视软光栅无损降级渲染（同步支持主/副双外设 3D 共轨投影与 90+6 键）
+       * 11. Canvas 2D Perspective Software Fallback Renderer (Supports Co-Orbiting Main + Aux Chassis & 90+6 Keys)
        * ============================================================================ */
       function fillProjectedPoly(ctx, pts, fillStyle, strokeStyle, lineW) {
         for (var i = 0; i < pts.length; i++) {
@@ -10566,7 +10566,7 @@
         var p3 = projectChassisPointToPx(WELL_X_MIN, PLATE_Y, WELL_Z_MIN, s);
         fillProjectedPoly(ctx, [p0, p1, p2, p3], palette.plate, palette.caseChamfer, 0.9 * s);
 
-        /* Canvas2D 降级绘制左 1U 金属棱镜键与右 5U PVD 硬件控制铭牌舱 */
+        /* Canvas 2D fallback draw for left 1U metal prism key & right 5U PVD hardware control deck */
         var awY = CAP_Y_BASE + 0.58 - ctrlPressCur[0] * 0.10;
         var aw0 = projectChassisPointToPx(ARTISAN_WAVE_X - 0.36, awY, ROW1_Z + 0.36, s);
         var aw1 = projectChassisPointToPx(ARTISAN_WAVE_X + 0.36, awY, ROW1_Z + 0.36, s);
@@ -10790,7 +10790,7 @@
       }
 
       /* ============================================================================
-       * 12. 自管 rAF 动画循环（动态高刷限帧 60/120/180/native + 失焦/隐藏真 0fps 休眠 + 残差 < IDLE_EPS 自动归零）
+       * 12. Self-Managed rAF Animation Loop (Dynamic 60/120/180/native Cap + True 0fps Sleep + < IDLE_EPS Auto-Settle)
        * ============================================================================ */
       function cancelAnimLoop() {
         if (rafId && root && typeof root.cancelAnimationFrame === 'function') {
@@ -10981,8 +10981,8 @@
       }
 
       /**
-       * 异步单次 rAF 唤醒：用于高频输入事件（pointermove 拖拽旋转 / 指针跟随），
-       * 仅挂载单次 rAF 在下一垂直同步帧统一渲染，根除输入事件内同步 WebGL 重绘卡顿。
+       * Async single-rAF wakeup for high-frequency input (pointermove orbit drag / hover tracking):
+       * Schedules one VSync-aligned frame instead of synchronous WebGL redraws inside input handlers.
        */
       function requestWake() {
         if (disposed) return;
@@ -11002,7 +11002,7 @@
       }
 
       /* ============================================================================
-       * 13. 真 3D 射线反投影拾取 pick(clientX, clientY) 与双外设投影矩形导出
+       * 13. True 3D Ray Unprojection Picking pick(clientX, clientY) & Dual-Peripheral Projected Rect Export
        * ============================================================================ */
       function pick(clientX, clientY) {
         if (disposed) return null;
@@ -11157,7 +11157,7 @@
           }
         }
 
-        /* 1. 主盘整盘外包围盒快速剔除 + 上次命中键优先 + 7行分桶剪枝 + 缓存逆矩阵检测 */
+        /* 1. Main chassis broad-phase AABB cull + last-hit fast path + 7-row bucketing + cached inverse matrix test */
         var mainKeysBroadT = intersectRayAABB(
           rox, roy, roz, rdx, rdy, rdz,
           -CASE_HALF_W, PLATE_Y - 0.15, CASE_Z_MIN,
@@ -11185,7 +11185,7 @@
           }
         }
 
-        /* 1b. 右侧 2×3 副盘矩阵外包围盒快速剔除 + 缓存逆矩阵检测 */
+        /* 1b. Right 2x3 aux pad broad-phase AABB cull + cached inverse matrix test */
         var hasAuxRay = false;
         var aox = 0, aoy = 0, aoz = 0, adx = 0, ady = 0, adz = 0;
         if (enableAuxPad) {
@@ -11274,7 +11274,7 @@
           }
         }
 
-        /* 2. 精确射线检测第 1 行 4 枚 3D 物理硬件控件（零投影计算！） */
+        /* 2. Exact ray test against Row 1 4 physical 3D hardware controls (zero projection overhead) */
         var ctrlBoxes = computeControlPickBounds();
         for (var ci = 0; ci < ctrlBoxes.length; ci++) {
           var cb = ctrlBoxes[ci];
@@ -11306,7 +11306,7 @@
           }
         }
 
-        /* 3. 检测一体成型屏幕三维平面 y = DECK_GLASS_Y 内的光纤滑轨档位热区 (u, v) */
+        /* 3. Ray-plane test on OLED glass y = DECK_GLASS_Y for effort capsule hit regions (u, v) */
         if (Math.abs(rdy) > 1e-6) {
           var tOled = (DECK_GLASS_Y - roy) / rdy;
           if (tOled >= 0) {
@@ -11344,7 +11344,7 @@
         lastPickKind = null;
         lastPickIdx = -1;
 
-        /* 4. 检测主盘与副盘 Step-Bezel CNC 立体铝壳（含大角度旋转后的侧面与二段式底壳） */
+        /* 4. Ray-box test against main & aux Step-Bezel CNC aluminum chassis (including rotated sides & tapered underbody) */
         var tChassis = intersectRayAABB(
           rox, roy, roz, rdx, rdy, rdz,
           -CASE_HALF_W, CASE_Y_BOT - 0.04, CASE_Z_MIN,
@@ -11527,7 +11527,7 @@
             slotZ: zVal,
             symbol: sl.symbol,
             name: sl.name,
-            zh: sl.zh,
+            ar: sl.ar,
             numLabel: sl.numLabel,
             available: isAvail,
             selected: state.selectedZ === zVal || state.selectedZ === sl.z,
@@ -11630,7 +11630,7 @@
       }
 
       /* ============================================================================
-       * 14. 对外公开方法契约实现（Apple 级 1:1 异步跟手旋转 + 0.88 动量滑停 + 100% 零泄漏销毁）
+       * 14. Public API Implementation (1:1 Async Orbit Tracking + 0.88 Momentum Coast + Zero-Leak Dispose)
        * ============================================================================ */
       function applyRubberBandOrbitStep(cur, delta, minVal, maxVal) {
         if (!Number.isFinite(delta) || Math.abs(delta) < 1e-8) return clamp(cur, minVal, maxVal);
@@ -11699,10 +11699,10 @@
       }
 
       /**
-       * V11 Apple 官网级 1:1 紧跟手旋转牵引：
-       * - ORBIT_HYDRAULIC_COUPLE = 0.94 + wn = 38.0, zeta = 0.96 消除粘滞感，指哪转哪；
-       * - 右侧副盘以 ~3.2% 优雅失重相位差共轨追随；
-       * - 仅更新矩阵状态并调用异步 requestWake()，根除 pointermove 内同步 WebGL 重绘卡顿！
+       * V11 1:1 responsive orbit drag tracking:
+       * - ORBIT_HYDRAULIC_COUPLE = 0.94 + wn = 38.0, zeta = 0.96 for crisp, lag-free rotation;
+       * - Right aux pad co-orbits with ~3.2% graceful zero-G inertial lag;
+       * - Updates state and schedules async requestWake() without synchronous WebGL redraws inside pointermove.
        */
       function dragChassisOrbitDelta(dPitchRad, dYawRad) {
         if (disposed) return;
@@ -11754,8 +11754,8 @@
       }
 
       /**
-       * V11 松手 0.88 高权重动量惯性滑停（damping ≈ 6.0）：
-       * 顺滑指数阻尼自然滑停，并严格保证在 < 160 帧内完全停稳收敛至 isIdle() === true！
+       * V11 high-momentum release coasting (damping ~6.0):
+       * Smooth exponential deceleration guaranteed to settle to isIdle() === true in < 160 frames.
        */
       function endChassisOrbitDrag(optVelPitch, optVelYaw) {
         if (disposed) return;
@@ -11791,7 +11791,7 @@
         orbitTargetPitch = orbitPitchCur;
         orbitTargetYaw = orbitYawCur;
 
-        /* 封顶失重余振窗口 <= ZERO_G_FLING_CAP (2.02s ≈ 126 帧)，100% 严保 < 160 帧内回到 isIdle() === true */
+        /* Cap residual float window <= ZERO_G_FLING_CAP (2.02s ~126 frames) guaranteeing < 160-frame settle to isIdle() === true */
         if (zeroGRemainSec > ZERO_G_FLING_CAP) {
           zeroGRemainSec = ZERO_G_FLING_CAP;
         }
@@ -11897,7 +11897,7 @@
         sweepWaveWeight = 0.05;
         shadowDirty = true;
         energizeZeroG(ZERO_G_DURATION);
-        /* 异步合并至下一 VSync 帧启动入场动画，避免 open() 同毫秒内紧跟 setState() 再同步重绘第 4 遍整帧 */
+        /* Coalesce intro wake onto next VSync frame to avoid redundant synchronous redraws during open() + setState() */
         requestWake();
       }
 
@@ -12085,7 +12085,7 @@
         var prevDpr = dpr;
         cssWidth = Math.max(64, Number(nextCssW) || cssWidth || 1040);
         cssHeight = Math.max(48, Number(nextCssH) || cssHeight || 552);
-        /* DPR 上限封顶 1.5（DPR=1 保持原生 1.0 零降质，2K/4K 高分屏下大幅削减填充率与 MSAA 带宽） */
+        /* Cap DPR at 1.5 (preserves native 1.0 at DPR=1 while slashing fill-rate & MSAA bandwidth on 2K/4K displays) */
         dpr = Math.min(1.5, Math.max(1, Number(nextDpr) || 1));
         if (optBoundsRect && typeof optBoundsRect === 'object') {
           cachedCanvasRect = {
@@ -12128,11 +12128,11 @@
             canvasResized = true;
           }
         }
-        /* 画布宽高与 DPR 均未变更且已完成首帧绘制时，跳过冗余整帧重绘 */
+        /* Skip redundant full-frame redraw when canvas size and DPR are unchanged after first paint */
         if (hasInitialRender && !canvasResized && prevCssW === cssWidth && prevCssH === cssHeight && prevDpr === dpr) {
           return;
         }
-        /* 视口尺寸变化不影响光源正交阴影深度与键帽局部矩阵，严禁在此处误置 shadowDirty / keycapInstanceDirty */
+        /* Viewport resize does not affect ortho light shadow depth or local keycap matrices; keep shadowDirty / keycapInstanceDirty clean */
         updateTransforms();
         recomputePointerTargets();
         if (hasInitialRender && isEffectivelyPaused()) {
@@ -12263,14 +12263,14 @@
           state.selectedAuxIndex = normalizeOptionalIndex(nextState.selectedAuxIndex);
         }
 
-        /* V12 `#0 Orch` 机械自锁防升空铁律：锁存态下 #0 槽永不浮空，全场保持唯一主核键悬浮 */
+        /* V12 #0 Orch latch invariant: #0 never levitates when latched so only one primary planner key floats */
         if (state.orchLatched && state.selectedAuxIndex === 0) {
           state.selectedAuxIndex = null;
           auxKeyLiftCur[0] = 0.0;
           auxKeyLiftVel[0] = 0.0;
         }
 
-        /* 主盘元素键与右侧 2×3 副盘扩展键全局单选互锁契约 */
+        /* Global mutual-exclusion contract between main element keys and right 2x3 aux pad keys */
         if (
           nextState.selectedAuxIndex !== undefined &&
           state.selectedAuxIndex !== null &&
@@ -12351,7 +12351,7 @@
           applyHardwareStatePatch(nextState.hardwareState);
         }
 
-        /* V12 `#0 Orch` 机械自锁行程响应：按下瞬间越过机械咔哒触发点 (~78% 行程 < -0.10U)，随后二阶卡簧锁死至 -0.135U */
+        /* V12 #0 Orch tactile latch response: crosses actuation detent (~78% < -0.10U) then locks via spring to -0.135U */
         if (prevOrchLatched !== state.orchLatched) {
           auxKeyLiftCur[0] = 0.0;
           auxKeyLiftVel[0] = 0.0;
@@ -12487,14 +12487,14 @@
         updatePrismFocusPosition();
         recomputePointerTargets();
 
-        /* 鼠标明确离开画布 (inside=false) 且无全局大动效时，收束微浮剩余时间使重镇纸干净归位 0fps */
+        /* When pointer leaves canvas (inside=false) with no active global effect, cap remaining float time for clean 0fps settle */
         if (!isInside && !introActive && !energyPulseActive && waveRipples.length === 0 && !auxPageWaveActive && orbitMode === 'idle' && !orbitServoActive) {
           zeroGRemainSec = 0;
           zeroGEnvCur = 0;
         }
 
-        /* 远处 (> radiusPx，如 >300px) 指针移动且弹簧已静止：
-         * 100% 保持 0 rAF、idle === true 休眠（零同步 WebGL 重绘阻塞 pointermove）！ */
+        /* Distant (> radiusPx, e.g. >300px) pointer motion while springs are at rest:
+         * Maintain 0 rAF and idle === true sleep (zero synchronous WebGL redraws blocking pointermove) */
         if (!nearTrackingActive && isMagneticSpringAtRest() && idle) {
           return;
         }
@@ -12757,7 +12757,7 @@
         auxKeyLocalInvValid.fill(0);
       }
 
-      /* 首帧静态同步收敛（零残留 rAF） */
+      /* Synchronous static convergence on first frame (zero residual rAF) */
       effortTierCur = resolveEffortTier(state.deckInfo);
       effortLiftHeightCur = EFFORT_TIER_LIFTS[effortTierCur];
       if (state.selectedAuxIndex !== null && state.selectedAuxIndex !== undefined && enableAuxPad) {

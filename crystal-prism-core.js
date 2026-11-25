@@ -9,10 +9,10 @@
 
   const PROXIMITY_RADIUS_PX = 105;
 
-  // 近场光强非对称指数平滑时间常数（秒）：靠近快速点亮、离开缓慢复归纯白水晶
+  // Asymmetric exponential smoothing time constants (seconds) for near-field intensity: fast attack, slow release back to clear crystal
   const PROXIMITY_ATTACK_SEC = 0.045;
   const PROXIMITY_RELEASE_SEC = 0.28;
-  // 「光学唤醒」冷白扫光时长（秒）
+  // Optical wake cool-white sweep duration (seconds)
   const WAKE_DURATION_SEC = 0.7;
 
   function clamp(v, lo, hi) {
@@ -39,8 +39,8 @@
   };
 
   /**
-   * 计算鼠标局部坐标 (localX, localY) 到圆角胶囊轨道 [0..width, 0..height] 的光学近场权重 (0..1)。
-   * 感应半径显著小于输入框大棱镜边框 (220px)，仅在靠近约 105px 内激活色散反应。
+   * Compute optical near-field weight (0..1) from local pointer coords (localX, localY) to rounded pill track [0..width, 0..height].
+   * Sensing radius is much tighter than the composer prism border (220px), activating dispersion only within ~105px.
    */
   function computeProximityFactor(localX, localY, width, height, radius = PROXIMITY_RADIUS_PX) {
     if (!Number.isFinite(localX) || !Number.isFinite(localY) || localX < -2000 || localY < -2000) {
@@ -60,14 +60,14 @@
     if (dist <= 0) return 1;
     if (dist >= r) return 0;
     const u = 1 - dist / r;
-    // 平滑二次 S 曲线，外缘自然收敛
+    // Smooth quadratic S-curve with natural outer falloff
     return u * u * (3 - 2 * u);
   }
 
   /**
-   * 4 路星芒锚点（u, v 为左上原点的归一化坐标，着色器与 2D 降级共用同一份数据源）。
-   * 主频取黄金比 / 无理数系（e/10、(3-√5)/2、√5/10、π/10），两两不可公度，永不进入同步节拍；
-   * 再叠加一层缓慢的相位抖动（wobFreq / wobAmp），打破机械等距的闪烁节奏。
+   * 4 starlight glint anchors (u, v normalized from top-left; shared by shader and 2D fallback).
+   * Base frequencies use irrational ratios (e/10, (3-sqrt(5))/2, sqrt(5)/10, pi/10) so glints never lock into sync;
+   * layered with slow phase wobble (wobFreq / wobAmp) to break mechanical rhythmic cadence.
    */
   const GLINT_ANCHORS = [
     { u: 0.17, v: 0.30, freq: 0.2718282, phase: 0.15, wobFreq: 0.0713, wobAmp: 0.55, wobPhase: 0.4, scale: 1.0 },
@@ -78,7 +78,7 @@
   const REDUCED_GLINT_INTENSITY = [0, 0.42, 0.24, 0];
   const TWO_PI = Math.PI * 2;
 
-  // 单路星芒强度（纯函数、零分配）
+  // Single glint intensity (pure function, zero allocation)
   function glintIntensityAt(a, t) {
     const wob = a.wobAmp * Math.sin(t * TWO_PI * a.wobFreq + a.wobPhase);
     const wave = Math.sin(t * TWO_PI * a.freq + a.phase + wob);
@@ -86,7 +86,7 @@
   }
 
   /**
-   * 零分配版本：把 4 路星芒强度写入调用方提供的定长缓冲（渲染循环每帧复用）。
+   * Zero-allocation variant: writes 4 glint intensities into a caller-supplied fixed buffer reused each frame.
    */
   function fillGlintIntensities(timeSec, reduceMotion, out) {
     if (reduceMotion) {
@@ -99,8 +99,8 @@
   }
 
   /**
-   * 评估 4 路异步晶体顶点星芒微闪（避免整条跑马灯式扫描）。
-   * 对外导出版本每次返回全新数组（语义安全，便于测试 deepEqual 比较）；渲染循环使用 fillGlintIntensities。
+   * Evaluate 4 asynchronous crystal vertex starlight glints (avoids marquee-like full-bar scanning).
+   * Exported helper returns a fresh array per call (safe for deepEqual tests); render loop uses fillGlintIntensities.
    */
   function evaluateDeterministicGlints(timeSec, reduceMotion = false) {
     const t = Math.max(0, Number(timeSec) || 0);
@@ -139,19 +139,19 @@ precision highp float;
 in vec2 vUv;
 out vec4 fragColor;
 
-uniform vec2 u_res;         // CSS 像素尺寸
-uniform float u_dpr;        // 设备像素比（用于 ~0.9px 刀锋棱线的设备级抗锯齿）
+uniform vec2 u_res;         // CSS pixel dimensions
+uniform float u_dpr;        // Device pixel ratio (for ~0.9px razor ridge antialiasing)
 uniform float u_time;
 uniform float u_dark;
-uniform vec2 u_pointer;     // 相对胶囊中心的 CSS 坐标（y 轴朝上），远距为 (-9999,-9999)
-uniform float u_proximity;  // 0..1，已乘 prismStrength 并经过非对称平滑
+uniform vec2 u_pointer;     // Pointer CSS coords relative to pill center (y-up), (-9999,-9999) when far
+uniform float u_proximity;  // 0..1, scaled by prismStrength and asymmetrically smoothed
 uniform float u_reduce;
-uniform vec4 u_glints;      // 4 路异步星芒强度
-uniform vec4 u_glintU;      // 星芒锚点 u（左原点）
-uniform vec4 u_glintV;      // 星芒锚点 v（上原点）
-uniform vec2 u_wake;        // x: 扫光中心（u 空间），y: 扫光包络强度（0 表示未激活）
+uniform vec4 u_glints;      // 4 asynchronous glint intensities
+uniform vec4 u_glintU;      // Glint anchor u (left origin)
+uniform vec4 u_glintV;      // Glint anchor v (top origin)
+uniform vec2 u_wake;        // x: sweep center (u space), y: sweep envelope strength (0 = inactive)
 uniform float u_accent;     // 0:default 1:warm 2:cobalt 3:iris 4:amber 5:mono
-uniform float u_ambient;    // 0..1 环境氛围光缩放
+uniform float u_ambient;    // 0..1 ambient glow scale
 
 vec2 hash22(vec2 p) {
   vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));
@@ -165,7 +165,7 @@ float hash21(vec2 p) {
   return fract((p3.x + p3.y) * p3.z);
 }
 
-// 网格空间 Voronoi：返回所在切面 id、最近棱所属邻面 id、最近棱的网格空间法线与距离
+// Grid-space Voronoi: returns cell facet id, nearest-edge neighbor id, and grid-space edge normal & distance
 void fVor(vec2 p, out vec2 cId, out vec2 nbId, out vec2 eN, out float eD) {
   vec2 n = floor(p);
   vec2 f = fract(p);
@@ -213,7 +213,7 @@ float etchedLockMask(vec2 q, float halfStroke, float aa) {
   return 1.0 - smoothstep(-aa, aa, min(min(dBody, dSh), dKey));
 }
 
-// 柯西四色光谱与强调色模式映射（0:四色 1:暖岩 2:钴蓝 3:鸢尾紫 4:琥珀金 5:纯银钛单色）
+// Cauchy 4-color dispersion spectrum and accent mode mapping (0:quad 1:terracotta 2:cobalt 3:iris 4:amber 5:titanium mono)
 vec3 cSp(float t, float ac) {
   float u = clamp(t, 0.0, 1.0);
   if (ac > 4.5) {
@@ -250,7 +250,7 @@ vec3 cSp(float t, float ac) {
   return mix(c2, c3, s - 2.0);
 }
 
-// 冰透明度梯度色带：TIR 暗渊 -> 冷钢灰 -> 冰透银白 -> 刀锋纯白
+// Ice-clarity tonal ramp: TIR shadow -> cool steel -> translucent silver -> razor white
 vec3 iRmp(float l, float dk) {
   vec3 a = dk > 0.5 ? vec3(0.036, 0.036, 0.044) : vec3(0.25, 0.28, 0.34);
   vec3 st = dk > 0.5 ? vec3(0.38, 0.43, 0.53) : vec3(0.63, 0.69, 0.78);
@@ -279,7 +279,7 @@ void main() {
   }
   float rimD = max(0.0, -sdf);
 
-  // ── 1. 各向异性 Voronoi 大切面 ──
+  // -- 1. Anisotropic Voronoi primary facets --
   float ch = cr.y * 0.66;
   float cw = ch * 2.2;
   float sh = 0.38;
@@ -295,7 +295,7 @@ void main() {
   float h2 = hash21(cId + vec2(17.3, 9.1));
   float h3 = hash21(cId + vec2(5.7, 31.4));
 
-  // ── 2. 宏观主光 ──
+  // -- 2. Macro key light --
   float yN = clamp(px.y / max(1.0, hs.y), -1.0, 1.0);
   float cEn = clamp((abs(px.x) - (hs.x - capR)) / max(1.0, capR), 0.0, 1.0);
   vec3 Nr = vec3(sign(px.x) * cEn * 0.55, yN * 0.62, 1.0);
@@ -324,7 +324,7 @@ void main() {
   col = mix(col, cT * (0.55 + 0.5 * lum), cZ * (dk > 0.5 ? 0.22 : 0.16) * (0.35 + 0.65 * u_ambient));
   col += vec3(0.92, 0.95, 1.0) * pow(max(dot(N, Hk), 0.0), 38.0) * (dk > 0.5 ? 0.42 : 0.28);
 
-  // ── 3. 内部斜棱带 ──
+  // -- 3. Internal diagonal caustic bands --
   if (u_ambient > 0.01) {
     for (int k = 0; k < 3; k++) {
       float fk = float(k);
@@ -342,7 +342,7 @@ void main() {
     }
   }
 
-  // ── 4. 刀锋菲涅尔棱线 ──
+  // -- 4. Razor Fresnel ridge lines --
   vec3 Nb = normalize(vec3(nE * 0.45, 0.89) + vec3(Nr.xy * 0.12, 0.0));
   float rSp = pow(max(dot(Nb, Hk), 0.0), 12.0);
   float fM = 0.55 + 0.45 * pow(abs(yN), 2.0);
@@ -353,7 +353,7 @@ void main() {
   col += vec3(0.96, 0.98, 1.0) * bld * rSp * eG * fM * (dk > 0.5 ? 0.92 : 0.68);
   col *= 1.0 - hr * (1.0 - rSp) * eG * (dk > 0.5 ? 0.20 : 0.12);
 
-  // ── 5. 近场追光 + 柯西色散 ──
+  // -- 5. Near-field pointer glow + Cauchy dispersion --
   if (u_proximity > 0.004) {
     vec2 dp = px - u_pointer;
     float sp = pow(1.0 - smoothstep(0.0, max(cr.y * 3.0, 84.0), length(dp * vec2(0.85, 1.2))), 1.5);
@@ -371,7 +371,7 @@ void main() {
     col += vec3(1.0) * bld * eL * rc * 0.55;
   }
 
-  // ── 6. 4 路异步冷白十字星芒 ──
+  // -- 6. 4 asynchronous cool-white cross glints --
   for (int i = 0; i < 4; i++) {
     float gi = u_glints[i] * u_ambient;
     if (gi > 0.01) {
@@ -389,13 +389,13 @@ void main() {
     }
   }
 
-  // ── 7. 光学唤醒 ──
+  // -- 7. Optical wake sweep --
   if (u_wake.y > 0.001) {
     float d = px.x - (u_wake.x - 0.5) * cr.x - px.y * 0.55;
     col += vec3(0.90, 0.95, 1.0) * (exp(-d * d / 60.0) * 0.55 + exp(-d * d / 1.6) * 0.80) * u_wake.y;
   }
 
-  // ── 8. 胶囊外缘：厚玻璃侧壁暗化 + 内移菲涅尔亮缘（避开 rimD<1px 半透明抗锯齿带防白毛边） ──
+  // -- 8. Pill outer rim: thick glass sidewall darkening + inset Fresnel highlight (avoids rimD<1px AA fringe) --
   vec2 rN = normalize(vec2(sign(px.x) * max(0.0, abs(px.x) - (hs.x - capR)), px.y) + vec2(0.0001));
   float rL = 0.20 + 0.80 * smoothstep(-0.3, 0.85, dot(rN, normalize(Lk.xy)));
   float wS = 1.0 - smoothstep(0.0, 3.2, rimD);
@@ -410,7 +410,7 @@ void main() {
     col = mix(col, vec3(0.47, 0.52, 0.59), tL * 0.72);
   }
 
-  // ── 9. 可调滑块模式 ──
+  // -- 9. Tunable slider mode --
   if (u_reduce > 1.5) {
     float fU = clamp(u_reduce > 3.5 ? (u_reduce - 4.0) : (u_reduce - 2.0), 0.0, 1.0);
     float aM = 1.0 - smoothstep(fU - 0.012, fU + 0.012, vUv.x);
@@ -479,7 +479,7 @@ void main() {
 }`;
 
   /**
-   * 胶囊内壁激光微蚀刻锁印记（磨砂半透明，无任何背景圆球，直接镂刻于右侧晶体内）
+   * Laser micro-etched lock glyph inside the pill wall (frosted translucent, no background disc, etched directly into right crystal)
    */
   function drawLaserEtchedLock(ctx, cssW, cssH, isDark, proximityFactor) {
     const cx = cssW - 15.5;
@@ -492,27 +492,27 @@ void main() {
 
     const drawLockPath = (ox, oy) => {
       ctx.beginPath();
-      // 锁环拱门
+      // Lock shackle arch
       ctx.arc(cx + ox, cy - 1.5 + oy, 2.25, Math.PI, 0, false);
       ctx.lineTo(cx + 2.25 + ox, cy + 0.2 + oy);
       ctx.moveTo(cx - 2.25 + ox, cy - 1.5 + oy);
       ctx.lineTo(cx - 2.25 + ox, cy + 0.2 + oy);
-      // 锁体细框
+      // Lock body outline
       ctx.roundRect(cx - 3.6 + ox, cy + 0.2 + oy, 7.2, 4.9, 1.2);
       ctx.stroke();
-      // 微缩锁芯刻痕
+      // Micro keyhole notch
       ctx.beginPath();
       ctx.arc(cx + ox, cy + 2.55 + oy, 0.75, 0, Math.PI * 2);
       ctx.fill();
     };
 
-    // 内壁微暗折射投影层
+    // Inner-wall subtle dark refraction shadow pass
     ctx.strokeStyle = isDark ? 'rgba(6, 8, 16, 0.56)' : 'rgba(24, 34, 58, 0.20)';
     ctx.fillStyle = ctx.strokeStyle;
     ctx.lineWidth = 1.25;
     drawLockPath(0.6, 0.8);
 
-    // 激光磨砂银白刻蚀主线
+    // Laser-frosted silver-white primary etch pass
     ctx.strokeStyle = isDark
       ? `rgba(238, 245, 255, ${(0.54 + boost).toFixed(3)})`
       : `rgba(38, 48, 72, ${(0.50 + boost * 0.8).toFixed(3)})`;
@@ -524,7 +524,7 @@ void main() {
   }
 
   /**
-   * 2D 降级切面绘制（无 WebGL2 时）：更少更大的斜切长切面 + 全局明暗梯度 + 仅朝光棱亮起。
+   * 2D fallback facet renderer (when WebGL2 is unavailable): larger oblique facets + global tonal gradient + light-facing ridges only.
    */
   function drawFallback2D(ctx, cssW, cssH, isDark, pointerLocal, proximityFactor, glintIntensities, wakeU, wakeAmp, accentCode = 0, ambientScale = 1, sliderFillRatio = -1) {
     const r = cssH * 0.5;
@@ -533,7 +533,7 @@ void main() {
     ctx.roundRect(0, 0, cssW, cssH, r);
     ctx.clip();
 
-    // 全局明暗梯度：上冠面亮银白 -> 中部清透 -> 下亭部 TIR 暗渊
+    // Global tonal gradient: bright silver crown -> clear midsection -> TIR pavilion shadow
     const baseGrad = ctx.createLinearGradient(0, 0, 0, cssH);
     if (isDark) {
       baseGrad.addColorStop(0, '#c4ccd8');
@@ -550,7 +550,7 @@ void main() {
     ctx.fillStyle = baseGrad;
     ctx.fillRect(0, 0, cssW, cssH);
 
-    // 确定性斜切长切面：每列一条斜分割线，约 10~12 块
+    // Deterministic oblique elongated facets: one diagonal cut per column (~10-12 facets)
     const cols = Math.max(4, Math.round(cssW / 52));
     const xs = [];
     for (let i = 0; i <= cols; i++) {
@@ -610,7 +610,7 @@ void main() {
       edges.push([x0, midA, x0 - slant, cssH]);
     }
 
-    // 棱线：仅朝向主光的棱亮出 ~0.9px 刀锋，其余为几乎不可见的暗细缝
+    // Ridges: only key-light-facing edges catch a ~0.9px razor gleam; others stay subtle dark seams
     for (let e = 0; e < edges.length; e++) {
       const [ax, ay, bx, by] = edges[e];
       const len = Math.hypot(bx - ax, by - ay) || 1;
@@ -631,7 +631,7 @@ void main() {
       ctx.stroke();
     }
 
-    // 2 条内部斜棱带（随 accentCode 与 ambientScale 联动）
+    // 2 internal diagonal prism bands (linked to accentCode and ambientScale)
     if (ambientScale > 0.01) {
       ctx.lineWidth = 1.6;
       const prevAlpha = ctx.globalAlpha;
@@ -647,7 +647,7 @@ void main() {
       ctx.globalAlpha = prevAlpha;
     }
 
-    // 近场追光柔斑
+    // Near-field pointer soft bloom
     if (pointerLocal.x > -2000 && proximityFactor > 0.02) {
       const g = ctx.createRadialGradient(pointerLocal.x, pointerLocal.y, 0, pointerLocal.x, pointerLocal.y, 70);
       g.addColorStop(0, `rgba(240, 246, 255, ${(0.28 * proximityFactor).toFixed(3)})`);
@@ -656,7 +656,7 @@ void main() {
       ctx.fillRect(0, 0, cssW, cssH);
     }
 
-    // 唤醒扫光
+    // Wake sweep highlight
     if (wakeAmp > 0.001) {
       const sx = wakeU * cssW;
       const g = ctx.createLinearGradient(sx - 16, 0, sx + 16, 0);
@@ -667,7 +667,7 @@ void main() {
       ctx.fillRect(0, 0, cssW, cssH);
     }
 
-    // 异步星芒（尖端微分光，受 ambientScale 调制）
+    // Asynchronous starlight glints (subtle tip dispersion modulated by ambientScale)
     for (let i = 0; i < 4; i++) {
       const inten = glintIntensities[i] * ambientScale;
       if (inten <= 0.05) continue;
@@ -694,7 +694,7 @@ void main() {
       ctx.restore();
     }
 
-    // 2D 降级滑块分区：右侧凹陷暗色空槽 × 左侧顶部镜面高光水晶
+    // 2D fallback slider split: recessed dark empty trough on right vs specular crystal on left
     if (sliderFillRatio >= 0) {
       const splitX = clamp(sliderFillRatio, 0, 1) * cssW;
       if (splitX < cssW) {
@@ -723,7 +723,7 @@ void main() {
       }
     }
 
-    // 外缘内缩避开 clip 抗锯齿毛边带
+    // Inset outer edge to avoid clip antialiasing fringe
     ctx.beginPath();
     ctx.roundRect(1.25, 1.25, cssW - 2.5, cssH - 2.5, Math.max(1, r - 1.25));
     ctx.lineWidth = 0.8;
@@ -734,8 +734,8 @@ void main() {
   }
 
   /**
-   * 挂载 Orchestrator 写实切割白水晶棱镜条。
-   * 支持 WebGL2 实时光学着色与 2D 降级；尺寸由 ResizeObserver 缓存，支持 display:none -> visible 的懒尺寸自愈。
+   * Mount the Orchestrator realistic cut clear-crystal prism bar.
+   * Supports real-time WebGL2 optical shading with 2D fallback; dimensions cached by ResizeObserver with lazy recovery from display:none.
    */
   function mountCrystalPrismBar(canvas, options = {}) {
     if (!canvas || !canvas.getContext) return null;
@@ -746,7 +746,7 @@ void main() {
 
     let pointerClientX = -9999;
     let pointerClientY = -9999;
-    // 指针在画布左上原点坐标系下的局部位置（仅在指针事件 / 低频校准时读取 rect）
+    // Pointer local coords relative to canvas top-left (rect read only on pointer events or low-frequency calibration)
     let pointerLocalX = -9999;
     let pointerLocalY = -9999;
     let rectAge = 0;
@@ -779,7 +779,7 @@ void main() {
     const glintBuf = new Float32Array(4);
     const lastDrawnGlint = new Float32Array(4);
 
-    // ── 尺寸缓存：ResizeObserver 推送，取消每帧 getBoundingClientRect ──
+    // -- Dimension cache: pushed by ResizeObserver, eliminating per-frame getBoundingClientRect --
     let cachedW = 0;
     let cachedH = 0;
     let resizeObserver = null;
@@ -796,7 +796,7 @@ void main() {
           cachedW = box.width;
           cachedH = box.height;
         }
-        rectAge = 999; // 布局变化后下一帧校准指针局部坐标
+        rectAge = 999; // Recalibrate local pointer coords on next frame after layout change
       });
       try {
         resizeObserver.observe(canvas);
@@ -892,7 +892,7 @@ void main() {
 
     const readPrismStrength = (st) => clamp(Number(st.prismStrength ?? 1), 0, 1);
 
-    // 指针事件时读取一次 rect，换算为局部坐标并顺带校准尺寸
+    // Read rect once on pointer event to convert local coords and calibrate dimensions
     const syncPointerFromRect = () => {
       rectAge = 0;
       if (pointerClientX < -2000 || pointerClientY < -2000) {
@@ -920,13 +920,13 @@ void main() {
         elapsedTime += dt;
       }
 
-      // 无 ResizeObserver 环境才逐帧读取 rect
+      // Only read rect per frame when ResizeObserver is unavailable
       if (!resizeObserver) seedSizeFromRect();
       if (cachedW < 12 || cachedH < 10) {
         return false;
       }
 
-      // 指针静止但页面滚动 / 重排时，低频（~2Hz）校准局部坐标
+      // Low-frequency (~2Hz) local pointer recalibration when pointer is idle during scroll/reflow
       if (pointerClientX > -2000) {
         rectAge += dt;
         if (rectAge > 0.5) syncPointerFromRect();
@@ -957,7 +957,7 @@ void main() {
         !reduceMotion && ambientVal > 0.001 && pointerLocalX > -2000
           ? computeProximityFactor(pointerLocalX, pointerLocalY, cssW, cssH, PROXIMITY_RADIUS_PX) * prismStrengthVal
           : 0;
-      // 非对称指数平滑：attack ≈45ms / release ≈280ms（按真实 dt；禁动效或关闭氛围光时立即收敛）
+      // Asymmetric exponential smoothing: attack ~45ms / release ~280ms using real dt (snaps immediately when motion/ambient is off)
       if (reduceMotion || ambientVal <= 0.001) {
         currentProximity = 0;
       } else {
@@ -981,7 +981,7 @@ void main() {
         glintBuf[3] = 0;
       }
 
-      // 光学唤醒：扫光位置（u 空间）与包络，星芒随扫光依次点亮
+      // Optical wake: sweep center (u space) and envelope; glints illuminate sequentially as sweep passes
       let wakeU = 0;
       let wakeAmp = 0;
       if (wakeT >= 0) {
@@ -1066,7 +1066,7 @@ void main() {
         gl.uniform1f(u.dpr, dpr);
         gl.uniform1f(u.time, elapsedTime);
         gl.uniform1f(u.dark, isDark ? 1.0 : 0.0);
-        // 着色器坐标系 y 轴朝上，这里翻转指针 y
+        // Shader coordinate space is y-up, so flip pointer y
         if (pointerLocalX > -2000) {
           gl.uniform2f(u.pointer, pointerLocalX - cssW * 0.5, cssH * 0.5 - pointerLocalY);
         } else {
@@ -1141,10 +1141,10 @@ void main() {
       setPointerClient(clientX, clientY) {
         pointerClientX = Number.isFinite(clientX) ? clientX : -9999;
         pointerClientY = Number.isFinite(clientY) ? clientY : -9999;
-        // 仅更新目标位置；近场光强由 step 中的非对称指数平滑逼近，不再瞬时覆盖
+        // Update target position only; near-field intensity eases smoothly in step() instead of snapping
         syncPointerFromRect();
       },
-      /** 光学唤醒：播放一次约 700ms 自左向右的冷白扫光，星芒依次点亮；reduceMotion 时为空操作 */
+      /** Optical wake: plays a ~700ms left-to-right cool-white sweep illuminating glints in sequence; no-op under reduceMotion */
       wake() {
         if (reduceMotion) return;
         wakeT = 0;

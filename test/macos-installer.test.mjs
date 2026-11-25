@@ -1036,7 +1036,10 @@ test('macOS Swift Setup lossless launcher & Issue #37 100% bilingual i18n contra
   assert.ok(setupSwift.includes('"--create-launcher"'), 'Setup supports --create-launcher CLI flag');
   assert.ok(setupSwift.includes('"--no-launcher"'), 'Setup supports --no-launcher CLI flag');
   assert.ok(setupSwift.includes('NSButton(\n            checkboxWithTitle:'), 'Setup GUI adds default-checked checkbox for lossless launcher');
-  assert.ok(setupSwift.includes('创建无损启动器（~/Applications/Antigravity Prism.app，可拖进 Dock 一键开启）'), 'Setup GUI checkbox has Chinese label');
+  assert.ok(
+    setupSwift.includes('إنشاء مُطلِق آمن (~/Applications/Antigravity Prism.app، قابل للسحب إلى Dock)'),
+    'Setup GUI checkbox has Arabic label'
+  );
   assert.ok(setupSwift.includes('Create lossless launcher (~/Applications/Antigravity Prism.app, pin to Dock)'), 'Setup GUI checkbox has English label');
   assert.ok(setupSwift.includes('O_NOFOLLOW'), 'Swift launcher uses O_NOFOLLOW atomic writes');
   assert.ok(setupSwift.includes('io.github.rmvdesi.obsidian-prism.launcher'), 'Swift launcher uses canonical CFBundleIdentifier');
@@ -1052,7 +1055,7 @@ test('macOS Swift Setup lossless launcher & Issue #37 100% bilingual i18n contra
   const envPos = i18nBlock.indexOf('environment["AG_PRISM_LANG"]');
   const localePos = i18nBlock.indexOf('preferredLanguages.first');
   assert.ok(cliPos > 0 && envPos > cliPos && localePos > envPos, 'InstallerI18n priority must be CLI --lang > AG_PRISM_LANG > Locale.preferredLanguages');
-  assert.ok(i18nBlock.includes('static func tr(_ zh: String, _ en: String) -> String'), 'InstallerI18n exposes tr(_:_:)');
+  assert.ok(i18nBlock.includes('static func tr(_ ar: String, _ en: String) -> String'), 'InstallerI18n exposes tr(_:_:)');
 
   // Verify Setup & Watcher parse both `--lang <val>` and `--lang=<val>`
   assert.ok(setupSwift.includes('a == "--lang"') && setupSwift.includes('a.hasPrefix("--lang=")'), 'Setup parses --lang and --lang=');
@@ -1062,23 +1065,28 @@ test('macOS Swift Setup lossless launcher & Issue #37 100% bilingual i18n contra
   const promptMatch = cdpSwift.match(/static func promptUserForCdpRelaunch\(\) -> Bool \{[\s\S]*?\n    \}/);
   assert.ok(promptMatch, 'CdpClient.swift must define promptUserForCdpRelaunch');
   const promptBody = promptMatch[0];
-  assert.ok(promptBody.includes('let relaunchBtn = InstallerI18n.tr("立即重新打开", "Relaunch Now")'));
+  assert.ok(promptBody.includes('let relaunchBtn = InstallerI18n.tr("إعادة الفتح الآن", "Relaunch Now")'));
   assert.ok(promptBody.includes('default button \\"\\(escRelaunch)\\"'), 'AppleScript default button uses escaped relaunchBtn');
-  assert.ok(promptBody.includes('return out.contains(relaunchBtn)'), 'osascript output matching dynamically checks relaunchBtn (never hardcoded Chinese)');
+  assert.ok(promptBody.includes('return out.contains(relaunchBtn)'), 'osascript output matching dynamically checks relaunchBtn');
 
-  // Verify Setup verify-cdp recognizes both Chinese and English watcher injection log lines
+  // Verify Setup verify-cdp recognizes both Arabic and English watcher injection log lines
   assert.ok(
-    setupSwift.includes('logContent.contains("[✓] 已注入 obsidian-prism:")') &&
+    setupSwift.includes('logContent.contains("[✓] تم حقن obsidian-prism:")') &&
       setupSwift.includes('logContent.contains("[✓] Injected obsidian-prism:")'),
-    'Setup verify-cdp must recognize both Chinese and English watcher injection log entries'
+    'Setup verify-cdp must recognize both Arabic and English watcher injection log entries'
   );
 
-  // 4) Zero unwrapped Chinese user-visible strings across all 3 Swift files
+  // 4) Zero CJK anywhere and zero unwrapped Arabic user-visible strings across all 3 Swift files
   for (const [name, src] of [
     ['CdpClient.swift', cdpSwift],
     ['Setup/main.swift', setupSwift],
     ['Watcher/main.swift', watcherSwift],
   ]) {
+    assert.equal(
+      /[\u4e00-\u9fff\u3400-\u4dbf\u3000-\u303f\uff00-\uffef]/.test(src),
+      false,
+      `${name} must contain zero CJK characters`
+    );
     const lines = src.split('\n');
     let insideTr = false;
     let insideShellGen = false;
@@ -1129,14 +1137,14 @@ test('macOS Swift Setup lossless launcher & Issue #37 100% bilingual i18n contra
         continue;
       }
       if (insideShellGen) continue;
-      // Allow the bilingual log-match line in Setup/main.swift that checks both ZH & EN watcher output
-      if (name === 'Setup/main.swift' && codePart.includes('logContent.contains("[✓] 已注入 obsidian-prism:")')) {
+      // Allow the bilingual log-match line in Setup/main.swift that checks both AR & EN watcher output
+      if (name === 'Setup/main.swift' && codePart.includes('logContent.contains("[✓] تم حقن obsidian-prism:")')) {
         continue;
       }
-      if (/[\u4e00-\u9fff]/.test(codePart)) {
+      if (/[\u0600-\u06ff]/.test(codePart)) {
         unwrapped.push(`${name}:${i + 1}: ${trimmed}`);
       }
     }
-    assert.deepEqual(unwrapped, [], `Found unwrapped Chinese strings in ${name}: ${unwrapped.join('; ')}`);
+    assert.deepEqual(unwrapped, [], `Found unwrapped Arabic strings in ${name}: ${unwrapped.join('; ')}`);
   }
 });

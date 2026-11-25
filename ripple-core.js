@@ -73,7 +73,7 @@
     [234, 67, 53],
     [251, 188, 4],
   ];
-  // 白昼高饱和宝石四色（Royal Cobalt #2563EB / Iris #7C3AED / Coral #EA4335 / Amber #D97706）
+  // Daylight high-saturation gemstone four-color palette (Royal Cobalt #2563EB / Iris #7C3AED / Coral #EA4335 / Amber #D97706)
   const SPECTRUM_LIGHT = [
     [37, 99, 235],
     [124, 58, 237],
@@ -1373,7 +1373,7 @@ color = vec4(rgb * a, a);
         if (columns <= 0 || rows <= 0 || isCanvasDocHidden(canvas)) return;
         const rawDt = lastDraw > -Infinity ? Math.max(0, (now - lastDraw) / 1000) : 0;
         if (!renderer) {
-          // 无渲染上下文时依然准确推进尾迹与爆发增益衰减，防止 busy() 永久卡 true
+          // Still advance trail and burst gain decay without a render context so busy() never stays stuck at true
           if (!waves.active()) {
             glowing = false;
             prismBurst = 0;
@@ -1617,7 +1617,7 @@ color = vec4(rgb * a, a);
     [251, 188, 4],
     [92, 198, 252],
   ];
-  // 白昼高透水彩棱镜折射五阶闭合光谱（Royal Cobalt #2563EB / Iris #7C3AED / Coral #EA4335 / Amber #D97706 / Cerulean #0284C7）
+  // Daylight high-translucency watercolor prism refraction 5-step closed spectrum (Royal Cobalt #2563EB / Iris #7C3AED / Coral #EA4335 / Amber #D97706 / Cerulean #0284C7)
   const HORIZON_DAYLIGHT_STOPS = [
     [37, 99, 235],
     [124, 58, 237],
@@ -2170,7 +2170,7 @@ outColor = clamp(vec4(premulRgb, outAlpha), 0.0, 1.0);
               dotG = toneRgb[1] * 0.86 * (1 - dotMix) + prismRgb[1] * 0.92 * dotMix;
               dotB = toneRgb[2] * 0.86 * (1 - dotMix) + prismRgb[2] * 0.92 * dotMix;
             } else {
-              // 白昼高透水彩棱镜折射（2D 分支镜像：Royal Cobalt #2563EB + 四色宝石彩墨，零泛白）
+              // Daylight high-translucency watercolor prism refraction (2D branch mirror: Royal Cobalt #2563EB + 4 gemstone inks, zero washout)
               horizonPrismRgb(pPhase, prismRgb, false);
               const cobR = 37 + (2 - 37) * mixSky;
               const cobG = 99 + (132 - 99) * mixSky;
@@ -2433,7 +2433,7 @@ outColor = clamp(vec4(premulRgb, outAlpha), 0.0, 1.0);
     }
     function renderInternal(nowInput, isDarkOrOpts = {}, strengthArg, extraArg, forceStatic = false) {
       if (!renderer || canvas.width <= 0 || canvas.height <= 0 || isCanvasDocHidden(canvas)) return false;
-      // 支持 drawStaticSnapshot({ dark, strength, ... }) 单对象简写
+      // Support single-object shorthand drawStaticSnapshot({ dark, strength, ... })
       if (forceStatic && nowInput && typeof nowInput === 'object') {
         extraArg = strengthArg;
         strengthArg = isDarkOrOpts;

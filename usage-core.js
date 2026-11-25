@@ -18,108 +18,101 @@
     return Number.isFinite(n) ? n : 0;
   }
 
-  const L8 = ['zh-CN', 'zh-TW', 'en', 'ja', 'ko', 'es', 'fr', 'de'];
-  function resolveLang(langOrZh) {
-    if (langOrZh === true) return 'zh-CN';
-    if (!langOrZh) return 'en';
-    const lo = String(langOrZh).trim().toLowerCase();
+  const L2 = ['en', 'ar'];
+  function resolveLang(langOrAr) {
+    if (langOrAr === true) return 'ar';
+    if (!langOrAr) return 'en';
+    const lo = String(langOrAr).trim().toLowerCase().replace(/_/g, '-');
     if (!lo) return 'en';
-    if (/^yue(?:$|[-_])/.test(lo)) return 'zh-CN';
-    if (/^zh(?:$|[-_])/.test(lo)) return /tw|hk|mo|hant/.test(lo) ? 'zh-TW' : 'zh-CN';
-    const m = lo.match(/^(en|ja|ko|es|fr|de)(?:$|[-_])/);
-    return m ? m[1] : 'en';
+    if (lo === 'ar' || lo.startsWith('ar-') || lo === 'arabic' || lo === 'العربية') return 'ar';
+    return 'en';
   }
 
-  function pick8(arr, langOrZh) {
-    const i = L8.indexOf(resolveLang(langOrZh));
-    return arr[i >= 0 ? i : 2] ?? arr[2];
+  function pick2(arr, langOrAr) {
+    const i = L2.indexOf(resolveLang(langOrAr));
+    return arr[i >= 0 ? i : 0] ?? arr[0];
   }
 
-  const mkLbls = (a) => Object.fromEntries(L8.map((k, i) => [k, a[i]]));
+  const mkLbls = (a) => Object.fromEntries(L2.map((k, i) => [k, a[i]]));
   const HOME_RANGES = [
-    ['all', 0, ['全部', '全部', 'All', '全期間', '전체', 'Todo', 'Tout', 'Alle']],
-    ['30d', 30, ['30 天', '30 天', '30d', '30日間', '30일', '30d', '30j', '30T']],
-    ['7d', 7, ['7 天', '7 天', '7d', '7日間', '7일', '7d', '7j', '7T']],
-  ].map(([id, days, a]) => ({ id, days, labelZh: a[0], labelEn: a[2], labels: mkLbls(a) }));
+    ['all', 0, ['All', 'الكل']],
+    ['30d', 30, ['30d', '30 يوماً']],
+    ['7d', 7, ['7d', '7 أيام']],
+  ].map(([id, days, a]) => ({ id, days, labelEn: a[0], labelAr: a[1], labels: mkLbls(a) }));
 
-  const wrapTitle = (s, l, r) => (s[0] === l ? s : l + s + r);
-  const HOME_BOOKS = `tao|7607|道德经|道德經|老子（道徳経）|Tao Te Ching
-yellow|7778|黄色壁纸|黃色壁紙|黄色い壁紙|The Yellow Wallpaper
-meta|27557|变形记|變形記|変身|Metamorphosis
-jekyll|34713|化身博士||ジーキル博士とハイド氏|The Strange Case of Dr Jekyll and Mr Hyde
-alice|37248|爱丽丝漫游奇境|愛麗絲夢遊仙境|不思議の国のアリス|Alice's Adventures in Wonderland
-animal|39000|动物农场|動物農莊|動物農場|Animal Farm
-carol|40306|圣诞颂歌|小氣財神|クリスマス・キャロル|A Christmas Carol
-wild|42383|野性的呼唤|野性的呼喚|野生の呼び声|The Call of the Wild
-time|42817|时间机器|時間機器|タイム・マシン|The Time Machine
-oz|51004|绿野仙踪|綠野仙蹤|オズの魔法使い|The Wonderful Wizard of Oz
-darkness|52163|黑暗之心||闇の奥|Heart of Darkness
-faust|53930|浮士德||ファウスト|Faust
-screw|57484|螺丝在拧紧|碧廬冤孽|ねじの回転|The Turn of the Screw
-aesop|60707|伊索寓言||イソップ寓話|Aesop's Fables
-peter|63821|彼得·潘|小飛俠彼得潘|ピーター・パン|Peter Pan
-gatsby|65763|了不起的盖茨比|大亨小傳|グレート・ギャツビー|The Great Gatsby
-prince|66670|君主论|君王論|君主論|The Prince
-invisible|68163|隐形人|隱形人|透明人間|The Invisible Man
-andersen|73931|安徒生童话|安徒生童話|アンデルセン童話集|Andersen's Fairy Tales
-worlds|80168|世界大战|世界大戰|宇宙戦争|The War of the Worlds
-beyond|89836|善恶的彼岸|善惡的彼岸|善悪の彼岸|Beyond Good and Evil
-whitefang|96418|白牙||白い牙|White Fang
-meditations|96973|沉思录|沉思錄|自省録|Meditations
-frankenstein|97886|弗兰肯斯坦|科學怪人|フランケンシュタイン|Frankenstein
-stone|100000|哈利·波特与魔法石|哈利波特：神秘的魔法石|ハリー・ポッターと賢者の石|Harry Potter and the Philosopher's Stone
-dorian|106339|道林·格雷的画像|格雷的畫像|ドリアン・グレイの肖像|The Picture of Dorian Gray
-tolive|115000|活着|活著|生きる|To Live
-hobbit|123000|霍比特人|哈比人歷險記|ホビットの冒険|The Hobbit
-grimm|132467|格林童话|格林童話|グリム童話集|Grimms' Fairy Tales
-1984|136278|一九八四||1984年|Nineteen Eighty-Four
-sherlock|138725|福尔摩斯冒险史|福爾摩斯冒險史|シャーロック・ホームズの冒険|The Adventures of Sherlock Holmes
-gulliver|138958|格列佛游记|格列佛遊記|ガリヴァー旅行記|Gulliver's Travels
-walden|152659|瓦尔登湖|湖濱散記|ウォールデン 森の生活|Walden
-crusoe|153596|鲁滨逊漂流记|魯賓遜漂流記|ロビンソン・クルーソー|Robinson Crusoe
-huck|154263|哈克贝利·费恩历险记|頑童歷險記|ハックルベリー・フィンの冒険|Adventures of Huckleberry Finn
-divine|157765|神曲||神曲|The Divine Comedy
-bovary|159575|包法利夫人||ボヴァリー夫人|Madame Bovary
-zarathustra|161488|查拉图斯特拉如是说|查拉圖斯特拉如是說|ツァラトゥストラはこう語った|Thus Spoke Zarathustra
-pride|171701|傲慢与偏见|傲慢與偏見|高慢と偏見|Pride and Prejudice
-odyssey|173150|奥德赛|奧德賽|オデュッセイア|The Odyssey
-twocities|187333|双城记|雙城記|二都物語|A Tale of Two Cities
-threebody|202000|三体|三體|三体|The Three-Body Problem
-dracula|213648|德古拉||ドラキュラ|Dracula
-expectations|252176|远大前程|孤星血淚|大いなる遺産|Great Expectations
-janeeyre|256179|简·爱|簡·愛|ジェイン・エア|Jane Eyre
-republic|279539|理想国|理想國|国家|The Republic
-crime|285009|罪与罚|罪與罰|罪と罰|Crime and Punishment
-leviathan|304696|利维坦|利維坦|リヴァイアサン|Leviathan
-moby|306522|白鲸|白鯨記|白鯨|Moby-Dick
-darkforest|307000|三体Ⅱ·黑暗森林|三體Ⅱ·黑暗森林|三体II 黒暗森林|The Dark Forest
-deathsend|336000|三体Ⅲ·死神永生|三體Ⅲ·死神永生|三体III 死神永生|Death's End
-anna|481659|安娜·卡列尼娜||アンナ・カレーニナ|Anna Karenina
-karamazov|487590|卡拉马佐夫兄弟|卡拉馬佐夫兄弟|カラマーゾフの兄弟|The Brothers Karamazov
-quixote|574243|堂吉诃德|唐吉訶德|ドン・キホーテ|Don Quixote
-lotr|625000|魔戒||指輪物語|The Lord of the Rings
-kingdoms|638009|三国演义|三國演義|三国志演義|Romance of the Three Kingdoms
-montecristo|651128|基督山伯爵|基督山恩仇記|モンテ・クリスト伯|The Count of Monte Cristo
-warpeace|769001|战争与和平|戰爭與和平|戦争と平和|War and Peace
-journeywest|783200|西游记|西遊記|西遊記|Journey to the West
-miserables|801791|悲惨世界|悲慘世界|レ・ミゼラブル|Les Misérables
-redchamber|903956|红楼梦|紅樓夢|紅楼夢|Dream of the Red Chamber
-watermargin|958242|水浒传|水滸傳|水滸伝|Water Margin
-ordinary|998000|平凡的世界||平凡な世界|Ordinary World
-harrypotter|1409000|《哈利·波特》全集|《哈利波特》全集|『ハリー・ポッター』全巻|the entire Harry Potter series
-losttime|1647000|追忆似水年华|追憶似水年華|失われた時を求めて|In Search of Lost Time`.split('\n').map((row) => {
-    const [key, tk, z0, t0, j0, en] = row.split('|');
-    const zh = wrapTitle(z0, '《', '》');
-    return { key, tokens: +tk, zh, zhTW: t0 ? wrapTitle(t0, '《', '》') : zh, ja: wrapTitle(j0, '『', '』'), en };
+  const HOME_BOOKS = `tao|7607|Tao Te Ching|تاو تي تشينغ
+yellow|7778|The Yellow Wallpaper|ورق الجدران الأصفر
+meta|27557|Metamorphosis|المسخ
+jekyll|34713|The Strange Case of Dr Jekyll and Mr Hyde|الدكتور جيكل والسيد هايد
+alice|37248|Alice's Adventures in Wonderland|أليس في بلاد العجائب
+animal|39000|Animal Farm|مزرعة الحيوان
+carol|40306|A Christmas Carol|ترنيمة عيد الميلاد
+wild|42383|The Call of the Wild|نداء البرية
+time|42817|The Time Machine|آلة الزمن
+oz|51004|The Wonderful Wizard of Oz|ساحر أوز العجيب
+darkness|52163|Heart of Darkness|قلب الظلام
+faust|53930|Faust|فاوست
+screw|57484|The Turn of the Screw|دورة اللولب
+aesop|60707|Aesop's Fables|خرافات إيسوب
+peter|63821|Peter Pan|بيتر بان
+gatsby|65763|The Great Gatsby|غاتسبي العظيم
+prince|66670|The Prince|الأمير
+invisible|68163|The Invisible Man|الرجل الخفي
+andersen|73931|Andersen's Fairy Tales|حكايات أندرسن الخيالية
+worlds|80168|The War of the Worlds|حرب العوالم
+beyond|89836|Beyond Good and Evil|ما وراء الخير والشر
+whitefang|96418|White Fang|الناب الأبيض
+meditations|96973|Meditations|التأملات
+frankenstein|97886|Frankenstein|فرانكنشتاين
+stone|100000|Harry Potter and the Philosopher's Stone|هاري بوتر وحجر الفيلسوف
+dorian|106339|The Picture of Dorian Gray|صورة دوريان غراي
+tolive|115000|To Live|أن تحيا
+hobbit|123000|The Hobbit|الهوبيت
+grimm|132467|Grimms' Fairy Tales|حكايات الأخوين غريم
+1984|136278|Nineteen Eighty-Four|1984
+sherlock|138725|The Adventures of Sherlock Holmes|مغامرات شيرلوك هولمز
+gulliver|138958|Gulliver's Travels|رحلات غوليفر
+walden|152659|Walden|والدن
+crusoe|153596|Robinson Crusoe|روبنسون كروزو
+huck|154263|Adventures of Huckleberry Finn|مغامرات هكلبري فين
+divine|157765|The Divine Comedy|الكوميديا الإلهية
+bovary|159575|Madame Bovary|مدام بوفاري
+zarathustra|161488|Thus Spoke Zarathustra|هكذا تكلم زرادشت
+pride|171701|Pride and Prejudice|كبرياء وتحامل
+odyssey|173150|The Odyssey|الأوديسة
+twocities|187333|A Tale of Two Cities|قصة مدينتين
+threebody|202000|The Three-Body Problem|مشكلة الأجسام الثلاثة
+dracula|213648|Dracula|دراكولا
+expectations|252176|Great Expectations|آمال عظيمة
+janeeyre|256179|Jane Eyre|جين إير
+republic|279539|The Republic|الجمهورية
+crime|285009|Crime and Punishment|الجريمة والعقاب
+leviathan|304696|Leviathan|اللوياثان
+moby|306522|Moby-Dick|موبي ديك
+darkforest|307000|The Dark Forest|الغابة المظلمة
+deathsend|336000|Death's End|نهاية الموت
+anna|481659|Anna Karenina|آنا كارنينا
+karamazov|487590|The Brothers Karamazov|الإخوة كارامازوف
+quixote|574243|Don Quixote|دون كيخوتي
+lotr|625000|The Lord of the Rings|سيد الخواتم
+kingdoms|638009|Romance of the Three Kingdoms|رومانسية الممالك الثلاث
+montecristo|651128|The Count of Monte Cristo|الكونت دي مونت كريستو
+warpeace|769001|War and Peace|الحرب والسلام
+journeywest|783200|Journey to the West|رحلة إلى الغرب
+miserables|801791|Les Misérables|البؤساء
+redchamber|903956|Dream of the Red Chamber|حلم الغرفة الحمراء
+watermargin|958242|Water Margin|حافة الماء
+ordinary|998000|Ordinary World|عالم عادي
+harrypotter|1409000|the entire Harry Potter series|سلسلة هاري بوتر الكاملة
+losttime|1647000|In Search of Lost Time|البحث عن الزمن المفقود`.split('\n').map((row) => {
+    const [key, tk, en, ar] = row.split('|');
+    return { key, tokens: +tk, en, ar };
   });
 
-  function homeBookTitle(book, langOrZh) {
+  function homeBookTitle(book, langOrAr) {
     if (!book) return '';
-    const l = resolveLang(langOrZh);
-    if (l === 'zh-CN') return book.zh;
-    if (l === 'zh-TW') return book.zhTW || book.zh;
-    if (l === 'ja') return book.ja || book.en;
-    return book.en;
+    const l = resolveLang(langOrAr);
+    return l === 'ar' ? (book.ar || book.en) : book.en;
   }
 
   function homeRangeLabel(rangeOrId, langOrZh) {
@@ -161,21 +154,17 @@ losttime|1647000|追忆似水年华|追憶似水年華|失われた時を求め�
     return String(Math.round(value));
   }
 
-  function formatHomeHour(hour, langOrZh) {
+  function formatHomeHour(hour, langOrAr) {
     const h = ((Math.floor(toNum(hour)) % 24) + 24) % 24;
     const h12 = h % 12 || 12;
     const pm = h >= 12 ? 1 : 0;
-    const l = resolveLang(langOrZh);
-    if (l === 'fr') return h + 'h';
-    if (l === 'de') return h + ' Uhr';
-    if (l === 'es') return h + ':00';
-    if (l === 'en') return h12 + (pm ? ' PM' : ' AM');
-    const [a, b, s] = pick8(['上午 |下午 | 点', '上午 |下午 | 點', '', '午前 |午後 | 時', '오전 |오후 |시'], l).split('|');
-    return (pm ? b : a) + h12 + s;
+    const l = resolveLang(langOrAr);
+    if (l === 'ar') return h12 + (pm ? ' م' : ' ص');
+    return h12 + (pm ? ' PM' : ' AM');
   }
 
-  function homeShortDateFormat(langOrZh) {
-    return new Intl.DateTimeFormat(pick8('zh-CN,zh-TW,en-US,ja-JP,ko-KR,es-ES,fr-FR,de-DE'.split(','), langOrZh), { month: 'short', day: 'numeric' });
+  function homeShortDateFormat(langOrAr) {
+    return new Intl.DateTimeFormat(pick2(['en-US', 'ar-EG'], langOrAr), { month: 'short', day: 'numeric' });
   }
 
   function homeShortDate(format, day) {
@@ -509,15 +498,9 @@ losttime|1647000|追忆似水年华|追憶似水年華|失われた時を求め�
         const l = resolveLang(zh);
         const title = homeBookTitle(book, l);
         const cntStr = formatHomeCount(count);
-        funBook = pick8([
-          `你的 Token 用量相当于 ${cntStr} 本${title}。`,
-          `您的 Token 用量相當於 ${cntStr} 本${title}。`,
+        funBook = pick2([
           `You've used ~${cntStr}× the tokens in ${title}.`,
-          `消費トークン数は${title} ${cntStr} 冊分に相当します。`,
-          `사용한 토큰은 ${title} 약 ${cntStr}권 분량입니다.`,
-          `Has usado ~${cntStr}× los tokens de ${title}.`,
-          `Vous avez utilisé ~${cntStr}× les tokens de ${title}.`,
-          `Verbraucht: ~${cntStr}× die Token von ${title}.`,
+          `لقد استهلكت ما يعادل ~${cntStr}× من رموز «${title}».`,
         ], l);
       }
     }
@@ -567,9 +550,9 @@ losttime|1647000|追忆似水年华|追憶似水年華|失われた時を求め�
   }
 
   const Q_KIND_LBL = { 'gemini-argon': 'Gemini (Argon)', claude: 'Claude / GPT', gemini: 'Gemini' };
-  const Q_POOL_FB = '模型配额|模型配額|Quota Pool|クォータ|할당량 풀|Cuota|Quota|Kontingent'.split('|');
-  function quotaGroupLabel(group, langOrZh) {
-    return Q_KIND_LBL[quotaGroupKind(group)] || String(group?.name || group?.id || '').trim() || pick8(Q_POOL_FB, langOrZh);
+  const Q_POOL_FB = ['Quota Pool', 'مجموعة الحصة'];
+  function quotaGroupLabel(group, langOrAr) {
+    return Q_KIND_LBL[quotaGroupKind(group)] || String(group?.name || group?.id || '').trim() || pick2(Q_POOL_FB, langOrAr);
   }
 
   function quotaRemaining(bucket) {
@@ -604,21 +587,21 @@ losttime|1647000|追忆似水年华|追憶似水年華|失われた時を求め�
     return pick || list.find((g) => quotaWindows(g).length > 0) || list[0];
   }
 
-  const REFRESHING_L = '即将刷新|即將重設|Refreshing|間もなく更新|곧 초기화|Actualizando|Actualisation|Aktualisiert'.split('|');
+  const REFRESHING_L = ['Refreshing', 'جاري التحديث'];
 
-  const ETA_U = ['天|小时|分|分钟|', '天|小時|分|分鐘|', 'd|h|m|m| ', '日|時間|分|分|', '일|시간|분|분| ', 'd|h|m|m| ', 'j|h|m|m| ', 'T|Std|m|m| '];
+  const ETA_U = ['d|h|m|m| ', 'ي|س|د|د| '];
   function fmtEtaSec(totalSec, l) {
     const d = Math.floor(totalSec / 86400);
     const h = Math.floor((totalSec % 86400) / 3600);
     const m = Math.floor((totalSec % 3600) / 60);
-    const u = pick8(ETA_U, l).split('|');
+    const u = pick2(ETA_U, l).split('|');
     return d > 0 ? `${d}${u[0]}${u[4]}${h}${u[1]}` : h > 0 ? `${h}${u[1]}${u[4]}${m}${u[2]}` : `${Math.max(1, m)}${u[3]}`;
   }
 
-  function shortEta(ms, langOrZh) {
-    const l = resolveLang(langOrZh);
+  function shortEta(ms, langOrAr) {
+    const l = resolveLang(langOrAr);
     const v = numOr(ms);
-    if (!(v > 0) || !Number.isFinite(v)) return pick8(REFRESHING_L, l);
+    if (!(v > 0) || !Number.isFinite(v)) return pick2(REFRESHING_L, l);
     return fmtEtaSec(Math.max(1, Math.round(v / 1000)), l);
   }
 
@@ -667,13 +650,13 @@ losttime|1647000|追忆似水年华|追憶似水年華|失われた時を求め�
   }
 
   const Q_LBL = {
-    exhaust: '提前耗尽|提前耗盡|Depleting early|早期枯渇予測|조기 소진 예상|Se agota pronto|Épuisement rapide|Bald erschöpft'.split('|'),
-    tight: '配速偏紧|配速偏緊|Burning fast|消費やや速め|소모 빠름|Consumo rápido|Conso rapide|Hoher Verbrauch'.split('|'),
-    ok: '配额充裕|配額充裕|On track|ペース良好|정상 페이스|En rango|Dans les temps|Im Plan'.split('|'),
-    idle: '待命充裕|待命充裕|Standby|待機中|대기 중|En espera|En veille|Bereit'.split('|'),
+    exhaust: ['Depleting early', 'ينفد مبكراً'],
+    tight: ['Burning fast', 'استهلاك سريع'],
+    ok: ['On track', 'ضمن المعدل'],
+    idle: ['Standby', 'جاهز'],
   };
-  function groupQuotaPace(group, langOrZh, nowMs = Date.now()) {
-    const l = resolveLang(langOrZh);
+  function groupQuotaPace(group, langOrAr, nowMs = Date.now()) {
+    const l = resolveLang(langOrAr);
     const forecasts = quotaWindows(group).map(([wk, b]) => quotaForecast(b, wk, nowMs)).filter(Boolean);
     const rank = { exhaust: 3, tight: 2, ok: 1, idle: 0 };
     let primary = null;
@@ -681,16 +664,16 @@ losttime|1647000|追忆似水年华|追憶似水年華|失われた時を求め�
       if (!primary || (rank[f.status] ?? 0) > (rank[primary.status] ?? 0)) primary = f;
     }
     const status = primary ? primary.status : 'idle';
-    const label = pick8(Q_LBL[status] || Q_LBL.idle, l);
+    const label = pick2(Q_LBL[status] || Q_LBL.idle, l);
     let detail = '';
     if (primary) {
       if (primary.willExhaust && primary.exhaustInMs !== null) {
         const eta = shortEta(primary.exhaustInMs, l);
-        detail = pick8([`预计 ${eta}后耗尽`, `預計 ${eta}後耗盡`, `Est. empty in ${eta}`, `約${eta}で枯渇予測`, `약 ${eta} 후 소진`, `Se agota en ~${eta}`, `Vide dans ~${eta}`, `Leer in ~${eta}`], l);
+        detail = pick2([`Est. empty in ${eta}`, `يُتوقع النفاد خلال ${eta}`], l);
       } else if (primary.resetInMs > 0) {
         const eta = shortEta(primary.resetInMs, l);
         const endPct = Math.round(primary.endRemaining * 100);
-        detail = pick8([`${eta}后重置 · 预计结余 ${endPct}%`, `${eta}後重設 · 預計結餘 ${endPct}%`, `Resets in ${eta} · Est. ${endPct}% left`, `${eta}後に更新 · 予測残 ${endPct}%`, `${eta} 후 초기화 · 예상 잔여 ${endPct}%`, `Reinicio en ${eta} · Est. ${endPct}%`, `Reset dans ${eta} · Est. ${endPct}%`, `Reset in ${eta} · Ca. ${endPct}%`], l);
+        detail = pick2([`Resets in ${eta} · Est. ${endPct}% left`, `إعادة التعيين خلال ${eta} · المتوقع المتبقي ${endPct}%`], l);
       }
     }
     return { status, label, detail, primary, forecasts };
@@ -777,12 +760,12 @@ losttime|1647000|追忆似水年华|追憶似水年華|失われた時を求め�
     return v.toFixed(1) + 's';
   }
 
-  function fmtResetTime(tsSeconds, langOrZh, nowSec) {
+  function fmtResetTime(tsSeconds, langOrAr, nowSec) {
     const n0 = numOr(nowSec);
     const now = typeof n0 === 'number' ? n0 : Date.now() / 1000;
     const sec = (tsSeconds && typeof tsSeconds === 'object' ? tsSec(tsSeconds) : toNum(tsSeconds)) - now;
-    const l = resolveLang(langOrZh);
-    return sec <= 0 ? pick8(REFRESHING_L, l) : fmtEtaSec(sec, l);
+    const l = resolveLang(langOrAr);
+    return sec <= 0 ? pick2(REFRESHING_L, l) : fmtEtaSec(sec, l);
   }
 
   return {

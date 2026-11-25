@@ -290,7 +290,7 @@ test('tools/patch-asar.cjs installs /* __AG_PRISM_START__ */, preserves Chinese 
 
     assert.equal(patchAsar.isHostClientRunning(asarPath), false);
 
-    // 1. 初次安装与幂等验证
+    // 1. Initial install & idempotency check
     const res1 = patchAsar.patchAsarFile(asarPath, { noSwap: true, injectExpr: stubInjectExpr });
     assert.equal(res1.ok, true);
     assert.equal(res1.written, true);
@@ -344,13 +344,13 @@ test('tools/patch-asar.cjs installs /* __AG_PRISM_START__ */, preserves Chinese 
     const metaAfterInstall = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
     assert.equal(metaAfterInstall.patchedFingerprint, expectedMetaFp);
 
-    // 2. 二次幂等安装
+    // 2. Second idempotent install
     const res2 = patchAsar.patchAsarFile(asarPath, { noSwap: true, injectExpr: stubInjectExpr });
     assert.equal(res2.backupCreated, false);
     const read2 = patchAsar.readPreloadFromAsar(asarPath);
     assert.equal(read2.preloadText.split(patchAsar.PATCH_START_MARKER).length - 1, 1);
 
-    // 3. 无损还原
+    // 3. Lossless restore
     const restRes = patchAsar.restoreAsarFile(asarPath, { noSwap: true });
     assert.equal(restRes.ok, true);
     assert.equal(restRes.changed, true);
@@ -403,7 +403,8 @@ test('tools/patch-asar.cjs --clean-legacy strips legacy /* __AG_CLAUDE_STYLE_STA
     const cliParsed = patchAsar.parseCliArgs(['node', 'patch-asar.cjs', '--clean-legacy']);
     assert.equal(cliParsed.action, 'clean-legacy');
 
-    // 启动模拟宿主进程：验证运行期执行 --clean-legacy 绝不原地覆盖 app.asar，但立即清理 .agcs-staged* 并通过独立后台进程待退落盘！
+    // Spawn mock host process: verify --clean-legacy never overwrites app.asar in place while running,
+    // immediately deletes .agcs-staged*, and defers the swap via a background guard process.
     mockHost = spawn(process.execPath, ['-e', 'setInterval(() => {}, 10000)'], {
       stdio: 'ignore',
       windowsHide: true,
@@ -424,10 +425,10 @@ test('tools/patch-asar.cjs --clean-legacy strips legacy /* __AG_CLAUDE_STYLE_STA
     assert.equal(fs.existsSync(legacyStaged1), false);
     assert.equal(fs.existsSync(legacyStaged2), false);
 
-    // 运行期间原 app.asar 字节偏移 100% 未动！
+    // Original app.asar byte offsets remain 100% untouched while host is running
     assert.equal(Buffer.compare(fs.readFileSync(asarPath), initialAsarBuf), 0);
 
-    // 宿主退出后，独立进程自动将剥离干净的归档落盘并同步 .antigravity_chinese_meta.json
+    // After host exits, guard process swaps the cleaned archive and updates .antigravity_chinese_meta.json
     mockHost.kill();
     const swapped = await waitForCondition(
       () => !fs.existsSync(cleanRes.stagedPath) && (!guardPid || !patchAsar.isPidAlive(guardPid)),

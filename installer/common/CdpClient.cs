@@ -31,13 +31,12 @@ namespace AgyClaudeStyle
             {
                 return null;
             }
-            if (s == "zh" ||
-                s.StartsWith("zh-", StringComparison.Ordinal) ||
-                s.StartsWith("zh_", StringComparison.Ordinal) ||
-                s == "cn" ||
-                s == "chinese")
+            if (s == "ar" ||
+                s.StartsWith("ar-", StringComparison.Ordinal) ||
+                s.StartsWith("ar_", StringComparison.Ordinal) ||
+                s == "arabic")
             {
-                return "zh";
+                return "ar";
             }
             return "en";
         }
@@ -90,23 +89,23 @@ namespace AgyClaudeStyle
                     }
                 }
                 catch { }
-                return uiName.StartsWith("zh", StringComparison.OrdinalIgnoreCase) ? "zh" : "en";
+                return uiName.StartsWith("ar", StringComparison.OrdinalIgnoreCase) ? "ar" : "en";
             }
         }
 
-        public static bool IsZhUi
+        public static bool IsArUi
         {
-            get { return string.Equals(EffectiveLang, "zh", StringComparison.Ordinal); }
+            get { return string.Equals(EffectiveLang, "ar", StringComparison.Ordinal); }
         }
 
-        public static string Tr(string zh, string en)
+        public static string Tr(string ar, string en)
         {
-            return IsZhUi ? (zh ?? "") : (en ?? "");
+            return IsArUi ? (ar ?? "") : (en ?? "");
         }
 
-        public static string TrFormat(string zhFormat, string enFormat, params object[] args)
+        public static string TrFormat(string arFormat, string enFormat, params object[] args)
         {
-            string fmt = IsZhUi ? (zhFormat ?? "") : (enFormat ?? "");
+            string fmt = IsArUi ? (arFormat ?? "") : (enFormat ?? "");
             if (args == null || args.Length == 0) return fmt;
             return string.Format(CultureInfo.InvariantCulture, fmt, args);
         }
@@ -530,7 +529,7 @@ namespace AgyClaudeStyle
             HttpClientHandler handler = new HttpClientHandler();
             handler.UseProxy = false;
             HttpClient client = new HttpClient(handler);
-            // Windows loopback 关闭端口 TCP SYN 重传耗时约 2000~2100ms，Timeout 需高于该值才能准确捕获 ConnectionRefused 而非被 2000ms 超时截胡
+            // Windows loopback closed-port TCP SYN retries take ~2000-2100ms; timeout must exceed that to capture ConnectionRefused accurately
             client.Timeout = TimeSpan.FromMilliseconds(3000);
             return client;
         }
@@ -698,7 +697,7 @@ namespace AgyClaudeStyle
                 res.IsConnectionRefused = isRefused;
                 res.IsTransientTimeout = isTimeout;
                 res.ConsecutiveFailures = nextFailures;
-                // 已有活跃 attached 会话时：ConnectionRefused 立即判死，瞬态超时需连续 2 次失败才判 IsStalePort 断连
+                // With an active attached session: ConnectionRefused fails immediately; transient timeouts require 2 consecutive failures to mark IsStalePort
                 if (isRefused)
                 {
                     res.IsStalePort = true;
@@ -1016,8 +1015,8 @@ namespace AgyClaudeStyle
         private static extern bool FindClose(IntPtr hFindFile);
 
         /// <summary>
-        /// 仅放行微软标准非重定向存储层/云占位重解析标签（WOF CompactOS 压缩、OneDrive Cloud Filter、NTFS Dedup）。
-        /// Symlink / Junction / 未知标签一律返回 false（Fail-Closed）。
+        /// Allow only standard Microsoft non-redirecting storage/cloud placeholder reparse tags (WOF CompactOS, OneDrive Cloud Filter, NTFS Dedup).
+        /// Symlink / Junction / unknown tags always return false (fail-closed).
         /// </summary>
         public static bool IsSafeNonRedirectReparseTag(uint tag)
         {
@@ -1163,9 +1162,9 @@ namespace AgyClaudeStyle
         }
 
         /// <summary>
-        /// 判断路径是否为具有重定向风险的重解析点（符号链接、目录联接、悬空软链或未知重解析点）。
-        /// 直接通过 FindFirstFileW 判定（拦截通配符，超长路径自动补 \\?\ 前缀），放行纯存储层/云占位标签（WOF / OneDrive Cloud / Dedup）；
-        /// 仅在 ERROR_FILE_NOT_FOUND(2) 或 ERROR_PATH_NOT_FOUND(3) 时返回 false，其余任何错误/异常严格 Fail-Closed 返回 true。
+        /// Determine whether a path is an unsafe redirecting reparse point (symlink, junction, dangling link, or unknown tag).
+        /// Checked via FindFirstFileW (blocks wildcards, adds \\?\ prefix for long paths), allowing storage/cloud tags (WOF / OneDrive Cloud / Dedup);
+        /// returns false only on ERROR_FILE_NOT_FOUND(2) or ERROR_PATH_NOT_FOUND(3), otherwise fail-closed returns true.
         /// </summary>
         public static bool IsUnsafeReparsePoint(string path, out uint reparseTag)
         {
@@ -1228,8 +1227,8 @@ namespace AgyClaudeStyle
         }
 
         /// <summary>
-        /// 检查目录链路（覆盖 ~/.gemini → cfgDir 或沙盒 .gemini → cfgDir 祖先链）是否存在不安全重解析点。
-        /// 任何无法解析或越界异常均 Fail-Closed 返回 true。
+        /// Check whether any ancestor in the directory chain (~/.gemini -> cfgDir or sandbox .gemini -> cfgDir) is an unsafe reparse point.
+        /// Any resolution or boundary error fails closed (returns true).
         /// </summary>
         public static bool HasUnsafeReparsePointInChain(string dirPath, out string unsafePath, out uint reparseTag)
         {
@@ -1348,7 +1347,7 @@ namespace AgyClaudeStyle
                 if (HasUnsafeReparsePointInChain(parentDir, out badDir, out badTag))
                 {
                     throw new InvalidOperationException(InstallerI18n.TrFormat(
-                        "目标目录链路包含符号链接或重解析点 [{0}]，已拒绝写入: {1}",
+                        "مسار الدليل الهدف يحتوي على رابط رمزي أو نقطة إعادة تحليل [{0}]، تم رفض الكتابة: {1}",
                         "Target directory chain contains a symbolic link or reparse point [{0}]; write refused: {1}",
                         DescribeReparseTag(badTag),
                         badDir
@@ -1358,7 +1357,7 @@ namespace AgyClaudeStyle
             if (IsUnsafeReparsePoint(cfgPath))
             {
                 throw new InvalidOperationException(InstallerI18n.TrFormat(
-                    "目标文件为符号链接或重解析点，已拒绝覆盖: {0}",
+                    "الملف الهدف عبارة عن رابط رمزي أو نقطة إعادة تحليل، تم رفض الكتابة فوقه: {0}",
                     "Target file is a symbolic link or reparse point; overwrite refused: {0}",
                     cfgPath
                 ));
@@ -1380,7 +1379,7 @@ namespace AgyClaudeStyle
                         if (HasUnsafeReparsePointInChain(parentDir, out curBadDir, out curBadTag))
                         {
                             throw new InvalidOperationException(InstallerI18n.TrFormat(
-                                "目标目录链路包含符号链接或重解析点 [{0}]，已拒绝写入: {1}",
+                                "مسار الدليل الهدف يحتوي على رابط رمزي أو نقطة إعادة تحليل [{0}]، تم رفض الكتابة: {1}",
                                 "Target directory chain contains a symbolic link or reparse point [{0}]; write refused: {1}",
                                 DescribeReparseTag(curBadTag),
                                 curBadDir
@@ -1390,7 +1389,7 @@ namespace AgyClaudeStyle
                     if (IsUnsafeReparsePoint(cfgPath))
                     {
                         throw new InvalidOperationException(InstallerI18n.TrFormat(
-                            "目标文件为符号链接或重解析点，已拒绝覆盖: {0}",
+                            "الملف الهدف عبارة عن رابط رمزي أو نقطة إعادة تحليل، تم رفض الكتابة فوقه: {0}",
                             "Target file is a symbolic link or reparse point; overwrite refused: {0}",
                             cfgPath
                         ));
@@ -1398,7 +1397,7 @@ namespace AgyClaudeStyle
                     if (IsUnsafeReparsePoint(tmpPath))
                     {
                         throw new InvalidOperationException(InstallerI18n.TrFormat(
-                            "临时文件为符号链接或重解析点，已拒绝写入: {0}",
+                            "الملف المؤقت عبارة عن رابط رمزي أو نقطة إعادة تحليل، تم رفض الكتابة: {0}",
                             "Temporary file is a symbolic link or reparse point; write refused: {0}",
                             tmpPath
                         ));
@@ -1435,7 +1434,7 @@ namespace AgyClaudeStyle
                                 if (HasUnsafeReparsePointInChain(parentDir, out fbBadDir, out fbBadTag))
                                 {
                                     throw new InvalidOperationException(InstallerI18n.TrFormat(
-                                        "目标目录链路包含符号链接或重解析点 [{0}]，已拒绝回退写入: {1}",
+                                        "مسار الدليل الهدف يحتوي على رابط رمزي أو نقطة إعادة تحليل [{0}]، تم رفض الكتابة البديلة: {1}",
                                         "Target directory chain contains a symbolic link or reparse point [{0}]; fallback write refused: {1}",
                                         DescribeReparseTag(fbBadTag),
                                         fbBadDir
@@ -1445,7 +1444,7 @@ namespace AgyClaudeStyle
                             if (IsUnsafeReparsePoint(cfgPath))
                             {
                                 throw new InvalidOperationException(InstallerI18n.TrFormat(
-                                    "目标文件为符号链接或重解析点，已拒绝回退覆盖: {0}",
+                                    "الملف الهدف عبارة عن رابط رمزي أو نقطة إعادة تحليل، تم رفض الاستبدال البديل: {0}",
                                     "Target file is a symbolic link or reparse point; fallback overwrite refused: {0}",
                                     cfgPath
                                 ));
@@ -1463,7 +1462,7 @@ namespace AgyClaudeStyle
                         if (IsUnsafeReparsePoint(cfgPath))
                         {
                             throw new InvalidOperationException(InstallerI18n.TrFormat(
-                                "目标文件为符号链接或重解析点，已拒绝覆盖: {0}",
+                                "الملف الهدف عبارة عن رابط رمزي أو نقطة إعادة تحليل، تم رفض الكتابة فوقه: {0}",
                                 "Target file is a symbolic link or reparse point; overwrite refused: {0}",
                                 cfgPath
                             ));
@@ -1718,7 +1717,7 @@ namespace AgyClaudeStyle
         {
             accessDenied = false;
             if (pid <= 0) return "";
-            // 快速 PEB 通道：遇 ACCESS_DENIED 或进程已退出立即返回（杜绝 PowerShell 风暴）；仅对瞬态空串重试一次
+            // Fast PEB path: return immediately on ACCESS_DENIED or exited process (avoids PowerShell storms); retry once on transient empty string
             for (int attempt = 0; attempt < 2; attempt++)
             {
                 bool denied;
@@ -1740,13 +1739,13 @@ namespace AgyClaudeStyle
                 }
             }
 
-            // 无窗子进程（MainWindowHandle == IntPtr.Zero）严禁回退 PowerShell，避免 16x PowerShell 风暴
+            // Windowless child processes (MainWindowHandle == IntPtr.Zero) must never fall back to PowerShell
             if (!allowPowerShellFallback)
             {
                 return "";
             }
 
-            // CIM / PowerShell 回退，瞬态空串时做二次短退避重试
+            // CIM / PowerShell fallback with one short backoff retry on transient empty string
             for (int psAttempt = 0; psAttempt < 2; psAttempt++)
             {
                 string psCmd = QueryProcessCommandLineViaPowerShell(pid);
@@ -1919,7 +1918,7 @@ namespace AgyClaudeStyle
             if (string.IsNullOrEmpty(cfgDir))
             {
                 reason = InstallerI18n.Tr(
-                    "未解析到宿主 .gemini/config 目录",
+                    "تعذّر تحديد دليل .gemini/config الخاص بالتطبيق المضيف",
                     "Could not resolve host .gemini/config directory"
                 );
                 return false;
@@ -1932,7 +1931,7 @@ namespace AgyClaudeStyle
                 if (HasUnsafeReparsePointInChain(cfgDir, out badDir, out dirTag))
                 {
                     reason = InstallerI18n.TrFormat(
-                        "宿主配置目录链路包含 {0}，已按安全策略跳过自动写入: {1}",
+                        "يحتوي مسار دليل إعدادات التطبيق المضيف على {0}، تم تخطي الكتابة التلقائية وفق سياسة الأمان: {1}",
                         "Host config directory chain contains {0}; auto-write skipped by security policy: {1}",
                         DescribeReparseTag(dirTag),
                         badDir
@@ -1943,7 +1942,7 @@ namespace AgyClaudeStyle
                 if (IsUnsafeReparsePoint(cfgPath, out cfgTag))
                 {
                     reason = InstallerI18n.TrFormat(
-                        "宿主 config.json 为 {0}（如 dotfiles 软链接），已保护原链接未覆盖: {1}",
+                        "ملف config.json للمضيف عبارة عن {0} (مثل رابط dotfiles رمزي)، تمت حمايته دون استبدال: {1}",
                         "Host config.json is a {0} (e.g. dotfiles symlink); original link preserved without overwriting: {1}",
                         DescribeReparseTag(cfgTag),
                         cfgPath
@@ -1956,7 +1955,7 @@ namespace AgyClaudeStyle
                     if (HasUnsafeReparsePointInChain(cfgDir, out badDir, out dirTag))
                     {
                         reason = InstallerI18n.TrFormat(
-                            "宿主配置目录链路包含 {0}，已按安全策略跳过自动写入: {1}",
+                            "يحتوي مسار دليل إعدادات التطبيق المضيف على {0}، تم تخطي الكتابة التلقائية وفق سياسة الأمان: {1}",
                             "Host config directory chain contains {0}; auto-write skipped by security policy: {1}",
                             DescribeReparseTag(dirTag),
                             badDir
@@ -1966,7 +1965,7 @@ namespace AgyClaudeStyle
                     if (IsUnsafeReparsePoint(cfgPath, out cfgTag))
                     {
                         reason = InstallerI18n.TrFormat(
-                            "宿主 config.json 为 {0}（如 dotfiles 软链接），已保护原链接未覆盖: {1}",
+                            "ملف config.json للمضيف عبارة عن {0} (مثل رابط dotfiles رمزي)، تمت حمايته دون استبدال: {1}",
                             "Host config.json is a {0} (e.g. dotfiles symlink); original link preserved without overwriting: {1}",
                             DescribeReparseTag(cfgTag),
                             cfgPath
@@ -1983,7 +1982,7 @@ namespace AgyClaudeStyle
                             if (parsed == null)
                             {
                                 reason = InstallerI18n.Tr(
-                                    "宿主 config.json JSON 格式异常，已保护原文件未覆盖",
+                                    "تنسيق JSON في ملف config.json للمضيف غير صالح، تمت حماية الملف الأصلي دون استبدال",
                                     "Host config.json has invalid JSON syntax; original file preserved without overwriting"
                                 );
                                 return false;
@@ -2387,7 +2386,7 @@ namespace AgyClaudeStyle
                         if (log != null)
                         {
                             log(InstallerI18n.TrFormat(
-                                "[✓] 已拉起原生五通道 Sidecar Daemon ({0})",
+                                "[✓] تم تشغيل خدمة Sidecar الخلفية الأصلية ({0})",
                                 "[✓] Started native 5-channel Sidecar Daemon ({0})",
                                 useElectronAsNode ? "ELECTRON_RUN_AS_NODE=1" : "node"
                             ));
@@ -2564,8 +2563,8 @@ namespace AgyClaudeStyle
                 return dirs;
             }
 
-            // 严格隔离自动化测试与临时沙盒目录，避免触碰真实桌面快捷方式；
-            // 允许真实用户在非默认目录安装时正常修补快捷方式。
+            // Isolate automated tests and temporary sandbox directories to avoid touching real desktop shortcuts;
+            // allow real users installing to custom directories to patch shortcuts normally.
             if (IsTestSandboxEnvironment(installDir))
             {
                 return dirs;
@@ -2760,7 +2759,7 @@ namespace AgyClaudeStyle
                     if (log != null)
                     {
                         log(InstallerI18n.Tr(
-                            "[!] 系统未注册 WScript.Shell COM 组件，已跳过快捷方式参数修补（不影响核心插件部署）",
+                            "[!] مكوّن WScript.Shell COM غير مسجّل في النظام، تم تخطي تعديل معاملات الاختصارات (لا يؤثر على تثبيت الإضافة)",
                             "[!] WScript.Shell COM component is not registered; skipped shortcut patching (core plugin deployment unaffected)"
                         ));
                     }
@@ -2794,7 +2793,7 @@ namespace AgyClaudeStyle
                         string nextArgs = string.IsNullOrEmpty(origArgs.Trim())
                             ? CdpOptInFlag
                             : (origArgs.TrimEnd() + " " + CdpOptInFlag);
-                        // 仅对非符号链接的普通 .lnk 文件尝试清理只读属性后再保存；若位于系统受保护目录无权限则记录告警继续
+                        // Clear read-only attribute only on regular non-symlink .lnk files before saving; log warning and continue if in a protected system directory
                         ClearReadOnlyAndHiddenAttributes(lnkPath);
                         lnkType.InvokeMember("Arguments", BindingFlags.SetProperty, null, lnk, new object[] { nextArgs });
                         lnkType.InvokeMember("Save", BindingFlags.InvokeMethod, null, lnk, null);
@@ -2824,7 +2823,7 @@ namespace AgyClaudeStyle
                 if (log != null)
                 {
                     log(InstallerI18n.TrFormat(
-                        "[!] 快捷方式扫描异常（非致命，已跳过）: {0}",
+                        "[!] حدث استثناء أثناء فحص الاختصارات (غير حرج، تم التخطي): {0}",
                         "[!] Shortcut scan warning (non-fatal, skipped): {0}",
                         ex.Message
                     ));
@@ -2844,7 +2843,7 @@ namespace AgyClaudeStyle
                 if (log != null)
                 {
                     log(InstallerI18n.TrFormat(
-                        "已自动维护 {0} 个 Antigravity 快捷方式开启 --remote-debugging-port=0",
+                        "تم تحديث {0} من اختصارات Antigravity تلقائياً لتفعيل --remote-debugging-port=0",
                         "Updated {0} Antigravity shortcut(s) with --remote-debugging-port=0",
                         patchedCount
                     ));
@@ -2853,7 +2852,7 @@ namespace AgyClaudeStyle
             if (skippedCount > 0 && log != null)
             {
                 log(InstallerI18n.TrFormat(
-                    "[!] 已跳过 {0} 个受保护或只读的系统级 Antigravity 快捷方式（不影响安装，需提权或手动追加参数）: {1}",
+                    "[!] تم تخطي {0} من اختصارات Antigravity المحمية أو للقراءة فقط على مستوى النظام (لا يؤثر على التثبيت؛ يتطلب صلاحيات المسؤول أو إضافة المعامل يدوياً): {1}",
                     "[!] Skipped {0} protected/read-only system Antigravity shortcut(s) (non-fatal; run as Administrator or append flag manually): {1}",
                     skippedCount,
                     localSkipped[0]
@@ -2974,7 +2973,7 @@ namespace AgyClaudeStyle
             if (restoredCount > 0 && log != null)
             {
                 log(InstallerI18n.TrFormat(
-                    "已还原 {0} 个 Antigravity 快捷方式启动参数",
+                    "تمت استعادة معاملات التشغيل لـ {0} من اختصارات Antigravity",
                     "Restored launch arguments for {0} Antigravity shortcut(s)",
                     restoredCount
                 ));
@@ -3037,7 +3036,7 @@ namespace AgyClaudeStyle
                         }
                         catch (Win32Exception wex)
                         {
-                            // 权限不足（如管理员宿主进程）直接跳过，绝不误判为裸启
+                            // Skip elevated processes with insufficient permissions to avoid false bare-launch detection
                             if (wex.NativeErrorCode == ERROR_ACCESS_DENIED) continue;
                         }
                         if (exited) continue;
@@ -3047,7 +3046,7 @@ namespace AgyClaudeStyle
                         string cmd = QueryWindowsProcessCommandLine(p.Id, hasMainWindow, out accessDenied);
                         if (string.IsNullOrEmpty(cmd))
                         {
-                            // 权限不足导致命令行不可读时绝不激活 windowFallbackCandidate，避免将已带参管理员主窗口误判为裸启
+                            // Never activate windowFallbackCandidate when command line is unreadable due to permissions
                             if (!accessDenied && windowFallbackCandidate == null && hasMainWindow)
                             {
                                 bool mainModuleDenied = false;
@@ -3223,7 +3222,7 @@ namespace AgyClaudeStyle
         public static void RecordPromptedForHost(int hostPid, long startTimeMs, string decision, string installDir, string pluginDir)
         {
             if (hostPid <= 0) return;
-            // 先写入进程内 HashSet 兜底，即使磁盘只读/满导致状态文件写盘失败，也绝不每 2s 无限弹窗
+            // Record in in-process HashSet first so a read-only/full disk never causes repeated popups every 2s
             RememberPromptedHostInMemory(hostPid, startTimeMs);
             string hostKey = hostPid + ":" + startTimeMs;
             Dictionary<string, object> obj = new Dictionary<string, object>(StringComparer.Ordinal);
@@ -3251,7 +3250,7 @@ namespace AgyClaudeStyle
         public static string GetCdpRelaunchPromptCaption()
         {
             return InstallerI18n.Tr(
-                "Obsidian Prism · 恢复界面连接",
+                "Obsidian Prism · استعادة اتصال الواجهة",
                 "Obsidian Prism · Restore UI Connection"
             );
         }
@@ -3259,9 +3258,9 @@ namespace AgyClaudeStyle
         public static string GetCdpRelaunchPromptText()
         {
             return InstallerI18n.Tr(
-                "检测到 Antigravity 已升级或无参启动，尚未开启本地光学桥接端口（--remote-debugging-port=0）。\r\n" +
-                "快捷方式参数已自动维护完毕。\r\n\r\n" +
-                "是否立即重新打开 Antigravity 以恢复 Obsidian Prism（黑曜棱镜）界面？",
+                "تم اكتشاف تشغيل Antigravity بعد التحديث أو بدون معاملات دون فتح منفذ الجسر البصري المحلي (--remote-debugging-port=0).\r\n" +
+                "تم تحديث معاملات الاختصارات تلقائياً.\r\n\r\n" +
+                "هل تريد إعادة فتح Antigravity الآن لاستعادة واجهة Obsidian Prism؟",
                 "Antigravity appears to have updated or launched without the local optical bridge flag (--remote-debugging-port=0).\r\n" +
                 "Your shortcuts have been automatically updated.\r\n\r\n" +
                 "Reopen Antigravity now to restore the Obsidian Prism interface?"
@@ -3339,7 +3338,7 @@ namespace AgyClaudeStyle
                     if (log != null)
                     {
                         log(InstallerI18n.TrFormat(
-                            "已带 {0} 重新打开 Antigravity (PID {1})",
+                            "تمت إعادة فتح Antigravity باستخدام {0} (PID {1})",
                             "Relaunched Antigravity with {0} (PID {1})",
                             CdpOptInFlag,
                             spawned.Id
@@ -3431,7 +3430,7 @@ namespace AgyClaudeStyle
             sb.Append("    } else {\n");
             sb.Append("      try { window.__agPrismSidebar?.sync?.(effectiveCfg, window.__agPrismSidebarMeta || null); } catch {}\n");
             sb.Append("    }\n");
-            sb.Append("    try { const hiMode = effectiveCfg.hostLocalization; const hiLang = effectiveCfg.language; const navL = String((typeof navigator !== 'undefined' && ((navigator.languages && navigator.languages[0]) || navigator.language)) || '').trim(); if (hiMode === 'off') window.__agPrismHostI18n?.setMode?.('off'); else if (hiMode === 'on') window.__agPrismHostI18n?.setMode?.('on'); else if ((hiLang && hiLang !== 'zh-CN' && hiLang !== 'auto') || ((!hiLang || hiLang === 'auto') && navL && !/^zh(?:$|-(?:cn|hans|sg)(?:-|$))/i.test(navL))) window.__agPrismHostI18n?.destroy?.(); else window.__agPrismHostI18n?.setMode?.('auto'); } catch {}\n");
+            sb.Append("    try { const hiMode = effectiveCfg.hostLocalization; const hiLang = effectiveCfg.language; const navL = String((typeof navigator !== 'undefined' && ((navigator.languages && navigator.languages[0]) || navigator.language)) || '').trim(); if (hiMode === 'off') window.__agPrismHostI18n?.setMode?.('off'); else if (hiMode === 'on') window.__agPrismHostI18n?.setMode?.('on'); else if ((hiLang && hiLang !== 'ar' && hiLang !== 'auto') || ((!hiLang || hiLang === 'auto') && navL && !/^ar(?:-|$)/i.test(navL))) window.__agPrismHostI18n?.destroy?.(); else window.__agPrismHostI18n?.setMode?.('auto'); } catch {}\n");
             sb.Append("    if (document.documentElement) {\n");
             sb.Append("      if (effectiveCfg && effectiveCfg.thoughtTranslate && effectiveCfg.thoughtTranslate !== 'off') document.documentElement.setAttribute('data-ag-prism-thought-view', effectiveCfg.thoughtView === 'bilingual' ? 'bilingual' : 'immersive');\n");
             sb.Append("      else document.documentElement.removeAttribute('data-ag-prism-thought-view');\n");

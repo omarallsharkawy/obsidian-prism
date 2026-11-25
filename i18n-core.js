@@ -3,75 +3,50 @@
   else root.__agCsI18nCore = factory();
 })(typeof globalThis !== 'undefined' ? globalThis : window, function () {
   const LANG_OPTIONS = Object.freeze([
-    { id: 'zh-CN', label: '简体中文', htmlLang: 'zh-CN', intl: 'zh-CN' },
-    { id: 'zh-TW', label: '繁體中文', htmlLang: 'zh-TW', intl: 'zh-TW' },
-    { id: 'en', label: 'English', htmlLang: 'en', intl: 'en-US' },
-    { id: 'ja', label: '日本語', htmlLang: 'ja', intl: 'ja-JP' },
-    { id: 'ko', label: '한국어', htmlLang: 'ko', intl: 'ko-KR' },
-    { id: 'es', label: 'Español', htmlLang: 'es', intl: 'es-ES' },
-    { id: 'fr', label: 'Français', htmlLang: 'fr', intl: 'fr-FR' },
-    { id: 'de', label: 'Deutsch', htmlLang: 'de', intl: 'de-DE' },
+    { id: 'en', label: 'English', htmlLang: 'en', intl: 'en-US', dir: 'ltr' },
+    { id: 'ar', label: 'العربية', htmlLang: 'ar', intl: 'ar-EG', dir: 'rtl' },
   ]);
 
   const SUPPORTED_LANG_IDS = Object.freeze(LANG_OPTIONS.map((opt) => opt.id));
-  const CJK_LANG_IDS = new Set(['zh-CN', 'zh-TW', 'ja', 'ko']);
+  const RTL_LANG_IDS = new Set(['ar']);
   const LANG_META = Object.fromEntries(LANG_OPTIONS.map((opt) => [opt.id, opt]));
 
   /**
-   * 规范化界面语言标识至插件支持的 8 种本地化语言之一（历史 yue 平滑迁移至 zh-CN）。
+   * Normalize a language identifier to one of the supported bilingual locales ('en' or 'ar').
    */
-  function normalizeLanguage(lang, fallback = 'zh-CN') {
-    if (lang === true) return 'zh-CN';
+  function normalizeLanguage(lang, fallback = 'en') {
+    if (lang === true) return 'ar';
     if (lang === false) return 'en';
     const raw = typeof lang === 'string' ? lang.trim().toLowerCase().replace(/_/g, '-') : '';
     if (!raw) return fallback;
     const clean = raw.split(/[.@]/)[0];
     if (!clean) return fallback;
+    if (clean === 'ar' || clean.startsWith('ar-') || clean === 'arabic' || clean === 'العربية') return 'ar';
     if (clean === 'en' || clean.startsWith('en-') || clean === 'english') return 'en';
-    if (clean === 'ja' || clean.startsWith('ja-') || clean === 'jp' || clean === 'japanese') return 'ja';
-    if (clean === 'ko' || clean.startsWith('ko-') || clean === 'kr' || clean === 'korean') return 'ko';
-    if (clean === 'es' || clean.startsWith('es-') || clean === 'spanish' || clean === 'español' || clean === 'espanol') {
-      return 'es';
-    }
-    if (clean === 'fr' || clean.startsWith('fr-') || clean === 'french' || clean === 'français' || clean === 'francais') {
-      return 'fr';
-    }
-    if (clean === 'de' || clean.startsWith('de-') || clean === 'german' || clean === 'deutsch') return 'de';
-    if (clean === 'yue' || clean.startsWith('yue-') || clean === 'zh-yue' || clean.includes('cantonese')) {
-      return 'zh-CN';
-    }
-    if (
-      clean === 'zh-hk' ||
-      clean.startsWith('zh-hk-') ||
-      clean === 'zh-mo' ||
-      clean.startsWith('zh-mo-') ||
-      clean === 'zh-tw' ||
-      clean.startsWith('zh-tw-') ||
-      clean === 'zh-hant' ||
-      clean.startsWith('zh-hant-') ||
-      clean === 'tw' ||
-      clean === 'hant'
-    ) {
-      return 'zh-TW';
-    }
-    if (clean === 'zh' || clean === 'zh-cn' || clean === 'zh-hans' || clean.startsWith('zh-')) {
-      return 'zh-CN';
-    }
     return fallback;
   }
 
   function intlLocale(lang) {
     const id = normalizeLanguage(lang);
-    return LANG_META[id]?.intl || 'zh-CN';
+    return LANG_META[id]?.intl || 'en-US';
   }
 
   function htmlLangAttr(lang) {
     const id = normalizeLanguage(lang);
-    return LANG_META[id]?.htmlLang || 'zh-CN';
+    return LANG_META[id]?.htmlLang || 'en';
   }
 
-  function isCjkLanguage(lang) {
-    return CJK_LANG_IDS.has(normalizeLanguage(lang));
+  function htmlDirAttr(lang) {
+    const id = normalizeLanguage(lang);
+    return LANG_META[id]?.dir || 'ltr';
+  }
+
+  function isRtlLanguage(lang) {
+    return RTL_LANG_IDS.has(normalizeLanguage(lang));
+  }
+
+  function isCjkLanguage() {
+    return false;
   }
 
   const DURATION_TOKEN = /(\d+)\s*(months?|mo|weeks?|w|days?|d|hours?|h|minutes?|mins?|m|seconds?|secs?|s|years?|y)\b/g;
@@ -100,8 +75,8 @@
   }
 
   /**
-   * 为避免与宿主原生语言包或独立本地化层冲突并消除额外 MutationObserver 开销，
-   * 已禁用全局宿主 DOM 词典覆盖引擎（始终返回 null）。
+   * Global host DOM dictionary override engine is disabled here to avoid conflicts
+   * with the host UI or dedicated on-demand Channel 4 localization (always returns null).
    */
   function createDomTranslator() {
     return null;
@@ -113,6 +88,8 @@
     normalizeLanguage,
     intlLocale,
     htmlLangAttr,
+    htmlDirAttr,
+    isRtlLanguage,
     isCjkLanguage,
     formatDuration,
     createDomTranslator,

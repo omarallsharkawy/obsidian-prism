@@ -1191,7 +1191,6 @@ test('Issue #11: multi-HostText effortSpan (React 19 [" ", "Medium"]) & extra sp
   try {
     ctrl.sync({ effortSliderModule: 'auto' });
 
-    // 1) 滑块开启态：切到 Argon Extra (XHigh) -> 两枚 React HostText 均保持挂载且额外原生 span 不被删除
     currentSelected = argonXHigh;
     win.__agCodexEffortSliderInstance.rescan();
     assert.equal(outerSpan.textContent, 'Gemini 4 Argon Extra');
@@ -1200,7 +1199,6 @@ test('Issue #11: multi-HostText effortSpan (React 19 [" ", "Medium"]) & extra sp
     assert.equal(extraNativeSpan.isConnected, true, 'Extra native <span> inside outerSpan must NEVER be removed');
     assert.equal(extraNativeSpan.parentNode, outerSpan);
 
-    // 2) 切到无 Extra 档位的 3 档模型 Gemini 4 Carbon (Medium) -> HostText 与额外 span 仍 100% 保留
     currentSelected = carbonMed;
     reactModelText.nodeValue = 'Gemini 4 Carbon';
     win.__agCodexEffortSliderInstance.rescan();
@@ -1209,7 +1207,6 @@ test('Issue #11: multi-HostText effortSpan (React 19 [" ", "Medium"]) & extra sp
     assert.equal(reactEffortText.isConnected, true);
     assert.equal(extraNativeSpan.isConnected, true);
 
-    // 3) 切到单档位锁定 Gemini 4 Carbon（清空 effort 文本）再切回 Argon Medium -> 空白 HostText 节点自动恢复 ' '，始终不断联
     slugEffortIndex.delete('gemini-4-carbon');
     modelOptions.splice(4, 3);
     currentSelected = carbonSingle;
@@ -1227,7 +1224,6 @@ test('Issue #11: multi-HostText effortSpan (React 19 [" ", "Medium"]) & extra sp
     assert.equal(reactSpaceText.isConnected, true);
     assert.equal(reactEffortText.isConnected, true);
 
-    // 4) 关闭推理等级滑块 (effortSliderModule: 'off') -> 彻底卸载并交还控制权给 React，同时清理残留属性
     triggerBtn.setAttribute('data-ag-cs-model-submenu', '1');
     triggerBtn.setAttribute('data-ag-cs-orch-l2', '1');
     triggerBtn.setAttribute('data-ag-cs-orch-l3', '1');
@@ -1242,14 +1238,12 @@ test('Issue #11: multi-HostText effortSpan (React 19 [" ", "Medium"]) & extra sp
     assert.equal(triggerBtn.hasAttribute('data-ces-orch-row'), false);
     assert.equal(effortSpan.style.color, '');
 
-    // 验证即使存在另一个残留的 __prismOwned 实例，sync('off') 也能兜底 stop 并清理
     let orphanStopped = false;
     win.__agCodexEffortSliderInstance = { __prismOwned: true, stop() { orphanStopped = true; } };
     ctrl.sync({ effortSliderModule: 'off' });
     assert.equal(orphanStopped, true, 'Orphan __prismOwned instance must be stopped when off');
     assert.equal(win.__agCodexEffortSliderInstance, undefined);
 
-    // 5) 模拟 React 19 在滑块关闭后仅修改原始 HostText 引用 nodeValue = 'High' -> 底部按钮文本立刻同步为 'Gemini 4 Argon High'！
     currentSelected = argonHigh;
     reactEffortText.nodeValue = 'High';
     assert.equal(reactEffortText.isConnected, true);
@@ -1259,7 +1253,7 @@ test('Issue #11: multi-HostText effortSpan (React 19 [" ", "Medium"]) & extra sp
   }
 });
 
-test('Issue #16 + PR #12 + Issue #11: React 19 multi-HostText [" ", "Medium"] -> [" ", "中等"] & menu sib have 0 ping-pong loop under live i18n, preserve HostText, and reset cache across off/on toggle', async () => {
+test('Issue #16 + PR #12 + Issue #11: React 19 multi-HostText [" ", "Medium"] -> [" ", "متوسط"] & menu sib have 0 ping-pong loop under live i18n, preserve HostText, and reset cache across off/on toggle', async () => {
   const argonLow = { label: 'Gemini 4 Argon (Low)', modelId: 'gemini-4-argon-low', value: 1610 };
   const argonMed = { label: 'Gemini 4 Argon (Medium)', modelId: 'gemini-4-argon-medium', value: 1611 };
   const argonHigh = { label: 'Gemini 4 Argon (High)', modelId: 'gemini-4-argon-high', value: 1612 };
@@ -1550,10 +1544,10 @@ test('Issue #16 + PR #12 + Issue #11: React 19 multi-HostText [" ", "Medium"] ->
     assert.ok(valEl);
     assert.equal(valEl.textContent, 'Medium');
 
-    // Simulate external Chinese i18n translating React 19 HostText [" ", "Medium"] -> [" ", "中等"], sib -> "中等", valEl -> "中等"
-    reactEffortText.nodeValue = '中等';
-    sibText.nodeValue = '中等';
-    valEl.textContent = '中等';
+    // Simulate external Chinese i18n translating React 19 HostText [" ", "Medium"] -> [" ", "متوسط"], sib -> "متوسط", valEl -> "متوسط"
+    reactEffortText.nodeValue = 'متوسط';
+    sibText.nodeValue = 'متوسط';
+    valEl.textContent = 'متوسط';
     const trigWritesAfterZh = reactEffortText._writes;
     const sibWritesAfterZh = sibText._writes;
 
@@ -1564,9 +1558,9 @@ test('Issue #16 + PR #12 + Issue #11: React 19 multi-HostText [" ", "Medium"] ->
 
     assert.equal(reactEffortText._writes, trigWritesAfterZh, 'React 19 effort HostText must have 0 ping-pong overwrites');
     assert.equal(sibText._writes, sibWritesAfterZh, 'Menu row sib HostText must have 0 ping-pong overwrites');
-    assert.equal(outerSpan.textContent, 'Gemini 4 Argon 中等');
-    assert.equal(sibSpan.textContent, '中等');
-    assert.equal(valEl.textContent, '中等');
+    assert.equal(outerSpan.textContent, 'Gemini 4 Argon متوسط');
+    assert.equal(sibSpan.textContent, 'متوسط');
+    assert.equal(valEl.textContent, 'متوسط');
     assert.equal(reactSpaceText.isConnected, true);
     assert.equal(reactEffortText.isConnected, true);
     assert.equal(extraNativeSpan.isConnected, true);
@@ -1581,16 +1575,16 @@ test('Issue #16 + PR #12 + Issue #11: React 19 multi-HostText [" ", "Medium"] ->
     assert.equal(reactSpaceText.isConnected, true);
     assert.equal(reactEffortText.isConnected, true);
 
-    // Re-localize Extra -> 超高 -> still 0 ping-pong overwrites
-    reactEffortText.nodeValue = '超高';
-    sibText.nodeValue = '超高思考';
-    valEl.textContent = '超高';
+    // Re-localize Extra -> فائق -> still 0 ping-pong overwrites
+    reactEffortText.nodeValue = 'فائق';
+    sibText.nodeValue = 'تفكير فائق';
+    valEl.textContent = 'فائق';
     const tw2 = reactEffortText._writes;
     const sw2 = sibText._writes;
     await new Promise((r) => setTimeout(r, 160));
     assert.equal(reactEffortText._writes, tw2);
     assert.equal(sibText._writes, sw2);
-    assert.equal(outerSpan.textContent, 'Gemini 4 Argon 超高');
+    assert.equal(outerSpan.textContent, 'Gemini 4 Argon فائق');
 
     // Switch to locked single-tier Carbon clears localized suffix cleanly without detaching HostText
     currentSelected = carbonSingle;
@@ -1767,8 +1761,8 @@ test('PR #17 Home Studio Quotas: fallback resilience, telemetry-off veto, no dou
     storageUsageCacheKey: 'test:quotas:v234',
     isDestroyed: () => false,
     getHomeLayout: () => 'studio',
-    getLang: () => 'zh-CN',
-    uiText: () => ({ quotaEmptyHint: '暂未获取到实时配额池快照', tabQuotas: '模型配额', tabOverview: '概览' }),
+    getLang: () => 'ar',
+    uiText: () => ({ quotaEmptyHint: 'لا تتوفر بيانات الحصة حاليًا', tabQuotas: 'الحصص', tabOverview: 'نظرة عامة' }),
     getDisplayName: () => 'Dev',
     ensureHooks: () => ({ store: { getState: () => ({ trajectorySummaries: { summaries: {} } }) }, svc: {} }),
     canMountRealCanvas: () => false,
@@ -1785,7 +1779,7 @@ test('PR #17 Home Studio Quotas: fallback resilience, telemetry-off veto, no dou
       globalThis.localStorage = storage;
       globalThis.window = {
         agPulseHost: {
-          getMetrics: async () => ({ connection: 'offline', error: '当前版本未提供可用的本地检测凭据', groups: [] }),
+          getMetrics: async () => ({ connection: 'offline', error: 'No usable local detection credentials provided by this version', groups: [] }),
         },
         __agPrismMetricsBridge: {
           getMetrics: async (inp) => {

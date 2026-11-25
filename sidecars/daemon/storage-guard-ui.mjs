@@ -1,6 +1,7 @@
 // Obsidian Prism — On-demand Idle Storage & Memory Guard Banner (0 B in Channel 1)
-// 仅在检测到对话库/子代理/language_server 内存超限且页面空闲时由 Daemon 按需注入，
-// 平时零字节占用、零定时器；纯 DOM 构造杜绝 XSS，支持深浅双主题与 5+1 防翻译属性。
+// Injected on demand by the Daemon only when conversation DB / subagent / language_server memory exceeds
+// thresholds and the page is idle. Zero bytes and zero timers at rest; pure DOM construction prevents XSS,
+// supports light/dark themes, RTL (Arabic), and 5+1 no-translate attributes.
 
 export const STORAGE_GUARD_ROOT_ID = 'ag-prism-storage-guard';
 export const STORAGE_GUARD_STYLE_ID = 'ag-prism-storage-guard-css';
@@ -17,6 +18,7 @@ const BANNER_CSS = [
   'background:var(--card,rgba(22,23,28,.96));color:var(--foreground,#f3f4f6);',
   'border:1px solid rgba(245,158,11,.42);box-shadow:0 12px 34px rgba(0,0,0,.38);backdrop-filter:blur(10px);',
   'display:flex;flex-direction:column;gap:9px;box-sizing:border-box}',
+  `#${STORAGE_GUARD_ROOT_ID}[dir="rtl"]{direction:rtl;text-align:right;right:auto;left:18px}`,
   `#${STORAGE_GUARD_ROOT_ID} .ag-sg-head{display:flex;align-items:center;justify-content:space-between;gap:8px}`,
   `#${STORAGE_GUARD_ROOT_ID} .ag-sg-title{font-weight:600;font-size:12.5px;color:#fbbf24;display:flex;align-items:center;gap:6px}`,
   `html[data-ag-cs-theme="light"] #${STORAGE_GUARD_ROOT_ID} .ag-sg-title,html>body:is(.theme-light,.light-theme,.light) #${STORAGE_GUARD_ROOT_ID} .ag-sg-title,html>body:is(.vscode-light,.vscode-high-contrast-light) #${STORAGE_GUARD_ROOT_ID} .ag-sg-title{color:#b45309}`,
@@ -47,13 +49,18 @@ export function buildStorageGuardDismissExpression() {
 }
 
 /**
- * 构建按需注入页面的温和超限提醒浮条表达式（纯 DOM API，0 innerHTML，8 语文案由调用方传入）。
+ * Build the on-demand expression for the gentle storage/memory threshold reminder banner
+ * (pure DOM API, zero innerHTML, bilingual EN/AR copy supplied by caller).
  */
 export function buildStorageGuardBannerExpression(payload = {}) {
+  const lang = String(payload.lang || '').trim().toLowerCase().startsWith('ar') ? 'ar' : 'en';
+  const dir = payload.dir === 'rtl' || lang === 'ar' ? 'rtl' : 'ltr';
   const safeData = serializeSafeJson({
     rootId: STORAGE_GUARD_ROOT_ID,
     styleId: STORAGE_GUARD_STYLE_ID,
     css: BANNER_CSS,
+    lang,
+    dir,
     autoArchiveOnExit: Boolean(payload.autoArchiveOnExit),
     copy: payload.copy || {},
   });
@@ -121,6 +128,8 @@ export function buildStorageGuardBannerExpression(payload = {}) {
       root.id = cfg.rootId;
       root.setAttribute('role', 'status');
       root.setAttribute('aria-live', 'polite');
+      if (cfg.dir === 'rtl') root.setAttribute('dir', 'rtl');
+      if (cfg.lang) root.setAttribute('lang', cfg.lang);
 
       const head = document.createElement('div');
       head.className = 'ag-sg-head';

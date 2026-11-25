@@ -103,7 +103,7 @@ function sanitizeScopeSegment(raw) {
   try {
     s = decodeURIComponent(s);
   } catch {}
-  // VS Code Remote-SSH 有时将 authority JSON 编码为 hex 字符串（如 {"hostName":"prod-box"}）
+  // VS Code Remote-SSH sometimes encodes authority JSON as a hex string (e.g. {"hostName":"prod-box"})
   if (/^[0-9a-f]{8,}$/i.test(s) && s.length % 2 === 0 && s.length <= 512) {
     try {
       const decoded = Buffer.from(s, 'hex').toString('utf8');
@@ -150,7 +150,7 @@ export function extractScopeKeyFromUri(rawUri) {
   try {
     s = decodeURIComponent(s);
   } catch {}
-  // 检查 URL query 中的 remoteAuthority=...
+  // Check remoteAuthority=... in the URL query string
   const qm = s.match(/[?&#]remoteAuthority=([^&#\s]+)/i);
   const candidate = qm && qm[1] ? qm[1] : s;
   const sshMatch = candidate.match(/(?:^|vscode-remote:\/\/)ssh-remote\+([^/&#?\s]+)/i);
@@ -224,7 +224,7 @@ function inferRemoteScopeFromSummariesOrItems(records) {
       localFileCount += 1;
     }
   }
-  // 只有存在明确远程工作区 URI 且未被本机 file:// 主导时才推断为远程 scope
+  // Only infer a remote scope when explicit remote workspace URIs exist and are not outnumbered by local file:// URIs
   if (remoteScope && remoteCount > 0 && remoteCount >= localFileCount) {
     return remoteScope;
   }
@@ -399,7 +399,7 @@ export function writeFileAtomicSync(targetPath, content, { mode = 0o600 } = {}) 
       }
     }
     if (!renamed) {
-      // Windows 兼容回退：句柄短暂占用导致 renameSync 失败时先复核非符号链接再覆盖目标并清理临时文件
+      // Windows fallback: when brief handle locks cause renameSync to fail, re-verify non-symlink, copy over target, and clean up temp file
       if (process.platform === 'win32' && ['EBUSY', 'EPERM', 'EACCES', 'EEXIST'].includes(lastErr?.code)) {
         assertNotSymlinkSync(dir, 'target directory');
         assertNotSymlinkSync(resolvedTarget, 'target file');
@@ -717,9 +717,9 @@ function hasBlockedInlineDiffUnc(rawInput) {
   const s = rawInput.trim();
   if (!s) return false;
   if (isBlockedUncPath(s)) return true;
-  // 拦截一切双斜杠/混合斜杠前导（\\、//、\/、/\、\\?\、\\.\），防止 SMB/NetNTLMv2 凭据泄露与 NT 设备路径绕过
+  // Block all double/mixed leading slashes (\\, //, \/, /\, \\?\, \\.\) to prevent SMB/NetNTLMv2 credential leaks and NT device path bypasses
   if (/^[\\/]{2}/.test(s)) return true;
-  // 拦截单斜杠变体 NT 设备/对象管理器前缀（/?/、/./、\??\、/GLOBAL/UNC/、/GLOBALROOT/Device/Mup|LanmanRedirector|WebDavRedirector）
+  // Block single-slash NT device / object manager prefixes (/?/, /./, \??\, /GLOBAL/UNC/, /GLOBALROOT/Device/Mup|LanmanRedirector|WebDavRedirector)
   if (/^[\\/](?:[?.]+[\\/])+/.test(s)) return true;
   if (/^[\\/]globalroot[\\/]/i.test(s)) return true;
   if (
@@ -746,11 +746,11 @@ function isSensitiveInlineDiffPath(filePath) {
   const lower = normalized.toLowerCase();
   const base = path.posix.basename(lower);
   if (!base) return true;
-  // 防 Windows 末尾点/空格归一化绕过（例如 config.json. / .env ）
+  // Defend against Windows trailing dot/space normalization bypasses (e.g., config.json. / .env )
   const cleanBase = base.replace(/[. ]+$/, '');
   const basesToCheck = cleanBase && cleanBase !== base ? [base, cleanBase] : [base];
   for (const b of basesToCheck) {
-    // 拦截 .env* 及隐私配置与凭据文件
+    // Block .env* and sensitive config/credential files
     if (b.startsWith('.env')) return true;
     if (b.endsWith('_history')) return true;
     if (b.startsWith('obsidian-prism-thought') && (b.endsWith('.json') || b.endsWith('.json.tmp'))) {
@@ -813,7 +813,7 @@ function resolveInlineDiffCandidatePath(rawUri) {
     }
     const afterScheme = raw.slice(7);
     const rawPathPart = afterScheme.split(/[?#]/, 1)[0];
-    // 仅允许本机空主机 file:///...，拒绝 file://host/... 远程共享与 SMB 访问
+    // Allow only local empty-host file:///...; reject file://host/... remote shares and SMB access
     if (!rawPathPart.startsWith('/')) {
       return { ok: false, error: 'blocked_unc' };
     }
@@ -881,7 +881,7 @@ function resolveInlineDiffCandidatePath(rawUri) {
     if (!/^[A-Za-z]:[\\/]/.test(candidatePath)) {
       return { ok: false, error: 'invalid_uri' };
     }
-    // 拦截 Windows NTFS 备用数据流（ADS，如 file.txt::$DATA）
+    // Block Windows NTFS Alternate Data Streams (ADS, e.g. file.txt::$DATA)
     if (candidatePath.slice(2).includes(':')) {
       return { ok: false, error: 'invalid_uri' };
     }
@@ -1009,7 +1009,7 @@ function parseDiffGitHeaderPaths(line) {
   const rest = line.slice('diff --git '.length).trim();
   if (!rest) return null;
   const candidates = [];
-  // 解析 C-style 引号或空白分隔的 2 个 token
+  // Parse 2 C-style quoted or whitespace-separated tokens
   const tokens = [];
   let idx = 0;
   while (idx < rest.length && tokens.length < 3) {
@@ -1043,7 +1043,7 @@ function parseDiffGitHeaderPaths(line) {
     if (p1) candidates.push(p1);
     if (p2) candidates.push(p2);
   }
-  // 兜底：无引号且文件名含空格时枚举所有 " b/" 切分点，宁严勿漏
+  // Fallback: when unquoted and filenames contain spaces, enumerate all " b/" split points strictly
   let splitPos = rest.indexOf(' b/');
   while (splitPos !== -1) {
     const left = stripGitDiffPrefix(rest.slice(0, splitPos));
@@ -1096,7 +1096,7 @@ function parseInlineUnifiedDiff(rawDiff, { maxLines = INLINE_DIFF_MAX_DIFF_LINES
   for (let i = 0; i < rawLines.length; i += 1) {
     const line = rawLines[i];
     if (line.startsWith('diff --git ')) {
-      // 强制单文件输出：遇到第二个 diff --git 立即截断停止，防 glob/pathspec 多文件泄露
+      // Enforce single-file output: truncate immediately at a second diff --git header to prevent glob/pathspec multi-file leaks
       if (seenDiffHeaders >= 1) {
         break;
       }
@@ -1227,7 +1227,7 @@ function parseInlineUnifiedDiff(rawDiff, { maxLines = INLINE_DIFF_MAX_DIFF_LINES
     return { blocked: false, isBinary: false, additions, deletions, truncated: totalRowCount > maxLines, focusedByHint: false, lines };
   }
 
-  // Hint-Aware Hunk Windowing：当步骤徽章带 -N 删除但文件很大时，优先挑选含红色删除/替换的变更块，避免被文件头部纯绿新增塞满切丢
+  // Hint-Aware Hunk Windowing: when a step badge reports -N deletions on a large file, prioritize hunks with deletions/replacements instead of filling the window with top-of-file additions
   const scored = hunks.map((h) => {
     let score = 0;
     if (hintDel > 0) {
@@ -1413,7 +1413,7 @@ function findGitRootFast(startDir) {
       return null;
     }
 
-    // 严格 Fail-Closed：.git 为符号链接或非常规文件/目录时一律立即拒绝
+    // Strict fail-closed: immediately reject when .git is a symlink or non-regular file/directory
     if (gst.isSymbolicLink()) {
       return null;
     }
@@ -1445,7 +1445,7 @@ function findGitRootFast(startDir) {
     }
 
     if (gst.isFile()) {
-      // gitfile 指针严格 Fail-Closed：超 4KB、非合法 gitdir:、UNC、含符号链接或 realpath 失败均立即 return null
+      // Strict fail-closed gitfile pointer check: return null on >4KB, invalid gitdir:, UNC, symlinks, or realpath failure
       if (gst.size <= 0 || gst.size > INLINE_DIFF_MAX_GIT_POINTER_BYTES) {
         return null;
       }
@@ -1629,7 +1629,7 @@ function projectInlineDiffEntry(rawEntry, { maxDiffLines, maxSnapshotLines, maxL
   };
 }
 
-// 受限只读行内 Diff 读取器：严防 UNC/NT 设备路径/路径穿越/符号链接逃逸/敏感凭据读取、非 Git 越界读取与 Shell 注入
+// Restricted read-only inline diff reader: blocks UNC/NT device paths, path traversal, symlink escapes, sensitive credentials, non-Git out-of-bounds reads, and shell injection
 export async function readSafeInlineDiff(rawUri, opts = {}) {
   const maxDiffLines = clampPositiveInt(opts?.maxDiffLines, INLINE_DIFF_MAX_DIFF_LINES, INLINE_DIFF_MAX_DIFF_LINES);
   const maxSnapshotLines = clampPositiveInt(
@@ -1668,7 +1668,7 @@ export async function readSafeInlineDiff(rawUri, opts = {}) {
     return { ok: false, error: 'read_failed' };
   }
 
-  // 解析符号链接后的二次安全校验：防符号链接逃逸到 UNC 共享或敏感文件
+  // Secondary safety check after resolving symlinks to prevent escaping to UNC shares or sensitive files
   if (hasBlockedInlineDiffUnc(realPath)) {
     return { ok: false, error: 'blocked_unc' };
   }
@@ -1689,7 +1689,7 @@ export async function readSafeInlineDiff(rawUri, opts = {}) {
   const fileName = path.basename(realPath);
   const dir = path.dirname(realPath);
 
-  // 0.1ms 纯 Node 向上探测 .git 仓根（严格 Fail-Closed，非 Git 仓库强制拒绝）
+  // 0.1ms pure-Node upward walk to locate .git repo root (strict fail-closed; non-Git paths are rejected)
   let realRepoRoot = null;
   let realGitDir = null;
   let realCommonGitDir = null;
@@ -1723,10 +1723,10 @@ export async function readSafeInlineDiff(rawUri, opts = {}) {
     return { ok: false, reason: 'outside_git_repo', error: 'outside_git_repo' };
   }
 
-  // 调用 git 前扫描 <gitDir>/config（限 64 KiB），含 [filter 或 fsmonitor= 时跳过 git 子进程降级安全纯文件只读切片
+  // Scan <gitDir>/config (capped at 64 KiB) before spawning git; skip git subprocess and degrade to safe read-only file slice if [filter or fsmonitor= is found
   const skipGitSubprocess = hasUnsafeGitConfig(realGitDir, realCommonGitDir);
   const wantCommitFallback = hintDel > 0 ? 1 : 0;
-  // rawDiff 缓存键彻底解耦客户端可控整数 hints 与输出窗口行数，防变换 hints 穿透缓存触发 git log 风暴
+  // Decouple rawDiff cache key from client-controlled integer hints and window line counts to prevent cache-busting git log storms
   const rawCacheKey = `${realPath}|${st.mtimeMs}|${st.size}|${gitIndexMtimeMs}|${skipGitSubprocess ? 1 : 0}|${wantCommitFallback}|${maxReadBytes}|${gitMaxBuffer}`;
   const projectionOpts = { maxDiffLines, maxSnapshotLines, maxLineChars, hintAdd, hintDel };
 
@@ -1745,7 +1745,7 @@ export async function readSafeInlineDiff(rawUri, opts = {}) {
   const fetchRaw = () =>
     runWithInlineDiffSemaphore(async () => {
       if (!skipGitSubprocess) {
-        // 单次 git diff HEAD 同时覆盖工作区未暂存与已暂存变更，直接砍半子进程冷启动时间
+        // Single `git diff HEAD` covers both unstaged and staged changes, cutting subprocess cold-start time in half
         let diffRes = await execGitInlineDiff(
           ['-C', realRepoRoot, 'diff', 'HEAD', '--no-color', '--no-ext-diff', '--no-textconv', '--unified=2', '--', gitRelPath],
           { timeoutMs: diffTimeoutMs, maxBuffer: gitMaxBuffer }
@@ -1753,7 +1753,7 @@ export async function readSafeInlineDiff(rawUri, opts = {}) {
         let rawDiff = diffRes.ok || diffRes.code === 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER' ? diffRes.stdout : '';
         let bufferTruncated = diffRes.code === 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER';
 
-        // 兼容刚 git init 尚无 HEAD 的仓库：回退一次 --cached
+        // Handle freshly initialized repos with no HEAD yet: fall back once to --cached
         if (!diffRes.ok && !rawDiff.trim()) {
           diffRes = await execGitInlineDiff(
             ['-C', realRepoRoot, 'diff', '--cached', '--no-color', '--no-ext-diff', '--no-textconv', '--unified=2', '--', gitRelPath],
@@ -1763,7 +1763,7 @@ export async function readSafeInlineDiff(rawUri, opts = {}) {
           bufferTruncated = diffRes.code === 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER';
         }
 
-        // 若工作区已提交干净但徽章明确提示有删改（历史步骤），拉取该文件最近一次真实 commit diff
+        // If working tree is clean after commit but the badge indicates deletions (historical step), fetch the file's latest commit diff
         if (!rawDiff.trim() && wantCommitFallback) {
           const logRes = await execGitInlineDiff(
             ['-C', realRepoRoot, 'log', '-n', '1', '-p', '--no-color', '--no-ext-diff', '--no-textconv', '--unified=2', '--', gitRelPath],
@@ -1789,7 +1789,7 @@ export async function readSafeInlineDiff(rawUri, opts = {}) {
         }
       }
 
-      // 未命中 git diff（或跳过不安全 git config）时执行有界只读切片（最多 24 KiB），防符号链接 TOCTOU 替换
+      // When git diff yields nothing (or unsafe git config was skipped), perform a bounded read-only slice (up to 24 KiB) resistant to symlink TOCTOU
       const buf = Buffer.alloc(maxReadBytes);
       let bytesRead = 0;
       let fileSize = st.size;
@@ -2034,7 +2034,7 @@ export function isObsidianPrismDaemonCommandLine(commandLine) {
   const hasPrismBrand = /(?:obsidian-prism|antigravity-prism|agy-claude-style)/.test(cmd);
   const hasDaemonScript = /(?:sidecars\/daemon\/main\.mjs|\/daemon\/main\.mjs|\/watch\.js)\b/.test(cmd);
   if (hasPrismBrand && hasDaemonScript) return true;
-  // 宿主以 sidecars/daemon 为工作目录拉起时，命令行为 node main.mjs 或 Antigravity --import=.../sidecar_sdk/register_loader.js main.mjs
+  // When launched by the host with cwd=sidecars/daemon, argv is `node main.mjs` or `Antigravity --import=.../sidecar_sdk/register_loader.js main.mjs`
   const hasRelativeMain = /(?:^|[\s"'=])main\.mjs(?:$|[\s"'])/.test(cmd);
   if (
     hasRelativeMain &&
@@ -2390,7 +2390,7 @@ export class PrismDaemon {
         if (GUID_RE.test(cid)) discoveredSubagents.set(cid.toLowerCase(), info || {});
       }
     }
-    // 融合渲染器活跃页面/AgentManager 零 RPC 采集到的子代理列表
+    // Merge subagent list collected with zero RPC from active renderer page / AgentManager
     if (Array.isArray(extraSubagents)) {
       for (const raw of extraSubagents) {
         const cid = String(typeof raw === 'string' ? raw : raw?.id || raw?.cascadeId || '').trim().toLowerCase();
@@ -2403,7 +2403,7 @@ export class PrismDaemon {
         }
       }
     }
-    // 融合 MetricsStore 中已记录的委托子代理（delegatedConversations）
+    // Merge delegated subagents recorded in MetricsStore (delegatedConversations)
     try {
       const storeSessions = this._lazyStore?.sessions;
       if (storeSessions instanceof Map) {
@@ -2435,7 +2435,7 @@ export class PrismDaemon {
       if (GUID_RE.test(id)) protectedMainIds.add(id);
     }
 
-    // 读取同级 chapter_titles/ 目录作为主对话辅助保护信号（不跨目录越界）
+    // Read sibling chapter_titles/ directory as an auxiliary main-conversation protection signal (no directory traversal)
     const chapterTitleIds = new Set();
     try {
       const chapDir = path.join(path.dirname(path.resolve(convDir)), 'chapter_titles');
@@ -2501,7 +2501,7 @@ export class PrismDaemon {
           return val.data;
         }
       } catch {
-        // 无法确认窗口状态时保守按忙碌处理（仅在显式探测失败时防止误打扰）
+        // Treat window as conservatively busy when state cannot be confirmed (avoids disturbing user on explicit probe failure)
         return { idle: false, runningCount: 0, domBusy: false, reason: 'probe-failed' };
       }
     }
@@ -2596,7 +2596,7 @@ export class PrismDaemon {
         this._archiveActionInFlight ||
         (!_testOverrides && this._archiveScheduledAt > 0 && Date.now() - this._archiveScheduledAt < 15000)
       ) {
-        return { ok: false, action, code: 'ARCHIVE_IN_PROGRESS', error: '已有归档或还原任务正在执行，请勿重复触发。' };
+        return { ok: false, action, code: 'ARCHIVE_IN_PROGRESS', error: 'An archive or restore task is already in progress; please do not trigger it again.' };
       }
       this._archiveActionInFlight = true;
       acquiredArchiveLock = true;
@@ -2718,9 +2718,9 @@ export class PrismDaemon {
           } catch {}
         }
       } else {
-        // 同轮 30 分钟冷却期内亦执行零 LS-RPC 轻量页面/内存增量刷新：
-        // 若存在本地活跃窗口，用 signalsOnly=true 仅读 DOM 与内存 AgentMgr（0 次 LS RPC、0 次 .db 唤醒），
-        // 把刚跑完的新 Swarm Worker / delegatedConversations / 侧栏白名单及时合入索引
+        // Within the 30-minute cooldown, also run a zero-LS-RPC lightweight page/memory incremental refresh:
+        // if a local active window exists, call with signalsOnly=true to read only DOM and in-memory AgentMgr (0 LS RPCs, 0 .db wakeups),
+        // merging newly finished Swarm Workers / delegatedConversations / sidebar allowlist entries into the index promptly
         try {
           if (this.sessions && typeof this.sessions.values === 'function') {
             let localEntry = null;
@@ -2780,7 +2780,7 @@ export class PrismDaemon {
         }
       }
 
-      // 只读获取本机 language_server 内存（测试传入自定义 convDir 且未指定 memory hook 时跳过真机进程查询）
+      // Read-only probe of local language_server memory (skip live host query when tests pass custom convDir without memory hook)
       let lsMemoryMb = null;
       if (Number.isFinite(_testOverrides?.lsMemoryMb)) {
         lsMemoryMb = Number(_testOverrides.lsMemoryMb);
@@ -2884,7 +2884,7 @@ export class PrismDaemon {
           await this._snapshotUsageBeforeArchive(snapshotTargets).catch(() => {});
         }
         const scriptPath = path.join(this.rootDir, 'sidecars', 'daemon', 'conversation-archive.mjs');
-        // old-main 预设仅写独立 archive-old-main.*，绝不覆盖默认子代理归档脚本或默认还原脚本
+        // The old-main preset writes only a standalone archive-old-main.* script and never overwrites default subagent/restore scripts
         const helpers = arch.writeHelperScripts({
           scriptPath,
           archiveDir,
@@ -2924,7 +2924,7 @@ export class PrismDaemon {
               ok: false,
               action,
               code: 'HOST_BUSY',
-              error: '检测到 AI 正在生成或 Swarm 任务运行中，请等待空闲后再执行归档并重启。',
+              error: 'Detected an active AI generation or Swarm task; please wait until idle before archiving and restarting.',
               idleState,
             };
           }
@@ -2966,7 +2966,7 @@ export class PrismDaemon {
           }
         );
         if (spawnRes?.spawned) {
-          // 防止宿主优雅退出期间 tick()/stop() 并发启动 auto-exit-archive 与当前手动归档任务冲突
+          // Prevent tick()/stop() from starting auto-exit-archive concurrently with this manual archive during graceful host exit
           this._autoArchiveExitRan = true;
           if (!_testOverrides) this._archiveScheduledAt = Date.now();
         }
@@ -3008,7 +3008,7 @@ export class PrismDaemon {
         return { ok: false, action: 'restore-archive', error: 'confirmation_required', batches };
       }
       if (this._archiveActionInFlight || (!_testOverrides && this._archiveScheduledAt > 0 && Date.now() - this._archiveScheduledAt < 15000)) {
-        return { ok: false, action: 'restore-archive', code: 'ARCHIVE_IN_PROGRESS', error: '已有归档或还原任务正在执行，请勿重复触发。', batches };
+        return { ok: false, action: 'restore-archive', code: 'ARCHIVE_IN_PROGRESS', error: 'An archive or restore task is already in progress; please do not trigger it again.', batches };
       }
       this._archiveActionInFlight = true;
       try {
@@ -3019,14 +3019,14 @@ export class PrismDaemon {
               ok: false,
               action: 'restore-archive',
               code: 'HOST_BUSY',
-              error: '检测到 AI 正在生成或 Swarm 任务运行中，请等待空闲后再执行无损还原并重启。',
+              error: 'Detected an active AI generation or Swarm task; please wait until idle before restoring and restarting.',
               idleState,
               batches,
             };
           }
         }
         if (batches.length === 0) {
-          return { ok: false, action: 'restore-archive', code: 'NO_BATCH', error: '未找到任何历史归档批次。', batches: [] };
+          return { ok: false, action: 'restore-archive', code: 'NO_BATCH', error: 'No historical archive batches found.', batches: [] };
         }
         const rawBatch =
           typeof rawInput?.batchName === 'string' && rawInput.batchName.trim()
@@ -3083,7 +3083,7 @@ export class PrismDaemon {
           }
         );
         if (spawnRes?.spawned) {
-          // 防止随后宿主退出时 auto-exit-archive 把刚刚无损还原的批次又移回归档目录
+          // Prevent auto-exit-archive from moving the freshly restored batch back into the archive directory on host exit
           this._autoArchiveExitRan = true;
           if (!_testOverrides) this._archiveScheduledAt = Date.now();
         }
@@ -3183,15 +3183,8 @@ export class PrismDaemon {
       }
       const s = String(raw || '').trim().toLowerCase().replace(/_/g, '-').split(/[.@]/)[0];
       if (!s) return fallback;
-      if (s === 'en' || s.startsWith('en-')) return 'en';
-      if (s === 'ja' || s.startsWith('ja-')) return 'ja';
-      if (s === 'ko' || s.startsWith('ko-')) return 'ko';
-      if (s === 'es' || s.startsWith('es-')) return 'es';
-      if (s === 'fr' || s.startsWith('fr-')) return 'fr';
-      if (s === 'de' || s.startsWith('de-')) return 'de';
-      if (s === 'yue' || s.startsWith('yue-') || s === 'zh-yue') return 'zh-CN';
-      if (/^zh-(?:tw|hk|mo|hant)(?:-|$)/.test(s)) return 'zh-TW';
-      if (s === 'zh' || s.startsWith('zh-')) return 'zh-CN';
+      if (s === 'ar' || s.startsWith('ar-') || s === 'arabic' || s === 'العربية') return 'ar';
+      if (s === 'en' || s.startsWith('en-') || s === 'english') return 'en';
       return fallback;
     };
 
@@ -3200,8 +3193,8 @@ export class PrismDaemon {
       return normalizeLang(rawCfgLang, 'en');
     }
 
-    // language 为 'auto' 或缺省时，按与 ui-runtime.js 一致的优先级探测目标页面：
-    // data-ag-cs-lang（排除 'auto'）-> navigator.language / navigator.languages[0] -> html[lang]
+    // When language is 'auto' or unset, probe the target page in the same priority order as ui-runtime.js:
+    // data-ag-cs-lang (excluding 'auto') -> navigator.language / navigator.languages[0] -> html[lang]
     let pageLang = '';
     if (typeof _testOverrides?.pageLang === 'string') {
       const ovLang = _testOverrides.pageLang.trim();
@@ -3226,7 +3219,7 @@ export class PrismDaemon {
       if (normPage) return normPage;
     }
 
-    // 页面尚未标注语言时回退至系统 locale（与 cdp.js detectSystemUiLocale / resolveSystemLangNode 保持一致）
+    // Fall back to system locale when the page has no language attribute (aligned with cdp.js detectSystemUiLocale / resolveSystemLangNode)
     let sysLocale = typeof _testOverrides?.systemLocale === 'string' ? _testOverrides.systemLocale.trim() : '';
     if (!sysLocale) {
       if (typeof this.cdp?.detectSystemUiLocale === 'function') {
@@ -3309,16 +3302,12 @@ export class PrismDaemon {
       .replace(/\{3\}/g, health.lsMemoryMb ? fmtMb(health.lsMemoryMb) : '—');
 
     const closeLabels = {
-      'zh-CN': '关闭',
-      'zh-TW': '關閉',
       en: 'Close',
-      ja: '閉じる',
-      ko: '닫기',
-      es: 'Cerrar',
-      fr: 'Fermer',
-      de: 'Schließen',
+      ar: 'إغلاق',
     };
     const expr = buildStorageGuardBannerExpression({
+      lang: resolvedLang,
+      dir: resolvedLang === 'ar' ? 'rtl' : 'ltr',
       autoArchiveOnExit: Boolean(health.autoArchiveOnExit),
       copy: {
         title: ui.storageGuardTitle || 'Memory & Conversation DB Guard',
@@ -3377,12 +3366,12 @@ export class PrismDaemon {
       const settleMs = Number.isFinite(_testOverrides?.settleMs) ? _testOverrides.settleMs : 4000;
       const recheckGapMs = Number.isFinite(_testOverrides?.recheckGapMs) ? _testOverrides.recheckGapMs : 1500;
 
-      // 首次静置 3~5 秒并确认宿主与 language_server 已完全退出
+      // Initial 3-5s settle wait and verify host and language_server have fully exited
       if (settleMs > 0) await sleepFn(settleMs);
       if (safeRunning() || (!_testOverrides && discoverActivePort(this.overridePort, this.portFile))) {
         return { ran: false, reason: 'host-still-running' };
       }
-      // 二次 fail-closed 复检
+      // Secondary fail-closed re-check
       if (recheckGapMs > 0) await sleepFn(recheckGapMs);
       if (safeRunning() || (!_testOverrides && discoverActivePort(this.overridePort, this.portFile))) {
         return { ran: false, reason: 'host-restarted' };
@@ -3390,7 +3379,7 @@ export class PrismDaemon {
 
       const convDir = _testOverrides?.convDir || arch.getDefaultConversationsDir();
       const archiveDir = _testOverrides?.archiveDir || arch.getDefaultArchiveDir();
-      // 独立 Daemon 退出归档前同步把内存中最新发现的子代理/摘要增量合并落盘，避免新子代理落入 unknown 漏归档
+      // Merge newly discovered in-memory subagents/summaries to disk before exit archiving so new subagents are not left as unknown
       this._flushCatalogIndexFromMemory(arch, convDir, archiveDir);
       const res = arch.archiveConversations({
         convDir,
@@ -4147,7 +4136,7 @@ export class PrismDaemon {
       if (this.gitRepoDir && resolved.toLowerCase() === this.gitRepoDir.toLowerCase()) {
         return true;
       }
-      // 兼容普通仓库 .git 目录与 git worktree .git 文件，杜绝向源码目录写入缓存文件
+      // Handle both regular .git directories and git worktree .git files; never write cache files into source repos
       if (fs.existsSync(path.join(resolved, '.git'))) {
         return true;
       }
@@ -4186,19 +4175,19 @@ export class PrismDaemon {
         ? this.cdp.BUNDLE_CACHE_FILENAME
         : '.bundle-cache.json';
 
-    // 1) 首选非 Git 源码且可写的已安装插件目录（如 ~/.gemini/config/plugins/obsidian-prism/.bundle-cache.json）：
-    //    与 .daemon.pid / daemon.log / config.json 同目录，普通卸载与 --purge-data 均会随插件目录一并自动清理。
+    // 1) Prefer a writable non-Git installed plugin directory (e.g. ~/.gemini/config/plugins/obsidian-prism/.bundle-cache.json):
+    //    co-located with .daemon.pid / daemon.log / config.json so standard uninstall and --purge-data clean it up automatically.
     if (!this._isGitSourceDir(this.rootDir) && this._isWritableCacheDir(this.rootDir)) {
       return path.join(this.rootDir, cacheFileName);
     }
 
-    // 2) 自动化测试环境中若 rootDir 是 Git 源码目录或只读目录且未显式指定缓存路径，禁止触碰真实用户主目录
+    // 2) In automated test runs, never touch the real user home directory if rootDir is a Git source tree or read-only without an explicit cache path
     if (isAutomatedTestRuntime()) {
       return null;
     }
 
-    // 3) 若 rootDir 为 Git 源码目录（开发直跑）或只读安装目录，回退至用户可写 sidecar_data 状态目录
-    //    （~/.gemini/antigravity/sidecar_data/obsidian-prism/telemetry/.bundle-cache.json，--purge-data 时可清理）
+    // 3) If rootDir is a Git source repo (dev run) or read-only install dir, fall back to the writable sidecar_data state dir
+    //    (~/.gemini/antigravity/sidecar_data/obsidian-prism/telemetry/.bundle-cache.json, cleaned on --purge-data)
     try {
       const stateDir = this.resolveTelemetryDataDir();
       if (stateDir && this._isWritableCacheDir(stateDir)) {
@@ -4291,7 +4280,7 @@ export class PrismDaemon {
     } else {
       this.hostI18nExpr = '';
     }
-    // Issue #18 层 B：Swarm 侧栏汉化延后按需构建（仅在检测到 Swarm Target 或已有 swarmSessions 时编译，保持原 9 通道冷/热盘缓存统计不回归）
+    // Issue #18 Layer B: build Swarm sidebar localization lazily on demand (only when a Swarm target or swarmSessions exist, preserving 9-channel cold/warm cache stats)
     this.swarmI18nExpr = '';
     this.swarmI18nCodeHash = '';
     this._buildThoughtExprForConfig(cfg, cacheOpts);
@@ -4345,7 +4334,7 @@ export class PrismDaemon {
       const ok =
         typeof this.cdp?.isSafeV2SidebarClientSource === 'function'
           ? Boolean(this.cdp.isSafeV2SidebarClientSource(src))
-          : // 严禁挂载任何含旧版全局权限写入（setPrefValue/setPrefValues 任意形式）的客户端，仅放行 v2 零全局写渲染端
+          : // Never mount any legacy client containing global preference writes (setPrefValue/setPrefValues); allow only v2 zero-global-write renderer clients
             src.includes('SIDEBAR_STUDIO_CLIENT_V2') && !/setPrefValues?/i.test(src);
       this._safeSidebarFileCache = { path: p, sig, ok };
       return ok;
@@ -4628,7 +4617,7 @@ export class PrismDaemon {
         return null;
       }
 
-      // 再次检查最新配置，防止附着期间已切换为 off
+      // Re-check latest config in case it was toggled off while attaching
       const liveCfg = typeof this.cdp?.readConfig === 'function' ? this.cdp.readConfig() : cfg;
       if (!this._isSwarmI18nEnabled(liveCfg)) {
         await bSession.send('Target.detachFromTarget', { sessionId }, 1500).catch(() => {});
@@ -4636,7 +4625,7 @@ export class PrismDaemon {
       }
 
       child = this._createSwarmChildSession(bSession, sessionId, targetId);
-      // 严格仅启用 Page 域：0 Runtime.addBinding、0 主包注入
+      // Strictly enable Page domain only: 0 Runtime.addBinding, 0 main bundle injection
       await child.send('Page.enable', {}, 2000).catch(() => {});
       const addRes = await child
         .send('Page.addScriptToEvaluateOnNewDocument', { source: swarmExpr }, 2200)
@@ -4735,7 +4724,7 @@ export class PrismDaemon {
   async _injectSwarmIntoSubFrame(entry, frameId, ctxId, cfgOverride = null) {
     if (!entry || entry.session.closed || !frameId || typeof ctxId !== 'number') return;
     if (frameId === entry.mainFrameId) return;
-    // 若该目标已被 OOPIF Path A 接管，则不重复注入
+    // Skip if this target is already managed by OOPIF Path A to avoid duplicate injection
     if (this.swarmSessions.has(frameId)) return;
     const cfg = cfgOverride || (typeof this.cdp?.readConfig === 'function' ? this.cdp.readConfig() : null);
     if (!this._isSwarmI18nEnabled(cfg)) return;
@@ -4803,7 +4792,7 @@ export class PrismDaemon {
     } else if (this.browserSession && !this.browserSession.closed) {
       await this._scanExistingSwarmTargets(this.browserSession).catch(() => {});
     }
-    // 同步 Path B 同进程子 Frame
+    // Sync Path B in-process child frames
     for (const entry of this.sessions.values()) {
       if (!entry || entry.session.closed || !(entry.swarmSubFrames instanceof Map)) continue;
       for (const [fid, sub] of entry.swarmSubFrames.entries()) {
@@ -5055,8 +5044,8 @@ export class PrismDaemon {
     if (typeof this.cdp?.buildWallpaperExpression !== 'function') {
       return this._setWallpaperExpr('');
     }
-    // 不在 NewDocument 脚本中内联含 mediaUrl/mediaPath Bearer Token 的静态快照，
-    // 由前端挂载后通过 WALLPAPER_BINDING 实时 refresh() 获取最新有效配置与 Token。
+    // Do not inline static snapshots containing mediaUrl/mediaPath Bearer tokens in NewDocument scripts;
+    // the frontend fetches the latest valid config and token live via WALLPAPER_BINDING refresh() after mount.
     const rawOpts = cacheOpts !== undefined ? cacheOpts : this._getChannelCacheOpts(true);
     let safeOpts = rawOpts;
     if (rawOpts && typeof rawOpts === 'object' && Object.prototype.hasOwnProperty.call(rawOpts, 'initialWallpaperConfig')) {
@@ -5323,7 +5312,7 @@ export class PrismDaemon {
     entry.lastPeriodicPickerScriptSig = '';
   }
 
-  // ── 第九通道：设置面板 + 全量 8 语言词典按需下发（仅当设置弹窗打开时触发） ──────────
+  // -- Channel 9: Settings panel + bilingual EN/AR dictionary on demand (triggered only when Settings modal opens) --
   _ensureSettingsExpr(cacheOpts = undefined) {
     if (this.settingsExpr) return this.settingsExpr;
     if (typeof this.cdp?.buildSettingsChannelExpression !== 'function') return '';
@@ -5360,7 +5349,7 @@ export class PrismDaemon {
     }
   }
 
-  // ── 第十通道：双桌宠按配置门控独立注入（mascot === 'off' 时零注入） ─────────────────
+  // -- Channel 10: Dual desktop mascots gated independently by config (zero injection when mascot === 'off') --
   _hasMascotFile() {
     try {
       return fs.existsSync(path.join(this.rootDir, 'dual-mascot-rig.js'));
@@ -5531,7 +5520,7 @@ export class PrismDaemon {
     entry.lastMascotScriptSig = '';
   }
 
-  // ── 第十二通道：Studio 首页仪表盘按配置门控独立延迟注入（homeLayout !== 'studio' 时零注入） ──
+  // -- Channel 12: Studio Home dashboard gated lazily by config (zero injection when homeLayout !== 'studio') --
   _hasHomeStudioFile() {
     try {
       return fs.existsSync(path.join(this.rootDir, 'home-studio-panel.js'));
@@ -6093,7 +6082,7 @@ export class PrismDaemon {
     }
   }
 
-  // 校验目标窗口是否具备受信任的主帧默认上下文，供跨窗口双向同步广播复用
+  // Verify whether the target window has a trusted main-frame default context for cross-window bidirectional sync broadcast
   _resolveTrustedBroadcastContextId(other) {
     if (!other || other.session?.closed) return { ok: false, contextId: undefined };
     if (other.sidebarHostVerified !== true) return { ok: false, contextId: undefined };
@@ -6278,7 +6267,7 @@ export class PrismDaemon {
         const url = String(entry.url || '');
         if (/^(?:devtools|chrome-extension|chrome|about):/i.test(url)) continue;
         const entryScope = this._resolveEntryScopeKey(entry);
-        // 严格环境隔离：指定了 targetScope 或 preferredEntry 时，仅允许同 scope 候选回退，严禁 SSH 与 Local 互相跨路由
+        // Strict environment isolation: when targetScope or preferredEntry is specified, allow fallback only within the same scope (never cross-route SSH and Local)
         if (targetScope && entryScope !== targetScope) continue;
         const isLocalHost = /^https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?\//i.test(url);
         const isLocalScope = entryScope === 'local';
@@ -6323,7 +6312,7 @@ export class PrismDaemon {
     const routeOpts = opts || (asyncCtx && asyncCtx.daemon === this ? asyncCtx : null);
     const candidates = this._getRendererRpcCandidates(routeOpts);
     if (!candidates.length) {
-      throw new Error('等待 Antigravity 主窗口连接');
+      throw new Error('Waiting for Antigravity main window connection');
     }
     const expr = buildRendererRpcExpression(method, body);
     const timeoutMs = method === 'Probe' ? 2600 : 12000;
@@ -6361,7 +6350,7 @@ export class PrismDaemon {
           if (inferredRemote) {
             entry.detectedScopeKey = inferredRemote;
             entry._usageScopeVerified = true;
-            // 若调用方显式锁定 local（如本机 MetricsStore）且未指定该窗口探针，严禁把远程窗口会话写入本机遥测
+            // If caller explicitly locked local (e.g. local MetricsStore) without specifying this window probe, never write remote window conversations into local telemetry
             if (routeOpts?.scopeKey === 'local' && !routeOpts?.preferredEntry) {
               lastErr = new Error('renderer_scope_mismatch');
               continue;
@@ -6384,7 +6373,7 @@ export class PrismDaemon {
         lastErr = err;
       }
     }
-    throw lastErr || new Error('Antigravity 渲染器遥测通道暂不可用');
+    throw lastErr || new Error('Antigravity renderer telemetry channel is temporarily unavailable');
   }
 
   async ensureMetricsCollector() {
@@ -6619,7 +6608,7 @@ export class PrismDaemon {
         byId.set(id.toLowerCase(), item);
       }
 
-      // 动态二次校准 scopeKey：在扫描本机磁盘前检查该窗口返回的工作区 URI 与 renderer scopeHint
+      // Dynamic secondary scopeKey calibration: inspect returned workspace URIs and renderer scopeHint before scanning local disk
       if (scopeKey === 'local') {
         const inferredScope = resolveUsageScopeKey({
           explicitScopeKey: raw?._scopeHint || entry?.detectedScopeKey || '',
@@ -6633,7 +6622,7 @@ export class PrismDaemon {
             entry._usageScopeVerified = true;
           }
         } else if (entry && typeof entry === 'object') {
-          // 仅当渲染器明确返回 local scopeHint 或包含本机 file:// 工作区路径时，才确认该窗口为可信 local
+          // Confirm window as trusted local only when renderer returns explicit local scopeHint or local file:// workspace paths
           const hasExplicitLocalHint = normalizeUsageScopeKey(raw?._scopeHint || '') === 'local';
           const hasLocalFileWs = list.some(
             (it) =>
@@ -6650,7 +6639,7 @@ export class PrismDaemon {
 
       if (client?.server?.mode === 'renderer-proxy') {
         const subMap = this._getDiscoveredSubagents(scopeKey);
-        // 严格隔离：仅已确认的本地窗口（或无 entry 直调）允许补充扫描本机磁盘会话；未验证窗口与 Remote-SSH 窗口绝不混入本机磁盘对话
+        // Strict isolation: only verified local windows (or direct calls without entry) may scan local disk conversations; unverified and Remote-SSH windows never mix local disk chats
         const allowLocalDiskScan = scopeKey === 'local' && (!entry || entry._usageScopeVerified === true);
         if (allowLocalDiskScan) {
           try {
@@ -6660,7 +6649,7 @@ export class PrismDaemon {
             for (const localEntry of localRes?.conversations || []) {
               const lid = String(localEntry?.id || '').toLowerCase();
               if (!GUID_RE.test(lid)) continue;
-              // 严格以主 .db 的 mtime 与 size 作指纹（绝不看 .db-shm），防重启刷 mtime 穿透缓存
+              // Fingerprint strictly using main .db mtime and size (never .db-shm) to avoid restart mtime churn busting the cache
               const hasDbMtime = Number.isFinite(localEntry?.dbMtimeMs) && localEntry.dbMtimeMs > 0;
               const rawMtimeMs = hasDbMtime
                 ? localEntry.dbMtimeMs
@@ -6687,7 +6676,7 @@ export class PrismDaemon {
 
               const existingItem = byId.get(lid);
               if (existingItem) {
-                // v2.34+ searchConversations/Redux 摘要常返回 stepCount:0：为其补齐主 .db 指纹并直接回填缓存步数，根除缓存穿透
+                // v2.34+ searchConversations/Redux summaries often return stepCount:0; backfill main .db fingerprint and cached step count to eliminate cache misses
                 if (mtimeSec > 0 && !existingItem.dbMtimeSec) existingItem.dbMtimeSec = mtimeSec;
                 if (dbSize > 0 && !existingItem.dbSize) existingItem.dbSize = dbSize;
                 const sameRpcMod = Boolean(
@@ -6705,7 +6694,7 @@ export class PrismDaemon {
               }
 
               if (diskUnchanged) {
-                // 文件未变：直接用 diskCache 中的真实 stepCount 与 lastModifiedSec 回填，0 穿透、0 GetCascadeTrajectory RPC
+                // File unchanged: backfill true stepCount and lastModifiedSec from diskCache (0 misses, 0 GetCascadeTrajectory RPCs)
                 const cleanDiskRec = sanitizeUsageRecord(lid, diskHit.record);
                 const rawCachedPid = String(knownSub?.parentId || cleanDiskRec?.parentId || '').trim();
                 const safeCachedPid = rawCachedPid && rawCachedPid.toLowerCase() !== lid ? rawCachedPid : '';
@@ -6729,7 +6718,7 @@ export class PrismDaemon {
                 coldCandidates.push({ lid, mtimeSec, dbSize, knownSub });
               }
             }
-            // 取消首页无上限全盘唤醒：未缓存沉睡 .db 按最新时间排序，单轮仅放行前 LOCAL_COLD_WAKEUP_CAP 个，其余标 dormant 不强唤 LS
+            // Avoid unbounded full-disk wakeup on home load: sort uncached dormant .db files newest-first, wake at most LOCAL_COLD_WAKEUP_CAP per pass, mark the rest dormant
             coldCandidates.sort((a, b) => (b.mtimeSec || 0) - (a.mtimeSec || 0));
             for (let i = 0; i < coldCandidates.length; i += 1) {
               const { lid, mtimeSec, dbSize, knownSub } = coldCandidates[i];
@@ -6880,7 +6869,7 @@ export class PrismDaemon {
                 if (parsedBucket.size > 0) scopesMap.set(sc, parsedBucket);
               }
             } else {
-              // 向下兼容 v1 平铺格式：统一归入 local 分区
+              // Backward compatibility for v1 flat format: place all entries under local scope
               const localBucket = parseScopeEntries(raw);
               if (localBucket.size > 0) scopesMap.set('local', localBucket);
             }
@@ -6930,7 +6919,7 @@ export class PrismDaemon {
     const bucket = this._getUsageDiskCacheScope(safeScope, true);
     const key = id.toLowerCase();
     const existing = bucket.get(key);
-    // 保护：绝不用空统计覆盖已有真实非空统计；若仅补充主 .db 指纹则保留原真实记录
+    // Guard: never overwrite an existing non-empty real usage record with empty stats; preserve real stats if only updating .db fingerprint
     if (existing && hasRealUsageRecord(existing.record) && !hasRealUsageRecord(cleanRec)) {
       const cleanExisting = sanitizeUsageRecord(id, existing.record);
       if (
@@ -6985,7 +6974,7 @@ export class PrismDaemon {
       }
       assertNotSymlinkSync(dir, 'usage cache directory');
 
-      // 1) 单 scope 限额 1200 条，按 lastModifiedSec 降序保留最新记录
+      // 1) Cap per-scope entries at 1200, keeping newest by lastModifiedSec descending
       const normalizedScopes = [];
       let totalCount = 0;
       for (const [rawScope, bucket] of this._usageDiskCache.entries()) {
@@ -7001,13 +6990,13 @@ export class PrismDaemon {
         normalizedScopes.push({ scope: sc, entries, newestSec });
         totalCount += entries.length;
       }
-      // 最多保留 USAGE_CACHE_MAX_SCOPES 个最活跃 scope
+      // Keep at most USAGE_CACHE_MAX_SCOPES most active scopes
       normalizedScopes.sort((a, b) => b.newestSec - a.newestSec);
       if (normalizedScopes.length > USAGE_CACHE_MAX_SCOPES) {
         normalizedScopes.length = USAGE_CACHE_MAX_SCOPES;
       }
 
-      // 2) 跨 scope 总条目限额控制
+      // 2) Enforce global cross-scope total entry limit
       if (totalCount > USAGE_CACHE_MAX_TOTAL_RECORDS) {
         const allItems = [];
         for (const s of normalizedScopes) {
@@ -7030,7 +7019,7 @@ export class PrismDaemon {
         }
       }
 
-      // 3) 序列化并严格保证 <= 4 MB 上限（超限时按最老条目逐步裁剪）
+      // 3) Serialize and strictly enforce <= 4 MB cap (progressively evicting oldest entries when exceeded)
       normalizedScopes.sort((a, b) => (b.newestSec || 0) - (a.newestSec || 0));
       const buildPayload = () => {
         const scopesObj = Object.create(null);
@@ -7052,7 +7041,7 @@ export class PrismDaemon {
           }
         }
         if (!trimmed) {
-          // 各 scope 均仅剩 <=1 条仍超 4MB 时，从最老 scope 起弹出尾部记录，避免死锁放弃落盘
+          // If every scope is down to <=1 entry and payload still exceeds 4 MB, pop trailing entries from oldest scopes first to avoid deadlock
           for (let i = normalizedScopes.length - 1; i >= 0; i--) {
             if (normalizedScopes[i].entries.length > 0) {
               normalizedScopes[i].entries.pop();
@@ -7120,7 +7109,7 @@ export class PrismDaemon {
             cachedRecords.push({ id: sid, mode: 'full', record: sanitizeUsageRecord(sid, hit.record) });
           }
         }
-        // PR #41 (Co-authored-by: @OyatsuSuki): 同步返回同 scopeKey 下已删除/已归档但有真实消耗的历史账本记录（零 RPC、严格 scope 隔离）
+        // PR #41 (Co-authored-by: @OyatsuSuki): also return deleted/archived historical ledger records with real usage in the same scopeKey (0 RPCs, strict scope isolation)
         for (const [key, hit] of diskCache.entries()) {
           if (presentIds.has(key)) continue;
           if (hit?.record?.days && hasRealUsageRecord(hit.record)) {
@@ -7509,7 +7498,7 @@ export class PrismDaemon {
       return true;
     }
 
-    // 真实帧树、已识别主帧、已登记上下文映射或带有未登记/已销毁 executionContextId 时一律 fail-closed
+    // Always fail-closed when real frame tree, identified main frame, registered context map, or unknown/destroyed executionContextId is present
     if (entry.hasFrameTree || entry.mainFrameId) {
       return false;
     }
@@ -7519,7 +7508,7 @@ export class PrismDaemon {
     if (hasCtxId) {
       return false;
     }
-    // 非测试运行时未拿到帧树时 fail-closed；仅兼容无帧树且无上下文 ID 的极简单测 mock
+    // Fail-closed in non-test runtime when frame tree is unavailable; only allow minimal unit-test mocks without frame tree or context IDs
     if (!isAutomatedTestRuntime()) {
       return false;
     }
@@ -7716,7 +7705,7 @@ export class PrismDaemon {
                   }
                 }
               } else if (hadSidebar && !skippedStale && !entry.session.closed) {
-                // on -> off 切换：移除绑定并仅下发轻量清理脚本，绝不下发完整 sidebar-client.js 载荷
+                // on -> off transition: remove binding and send only lightweight cleanup script, never full sidebar-client.js payload
                 await this._removeSidebarBinding(entry);
                 await entry.session.evaluate(this._buildSidebarCleanupExpression(true)).catch(() => {});
                 entry.sidebarMounted = false;
@@ -8425,7 +8414,7 @@ export class PrismDaemon {
         }
       } else {
         await this._removeSidebarBinding(entry);
-        // 关闭态免向新页面下发完整 sidebar-client.js 载荷；仅对已有残留或此前已挂载页面执行轻量清理
+        // When disabled, avoid shipping full sidebar-client.js payload to new pages; run lightweight cleanup only for remnants or previously mounted pages
         await entry.session.evaluate(this._buildSidebarCleanupExpression(hadSidebarBefore)).catch(() => null);
         entry.sidebarMounted = false;
       }
@@ -8938,7 +8927,7 @@ export class PrismDaemon {
         if (executionContextId) evalParams.contextId = executionContextId;
         await entry.session.send('Runtime.evaluate', evalParams).catch(() => {});
       }
-      // P0 双向凭据同步：思考转译保存渠道/密钥后，反向通知当前窗口及其他受信任主窗口的 Suggester UI 重载 profiles，杜绝陈旧状态覆写新密钥
+      // P0 bidirectional credential sync: after Thought Translator saves profiles/keys, notify Suggester UI in current and other trusted main windows to reload profiles so stale state never overwrites new keys
       if (action === 'save-config' && result && result.ok) {
         const selfNotifyExpr = `(() => { try { window.__agPrismSuggesterSettingsUi?.reloadProfiles?.(); } catch {} try { window.__agPrismSuggester?.sync?.(); } catch {} })()`;
         const peerNotifyExpr = `(() => { try { window.__agPrismSuggesterSettingsUi?.reloadProfiles?.(); } catch {} try { window.__agPrismSuggester?.sync?.(); } catch {} try { const sec = document.getElementById?.('ag-cs-settings-sec') || document.getElementById?.('ag-prism-settings-sec'); sec?.__prismThoughtUiHandle?.reloadConfig?.(); } catch {} })()`;
@@ -9058,7 +9047,7 @@ export class PrismDaemon {
       } catch {
         resp = { ok: false, error: 'internal_error' };
       }
-      // 异步返回前再次复检文档代际 docGen 与执行上下文仍有效，严防跨导航回注
+      // Re-verify docGen and execution context before async reply to prevent cross-navigation injection
       if (isCurrentContext()) {
         const resolveExpr = `window.__agPrismInlineDiffResolve?.(${reqId}, ${serializeJsonForEval(resp)})`;
         await entry.session
@@ -9132,7 +9121,7 @@ export class PrismDaemon {
         return true;
       };
       if (!isCurrentHost()) return;
-      // 关闭态在 JSON.parse 之前直接硬拦截，杜绝关闭态触发解析或拉起后台服务
+      // Hard-block before JSON.parse when disabled so disabled state never triggers parsing or background services
       if (this.cdp?.readConfig?.()?.sidebarStudio !== 'on') {
         return { ok: false, error: 'Chat Beta is disabled' };
       }
@@ -9160,7 +9149,7 @@ export class PrismDaemon {
           result = { ok: false, error: 'Chat Beta is disabled' };
         }
       } catch {
-        // 异常不把宿主栈、命令参数或本地路径回传到渲染进程。
+        // Never leak host stack traces, command arguments, or local paths back to the renderer process.
       }
       if (isCurrentHost()) {
         const jsonRes = serializeJsonForEval(result);
@@ -9264,7 +9253,7 @@ export class PrismDaemon {
         await entry.session.send('Runtime.evaluate', evalParams).catch(() => {});
       }
 
-      // 多窗口同步：保存/选媒/清除壁纸后向其他合法主窗口广播最新安全配置
+      // Multi-window sync: broadcast updated safe wallpaper config to other trusted main windows after save/pick/clear
       if (
         result &&
         result.ok &&
@@ -9416,7 +9405,7 @@ export class PrismDaemon {
         await entry.session.send('Runtime.evaluate', evalParams).catch(() => {});
       }
 
-      // P0 跨卡片/跨窗口凭据同步：save-config 成功或 test-connection（内含 saveWorkbenchConfig）完成后，同步全部受信任主窗口并通知思考转译 UI
+      // P0 cross-card/cross-window credential sync: after save-config or test-connection (which calls saveWorkbenchConfig), sync all trusted main windows and notify Thought Translator UI
       const shouldBroadcastSync =
         (action === 'save-config' && Boolean(result && result.ok)) ||
         (action === 'test-connection' && Boolean(Array.isArray(actionPayload?.profiles) || (result && result.ok)));
@@ -9573,7 +9562,7 @@ export class PrismDaemon {
         const type = typeof aux.type === 'string' && aux.type ? aux.type : (isDefault ? 'default' : '');
         const isMainDefault = Boolean(entry.mainFrameId && frameId === entry.mainFrameId && isDefault && type === 'default');
         if (isMainDefault) {
-          // 同帧新建默认上下文时撤销旧文档授权并递增文档代际，防止新上下文继承旧授权
+          // Revoke previous document authorization and increment docGen when a new default context is created in the same frame so new contexts cannot inherit old grants
           if (
             entry.sidebarHostVerified ||
             (typeof entry.sidebarHostContextId === 'number' && entry.sidebarHostContextId !== ctx.id)
@@ -9615,7 +9604,7 @@ export class PrismDaemon {
             entry._isoPauseTimers?.add(retryTid);
           }
         }
-        // Path B：同进程子 Frame Swarm 兜底（严格仅针对非主 Frame，绝不放宽 isTrustedMainFrameContext）
+        // Path B: in-process child-frame Swarm fallback (strictly non-main frames only; never relaxes isTrustedMainFrameContext)
         if (!isMainDefault && isDefault && type === 'default' && frameId && frameId !== entry.mainFrameId) {
           const ctxOriginOrUrl = String(ctx.origin || aux.url || '').trim();
           const existingSub = entry.swarmSubFrames?.get(frameId);
@@ -10832,7 +10821,7 @@ export class PrismDaemon {
         const info = params?.targetInfo;
         if (!info) return;
         const tid = info.targetId || info.id || '';
-        // Issue #18 层 B：Swarm 独立侧栏 OOPIF (plugin://swarm--swarm_board-*) 走独立按需状态机
+        // Issue #18 Layer B: standalone Swarm sidebar OOPIF (plugin://swarm--swarm_board-*) uses an independent on-demand state machine
         if (this._isSwarmTargetInfo(info) || (tid && this.swarmSessions.has(tid))) {
           void this._handleSwarmTargetEvent(info).catch(() => {});
           return;
@@ -10892,7 +10881,7 @@ export class PrismDaemon {
         .catch(() => false);
       if (this.browserSession === bSession && !bSession.closed && subOk) {
         this._browserDiscoverySubscribed = true;
-        // 立即补扫已打开的 Swarm OOPIF，避免 tick() 早退导致已有面板漏接管
+        // Immediately scan already-open Swarm OOPIFs so early tick() exits do not miss existing panels
         void this._scanExistingSwarmTargets(bSession).catch(() => {});
       }
     } catch {}
@@ -11022,7 +11011,7 @@ export class PrismDaemon {
         const skippedLen = Array.isArray(res.skipped) ? res.skipped.length : 0;
         const alreadyLen = Array.isArray(res.alreadySet) ? res.alreadySet.length : 0;
         const matched = Number(res.matched || 0);
-        // 全部快捷方式已确认 alreadySet 且无跳过/新修补时，开启智能退避（30~60 分钟）
+        // Enable smart backoff (30-60 min) when all shortcuts are confirmed alreadySet with no skips or new patches
         this._shortcutAllClean =
           patchedLen === 0 && skippedLen === 0 && (alreadyLen > 0 || matched === 0);
       } else {
@@ -11149,7 +11138,7 @@ export class PrismDaemon {
         this.log(`[relaunch-guard] User declined immediate relaunch for pid=${host.pid}; shortcuts ready for next launch`);
         return;
       }
-      // 二次复核：若用户在等待点击期间已自行重开带参实例，则直接挂载不再重复重启
+      // Double-check: if the user already relaunched an instance with CDP flags while waiting for a click, attach directly without restarting again
       const portNow = discoverActivePort(this.overridePort, this.portFile);
       if (portNow) {
         this._noPortSinceMs = 0;
@@ -11401,7 +11390,7 @@ export class PrismDaemon {
         })
       );
 
-      // 盲区 3：全部窗口断开后重连，或活跃窗口数从 0 恢复时，立即复位 45 分钟退避并补检快捷方式
+      // Blind spot 3: when all windows disconnect and reconnect (active count recovers from 0), reset 45-min backoff and re-check shortcuts immediately
       const nowAttachedCount = this.sessions.size;
       if (nowAttachedCount > 0) {
         this._sawLiveHost = true;
@@ -11484,10 +11473,10 @@ export class PrismDaemon {
           this.cdp.isExpectedDaemonProcess === this._loadedCdpVerifier ||
           this.cdp.isExpectedDaemonProcess === defaultCdp.isExpectedDaemonProcess;
         if (!isDefaultVerifier) {
-          // 兼容单测显式覆写 this.cdp.isExpectedDaemonProcess 注入校验钩子
+          // Support unit tests explicitly overriding this.cdp.isExpectedDaemonProcess as a verification hook
           safeToKill = Boolean(this.cdp.isExpectedDaemonProcess(prevPid, this.pidFile));
         } else {
-          // P2-5: 复用 cdp.js 单次进程探针，避免 Windows 启动抢锁连续拉起两次 powershell.exe
+          // P2-5: reuse cdp.js single-shot process probe to avoid spawning powershell.exe twice during Windows lock acquisition
           const hasUnifiedProbe =
             typeof inspectProcess === 'function' || typeof this.cdp.inspectProcessSync === 'function';
           const procInfo =
@@ -11502,7 +11491,7 @@ export class PrismDaemon {
           if (!cdpVerified) {
             safeToKill = false;
           } else {
-            // 标准 cdp.isExpectedDaemonProcess 对 node.exe 仅核对映像名，补充命令行身份复核防误杀无关 node 进程
+            // Standard cdp.isExpectedDaemonProcess only checks image name for node.exe; verify command line identity to avoid killing unrelated node processes
             const cmd =
               typeof inspectCommandLine === 'function'
                 ? inspectCommandLine(prevPid)
@@ -11513,7 +11502,7 @@ export class PrismDaemon {
           }
         }
       } else {
-        // 无有效身份校验钩子时严格 fail-closed，绝不盲杀无关 PID
+        // Fail-closed when no valid identity verification hook is available; never blindly kill an unknown PID
         safeToKill = false;
       }
 
@@ -11715,8 +11704,9 @@ export class PrismDaemon {
 
   async stop(cleanPageDom = false, _testOverrides = null) {
     this._flushUsageDiskCache();
-    // 原生 sidecar 随宿主退出时：若开启了退出自动归档且非卸载动作，零 await 同步落盘内存目录索引并同步派生纯等待脱离任务，
-    // 在宿主与 language_server 彻底退出 4s 后静默归档（杜绝异步 import 竞态导致进程退出前尚未完成派生）
+    // When native sidecar exits with the host: if auto-archive on exit is enabled and this is not an uninstall,
+    // synchronously flush the in-memory catalog index and spawn a detached wait-only task without await,
+    // archiving silently 4s after host & language_server exit (prevents async import races before process exit)
     const autoArchiveEnabled =
       _testOverrides?.autoArchiveOnExit !== undefined
         ? Boolean(_testOverrides.autoArchiveOnExit)
@@ -11737,7 +11727,7 @@ export class PrismDaemon {
         const arch = _testOverrides?.arch || conversationArchive;
         const convDir = _testOverrides?.convDir || arch.getDefaultConversationsDir();
         const archiveDir = _testOverrides?.archiveDir || arch.getDefaultArchiveDir();
-        // 零阻塞同步将内存中已发现的子代理/摘要/侧栏白名单增量合并落盘，避免退出归档时新子代理落入 unknown
+        // Synchronously merge newly discovered in-memory subagents/summaries/sidebar allowlist to disk before exit archiving so new subagents are not left as unknown
         this._flushCatalogIndexFromMemory(arch, convDir, archiveDir);
         const scriptPath = path.join(this.rootDir, 'sidecars', 'daemon', 'conversation-archive.mjs');
         arch.spawnDetachedArchiveTask(
@@ -11884,9 +11874,9 @@ function parseArgs(argv) {
 }
 
 /**
- * 判断当前模块是否作为 CLI 主入口启动。
- * 复用本文件 canonicalRealpathSync() 解析符号链接与 Windows Junction（例如 ~/.gemini 迁至其他盘符），
- * 并在 Win32 下统一规范化盘符大小写与长路径前缀。
+ * Determine whether this module was launched as the CLI entry point.
+ * Uses canonicalRealpathSync() to resolve symlinks and Windows junctions (e.g. ~/.gemini moved to another drive)
+ * and normalizes drive letter casing and extended-length path prefixes on Win32.
  */
 export function isMainEntry(argv1, moduleFilename = __filename) {
   if (!argv1 || !moduleFilename) return false;

@@ -1,7 +1,7 @@
 /**
  * Obsidian Prism — Channel 4 On-Demand Host UI Localization Runtime
  * Zero-dependency UMD runtime (CommonJS + Browser IIFE) with:
- *   1. Universal 4-layer external localization auto-yield (known markers, zero-signature Chrome UI zh-CN sampling,
+ *   1. Universal 4-layer external localization auto-yield (known markers, zero-signature Chrome UI Arabic sampling,
  *      1200ms delayed-plugin recheck, and 3000ms ping-pong conflict circuit breaker)
  *   2. 100% reversible destroy() using WeakMap snapshots (zero DOM property pollution)
  *   3. Strict Prism-owned UI, model-selector, code/editor, and chat-prose isolation
@@ -24,7 +24,7 @@
   'use strict';
 
   var hasOwn = Object.prototype.hasOwnProperty;
-  var ZH_CHAR_RE = /[\u4e00-\u9fa5]/;
+  var AR_CHAR_RE = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/;
   var EN_ALPHA_RE = /[a-zA-Z]/;
 
   var IGNORED_TAGS = {
@@ -185,18 +185,18 @@
 
   var KNOWN_EXTERNAL_ATTRS = ['data-agy-i18n', 'data-ag-cn', 'data-i18n-patched', 'data-translated'];
 
-  var CHROME_ZH_ANCHORS = {
-    设置: 1,
-    偏好设置: 1,
-    新建对话: 1,
-    扩展: 1,
-    终端: 1,
-    源代码管理: 1,
-    工作区: 1,
-    视图: 1,
-    窗口: 1,
-    自动化: 1,
-    项目列表: 1,
+  var CHROME_AR_ANCHORS = {
+    'الإعدادات': 1,
+    'التفضيلات': 1,
+    'محادثة جديدة': 1,
+    'الإضافات': 1,
+    'الطرفية': 1,
+    'التحكم بالمصدر': 1,
+    'مساحة العمل': 1,
+    'عرض': 1,
+    'نافذة': 1,
+    'الأتمتة': 1,
+    'المشاريع': 1,
   };
 
   function getAttr(el, name) {
@@ -644,8 +644,8 @@
       }
       if (docEl && !hasAttr(docEl, 'data-ag-prism-lang-owned')) {
         var htmlLang = String(getAttr(docEl, 'lang') || docEl.lang || '').trim();
-        if (/^zh(?:$|[-_])/i.test(htmlLang)) {
-          return { hit: true, provider: 'html-lang-zh', detail: 'html-lang:' + htmlLang };
+        if (/^(?:ar|zh)(?:$|[-_])/i.test(htmlLang)) {
+          return { hit: true, provider: 'html-lang-external', detail: 'html-lang:' + htmlLang };
         }
       }
     }
@@ -672,16 +672,16 @@
     }
   }
 
-  function detectLayer2ChromeZh(doc, options) {
-    if (!doc) return { hit: false, sampled: 0, zhCount: 0, anchorHits: 0 };
+  function detectLayer2ChromeAr(doc, options) {
+    if (!doc) return { hit: false, sampled: 0, arCount: 0, zhCount: 0, anchorHits: 0 };
     var rootEl = doc.body || doc.documentElement;
-    if (!rootEl) return { hit: false, sampled: 0, zhCount: 0, anchorHits: 0 };
+    if (!rootEl) return { hit: false, sampled: 0, arCount: 0, zhCount: 0, anchorHits: 0 };
 
     var opts = options || {};
     var textSnapshots = opts.textSnapshots || null;
     var samples = [];
     var seenTexts = Object.create(null);
-    var zhCount = 0;
+    var arCount = 0;
     var anchorHits = 0;
     var visited = 0;
     var MAX_VISIT = 2200;
@@ -690,13 +690,13 @@
     function recordSample(text) {
       var trimmed = String(text || '').replace(/\s+/g, ' ').trim();
       if (!trimmed || trimmed.length > 60) return;
-      if (!ZH_CHAR_RE.test(trimmed) && !EN_ALPHA_RE.test(trimmed)) return;
+      if (!AR_CHAR_RE.test(trimmed) && !EN_ALPHA_RE.test(trimmed)) return;
       if (hasOwn.call(seenTexts, trimmed)) return;
       seenTexts[trimmed] = 1;
       samples.push(trimmed);
-      if (ZH_CHAR_RE.test(trimmed)) {
-        zhCount++;
-        if (hasOwn.call(CHROME_ZH_ANCHORS, trimmed)) {
+      if (AR_CHAR_RE.test(trimmed)) {
+        arCount++;
+        if (hasOwn.call(CHROME_AR_ANCHORS, trimmed)) {
           anchorHits++;
         }
       }
@@ -738,12 +738,13 @@
 
     walk(rootEl, false);
 
-    var ratio = samples.length > 0 ? zhCount / samples.length : 0;
-    var hit = (zhCount >= 3 && ratio >= 0.25) || anchorHits >= 2;
+    var ratio = samples.length > 0 ? arCount / samples.length : 0;
+    var hit = (arCount >= 3 && ratio >= 0.25) || anchorHits >= 2;
     return {
       hit: hit,
       sampled: samples.length,
-      zhCount: zhCount,
+      arCount: arCount,
+      zhCount: arCount,
       anchorHits: anchorHits,
       ratio: ratio,
     };
@@ -755,18 +756,18 @@
       return {
         detected: true,
         layer: 1,
-        reason: 'external-ui-zh',
+        reason: 'external-ui-ar',
         provider: l1.provider || 'generic-external',
         detail: l1.detail,
       };
     }
-    var l2 = detectLayer2ChromeZh(doc, options);
+    var l2 = detectLayer2ChromeAr(doc, options);
     if (l2.hit) {
       return {
         detected: true,
         layer: 2,
-        reason: 'external-ui-zh',
-        provider: 'generic-zh-dom',
+        reason: 'external-ui-ar',
+        provider: 'generic-ar-dom',
         detail: l2,
       };
     }
@@ -1112,7 +1113,7 @@
             var allValid = alts.length > 0;
             for (var aIdx = 0; aIdx < alts.length; aIdx++) {
               var alt = alts[aIdx];
-              if (!alt || !/^[A-Za-z0-9\u4e00-\u9fa5]/.test(alt)) {
+              if (!alt || !/^[A-Za-z0-9\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/.test(alt)) {
                 allValid = false;
                 break;
               }
@@ -1189,14 +1190,13 @@
     return score;
   }
 
-  function mapZhTrailingPuncToEn(punc) {
+  function mapArTrailingPuncToEn(punc) {
     var out = '';
     for (var i = 0; i < punc.length; i++) {
       var ch = punc.charAt(i);
-      if (ch === '：') out += ':';
-      else if (ch === '。') out += '.';
-      else if (ch === '？') out += '?';
-      else if (ch === '！') out += '!';
+      if (ch === '؟') out += '?';
+      else if (ch === '،') out += ',';
+      else if (ch === '؛') out += ';';
       else if (ch === '…') out += '...';
       else out += ch;
     }
@@ -1318,24 +1318,24 @@
     if (direction === 'reverse') {
       for (var enKey in exactDict) {
         if (!hasOwn.call(exactDict, enKey)) continue;
-        var zhVal = exactDict[enKey];
-        if (typeof enKey !== 'string' || typeof zhVal !== 'string') continue;
-        var normZh = normalizeWhitespace(zhVal);
+        var arVal = exactDict[enKey];
+        if (typeof enKey !== 'string' || typeof arVal !== 'string') continue;
+        var normAr = normalizeWhitespace(arVal);
         var normEn = normalizeWhitespace(enKey);
-        if (!normZh || !normEn || !ZH_CHAR_RE.test(normZh)) continue;
+        if (!normAr || !normEn || !AR_CHAR_RE.test(normAr)) continue;
         var candScore = scoreReverseEnCandidate(normEn);
-        if (!(normZh in exactLookup) || candScore < reverseScores[normZh]) {
-          exactLookup[normZh] = normEn;
-          reverseScores[normZh] = candScore;
+        if (!(normAr in exactLookup) || candScore < reverseScores[normAr]) {
+          exactLookup[normAr] = normEn;
+          reverseScores[normAr] = candScore;
         }
       }
       reverseScores = null;
       if (revExactOverrides && typeof revExactOverrides === 'object') {
-        for (var ovZh in revExactOverrides) {
-          if (typeof ovZh === 'string' && typeof revExactOverrides[ovZh] === 'string') {
-            var cleanZh = normalizeWhitespace(ovZh);
-            if (cleanZh) {
-              exactLookup[cleanZh] = revExactOverrides[ovZh];
+        for (var ovAr in revExactOverrides) {
+          if (typeof ovAr === 'string' && typeof revExactOverrides[ovAr] === 'string') {
+            var cleanAr = normalizeWhitespace(ovAr);
+            if (cleanAr) {
+              exactLookup[cleanAr] = revExactOverrides[ovAr];
             }
           }
         }
@@ -1414,14 +1414,14 @@
       function lookupReverseExactOrVariant(norm) {
         if (norm in exactLookup) return exactLookup[norm];
         var tailCh = norm.charAt(norm.length - 1);
-        if (':：….。？?!！'.indexOf(tailCh) !== -1) {
-          var puncMatch = norm.match(/^(.+?)([:：…\.。？\?!！]+)$/);
+        if (':….؟?!؛'.indexOf(tailCh) !== -1) {
+          var puncMatch = norm.match(/^(.+?)([:…\.؟\?!؛]+)$/);
           if (puncMatch) {
             var base = puncMatch[1].trim();
             var punc = puncMatch[2];
             if (base in exactLookup) {
               var baseEn = exactLookup[base];
-              var mappedPunc = mapZhTrailingPuncToEn(punc);
+              var mappedPunc = mapArTrailingPuncToEn(punc);
               var baseEnd = baseEn.charAt(baseEn.length - 1);
               if (mappedPunc === '.' && (baseEnd === '.' || baseEnd === '!' || baseEnd === '?')) {
                 return baseEn;
@@ -1453,9 +1453,9 @@
 
       function translateReverseUnit(rawUnit) {
         if (!rawUnit || typeof rawUnit !== 'string' || rawUnit.length > 512) return null;
-        if (!ZH_CHAR_RE.test(rawUnit)) return null;
+        if (!AR_CHAR_RE.test(rawUnit)) return null;
         var normalized = normalizeWhitespace(rawUnit);
-        if (!normalized || !ZH_CHAR_RE.test(normalized)) return null;
+        if (!normalized || !AR_CHAR_RE.test(normalized)) return null;
 
         if (unitCache.has(normalized)) {
           return unitCache.get(normalized);
@@ -1472,21 +1472,22 @@
         }
 
         if (
-          normalized.indexOf('。') !== -1 ||
-          normalized.indexOf('！') !== -1 ||
-          normalized.indexOf('？') !== -1
+          normalized.indexOf('. ') !== -1 ||
+          normalized.indexOf('! ') !== -1 ||
+          normalized.indexOf('؟') !== -1 ||
+          normalized.indexOf('? ') !== -1
         ) {
-          var zhParts = normalized.split(/([。！？]\s*)/);
-          if (zhParts.length >= 3) {
+          var arParts = normalized.split(/([.!؟?]\s*)/);
+          if (arParts.length >= 3) {
             var anyRev = false;
             var allRev = true;
             var outSegs = [];
-            for (var zIdx = 0; zIdx < zhParts.length; zIdx++) {
-              var seg = zhParts[zIdx];
+            for (var zIdx = 0; zIdx < arParts.length; zIdx++) {
+              var seg = arParts[zIdx];
               var trimSeg = seg.trim();
               if (!trimSeg) continue;
-              if (/^[。！？\s]+$/.test(seg)) {
-                outSegs.push(mapZhTrailingPuncToEn(trimSeg) + ' ');
+              if (/^[.!؟?\s]+$/.test(seg)) {
+                outSegs.push(mapArTrailingPuncToEn(trimSeg) + ' ');
                 continue;
               }
               var segRes = lookupReverseExactOrVariant(trimSeg) || applyPatterns(trimSeg);
@@ -1509,7 +1510,7 @@
 
       function translateReverseText(rawStr) {
         if (!rawStr || typeof rawStr !== 'string' || rawStr.length > 512) return null;
-        if (!ZH_CHAR_RE.test(rawStr)) return null;
+        if (!AR_CHAR_RE.test(rawStr)) return null;
         var parts = splitOuterWhitespace(rawStr);
         if (!parts.core) return null;
         var coreRes = translateReverseUnit(parts.core);
@@ -1561,7 +1562,7 @@
         return cacheAndReturn(normalized, null);
       }
 
-      if (ZH_CHAR_RE.test(normalized) && !/[a-zA-Z]{2,}/.test(normalized)) {
+      if (AR_CHAR_RE.test(normalized) && !/[a-zA-Z]{2,}/.test(normalized)) {
         return cacheAndReturn(normalized, null);
       }
 
@@ -1571,13 +1572,13 @@
       }
 
       var lastCh = normalized.charAt(normalized.length - 1);
-      if (':：….？?!！'.indexOf(lastCh) !== -1) {
-        var punctuationMatch = normalized.match(/^([\w\s\-\/]+)([:：…\.？\?!！]+)$/);
+      if (':….؟?!'.indexOf(lastCh) !== -1) {
+        var punctuationMatch = normalized.match(/^([\w\s\-\/]+)([:…\.؟\?!]+)$/);
         if (punctuationMatch) {
           var base = punctuationMatch[1].trim();
           var punc = punctuationMatch[2];
           if (base in exactLookup) {
-            return cacheAndReturn(normalized, exactLookup[base] + (punc === ':' ? '：' : punc));
+            return cacheAndReturn(normalized, exactLookup[base] + (punc === '?' ? '؟' : punc));
           }
         }
       }
@@ -1598,18 +1599,17 @@
       if (
         normalized.indexOf('. ') !== -1 ||
         normalized.indexOf('! ') !== -1 ||
-        normalized.indexOf('? ') !== -1 ||
-        normalized.indexOf('。') !== -1
+        normalized.indexOf('? ') !== -1
       ) {
-        var sentences = normalized.split(/([.!?]\s+|[。！？]\s*)/);
+        var sentences = normalized.split(/([.!?]\s+)/);
         var anyTranslated = false;
         var allTranslated = true;
         var translatedParts = [];
         for (var sIdx = 0; sIdx < sentences.length; sIdx++) {
           var part = sentences[sIdx];
           var trimmedPart = part.trim();
-          if (!trimmedPart || /^[.!?。！？\s]+$/.test(part)) {
-            translatedParts.push(part.replace(/\.\s*/g, '。 '));
+          if (!trimmedPart || /^[.!؟?\s]+$/.test(part)) {
+            translatedParts.push(part.replace(/\?\s*/g, '؟ '));
             continue;
           }
           var transPart =
@@ -1620,10 +1620,10 @@
           }
           if (!transPart) {
             var pLast = trimmedPart.charAt(trimmedPart.length - 1);
-            if (':：….？?!！'.indexOf(pLast) !== -1) {
-              var pMatch = trimmedPart.match(/^([\w\s\-\/]+)([:：…\.？\?!！]+)$/);
+            if (':….؟?!'.indexOf(pLast) !== -1) {
+              var pMatch = trimmedPart.match(/^([\w\s\-\/]+)([:…\.؟\?!]+)$/);
               if (pMatch && pMatch[1].trim() in exactLookup) {
-                transPart = exactLookup[pMatch[1].trim()] + (pMatch[2] === ':' ? '：' : pMatch[2]);
+                transPart = exactLookup[pMatch[1].trim()] + (pMatch[2] === '?' ? '؟' : pMatch[2]);
               }
             }
           }
@@ -1638,7 +1638,7 @@
         if (anyTranslated && allTranslated) {
           return cacheAndReturn(
             normalized,
-            translatedParts.join('').replace(/([。！？])[。！？.]*\s*/g, '$1 ').trim()
+            translatedParts.join('').replace(/([.!؟?])[.!؟?]*\s*/g, '$1 ').trim()
           );
         }
       }
@@ -2066,7 +2066,7 @@
       return Boolean(doc && doc.documentElement && getAttr(doc.documentElement, 'data-ag-cs-win-blur') === '1');
     }
 
-    // 元素周期表 3D 键盘打开期间进入休眠，避免高频扫键触发宿主 i18n 扫描与 hover 拦截
+    // Hibernate while the periodic table 3D keyboard picker is open to avoid triggering scans and hover interception
     function isPeriodicPickerOpen() {
       return Boolean(doc && doc.documentElement && getAttr(doc.documentElement, 'data-ag-pp-open') === '1');
     }
@@ -2118,7 +2118,7 @@
             normStored !== 'false' &&
             normStored !== '0')
         ) {
-          tier1State.hansPrevLang = storedHans && String(storedHans).trim() ? String(storedHans).trim() : 'zh-CN';
+          tier1State.hansPrevLang = storedHans && String(storedHans).trim() ? String(storedHans).trim() : 'ar';
           try {
             win.__antigravityZhSetLang('en');
             tier1State.hansSwitched = true;
@@ -2141,7 +2141,7 @@
           tier1State.patchObserverPaused = true;
         } catch (e) {}
       }
-      // 兼容 Main World 注入版 yiheng8023/antigravity-chinese：仅对单实例 __AGY_CACHE__ 做可逆自有属性静音，绝不碰 Map.prototype
+      // Compatibility with Main-World injected localization overlays: reversibly silence own properties on __AGY_CACHE__ only, never touch Map.prototype
       if (
         win &&
         win.__AGY_CACHE__ &&
@@ -2173,7 +2173,7 @@
       }
       if (doc && doc.documentElement && !hasAttr(doc.documentElement, 'data-ag-prism-lang-owned')) {
         var curHtmlLang = getAttr(doc.documentElement, 'lang');
-        if (curHtmlLang && /^zh(?:$|[-_])/i.test(String(curHtmlLang).trim())) {
+        if (curHtmlLang && /^(?:ar|zh)(?:$|[-_])/i.test(String(curHtmlLang).trim())) {
           tier1State.htmlLangOrig = curHtmlLang;
           try {
             doc.documentElement.setAttribute('lang', 'en');
@@ -2218,7 +2218,7 @@
       }
       if (saved.hansSwitched && win && typeof win.__antigravityZhSetLang === 'function') {
         try {
-          win.__antigravityZhSetLang(saved.hansPrevLang || 'zh-CN');
+          win.__antigravityZhSetLang(saved.hansPrevLang || 'ar');
         } catch (e) {}
       }
     }
@@ -2446,7 +2446,7 @@
       tier2MarkedElements.forEachAll(rollbackTier2Element);
       tier2MarkedElements.clear();
 
-      // DOM 兜底扫回：防止节点曾因暂时脱离 DOM 被 prune 剪枝后又被 React 复用回挂导致漏回滚
+      // Fallback DOM sweep rollback: prevents missed rollbacks when nodes detach, get pruned, and are later reattached by React
       var rootEl = doc && (doc.body || doc.documentElement);
       if (rootEl) {
         try {
@@ -2523,9 +2523,9 @@
     function yieldAndRollback(reason, providerName) {
       if (state.yielded || state.status === 'yielded') return;
       var resolvedProvider = providerName || null;
-      if (!resolvedProvider && reason === 'external-ui-zh') {
+      if (!resolvedProvider && reason === 'external-ui-ar') {
         var l1Now = detectLayer1External(win, doc);
-        resolvedProvider = l1Now.hit ? l1Now.provider : 'generic-zh-dom';
+        resolvedProvider = l1Now.hit ? l1Now.provider : 'generic-ar-dom';
       } else if (!resolvedProvider && reason === 'conflict-breaker') {
         var l1Conflict = detectLayer1External(win, doc);
         resolvedProvider = l1Conflict.hit ? l1Conflict.provider : 'conflict-breaker';
@@ -2602,8 +2602,8 @@
         origText !== undefined
           ? currentText === origText
           : hasOwn.call(st.entries, currentText) || currentText === st.lastOrig;
-      var isExternalZh = ZH_CHAR_RE.test(currentText || '') && currentText !== expectedText;
-      if (isBackToOrig || isExternalZh) {
+      var isExternalAr = AR_CHAR_RE.test(currentText || '') && currentText !== expectedText;
+      if (isBackToOrig || isExternalAr) {
         var refAt = translatedAt || st.lastTranslatedAt;
         var inWindow =
           now - refAt <= CONFLICT_WINDOW_MS ||
@@ -2713,8 +2713,8 @@
 
       // Host updated to genuinely new English copy (e.g. "Save" -> "Saved")
       var isBackToOrig = currentVal === snap.orig;
-      var isExternalZh = ZH_CHAR_RE.test(currentVal || '');
-      if (!isBackToOrig && !isExternalZh) {
+      var isExternalAr = AR_CHAR_RE.test(currentVal || '');
+      if (!isBackToOrig && !isExternalAr) {
         textSnapshots.delete(node);
         modifiedTextNodes.delete(node);
       }
@@ -2731,12 +2731,12 @@
       if (curText === st.lastExpected) return false;
 
       var isBackToOrig = hasOwn.call(st.entries, curText) || curText === st.lastOrig;
-      var isExternalZh =
-        ZH_CHAR_RE.test(curText) &&
+      var isExternalAr =
+        AR_CHAR_RE.test(curText) &&
         curText !== st.lastExpected &&
         (!st.lastExpected || curText.indexOf(st.lastExpected) === -1) &&
         !hasElementChild(el);
-      if (isBackToOrig || isExternalZh) {
+      if (isBackToOrig || isExternalAr) {
         var cRes = recordElementConflict(
           el,
           curText,
@@ -2903,10 +2903,10 @@
       }
 
       if (state.mode === 'off') {
-        if (trimmed === '。' && node.previousSibling) {
+        if (trimmed === '؟' && node.previousSibling) {
           var prevSibText = (node.previousSibling.textContent || '').trim();
-          if (prevSibText && EN_ALPHA_RE.test(prevSibText) && !ZH_CHAR_RE.test(prevSibText)) {
-            applyTextWrite(node, original, original.replace('。', '.'));
+          if (prevSibText && EN_ALPHA_RE.test(prevSibText) && !AR_CHAR_RE.test(prevSibText)) {
+            applyTextWrite(node, original, original.replace('؟', '?'));
             return;
           }
         }
@@ -2920,8 +2920,8 @@
         return;
       }
 
-      if (trimmed === '.' && node.previousSibling && ZH_CHAR_RE.test(node.previousSibling.textContent || '')) {
-        applyTextWrite(node, original, original.replace('.', '。'));
+      if (trimmed === '?' && node.previousSibling && AR_CHAR_RE.test(node.previousSibling.textContent || '')) {
+        applyTextWrite(node, original, original.replace('?', '؟'));
         return;
       }
 
@@ -2932,7 +2932,7 @@
         var trailingSpace = edges.trailing;
         if (!leadingSpace && node.previousSibling) {
           var prevText = (node.previousSibling.textContent || '').trim();
-          if (/[a-zA-Z0-9]$/.test(prevText) && /^[\u4e00-\u9fa5]/.test(translated)) {
+          if (/[a-zA-Z0-9]$/.test(prevText) && AR_CHAR_RE.test(translated.charAt(0))) {
             leadingSpace = ' ';
           }
         }
@@ -3110,7 +3110,7 @@
             var alertChild = alertSpan.firstChild;
             while (alertChild) {
               if (alertChild.nodeType === 3 && alertChild.nodeValue && alertChild.nodeValue.trim() === 'Type') {
-                applyTextWrite(alertChild, alertChild.nodeValue, alertChild.nodeValue.replace('Type', '输入'));
+                applyTextWrite(alertChild, alertChild.nodeValue, alertChild.nodeValue.replace('Type', 'اكتب'));
               }
               alertChild = alertChild.nextSibling;
             }
@@ -3148,7 +3148,7 @@
               scanCur = scanCur.nextSibling;
             }
             if (alsoNode && whenNode && !exemptNodes.has(alsoNode) && !exemptNodes.has(whenNode)) {
-              applyTextWrite(alsoNode, alsoNode.nodeValue, '在此项目中工作时，也包含');
+              applyTextWrite(alsoNode, alsoNode.nodeValue, 'يشمل أيضاً ');
               var between = alsoNode.nextSibling;
               while (between && between !== whenNode) {
                 if (between.nodeType === 3 && !(between.nodeValue || '').trim()) {
@@ -3156,7 +3156,7 @@
                 }
                 between = between.nextSibling;
               }
-              applyTextWrite(whenNode, whenNode.nodeValue, '。');
+              applyTextWrite(whenNode, whenNode.nodeValue, ' عند العمل في هذا المشروع.');
             }
           }
         }
@@ -3183,7 +3183,7 @@
       }
     }
 
-    // 在 off（强制还原原生英文）模式下，定点还原侧栏固定 UI 壳子（置顶会话/项目列表/收起/查看全部），同时绝对跳过会话标题行与项目名
+    // In off (forced native English restoration) mode, selectively restore static sidebar chrome while strictly skipping conversation titles and project names
     function scanOffSidebarChrome() {
       if (state.mode !== 'off' || !state.active || state.destroyed || !doc || typeof doc.querySelectorAll !== 'function') return;
       var safeWalkSubtree = function (rootEl) {
@@ -3337,7 +3337,7 @@
           return;
         }
         var val = (tNode.nodeValue || '').trim();
-        if (!val || !ZH_CHAR_RE.test(val)) return;
+        if (!val || !AR_CHAR_RE.test(val)) return;
         var snap = textSnapshots.get(tNode);
         if (snap && snap.expected === tNode.nodeValue) return;
         if (hasOwn.call(translatedValues, val) || isInsideExplicitDelayedChrome(parent)) {
@@ -3378,7 +3378,7 @@
       }
 
       if (delayedExternalNodes.size >= 2) {
-        yieldAndRollback('external-ui-zh');
+        yieldAndRollback('external-ui-ar');
         return true;
       }
       return false;
@@ -3677,7 +3677,7 @@
       if (!isPaused()) {
         safeBudgetedScan();
       } else {
-        // 窗口可见但暂时失焦（如热切换配置/外部改 config.json）时，off 模式先同步执行一次全量还原，随后保持 0fps 休眠
+        // When window is visible but unfocused (e.g. hot-reloading config.json), run one synchronous full restore in off mode before staying hibernated at 0fps
         if (state.mode === 'off' && !(doc && doc.hidden === true)) {
           safeFullScan();
           disconnectObserver();
@@ -3732,12 +3732,12 @@
               if (nowFn() - bootAt > LAYER2B_WINDOW_MS + 100) return;
               var l1 = detectLayer1External(win, doc);
               if (l1.hit) {
-                yieldAndRollback('external-ui-zh', l1.provider);
+                yieldAndRollback('external-ui-ar', l1.provider);
                 return;
               }
-              var l2 = detectLayer2ChromeZh(doc, { textSnapshots: textSnapshots });
+              var l2 = detectLayer2ChromeAr(doc, { textSnapshots: textSnapshots });
               if (l2.hit) {
-                yieldAndRollback('external-ui-zh', 'generic-zh-dom');
+                yieldAndRollback('external-ui-ar', 'generic-ar-dom');
                 return;
               }
               if (delayMs >= 1150 && isPaused()) {
@@ -3888,7 +3888,7 @@
         if (extCheck.detected) {
           state.active = false;
           state.status = 'yielded';
-          state.reason = extCheck.reason || 'external-ui-zh';
+          state.reason = extCheck.reason || 'external-ui-ar';
           state.detectedProvider = extCheck.provider || 'generic-external';
           state.yielded = true;
           setRootStatusAttr('yielded');
@@ -3907,7 +3907,7 @@
             if (state.mode === 'auto') {
               var recheck = detectExternalLocalization(win, doc);
               if (recheck.detected) {
-                yieldAndRollback(recheck.reason || 'external-ui-zh', recheck.provider);
+                yieldAndRollback(recheck.reason || 'external-ui-ar', recheck.provider);
                 return;
               }
             }
@@ -3983,7 +3983,8 @@
     mountHostI18n: mountHostI18n,
     detectExternalLocalization: detectExternalLocalization,
     detectLayer1External: detectLayer1External,
-    detectLayer2ChromeZh: detectLayer2ChromeZh,
+    detectLayer2ChromeAr: detectLayer2ChromeAr,
+    detectLayer2ChromeZh: detectLayer2ChromeAr,
     isPrismOwnedElement: isPrismOwnedElement,
     isExternalOwnedElement: isExternalOwnedElement,
     isModelSelectorElement: isModelSelectorElement,

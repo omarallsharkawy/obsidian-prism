@@ -17,7 +17,7 @@ const ROOT = path.resolve(__dirname, '..');
 
 const cdp = require(path.join(ROOT, 'cdp.js'));
 const swarmRuntime = require(path.join(ROOT, 'vendor', 'host-i18n', 'swarm-i18n-runtime.js'));
-const swarmDict = JSON.parse(fs.readFileSync(path.join(ROOT, 'vendor', 'host-i18n', 'swarm-zh-CN.json'), 'utf8'));
+const swarmDict = JSON.parse(fs.readFileSync(path.join(ROOT, 'vendor', 'host-i18n', 'swarm-ar.json'), 'utf8'));
 
 function makeTempDir(prefix) {
   return fs.mkdtempSync(path.join(os.tmpdir(), prefix));
@@ -375,7 +375,7 @@ test('swarm-board-i18n 1: strict URL boundary, zero token leak across url/title/
   }
 });
 
-test('swarm-board-i18n 2: Ch1 zero byte delta, zh-CN.json intact, dictionary & runtime hygiene, on-demand disk cache', () => {
+test('swarm-board-i18n 2: Ch1 zero byte delta, Arabic host dictionary intact, dictionary & runtime hygiene, on-demand disk cache', () => {
   // Channel 1 zero delta: RUNTIME_PARTS must not include any swarm i18n file
   assert.equal(
     cdp.RUNTIME_PARTS.some((p) => /swarm/i.test(p)),
@@ -383,13 +383,13 @@ test('swarm-board-i18n 2: Ch1 zero byte delta, zh-CN.json intact, dictionary & r
     'RUNTIME_PARTS must not contain swarm-i18n files'
   );
 
-  // Layer A zh-CN.json (v3.3.63: exact=4763, patterns=405)
-  const hostDict = JSON.parse(fs.readFileSync(path.join(ROOT, 'vendor', 'host-i18n', 'zh-CN.json'), 'utf8'));
-  assert.equal(Object.keys(hostDict.exact).length, 4763);
+  // Layer A zh-CN.json (v3.3.63: exact=4762, patterns=405)
+  const hostDict = JSON.parse(fs.readFileSync(path.join(ROOT, 'vendor', 'host-i18n', 'ar.json'), 'utf8'));
+  assert.equal(Object.keys(hostDict.exact).length, 4762);
   assert.equal(hostDict.patterns.length, 405);
 
   // UTF-8 no BOM, pure LF, no new Map() in swarm-i18n-runtime.js
-  for (const rel of ['vendor/host-i18n/swarm-zh-CN.json', 'vendor/host-i18n/swarm-i18n-runtime.js']) {
+  for (const rel of ['vendor/host-i18n/swarm-ar.json', 'vendor/host-i18n/swarm-i18n-runtime.js']) {
     const buf = fs.readFileSync(path.join(ROOT, rel));
     assert.equal(buf[0] === 0xef && buf[1] === 0xbb && buf[2] === 0xbf, false, `${rel} must have no UTF-8 BOM`);
     const txt = buf.toString('utf8');
@@ -399,7 +399,7 @@ test('swarm-board-i18n 2: Ch1 zero byte delta, zh-CN.json intact, dictionary & r
   assert.equal(/new\s+Map\s*\(/.test(rtSrc), false, 'swarm-i18n-runtime.js must not use new Map()');
 
   // Dictionary completeness & safe anchored patterns & .o2-rmeta leading digit
-  assert.ok(Object.keys(swarmDict.exact).length >= 130, 'swarm-zh-CN.json must have >= 130 exact entries');
+  assert.ok(Object.keys(swarmDict.exact).length >= 130, 'swarm-ar.json must have >= 130 exact entries');
   for (const listName of ['patterns', 'optionPatterns']) {
     for (const item of swarmDict[listName]) {
       assert.ok(item.regex.startsWith('^') && item.regex.endsWith('$'), `Pattern must be ^...$ anchored: ${item.regex}`);
@@ -411,17 +411,17 @@ test('swarm-board-i18n 2: Ch1 zero byte delta, zh-CN.json intact, dictionary & r
   const eng = swarmRuntime.createSwarmI18nEngine(swarmDict);
   const rmetaZh = eng.translate('2 of 5 tasks done');
   assert.ok(rmetaZh && /^\d+/.test(rmetaZh), `.o2-rmeta translation must keep leading digits, got: ${rmetaZh}`);
-  assert.equal(rmetaZh.replace(/^\d+/, '4'), '4 / 5 项任务已完成');
+  assert.equal(rmetaZh.replace(/^\d+/, '4'), '4 / 5 مهمة مكتملة');
   assert.ok(swarmDict.protectedUiKeys && swarmDict.protectedUiKeys.team === 'The team');
 
   // Gate matrix for shouldEnableSwarmI18n
-  assert.equal(cdp.shouldEnableSwarmI18n({ hostLocalization: 'off', language: 'zh-CN' }), false);
+  assert.equal(cdp.shouldEnableSwarmI18n({ hostLocalization: 'off', language: 'ar' }), false);
   assert.equal(cdp.shouldEnableSwarmI18n({ hostLocalization: 'on', language: 'en' }), true);
-  assert.equal(cdp.shouldEnableSwarmI18n({ hostLocalization: 'auto', language: 'zh-CN' }), true);
+  assert.equal(cdp.shouldEnableSwarmI18n({ hostLocalization: 'auto', language: 'ar' }), true);
   assert.equal(cdp.shouldEnableSwarmI18n({ hostLocalization: 'auto', language: 'en' }), false);
   assert.equal(cdp.shouldEnableSwarmI18n({ hostLocalization: 'auto', language: 'auto' }, 'en-US'), false);
-  assert.equal(cdp.shouldEnableSwarmI18n({ hostLocalization: 'auto', language: 'auto' }, 'zh-CN'), true);
-  assert.equal(cdp.buildSwarmI18nExpression({ hostLocalization: 'off', language: 'zh-CN' }), '');
+  assert.equal(cdp.shouldEnableSwarmI18n({ hostLocalization: 'auto', language: 'auto' }, 'ar'), true);
+  assert.equal(cdp.buildSwarmI18nExpression({ hostLocalization: 'off', language: 'ar' }), '');
 
   // On-demand disk cache for swarmI18n + PrismDaemon.rebuildBundle() does NOT precompile swarmI18n
   const tmpDir = makeTempDir('ag-swarm-cache-');
@@ -632,49 +632,49 @@ test('swarm-board-i18n 3: sandbox DOM translation, exemptions, <option>.value sa
   assert.equal(doc.documentElement.getAttribute('data-ag-prism-swarm-i18n'), 'active');
 
   // Translated UI text & attrs
-  assert.equal(liveLabel.textContent, '实时');
-  assert.equal(tabOverview.textContent, '概览');
-  assert.equal(tabFeed.textContent, '消息板');
-  assert.equal(tabMembers.textContent, '成员');
-  assert.equal(tabGraph.textContent, '关系图');
-  assert.equal(tabs.getAttribute('aria-label'), '蜂群视图');
-  assert.equal(exportLbl.textContent, '导出 GIF');
-  assert.equal(exportBtn.getAttribute('title'), '将图谱回放导出为动态 GIF');
-  assert.equal(stallB.textContent, '蜂群已停滞 — 当前无成员工作');
-  assert.equal(goalLbl.textContent, '目标');
-  assert.equal(thnNowSpan.textContent, '当前');
-  assert.equal(ovFresh.textContent, '已读至 #12 · 更新于 2m ago');
-  assert.equal(chAllBtn.textContent, '全部');
-  assert.equal(chAllBtn.getAttribute('title'), '全部频道的消息');
+  assert.equal(liveLabel.textContent, 'مباشر');
+  assert.equal(tabOverview.textContent, 'نظرة عامة');
+  assert.equal(tabFeed.textContent, 'لوحة الرسائل');
+  assert.equal(tabMembers.textContent, 'الأعضاء');
+  assert.equal(tabGraph.textContent, 'المخطط');
+  assert.equal(tabs.getAttribute('aria-label'), 'عروض السرب');
+  assert.equal(exportLbl.textContent, 'تصدير GIF');
+  assert.equal(exportBtn.getAttribute('title'), 'تصدير إعادة تشغيل المخطط كصورة GIF متحركة');
+  assert.equal(stallB.textContent, 'توقف السرب — لا يوجد وكلاء يعملون حالياً');
+  assert.equal(goalLbl.textContent, 'الهدف');
+  assert.equal(thnNowSpan.textContent, 'نشط');
+  assert.equal(ovFresh.textContent, 'قُرئ حتى #12 · حُدّث 2m ago');
+  assert.equal(chAllBtn.textContent, 'الكل');
+  assert.equal(chAllBtn.getAttribute('title'), 'المنشورات في جميع القنوات');
   assert.equal(chMainBtn.textContent, '#main');
-  assert.equal(chMainBtn.getAttribute('title'), 'main：整个蜂群都会收到');
-  assert.equal(mentionSpan.getAttribute('title'), '#backend 频道的所有成员');
-  assert.equal(msgChannel.getAttribute('title'), '发布于 #dev；点击仅查看 #dev');
+  assert.equal(chMainBtn.getAttribute('title'), 'main: يقرأها السرب بالكامل');
+  assert.equal(mentionSpan.getAttribute('title'), 'جميع الأعضاء في قناة #backend');
+  assert.equal(msgChannel.getAttribute('title'), 'نُشر في #dev؛ انقر لعرض #dev فقط');
 
   // Whitelisted <select>/<option>: textContent translated, .value strictly untouched
-  assert.equal(optAgentAll.textContent, '任意发送者');
-  assert.equal(optAgent1.textContent, '来自 coder-1');
+  assert.equal(optAgentAll.textContent, 'من أي عضو');
+  assert.equal(optAgent1.textContent, 'من coder-1');
   assert.equal(optAgent1.value, 'coder-1');
   assert.equal(selAgent.value, 'coder-1');
-  assert.equal(optMAll.textContent, '发送给 @all');
+  assert.equal(optMAll.textContent, 'إلى @all');
   assert.equal(optMAll.value, '@all');
-  assert.equal(optMNone.textContent, '未提及任何人');
+  assert.equal(optMNone.textContent, 'دون إشارة لأحد');
   assert.equal(optMNone.value, '@none');
-  assert.equal(optMUser.textContent, '发给 worker-2');
+  assert.equal(optMUser.textContent, 'إلى worker-2');
   assert.equal(optMUser.value, 'worker-2');
-  assert.equal(optChAll.textContent, '全部频道');
-  assert.equal(optChArch.textContent, '#backend（已归档）');
+  assert.equal(optChAll.textContent, 'جميع القنوات');
+  assert.equal(optChArch.textContent, '#backend (مؤرشف)');
   assert.equal(optChArch.value, 'backend');
-  assert.equal(optEven.textContent, '匀速回放');
+  assert.equal(optEven.textContent, 'إيقاع منتظم');
   assert.equal(optEven.value, 'even');
-  assert.equal(optReal.textContent, '真实时间间隔');
+  assert.equal(optReal.textContent, 'فواصل زمنية حقيقية');
   assert.equal(optReal.value, 'real');
   assert.equal(optSpeed2.textContent, '2×');
   assert.equal(optSpeed2.value, '2');
 
   // viewCopy.ui yield: team was customized to 'Running', so teamH stayed untouched; runHB translated
   assert.equal(teamH.textContent, 'Running', 'SwarmHive.viewCopy.ui custom label must be yielded');
-  assert.equal(runHB.textContent, '进行中');
+  assert.equal(runHB.textContent, 'قيد التشغيل');
 
   // ALL content isolation exemptions strictly preserved
   assert.equal(titleEl.textContent, 'Running');
@@ -710,9 +710,9 @@ test('swarm-board-i18n 3: sandbox DOM translation, exemptions, <option>.value sa
   assert.equal(chCustomBtn.getAttribute('title'), 'Running');
 
   // .o2-rmeta keeps leading digit and survives hive.js in-place .replace(/^\d+/, f.done)
-  assert.equal(rmetaP.textContent, '2 / 5 项任务已完成');
+  assert.equal(rmetaP.textContent, '2 / 5 مهام مكتملة');
   rmetaP.childNodes[0].nodeValue = rmetaP.childNodes[0].nodeValue.replace(/^\d+/, '4');
-  assert.equal(rmetaP.textContent, '4 / 5 项任务已完成');
+  assert.equal(rmetaP.textContent, '4 / 5 مهمة مكتملة');
 
   // 0fps hibernation when hidden or blurred
   doc.hidden = true;
@@ -728,7 +728,7 @@ test('swarm-board-i18n 3: sandbox DOM translation, exemptions, <option>.value sa
   inst.destroy();
   assert.equal(doc.documentElement.getAttribute('data-ag-prism-swarm-i18n'), null);
   assert.equal(win.__agPrismSwarmI18n, undefined);
-  assert.equal(liveLabel.textContent, 'Live');
+  assert.equal(liveLabel.textContent, 'مباشر');
   assert.equal(tabOverview.textContent, 'Overview');
   assert.equal(tabFeed.textContent, 'Board');
   assert.equal(tabMembers.textContent, 'Members');
@@ -791,7 +791,7 @@ test('swarm-board-i18n 3: sandbox DOM translation, exemptions, <option>.value sa
   const res1 = vm.runInContext(expr, ctx);
   assert.equal(res1.ok, true);
   assert.equal(res1.status, 'active');
-  assert.equal(vmBtn.textContent, '消息板');
+  assert.equal(vmBtn.textContent, 'لوحة الرسائل');
   const res2 = vm.runInContext(expr, ctx);
   assert.equal(res2.reused, true);
   const resRm = vm.runInContext(cdp.SWARM_I18N_REMOVE_EXPRESSION, ctx);
@@ -852,7 +852,7 @@ test('swarm-board-i18n 4: CdpSession flattened child session multiplexing and Da
   const tmpDir = makeTempDir('ag-swarm-daemon-');
   let daemon = null;
   try {
-    let liveCfg = { ...cdp.DEFAULT_CONFIG, omniModule: 'off', sidebarStudio: 'off', hostLocalization: 'on', language: 'zh-CN' };
+    let liveCfg = { ...cdp.DEFAULT_CONFIG, omniModule: 'off', sidebarStudio: 'off', hostLocalization: 'on', language: 'ar' };
     const cdpCalls = [];
     const browserEventMap = new Map();
     const childSessionEventMap = new Map();
@@ -1117,9 +1117,9 @@ test('Battle 5: detectExternalSwarmI18n yields to Antigravity-Hans, 3169657175, 
     assert.equal(env.btn.textContent, 'Board');
   }
 
-  // 2) Antigravity-Hans localStorage antigravityHansLang ('zh-CN' yields, 'en'/'off' does not)
+  // 2) Antigravity-Hans localStorage antigravityHansLang ('ar' yields, 'en'/'off' does not)
   const envHansZh = mkReadyEnv();
-  envHansZh.win.localStorage = { getItem: (k) => (k === 'antigravityHansLang' ? 'zh-CN' : null) };
+  envHansZh.win.localStorage = { getItem: (k) => (k === 'antigravityHansLang' ? 'ar' : null) };
   assert.equal(swarmRuntime.detectExternalSwarmI18n(envHansZh.win, envHansZh.doc), 'storage-marker');
   const envHansEn = mkReadyEnv();
   envHansEn.win.localStorage = { getItem: (k) => (k === 'antigravityHansLang' ? 'en' : null) };
@@ -1137,8 +1137,8 @@ test('Battle 5: detectExternalSwarmI18n yields to Antigravity-Hans, 3169657175, 
 
   // 4) html[lang^="zh"] yields, html[lang="en"] does not
   const envLangZh = mkReadyEnv();
-  envLangZh.doc.documentElement.setAttribute('lang', 'zh-CN');
-  assert.equal(swarmRuntime.detectExternalSwarmI18n(envLangZh.win, envLangZh.doc), 'html-lang-zh');
+  envLangZh.doc.documentElement.setAttribute('lang', 'ar');
+  assert.equal(swarmRuntime.detectExternalSwarmI18n(envLangZh.win, envLangZh.doc), 'html-lang-external');
   const envLangEn = mkReadyEnv();
   envLangEn.doc.documentElement.setAttribute('lang', 'en');
   assert.equal(swarmRuntime.detectExternalSwarmI18n(envLangEn.win, envLangEn.doc), null);

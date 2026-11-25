@@ -8,7 +8,7 @@
   'use strict';
 
   const WAVE_NODES = 24;
-  const TUBE_X = 34; // 96px 画布内，流体舱居中在 x=34（宽 ~43.2 => x:12.4..55.6，右侧绘制 3.5px 激光微刻标尺）
+  const TUBE_X = 34; // Inside 96px canvas, fluid chamber centered at x=34 (width ~43.2 => x:12.4..55.6, 3.5px laser ruler on right)
   const TUBE_OUT_R = 21.6;
   const TUBE_IN_R = 19.6;
   const LIP_Y = 18.5;
@@ -16,23 +16,23 @@
   const TOP_IN = 20.5;
   const RC_TOP_OUT = 14.5;
   const RC_TOP_IN = 12.5;
-  const HEM_Y = 175.0; // 液位基准（沿用 HEM_Y + 14 作为腔底液位映射参考）
-  // 一体封闭式修长圆角高硼硅/暗曜石纯透晶舱（极简 2.0px 薄晶壁 + 顶底对称精密圆角）
+  const HEM_Y = 175.0; // Fluid level baseline (uses HEM_Y + 14 as chamber floor mapping reference)
+  // Monolithic sealed slim borosilicate/obsidian crystal chamber (minimal 2.0px thin walls + symmetric top/bottom radii)
   const FLOOR_OUT = 198.0;
   const FLOOR_IN = 195.0;
   const RC_OUT = 14.5;
   const RC_IN = 12.5;
-  const FIXED_DT = 1 / 120; // 固定物理子步：60Hz / 144Hz 刷新率下演化一致
-  const MAX_FRAME_DT = 0.05; // 真实帧间隔上限
+  const FIXED_DT = 1 / 120; // Fixed physics substep for identical evolution across 60Hz and 144Hz displays
+  const MAX_FRAME_DT = 0.05; // Real frame delta-time cap
   const MAX_SUBSTEPS = 8;
-  const GRAVITY = 460.0; // 像素级重力加速度 px/s²
-  const SETTLE_MIN_AGE_SEC = 1.1; // 入场至少 1.1s 且液位/波能收敛后才进入 0fps 物理休眠
+  const GRAVITY = 460.0; // Pixel-space gravity acceleration px/s^2
+  const SETTLE_MIN_AGE_SEC = 1.1; // Enter 0fps physics sleep only after >=1.1s age and converged level/wave energy
 
   const clampFillVal = (v) => Math.max(0.06, Math.min(0.95, Number.isFinite(+v) ? +v : 0.46));
 
   /**
-   * 创建高阻尼精密光学水平仪流体舱物理模拟器
-   * （24节点硅油阻尼浅水波 + 高阻尼重力摆 + 内壁润湿 + 显式液滴激波 + 流式星尘缓升 + 静止收敛检测）
+   * Create high-damping precision optical spirit-level fluid chamber physics simulator
+   * (24-node silicone-oil damped shallow wave + high-damping pendulum + wall wetting + explicit drops + rising stardust + rest convergence)
    */
   function createWaterVialPhysics(initialOptions = {}) {
     const waveH = new Float32Array(WAVE_NODES);
@@ -42,15 +42,15 @@
     let targetFill = fill;
     let streaming = initialOptions.streaming !== false;
 
-    // 倾角与水平仪阻尼动力学（最大 ±0.48 rad）
+    // Tilt angle and spirit-level damping dynamics (max +/-0.48 rad)
     let tiltAngle = 0;
     let tiltVel = 0;
 
-    // 内壁挂水润湿高度（归一化在液体上方延伸长度 0..0.42）
+    // Inner-wall wetting film height (normalized extension above fluid 0..0.42)
     let wetLeft = 0;
     let wetRight = 0;
 
-    // 显式下落光滴与星尘微泡（活动列表 + 对象池，稳态零分配）
+    // Explicit falling light drops and stardust micro-bubbles (active list + object pool, zero steady-state allocations)
     let pendantProgress = 0;
     let dropCooldown = 0;
     let streamClock = 0;
@@ -191,7 +191,7 @@
         fill += diffFill * Math.min(1, dt * 6.0);
       }
 
-      // 1. 精密水平仪高阻尼重力摆
+      // 1. Precision spirit-level high-damping gravity pendulum
       const omegaT = 7.2;
       const zetaT = 0.40;
       let streamTorque = 0;
@@ -214,7 +214,7 @@
       if (tiltAngle < -0.11) wetLeft = Math.max(wetLeft, Math.min(0.42, (-tiltAngle - 0.08) * 1.15));
       if (tiltAngle > 0.11) wetRight = Math.max(wetRight, Math.min(0.42, (tiltAngle - 0.08) * 1.15));
 
-      // 2. 24 节点 1D 阻尼浅水波
+      // 2. 24-node 1D damped shallow-water wave
       const c2 = 380.0;
       const damp = 2.65;
       const restore = 26.0;
@@ -250,7 +250,7 @@
       wetLeft = Math.max(0, wetLeft - dt * 0.14);
       wetRight = Math.max(0, wetRight - dt * 0.14);
 
-      // 3. 流式态舱底 3D 星尘微粒缓升
+      // 3. Streaming-state rising 3D stardust motes from chamber floor
       pendantProgress = Math.max(0, pendantProgress - dt * 2.0);
       if (dropCooldown > 0) dropCooldown = Math.max(0, dropCooldown - dt);
       if (streaming && fill > 0.14 && fallingDrops.length === 0) {
@@ -261,7 +261,7 @@
         }
       }
 
-      // 下坠液滴物理与落水激波
+      // Falling droplet physics and splash impulse
       for (let i = fallingDrops.length - 1; i >= 0; i--) {
         const d = fallingDrops[i];
         d.vx += -GRAVITY * sinT * dt;
@@ -287,7 +287,7 @@
         }
       }
 
-      // 4. 舱内星尘微泡缓升
+      // 4. Rising stardust micro-bubbles inside chamber
       for (let i = bubbles.length - 1; i >= 0; i--) {
         const b = bubbles[i];
         b.phase += dt * (b.gentle ? 3.8 : 5.8 + 2.0 / b.r);
@@ -380,7 +380,7 @@
     };
   }
 
-  // ── WebGL2 Antigravity Prism 512K 光学水试管 Shader（深空电离 + 白昼高硼硅晴空蓝实验室玻璃） ──
+  // -- WebGL2 Antigravity Prism 512K Optical Vial Shader (deep-space ionized + daylight borosilicate lab glass) --
   const VERT_SRC = `#version 300 es
     in vec2 a_pos;
     out vec2 v_uv;
@@ -431,25 +431,25 @@
     const float H_BOX_IN = 87.25;
     const float Y_MID_IN = 107.75;
 
-    // 深色深空连续电离色阶：#0F173A -> #1B49B2 -> #3186FF -> #5CC6FC
+    // Dark deep-space continuous ionized ramp: #0F173A -> #1B49B2 -> #3186FF -> #5CC6FC
     const vec3 ION_DEEP = vec3(0.059, 0.090, 0.227);
     const vec3 ION_SYS = vec3(0.106, 0.286, 0.698);
     const vec3 ION_CONV = vec3(0.192, 0.525, 1.000);
     const vec3 ION_TOOL = vec3(0.361, 0.776, 0.988);
     const vec3 ION_HAZE = vec3(0.690, 0.875, 1.000);
 
-    // 白昼高硼硅实验室玻璃 & 皇家钴蓝至晴空蔚蓝电离光谱
-    const vec3 DAY_AIR = vec3(0.880, 0.920, 0.980);       // 清透冰川淡蓝灰管腔底衬
-    const vec3 DAY_RIM_REF = vec3(0.118, 0.251, 0.686);   // rgba(30, 64, 175, 0.28) 玻璃折射暗边
-    const vec3 DAY_ROYAL = vec3(0.114, 0.306, 0.847);     // #1D4ED8 深邃皇家钴蓝
-    const vec3 DAY_COBALT = vec3(0.145, 0.388, 0.922);    // #2563EB 鲜亮宝石钴蓝
-    const vec3 DAY_SKY = vec3(0.008, 0.518, 0.780);       // #0284C7 浓郁晴空蔚蓝
-    const vec3 DAY_CROWN = vec3(0.055, 0.600, 0.885);     // 晴空折射顶冠
-    const vec3 DAY_MENISCUS = vec3(0.016, 0.275, 0.635);  // 高对比度靛青弯月面刀锋
-    const vec3 DAY_VIOLET = vec3(0.486, 0.227, 0.929);    // #7C3AED 高负载浓郁紫晶
-    const vec3 DAY_AMBER_RED = vec3(0.918, 0.345, 0.047); // #EA580C 临界琥珀红
+    // Daylight borosilicate lab glass & Royal Cobalt to Sky Azure ionized spectrum
+    const vec3 DAY_AIR = vec3(0.880, 0.920, 0.980);       // Clear glacial cool-blue chamber backing
+    const vec3 DAY_RIM_REF = vec3(0.118, 0.251, 0.686);   // rgba(30, 64, 175, 0.28) glass refraction dark rim
+    const vec3 DAY_ROYAL = vec3(0.114, 0.306, 0.847);     // #1D4ED8 deep royal cobalt
+    const vec3 DAY_COBALT = vec3(0.145, 0.388, 0.922);    // #2563EB vivid gemstone cobalt
+    const vec3 DAY_SKY = vec3(0.008, 0.518, 0.780);       // #0284C7 rich clear sky azure
+    const vec3 DAY_CROWN = vec3(0.055, 0.600, 0.885);     // Clear-sky refraction crown
+    const vec3 DAY_MENISCUS = vec3(0.016, 0.275, 0.635);  // High-contrast indigo meniscus razor edge
+    const vec3 DAY_VIOLET = vec3(0.486, 0.227, 0.929);    // #7C3AED high-load rich amethyst
+    const vec3 DAY_AMBER_RED = vec3(0.918, 0.345, 0.047); // #EA580C critical amber-orange
 
-    // 阵营色偏参考常量 & 深色临界态琥珀熔金色阶
+    // Camp tint reference constants & dark critical molten-amber ramp
     const vec3 CLD_CONV = vec3(0.820, 0.490, 0.280);
     const vec3 CAMP_INDIGO = vec3(0.165, 0.275, 0.725);
     const vec3 CAMP_ASTRAL = vec3(0.395, 0.545, 0.980);
@@ -527,7 +527,7 @@
       return rSide;
     }
 
-    // 连续电离能量渐变采样：深色深海靛青 vs 白昼皇家钴蓝-晴空蔚蓝（支持 cobalt / iris / amber / mono 四档强调色）
+    // Continuous ionized energy gradient: dark deep-sea indigo vs daylight royal-cobalt/sky-azure (cobalt / iris / amber / mono)
     vec3 evalHorizonSpectrum(float hFrac) {
       float h = clamp(hFrac, 0.0, 1.0);
       if (u_dark > 0.5) {
@@ -579,13 +579,13 @@
         return mix(dayIris, dayCrit, u_critical);
       }
 
-      // 白昼高对比晴空蔚蓝 -> 皇家钴蓝光谱（#1D4ED8 -> #2563EB -> #0284C7）
+      // Daylight high-contrast sky-azure -> royal-cobalt spectrum (#1D4ED8 -> #2563EB -> #0284C7)
       vec3 daySea = mix(DAY_ROYAL, DAY_COBALT, smoothstep(0.0, 0.48, h));
       daySea = mix(daySea, DAY_SKY, smoothstep(0.42, 0.88, h));
       daySea = mix(daySea, DAY_CROWN, smoothstep(0.82, 1.00, h));
       daySea = mix(daySea, mix(DAY_VIOLET, CLD_CONV, 0.32 * h), u_camp * 0.20);
 
-      // 高负载预警：平滑融入浓郁紫晶 #7C3AED -> 临界琥珀红 #EA580C
+      // High-load warning: smoothly blends into rich iris #7C3AED -> critical amber #EA580C
       float warnShift = smoothstep(0.68, 0.85, u_fill);
       vec3 warnSpec = mix(DAY_ROYAL, DAY_VIOLET, smoothstep(0.10, 0.78, h));
       daySea = mix(daySea, warnSpec, warnShift * 0.68);
@@ -613,7 +613,7 @@
       vec2 px = vec2(v_uv.x * 96.0, (1.0 - v_uv.y) * 220.0);
       float dx = px.x - CX;
 
-      // 1. 一体封闭式修长圆角高硼硅/暗曜石纯透晶舱精确 SDF
+      // 1. Exact SDF for monolithic sealed rounded borosilicate/obsidian crystal chamber
       float sdfOut = roundedBoxSdf(vec2(dx, px.y - Y_MID_OUT), vec2(R_OUT, H_BOX_OUT), RC_OUT);
       float distOut = -sdfOut;
       if (distOut <= -0.8) {
@@ -630,7 +630,7 @@
       vec3 col = vec3(0.0);
       float alpha = 0.0;
 
-      // 2. 实时 3D 液位与电离激光弯月面坐标
+      // 2. Real-time 3D fluid level and ionized laser meniscus coordinates
       float topChamber = LIP_Y + 8.0;
       float botChamber = HEM_Y + 14.0;
       float baseSurfY = botChamber - u_fill * (botChamber - topChamber);
@@ -651,7 +651,7 @@
       vec3 ionBase = evalHorizonSpectrum(hFrac);
       vec3 surfTint = evalHorizonSpectrum(0.96);
 
-      // 3. 玻璃舱空气底衬与白昼高硼硅深蓝折射侧壁
+      // 3. Chamber air backing and daylight borosilicate deep-blue refractive sidewalls
       float bodyAA = smoothstep(-0.55, 0.45, distOut);
       float uOut = clamp(dx / max(1.0, rOutAtY), -1.0, 1.0);
       float lensCurve = pow(abs(uOut), 2.6);
@@ -661,7 +661,7 @@
         : mix(0.26, 0.42, lensCurve);
       layerOver(col, alpha, airBackCol, airBackA * bodyAA);
 
-      // 白昼高硼硅玻璃壁左右深色折射暗边 (Refraction Rim: rgba(30, 64, 175, 0.28)) 与管口/管底厚壁折光
+      // Daylight borosilicate dark refraction rims (rgba(30, 64, 175, 0.28)) and thick-wall cap/base refraction
       if (u_dark <= 0.5) {
         float wallBand = smoothstep(3.4, 0.8, distOut) * bodyAA;
         float sideRefract = smoothstep(0.66, 0.98, abs(uOut)) * bodyAA;
@@ -670,14 +670,14 @@
         layerOver(col, alpha, DAY_RIM_REF, refractMask * 0.28);
       }
 
-      // 顶部圆弧玻璃肩部微米冷折光
+      // Subtle cool refraction along top curved glass shoulder
       if (px.y < TOP_OUT + RC_OUT) {
         float domeGlow = exp(-pow((px.y - (TOP_OUT + 2.8)) / 2.2, 2.0) - pow((dx + 5.0) / 10.5, 2.0)) * bodyAA;
         vec3 domeCol = u_dark > 0.5 ? mix(ION_HAZE, vec3(1.0), 0.5) : mix(DAY_COBALT, DAY_SKY, 0.45);
         layerOver(col, alpha, domeCol, domeGlow * mix(0.26, 0.32, u_dark));
       }
 
-      // 4. 连续电离能量柱 + 微米星尘缓升
+      // 4. Continuous ionized energy column + rising micro-stardust
       if (inInnerBore && px.y >= surfBackY - 0.6) {
         float boreMask = smoothstep(-0.45, 0.55, distIn) * smoothstep(-0.5, 0.5, px.y - surfBackY);
         float depthPx = max(0.0, px.y - surfCenterY);
@@ -699,7 +699,7 @@
           float botScatter = exp(-pow(dx / 11.0, 2.0) - pow((px.y - (FLOOR_IN - 3.0)) / 3.6, 2.0));
           ionBody += mix(ION_CONV, CRIT_CONV, u_critical) * botScatter * 0.16;
         } else {
-          // 白昼饱满蓝宝石圆柱体积折射：边缘深邃皇家蓝，中心通透晴空蔚蓝，绝不泛白寡淡
+          // Daylight rich sapphire cylindrical volume refraction: deep royal-blue edges, translucent sky-azure core
           vec3 lightEdge = mix(DAY_ROYAL * 0.72, DAY_VIOLET * 0.68, u_critical);
           vec3 richBody = mix(lightEdge, ionBase, 0.32 + 0.68 * nz);
           ionBody = richBody * (0.88 + 0.16 * nz) * (0.92 + 0.14 * field);
@@ -713,7 +713,7 @@
 
         layerOver(col, alpha, clamp(ionBody, 0.0, 1.0), boreMask * mix(0.93, 0.91, u_dark));
 
-        // 4b. 失重微米星尘半调点阵
+        // 4b. Zero-G micro-stardust halftone matrix
         if (depthPx > 1.8) {
           float arcX = asin(clamp(uIn, -0.96, 0.96)) * R_IN;
           float waveSyncY = slopeTilt * 0.85 + waveDisp * 0.75;
@@ -735,7 +735,7 @@
           layerOver(col, alpha, min(starCol * 1.22, 1.0), stardustVis * mix(0.62, 0.70, u_dark));
         }
 
-        // 4c. 缓升 3D 星尘微粒与晶莹气泡描边 (u_bubbles)
+        // 4c. Rising 3D stardust motes and crisp bubble rims (u_bubbles)
         for (int i = 0; i < 8; i++) {
           vec4 b = u_bubbles[i];
           if (b.w <= 0.0 || px.y < surfCenterY + 1.0) continue;
@@ -759,7 +759,7 @@
         }
       }
 
-      // 5. 3D 折光椭圆液面 + 高对比度弯月面刀锋
+      // 5. 3D refractive elliptical surface + high-contrast meniscus razor edge
       if (inInnerBore) {
         float boreMask = smoothstep(-0.35, 0.55, distIn);
 
@@ -775,18 +775,18 @@
           layerOver(col, alpha, discCol, discMask * mix(0.68, 0.54, u_dark));
         }
 
-        // 后接触弧
+        // Rear contact arc
         float dBack = abs(px.y - surfBackY);
         float backArc = (1.0 - smoothstep(0.18, 0.82, dBack)) * boreMask;
         vec3 backCol = u_dark > 0.5 ? mix(surfTint, ION_HAZE, 0.55) : mix(DAY_MENISCUS, DAY_SKY, 0.45);
         layerOver(col, alpha, backCol, backArc * mix(0.64, 0.50, u_dark));
 
-        // 前接触弧下缘深海折影
+        // Deep refraction shadow beneath front contact arc
         float dUnder = abs(px.y - (surfFrontY + 1.2));
         float underShadow = (1.0 - smoothstep(0.2, 0.92, dUnder)) * boreMask * step(px.y, FLOOR_IN - 0.5);
         layerOver(col, alpha, u_dark > 0.5 ? ION_DEEP : DAY_ROYAL * 0.58, underShadow * mix(0.52, 0.46, u_dark));
 
-        // 1.15px 锋利弯月面折射刀锋（浅色采用高对比靛青刀锋，深色采用冰青激光刃）
+        // 1.15px razor meniscus edge (high-contrast indigo in light mode, ice-cyan laser blade in dark mode)
         float dFront = abs(px.y - surfFrontY);
         float laserHalo = exp(-pow(dFront / 2.1, 2.0)) * boreMask;
         float laserBlade = (1.0 - smoothstep(0.32, 0.95, dFront)) * boreMask;
@@ -811,7 +811,7 @@
         }
       }
 
-      // 6. 空气段内壁残留电离润湿细丝 & 显式下落光滴
+      // 6. Residual ionized wetting filaments on air-zone inner wall & explicit falling light drops
       if (inInnerBore && px.y < surfCenterY) {
         float wetSpan = 54.0;
         vec3 wetCol = u_dark > 0.5 ? mix(surfTint, ION_HAZE, 0.48) : mix(DAY_COBALT, DAY_SKY, 0.5);
@@ -833,7 +833,7 @@
         drawIonDroplet(col, alpha, px, vec2(CX + dr.x, dr.y), dr.z, surfTint, u_dark);
       }
 
-      // 7. 垂直玻璃折射丝（白昼空气段采用冷蓝折射丝，液柱段采用纯白晶丝，彻底告别白底画白线！）
+      // 7. Vertical glass refraction threads (cool-blue in daylight air zone, pure white crystal thread in fluid zone)
       if (px.y > TOP_OUT + 9.0 && px.y < FLOOR_OUT - 9.0) {
         bool submerged = px.y >= surfCenterY;
         float snellShift = submerged ? 1.0 : 0.0;
@@ -849,7 +849,7 @@
         layerOver(col, alpha, threadCol, fineThread * threadAlpha);
       }
 
-      // 悬停切片图例时的 1px 光学聚焦环
+      // 1px optical focus ring when hovering slice legend
       if (u_hoverSlice >= -0.5) {
         float midFrac = u_hoverSlice < 0.5
           ? (u_ratios.x * 0.5) / sumR
@@ -860,7 +860,7 @@
         layerOver(col, alpha, u_dark > 0.5 ? ION_HAZE : vec3(1.0), hRing * 0.84);
       }
 
-      // 1.1px 精密高硼硅/冷晶微棱镜胶囊外轮廓
+      // 1.1px precision borosilicate/crystal capsule outer outline
       float rimMask = smoothstep(1.65, 0.95, distOut) * smoothstep(-0.35, 0.35, distOut);
       float prismGrad = 0.5 + 0.5 * sin(px.y * 0.032 - u_time * 0.40 + dx * 0.04);
       vec3 darkRimLeft = mix(vec3(0.72, 0.85, 0.98), mix(vec3(0.22, 0.48, 0.92), vec3(0.48, 0.56, 0.92), prismGrad), 0.30);
@@ -871,12 +871,12 @@
         : lightRim;
       layerOver(col, alpha, rimCol, rimMask * mix(0.82, 0.84, u_dark));
 
-      // 8. Mono 钛银单色纯化（消除蓝光/彩虹折射残留）+ 动态微米抖动防 8-bit 梯度色带
+      // 8. Mono titanium-silver purification (removes blue/rainbow cast) + micro dithering to prevent 8-bit banding
       if (u_accent > 2.5 && u_critical < 0.5) {
         float monoLum = dot(col, vec3(0.299, 0.587, 0.114));
         col = mix(col, vec3(monoLum * 0.99, monoLum, monoLum * 1.01), 0.94);
       } else if (u_accent > 0.5 && u_dark <= 0.5 && u_critical < 0.5) {
-        // 白昼 iris / amber 模式下同步玻璃侧沿与液面刀锋色相
+        // Sync glass sidewall and meniscus hue in daylight iris / amber modes
         float lum = dot(col, vec3(0.299, 0.587, 0.114));
         vec3 toneTint = u_accent > 1.5 ? vec3(lum * 1.24, lum * 0.88, lum * 0.52) : vec3(lum * 0.96, lum * 0.78, lum * 1.28);
         col = mix(col, clamp(toneTint, 0.0, 1.0), 0.24 * (1.0 - step(surfBackY, px.y)));
@@ -961,7 +961,7 @@
   }
 
   /**
-   * 挂载 1:1 物理反重力 512K 光学水试管渲染器到指定 <canvas>
+   * Mount the 1:1 physics Antigravity 512K optical vial renderer onto the target <canvas>
    */
   function mountPhysicalWaterVial(canvas, options = {}) {
     const cssW = 96;
@@ -1103,7 +1103,7 @@
           glState = buildGlState(gl);
         }
       } catch (err) {
-        if (typeof console !== 'undefined') console.warn('[vial-core] WebGL2 不可用，降级 2D：', err && err.message);
+        if (typeof console !== 'undefined') console.warn('[vial-core] WebGL2 unavailable, falling back to 2D:', err && err.message);
         glState = null;
       }
     }
@@ -1215,7 +1215,7 @@
       canvas.addEventListener('pointerleave', onPointerLeave);
     }
 
-    // 右侧 512K 动态激光微刻标尺（浅色加深为清晰石板蓝灰 rgba(30, 41, 59, 0.62)）
+    // Right-side 512K dynamic laser-etched ruler (deepened to slate rgba(30, 41, 59, 0.62) in light mode)
     const drawScaleMarks = (ctx, st, curFill) => {
       const isDark = Boolean(st.isDark);
       const maxTok = Number(st.maxTokens) > 0 ? Number(st.maxTokens) : 512000;
@@ -1288,7 +1288,7 @@
       ctx.restore();
     };
 
-    // 2D 降级保底：与 WebGL2 视觉一致的白昼高硼硅折射侧壁 + 皇家钴蓝至晴空蔚蓝液柱
+    // 2D fallback: matches WebGL2 daylight borosilicate refractive sidewalls + royal-cobalt to sky-azure fluid column
     const gradCache = new Map();
     const getIonCylGrad = (ctx, isDark, tone = 'cobalt') => {
       const key = `${isDark ? 'd' : 'l'}:${tone}`;
@@ -1361,12 +1361,12 @@
 
       ctx.save();
 
-      // 1. 高硼硅/暗曜石对称胶囊空气腔背衬与折射侧壁
+      // 1. Borosilicate/obsidian symmetric capsule air backing and refractive sidewalls
       traceClosedCapsule(ctx, TUBE_X, TUBE_OUT_R, TOP_OUT, FLOOR_OUT, RC_OUT, RC_OUT);
       ctx.fillStyle = isDark ? (tone === 'mono' ? 'rgba(24, 24, 27, 0.14)' : 'rgba(11, 16, 30, 0.12)') : getAirGlassGrad2D(ctx, tone);
       ctx.fill();
 
-      // 2. 连续电离能量柱
+      // 2. Continuous ionized energy column
       if (surfY < FLOOR_IN - 0.5) {
         const liqGrad = ctx.createLinearGradient(TUBE_X, FLOOR_IN, TUBE_X, Math.min(FLOOR_IN - 6, surfY));
         if (isCrit) {
@@ -1433,7 +1433,7 @@
         ctx.fill();
       }
 
-      // 3. 失重微米星尘点阵与晶莹气泡描边
+      // 3. Zero-G micro-stardust dot matrix and crisp bubble rims
       ctx.fillStyle = isDark
         ? isClaude
           ? 'rgba(182, 198, 255, 0.50)'
@@ -1479,7 +1479,7 @@
         ctx.fill();
       }
 
-      // 4. 3D 弯月面与色调一致的折射刀锋
+      // 4. 3D meniscus and tone-matched refractive razor edge
       ctx.save();
       ctx.translate(TUBE_X, surfY);
       ctx.rotate(tilt);
@@ -1518,7 +1518,7 @@
       ctx.stroke();
       ctx.restore();
 
-      // 4b. 悬停切片图例时的 1px 光学聚焦环（2D 保底与 WebGL2 一致）
+      // 4b. 1px optical focus ring when hovering slice legend (matches WebGL2)
       if (typeof st.hoveredSlice === 'number' && st.hoveredSlice >= 0 && surfY < FLOOR_IN - 2) {
         const rt = Array.isArray(st.ratios) ? st.ratios : [0.08, 0.27, 0.12];
         const sumR = Math.max(1e-3, (Number(rt[0]) || 0) + (Number(rt[1]) || 0) + (Number(rt[2]) || 0));
@@ -1539,7 +1539,7 @@
         ctx.restore();
       }
 
-      // 5. 垂直折射丝（浅色空气段冷蓝折射丝 + 水柱段晶白高光丝）与外轮廓描边
+      // 5. Vertical refraction threads (cool-blue in light air zone + bright crystal highlight in fluid zone) and outer stroke
       const threadX = TUBE_X - TUBE_OUT_R * 0.72;
       const topThreadY = TOP_OUT + 16;
       const botThreadY = FLOOR_OUT - 16;

@@ -249,7 +249,7 @@ test('P0-1 stream-choreography: running row recognition (spinner + stop button +
     'data-selected': 'true',
   }, { left: 8, top: 40, width: 240, height: 32 });
   // Add non-stop buttons (Unpin / More menu / Pin) to verify zero false positives
-  const unpinBtn = makeMiniNode('button', { 'aria-label': '取消置顶' });
+  const unpinBtn = makeMiniNode('button', { 'aria-label': 'إلغاء التثبيت' });
   const moreBtn = makeMiniNode('button', { 'aria-label': 'More options', 'aria-haspopup': 'menu', 'data-testid': 'row-more-menu' });
   const deskBtn = makeMiniNode('button', { 'data-testid': 'desktop-row-action' });
   rowIdle.appendChild(unpinBtn);
@@ -273,7 +273,7 @@ test('P0-1 stream-choreography: running row recognition (spinner + stop button +
     'data-cascade-id': 'cid-stop',
     'data-selected': 'false',
   }, { left: 8, top: 120, width: 240, height: 32 });
-  const stopBtn = makeMiniNode('button', { 'data-testid': 'sidebar-stop-button', 'aria-label': '停止生成' });
+  const stopBtn = makeMiniNode('button', { 'data-testid': 'sidebar-stop-button', 'aria-label': 'إيقاف التوليد' });
   stopBtn.appendChild(makeMiniNode('svg', { class: 'lucide-square' }));
   rowStop.appendChild(stopBtn);
   list.appendChild(rowStop);
@@ -707,7 +707,7 @@ test('P0-2 host-workbench-enhancer: iframeRo reads entry.contentRect with 0 sync
     createElement: (t) => makeMiniNode(t),
   };
 
-  const ctl = enhancerMod.createHostEnhancerController({ doc, win, getLang: () => 'zh-CN' });
+  const ctl = enhancerMod.createHostEnhancerController({ doc, win, getLang: () => 'en' });
   ctl.sync();
   assert.equal(msgs.length, 0, 'Hidden 0x0 iframe initially skipped');
   assert.ok(roCb, 'iframeRo must be attached');
@@ -786,7 +786,7 @@ test('P0-2 pulse inline-fallback: tierRo uses entry.contentRect.width without ex
   sb.globalThis = sb;
   vm.runInNewContext(src, sb);
 
-  sb.__agPrismTelemetry.sync({ telemetryModule: 'on', language: 'zh-CN' });
+  sb.__agPrismTelemetry.sync({ telemetryModule: 'on', language: 'en' });
   assert.ok(roCb, 'tierRo must be created and observing composer footer');
   assert.equal(footer.getAttribute('data-t'), '0');
 
@@ -807,7 +807,7 @@ test('P0-2 pulse inline-fallback: tierRo uses entry.contentRect.width without ex
   assert.equal(footer._rectReads, 0, '0-width contentRect must NOT fall back to getBoundingClientRect');
 
   // Repeated sync() on same footer with active tierRo must NOT redundantly call getBoundingClientRect
-  sb.__agPrismTelemetry.sync({ telemetryModule: 'on', language: 'zh-CN' });
+  sb.__agPrismTelemetry.sync({ telemetryModule: 'on', language: 'en' });
   assert.equal(footer._rectReads, 0, 'Repeated sync on observed footer must avoid redundant getBoundingClientRect');
 
   sb.__agPrismTelemetry.destroy();

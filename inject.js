@@ -456,18 +456,18 @@ function createFastConfigRefreshBroadcaster({
 async function injectOnce() {
   const port = readPort();
   if (!port) {
-    throw new Error(`未找到调试端口文件，Antigravity 可能未运行: ${PORT_FILE}`);
+    throw new Error(`Debug port file not found; Antigravity may not be running: ${PORT_FILE}`);
   }
   let pages;
   try {
     pages = await listPages(port);
   } catch {
-    throw new Error(`端口 ${port} 无响应：请确认 Antigravity 正在运行`);
+    throw new Error(`Port ${port} is not responding; make sure Antigravity is running`);
   }
   const targets = pages.filter(isEligibleTarget);
-  if (targets.length === 0) throw new Error('未找到 Antigravity 窗口页面');
+  if (targets.length === 0) throw new Error('No Antigravity window pages found');
 
-  log(`[+] 调试端口 ${port}，发现 ${targets.length} 个窗口`);
+  log(`[+] Debug port ${port}, found ${targets.length} window(s)`);
   const cfgNow = typeof readConfig === 'function' ? readConfig() : {};
   const omniEnabled = cfgNow?.omniModule !== 'off';
   const sidebarEnabled = cfgNow?.sidebarStudio === 'on';
@@ -542,9 +542,9 @@ async function injectOnce() {
       } else if (!periodicPickerEnabled && PERIODIC_PICKER_REMOVE_EXPRESSION) {
         await session.evaluate(PERIODIC_PICKER_REMOVE_EXPRESSION).catch(() => {});
       }
-      log(`[✓] ${shortTitle(page)} (obsidian-prism ${res.version} · 状态: ${res.status})`);
+      log(`[✓] ${shortTitle(page)} (obsidian-prism ${res.version} · status: ${res.status})`);
     } catch (err) {
-      log(`[!] 跳过异常窗口 ${shortTitle(page)}: ${err.message}`);
+      log(`[!] Skipped unresponsive window ${shortTitle(page)}: ${err.message}`);
     } finally {
       if (session) session.close();
     }
@@ -569,7 +569,7 @@ function acquireLock() {
     if (pid && pid !== process.pid && isAlive(pid)) {
       const isDaemon = typeof isExpectedDaemonProcess === 'function' ? isExpectedDaemonProcess(pid) : true;
       if (isDaemon) {
-        console.error(`[!] 守护进程已在运行 (PID ${pid})。如需重启请先运行 remove.js`);
+        console.error(`[!] Daemon is already running (PID ${pid}). Run remove.js first to restart.`);
         process.exit(1);
       }
     }
@@ -593,7 +593,7 @@ async function watch() {
   try {
     fs.writeFileSync(LOG_FILE, '');
   } catch {}
-  log(`[*] Obsidian Prism 守护模式启动 (PID ${process.pid})，每 2 秒检查一次窗口`);
+  log(`[*] Obsidian Prism watch daemon started (PID ${process.pid}), polling windows every 2s`);
 
   const attached = new Map();
   let omniServer = null;
@@ -609,7 +609,7 @@ async function watch() {
       });
     }
   } catch (err) {
-    log(`[!] Omni 流式网关启动跳过: ${err.message}`);
+    log(`[!] Omni streaming gateway startup skipped: ${err.message}`);
   }
 
   let sidebarService = null;
@@ -642,7 +642,7 @@ async function watch() {
       });
     }
   } catch (err) {
-    log(`[!] Sidebar Studio 后端服务启动跳过: ${err.message}`);
+    log(`[!] Sidebar Studio backend service startup skipped: ${err.message}`);
   }
 
   const initCfg = readConfig();
@@ -1001,7 +1001,7 @@ async function watch() {
       attached.set(page.id, entry);
       session.onClose = () => {
         attached.delete(page.id);
-        log(`[-] 窗口已关闭: ${shortTitle(page)}`);
+        log(`[-] Window closed: ${shortTitle(page)}`);
       };
       session.on('Runtime.executionContextCreated', (params) => {
         const ctx = params?.context;
@@ -1197,13 +1197,13 @@ async function watch() {
             selfConfigWriteUntil = Date.now() + 650;
             if (updateConfigBatch(parsed.entries)) {
               changed = true;
-              log(`[⚙] 批量设置已保存: ${Object.keys(parsed.entries).join(', ')}`);
+              log(`[⚙] Batch settings saved: ${Object.keys(parsed.entries).join(', ')}`);
             }
           } else if (parsed) {
             selfConfigWriteUntil = Date.now() + 650;
             if (updateConfigSetting(parsed.key, parsed.value)) {
               changed = true;
-              log(`[⚙] 设置已保存: ${parsed.key} = ${JSON.stringify(parsed.value)}`);
+              log(`[⚙] Setting saved: ${parsed.key} = ${JSON.stringify(parsed.value)}`);
             }
           }
           if (changed) {
@@ -1226,7 +1226,7 @@ async function watch() {
       }
       await ensureSidebarBinding(session, entry, readConfig());
       const res = await apply(entry);
-      log(`[✓] 已注入 obsidian-prism: ${shortTitle(page)} (${res.status})`);
+      log(`[✓] Injected obsidian-prism: ${shortTitle(page)} (${res.status})`);
     } catch (err) {
       const entry = attached.get(page.id);
       if (entry) {
@@ -1243,7 +1243,7 @@ async function watch() {
         entry.session.close();
       }
       attached.delete(page.id);
-      log(`[!] 注入失败，稍后重试: ${shortTitle(page)} — ${err.message}`);
+      log(`[!] Injection failed, will retry: ${shortTitle(page)} — ${err.message}`);
     }
   }
 
@@ -1262,7 +1262,7 @@ async function watch() {
         return;
       }
       if (port !== lastPort) {
-        log(`[+] 连接到调试端口 ${port}`);
+        log(`[+] Connected to debug port ${port}`);
         lastPort = port;
       }
       await Promise.all(pages.filter((p) => !attached.has(p.id)).map(attach));
@@ -1314,7 +1314,7 @@ async function watch() {
             ? freshCdp.buildPeriodicPickerExpression(freshCfg, PERIODIC_PICKER_CACHE_OPTS)
             : '';
       } catch (err) {
-        log(`[!] 读取文件失败: ${err.message}`);
+        log(`[!] Failed to read file: ${err.message}`);
         return;
       }
       let n = 0;
@@ -1325,16 +1325,16 @@ async function watch() {
           n++;
         } catch {}
       }
-      log(`[↻] ${filename} 已变更，已热更新 ${n} 个窗口`);
+      log(`[↻] ${filename} changed, hot-reloaded ${n} window(s)`);
     }, 180);
   });
 
   if (WATCH) {
     process.on('uncaughtException', (err) => {
-      log(`[!] 未捕获异常: ${err && err.stack ? err.stack : err}`);
+      log(`[!] Uncaught exception: ${err && err.stack ? err.stack : err}`);
     });
     process.on('unhandledRejection', (err) => {
-      log(`[!] 未处理 Promise 拒绝: ${err && err.stack ? err.stack : err}`);
+      log(`[!] Unhandled promise rejection: ${err && err.stack ? err.stack : err}`);
     });
   }
 

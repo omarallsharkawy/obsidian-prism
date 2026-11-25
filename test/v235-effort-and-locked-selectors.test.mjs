@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), '..');
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 globalThis.__agCodexEffortSliderDisableAutoBoot = true;
 const cdp = require(path.join(ROOT, 'cdp.js'));
@@ -514,7 +515,7 @@ test('v2.35.0: style.css handles locked model/permissions triggers with zero :ha
     'light theme permissions-selector-trigger hover rule must exclude disabled/locked states'
   );
 
-  for (const lang of ['auto', 'zh-CN', 'zh-TW', 'en', 'ja', 'ko', 'es', 'fr', 'de']) {
+  for (const lang of ['auto', 'en', 'ar']) {
     const payloadBytes = Buffer.byteLength(cdp.buildInjectExpression({ ...cdp.DEFAULT_CONFIG, language: lang }, { bundleCachePath: '' }), 'utf8');
     assert.ok(payloadBytes < 549500, `Channel 1 (${lang}) payload must stay < 549,500 B, got ${payloadBytes}`);
   }

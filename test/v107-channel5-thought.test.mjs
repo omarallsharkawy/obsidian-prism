@@ -229,7 +229,7 @@ function createSimulatedDomSandbox(opts = {}) {
     const home = makeNode('div', { className: 'agy-home' });
     const dialog = makeNode('div', { attrs: { role: 'dialog' } });
     const appearancePanel = makeNode('div', { className: 'p-6 flex flex-col gap-4' });
-    appearancePanel.appendChild(makeNode('h2', { text: '外观' }));
+    appearancePanel.appendChild(makeNode('h2', { text: 'Appearance' }));
     const appearanceWrap = makeNode('div', { className: 'flex flex-col gap-8' });
     appearanceWrap.appendChild(makeNode('div', { className: 'space-y-2' }));
     appearancePanel.appendChild(appearanceWrap);
@@ -275,7 +275,7 @@ function createSimulatedDomSandbox(opts = {}) {
     self: null,
     top: null,
     document: doc,
-    navigator: { language: 'zh-CN' },
+    navigator: { language: 'en' },
     location: { href: opts.href ?? 'vscode-file://vscode-app/workbench.html', pathname: opts.pathname ?? '/workbench.html' },
     addEventListener(ev, cb) {
       if (!winListeners.has(ev)) winListeners.set(ev, []);

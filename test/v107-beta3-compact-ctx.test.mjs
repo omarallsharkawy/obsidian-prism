@@ -935,7 +935,7 @@ test('Red-team R2 regression: proto3 zero-value startStepIndex=0 / checkpointInd
       compactionInfo: { compactedAtStepIndices: [1] },
       generatorMetadata: [
         {
-          // 模拟 Antigravity protobuf-es：stepIndices 缺失，且未设置的 proto3 标量 startStepIndex/checkpointIndex 序列化为 0
+          // Simulate Antigravity protobuf-es: stepIndices omitted, and unset proto3 scalar startStepIndex/checkpointIndex serialized as 0
           chatModel: {
             model: 'MODEL_PLACEHOLDER_M26',
             modelDisplayName: 'Gemini 4 Carbon (High)',

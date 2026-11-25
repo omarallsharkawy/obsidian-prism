@@ -90,32 +90,11 @@
   // 11:errProxy, 12:errRateLimit, 13:errAuth, 14:errTimeout, 15:errOffline,
   // 16:badgeProxy, 17:badgeRateLimit, 18:badgeAuth, 19:badgeTimeout, 20:badgeOffline, 21:badgeGeneric,
   // 22:truncFmt ({0}k/{1}k)
-  const ZH_TW_PACK =
-    '原文|收起原文|機翻降級|AI 未就緒，已降級機翻|重新轉譯|轉譯未完成|↻ 重試|機翻中…|AI 轉譯中…|思考輸出中…|收束中…|代理或網路不可達|請求限流冷卻中|金鑰或權限異常|轉譯逾時|後台服務未連線|代理失敗 · 重試|限流冷卻 · 重試|驗證失敗 · 重試|逾時 · 重試|服務離線 · 重試|轉譯失敗 · 重試|已安全分段譯前 {0}k 字（共 {1}k）'.split(
-      '|'
-    );
   const CLIENT_I18N = {
-    'zh-CN':
-      '原文|收起原文|机翻降级|AI 未就绪，已降级机翻|重新转译|转译未完成|↻ 重试|机翻中…|AI 转译中…|思考输出中…|收束中…|代理或网络不可达|请求限流冷却中|密钥或权限异常|转译超时|后台服务未连接|代理失败 · 重试|限流冷却 · 重试|鉴权失败 · 重试|超时 · 重试|服务离线 · 重试|转译失败 · 重试|已安全分段译前 {0}k 字（共 {1}k）'.split(
-        '|'
-      ),
-    'zh-TW': ZH_TW_PACK,
     en: 'Raw|Hide Raw|Fallback|AI unavailable; machine fallback|Retranslate|Translation incomplete|↻ Retry|Translating…|AI polishing…|Streaming…|Settling…|Proxy or network unreachable|Rate-limited (cooling down)|API key or auth error|Translation timed out|Daemon service offline|Proxy error · Retry|Rate limit · Retry|Auth error · Retry|Timed out · Retry|Offline · Retry|Failed · Retry|Translated first {0}k / {1}k chars'.split(
       '|'
     ),
-    ja: '原文|原文を隠す|機械翻訳代替|AI未設定・機械翻訳代替|再翻訳|翻訳未完了|↻ 再試行|翻訳中…|AI翻訳中…|出力中…|整理中…|プロキシまたは接続不可|レート制限クールダウン中|APIキーまたは認証エラー|翻訳タイムアウト|バックグラウンド未接続|プロキシ失敗 · 再試行|制限中 · 再試行|認証エラー · 再試行|タイムアウト · 再試行|オフライン · 再試行|失敗 · 再試行|先頭 {0}k 字を翻訳済（全 {1}k 字）'.split(
-      '|'
-    ),
-    ko: '원문|원문 숨기기|기계 번역 대체|AI 미준비로 기계 번역 사용|재번역|번역 미완료|↻ 재시도|번역 중…|AI 다듬는 중…|출력 중…|정리 중…|프록시 또는 네트워크 연결 불가|요청 제한 대기 중|API 키 또는 인증 오류|번역 시간 초과|백그라운드 서비스 오프라인|프록시 오류 · 재시도|요청 제한 · 재시도|인증 실패 · 재시도|시간 초과 · 재시도|오프라인 · 재시도|번역 실패 · 재시도|앞부분 {0}k / 전체 {1}k자 번역 완료'.split(
-      '|'
-    ),
-    es: 'Original|Ocultar original|Respaldo MT|IA no disponible; traducción automática|Retraducir|Traducción incompleta|↻ Reintentar|Traduciendo…|Puliendo con IA…|Transmitiendo…|Finalizando…|Proxy o red inaccesible|Límite de tasa (en espera)|Error de clave API o autenticación|Tiempo de espera agotado|Servicio en segundo plano desconectado|Error de proxy · Reintentar|Límite · Reintentar|Error auth · Reintentar|Tiempo agotado · Reintentar|Sin conexión · Reintentar|Error · Reintentar|Primeros {0}k / {1}k caracteres traducidos'.split(
-      '|'
-    ),
-    fr: 'Original|Masquer l’original|Secours MT|IA indisponible ; traduction auto|Retraduire|Traduction incomplète|↻ Réessayer|Traduction…|Affinage IA…|Diffusion…|Finalisation…|Proxy ou réseau inaccessible|Limite atteinte (refroidissement)|Erreur de clé API ou d’authentification|Délai dépassé|Service d’arrière-plan hors ligne|Erreur proxy · Réessayer|Limite · Réessayer|Erreur auth · Réessayer|Délai · Réessayer|Hors ligne · Réessayer|Échec · Réessayer|Premiers {0}k / {1}k caractères traduits'.split(
-      '|'
-    ),
-    de: 'Original|Original ausblenden|MT-Fallback|KI nicht verfügbar; maschineller Fallback|Neu übersetzen|Übersetzung unvollständig|↻ Erneut|Übersetze…|KI-Feinschliff…|Streaming…|Abschluss…|Proxy oder Netzwerk nicht erreichbar|Rate-Limit (Abkühlung)|API-Schlüssel- oder Auth-Fehler|Zeitüberschreitung|Hintergrunddienst offline|Proxy-Fehler · Erneut|Rate-Limit · Erneut|Auth-Fehler · Erneut|Zeitlimit · Erneut|Offline · Erneut|Fehlgeschlagen · Erneut|Erste {0}k / {1}k Zeichen übersetzt'.split(
+    ar: 'الأصل|إخفاء الأصل|ترجمة آلية بديلة|الذكاء الاصطناعي غير متاح؛ تم التحويل للترجمة الآلية|إعادة الترجمة|الترجمة غير مكتملة|↻ إعادة المحاولة|جارٍ الترجمة…|جارٍ الصياغة بالذكاء الاصطناعي…|جارٍ التفكير…|جارٍ التجميع…|تعذر الوصول للوكيل أو الشبكة|تم تجاوز حد الطلبات (انتظار مؤقت)|خطأ في مفتاح API أو المصادقة|انتهت مهلة الترجمة|الخدمة الخلفية غير متصلة|خطأ وكيل · إعادة|حد الطلبات · إعادة|خطأ مصادقة · إعادة|انتهت المهلة · إعادة|غير متصل · إعادة|فشل · إعادة|تمت ترجمة أول {0}k / {1}k حرف'.split(
       '|'
     ),
   };
@@ -350,15 +329,11 @@
   function normalizeLangCode(raw) {
     const s = String(raw || '').trim().toLowerCase().replace(/_/g, '-');
     if (!s || s === 'auto') return '';
-    if (s === 'yue' || s.startsWith('yue-') || s === 'zh-yue' || s.includes('cantonese')) return 'zh-CN';
-    if (/^zh-(tw|hk|mo|hant)/.test(s) || s === 'tw' || s === 'hant') return 'zh-TW';
-    if (/^zh(?:\b|-)/.test(s)) return 'zh-CN';
-    if (/^(ja|jp)(?:\b|-)/.test(s) || s === 'japanese') return 'ja';
-    if (/^(ko|kr)(?:\b|-)/.test(s) || s === 'korean') return 'ko';
-    if (/^es(?:\b|-)/.test(s) || s === 'spanish') return 'es';
-    if (/^fr(?:\b|-)/.test(s) || s === 'french') return 'fr';
-    if (/^de(?:\b|-)/.test(s) || s === 'german') return 'de';
+    if (/^ar(?:\b|-)/.test(s) || s === 'arabic' || s === 'العربية') return 'ar';
     if (/^en(?:\b|-)/.test(s) || s === 'english') return 'en';
+    if (/^zh(?:\b|-)/.test(s) || s === 'tw' || s === 'hant' || s === 'yue' || s.startsWith('yue-') || s.includes('cantonese')) {
+      return 'ar';
+    }
     return '';
   }
 
@@ -386,7 +361,7 @@
       const navLang = normalizeLangCode(navObj?.language || '');
       if (navLang) return navLang;
     } catch (_) {}
-    return 'zh-CN';
+    return 'ar';
   }
 
   function getClientPack(explicitLang) {
@@ -625,7 +600,7 @@
       .replace(/\r\n/g, '\n')
       .replace(/```[\s\S]*?```/g, ' ')
       .replace(/https?:\/\/\S+/g, ' ')
-      .replace(/[^a-zA-Z0-9\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af]+/g, '')
+      .replace(/[^a-zA-Z0-9\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff]+/g, '')
       .toLowerCase();
   }
 
@@ -640,13 +615,15 @@
     return `_v3_${(h >>> 0).toString(36)}_${skel.length}`;
   }
 
+  const ARABIC_CHAR_RE = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/g;
+  const OTHER_NON_LATIN_RE = /[\u0400-\u04FF\u0590-\u05FF\u0900-\u097F\u0E00-\u0E7F\u3040-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\uAC00-\uD7AF]/g;
+
   function countScripts(str) {
     return {
       lw: (str.match(/[A-Za-z]{3,}/g) || []).length,
       lc: (str.match(/[A-Za-z]/g) || []).length,
-      cjk: (str.match(/[\u4e00-\u9fa5]/g) || []).length,
-      kana: (str.match(/[\u3040-\u30ff]/g) || []).length,
-      han: (str.match(/[\uac00-\ud7af]/g) || []).length,
+      ar: (str.match(ARABIC_CHAR_RE) || []).length,
+      other: (str.match(OTHER_NON_LATIN_RE) || []).length,
     };
   }
 
@@ -656,14 +633,10 @@
       const para = paras[i].trim();
       if (!para) continue;
       const c = countScripts(para);
-      if (tl === 'ja') {
-        if ((c.lw >= 6 && c.kana < c.lw * 1.5) || (c.cjk >= 12 && c.kana === 0)) return true;
-      } else if (tl === 'ko') {
-        if ((c.lw >= 6 && c.han < c.lw * 1.5) || (c.cjk >= 12 && c.han === 0) || c.kana >= 6) return true;
-      } else if (tl === 'en') {
-        if (c.cjk + c.kana + c.han >= 4) return true;
-      } else if ((c.lw >= 6 && c.cjk < c.lw * 1.5) || c.kana >= 6 || c.han >= 6) {
-        return true;
+      if (tl === 'en') {
+        if (c.ar + c.other >= 4) return true;
+      } else {
+        if ((c.lw >= 6 && c.ar < c.lw * 1.5) || c.other >= 6) return true;
       }
     }
     return false;
@@ -682,35 +655,21 @@
     if (!prose.trim()) return true;
 
     const c = countScripts(prose);
-    const totalAlpha = c.lc + c.cjk + c.kana + c.han;
+    const totalAlpha = c.lc + c.ar + c.other;
 
     if (tl === 'en') {
-      if (c.cjk + c.kana + c.han >= 4) return false;
+      if (c.ar + c.other >= 4) return false;
       if (totalAlpha < 4) return true;
-      return c.cjk + c.kana + c.han < 4;
+      return c.ar + c.other < 4;
     }
 
     if (totalAlpha < 10) return true;
 
-    if (tl === 'ja') {
-      if (c.lw >= 8 || hasForeignProseParagraph(prose, 'ja')) return false;
-      return c.kana >= 8;
-    }
-
-    if (tl === 'ko') {
-      if (c.lw >= 8 || hasForeignProseParagraph(prose, 'ko')) return false;
-      return c.han >= 8;
-    }
-
-    if (tl === 'es' || tl === 'fr' || tl === 'de') return false;
-
-    if (c.lw >= 8 || c.kana >= 6 || c.han >= 6 || hasForeignProseParagraph(prose, tl)) {
+    if (c.lw >= 8 || c.other >= 6 || hasForeignProseParagraph(prose, tl)) {
       return false;
     }
 
-    if (tl === 'zh-TW') return false;
-
-    return c.lw < 6 && c.kana < 4 && c.han < 4 && c.cjk >= 6;
+    return c.lw < 6 && c.other < 4 && c.ar >= 6;
   }
 
   function sliceThoughtForSafeSend(rawText) {
@@ -767,14 +726,11 @@
     const prose = masked.replace(/__OPID_\d+__/g, ' ').replace(/\s+/g, ' ').trim();
     if (!prose) return false;
     const latinWords = (prose.match(/[A-Za-z]{2,}/g) || []).length;
-    const cjk = (prose.match(/[\u4e00-\u9fa5]/g) || []).length;
-    const kana = (prose.match(/[\u3040-\u30ff]/g) || []).length;
-    const han = (prose.match(/[\uac00-\ud7af]/g) || []).length;
-    if (tl === 'en') return cjk + kana + han >= 2;
-    if (tl === 'ja') return latinWords >= 2 || (latinWords === 1 && tokens.length > 0 && TOOL_VERB_RE.test(prose)) || (cjk >= 4 && kana === 0);
-    if (tl === 'ko') return latinWords >= 2 || (latinWords === 1 && tokens.length > 0 && TOOL_VERB_RE.test(prose)) || cjk >= 4 || kana >= 3;
-    if (tl === 'zh-CN' && cjk >= 2 && latinWords < 2 && kana === 0 && han === 0) return false;
-    return latinWords >= 2 || (latinWords === 1 && tokens.length > 0 && TOOL_VERB_RE.test(prose)) || kana >= 3 || han >= 3 || ((tl === 'es' || tl === 'fr' || tl === 'de') && cjk >= 2);
+    const ar = (prose.match(ARABIC_CHAR_RE) || []).length;
+    const other = (prose.match(OTHER_NON_LATIN_RE) || []).length;
+    if (tl === 'en') return ar + other >= 2;
+    if (ar >= 2 && latinWords < 2 && other === 0) return false;
+    return latinWords >= 2 || (latinWords === 1 && tokens.length > 0 && TOOL_VERB_RE.test(prose)) || other >= 3;
   }
 
   function protectToolSummaryTokens(text) {
@@ -803,13 +759,11 @@
     const prose = masked.replace(/__OPID_\d+__/g, ' ').replace(/\s+/g, ' ').trim();
     if (!prose) return false;
     const latinWords = (prose.match(/[A-Za-z]{2,}/g) || []).length;
-    const cjk = (prose.match(/[\u4e00-\u9fa5]/g) || []).length;
-    const kana = (prose.match(/[\u3040-\u30ff]/g) || []).length;
-    const han = (prose.match(/[\uac00-\ud7af]/g) || []).length;
-    if (tl === 'en') return cjk + kana + han >= 2;
-    if (tl === 'ja') return latinWords >= 2 || (latinWords === 1 && tokens.length > 0 && TOOL_VERB_RE.test(prose)) || (cjk >= 4 && kana === 0);
-    if (tl === 'ko') return latinWords >= 2 || (latinWords === 1 && tokens.length > 0 && TOOL_VERB_RE.test(prose)) || cjk >= 4 || kana >= 3;
-    return latinWords >= 2 || (latinWords === 1 && tokens.length > 0 && TOOL_VERB_RE.test(prose)) || kana >= 3 || han >= 3 || ((tl === 'es' || tl === 'fr' || tl === 'de') && cjk >= 2);
+    const ar = (prose.match(ARABIC_CHAR_RE) || []).length;
+    const other = (prose.match(OTHER_NON_LATIN_RE) || []).length;
+    if (tl === 'en') return ar + other >= 2;
+    if (ar >= 2 && latinWords < 2 && other === 0) return false;
+    return latinWords >= 2 || (latinWords === 1 && tokens.length > 0 && TOOL_VERB_RE.test(prose)) || other >= 3;
   }
 
   const getStore = () => W.localStorage || null;
@@ -1321,9 +1275,18 @@
 
   const KIND_IDX = { machine: 7, ai: 8, streaming: 9, settling: 10 };
 
+  function syncOverlayDirection(ov, lang = currentLang) {
+    if (!ov) return;
+    const tl = normalizeLangCode(lang) || resolveActiveLang();
+    sa(ov, 'dir', tl === 'ar' ? 'rtl' : 'ltr');
+    sa(ov, 'lang', tl === 'ar' ? 'ar' : 'en');
+  }
+
   function refreshAllOverlayLocaleStrings() {
     const t = getClientPack();
+    const activeLang = resolveActiveLang();
     qsa(SEL_OVERLAY).forEach((ov) => {
+      syncOverlayDirection(ov, activeLang);
       const panel = parEl(ov);
       const fb = findChildByClass(ov, C_FB);
       if (fb) {
@@ -1441,8 +1404,8 @@
       ) return true;
     } catch (_) {}
     const txt = (tc(btn) || '').trim();
-    if (!txt || /已思考|Thought\s+for|Thought\s+process/i.test(txt)) return false;
-    return /thinking|正在思考|思考中|推演中|諗緊/i.test(txt) && !/\d+\s*(s|sec|秒|m|min|分)/i.test(txt);
+    if (!txt || /Thought\s+for|Thought\s+process|فكّر\s+لمدة|عملية\s+التفكير/i.test(txt)) return false;
+    return /thinking|جارٍ\s+التفكير|يفكّر/i.test(txt) && !/\d+\s*(s|sec|m|min|ث|د)/i.test(txt);
   }
 
   function isOverlayOrIgnoredElement(el) {
@@ -1995,7 +1958,7 @@
       while (look < len && look - end < 18 && isAsciiWord(str.charCodeAt(look))) look++;
       if (look >= len || !isAsciiWord(str.charCodeAt(look))) end = look;
     }
-    if (end < len && /[,.;:!?，。、；：！？）》」\]`]/.test(str[end])) end++;
+    if (end < len && /[,.;:!?،؛؟)\]"`]/.test(str[end])) end++;
     return end;
   }
 
@@ -2318,6 +2281,7 @@
     sa(ov, 'data-op-thought', '1');
     sa(ov, 'data-prism-ignore', '1');
     sa(ov, 'data-ag-no-i18n', '');
+    syncOverlayDirection(ov);
 
     const body = markNoTr(ce(doc, 'span', C_BD));
     sa(body, 'data-ag-no-i18n', '');
@@ -2604,7 +2568,7 @@
 
   function withLangSuffix(baseTag, lang = currentLang) {
     const tl = normalizeLangCode(lang) || resolveActiveLang();
-    return tl === 'zh-CN' ? baseTag : `${baseTag}_${tl}`;
+    return `${baseTag}_${tl}`;
   }
 
   const sigFromBody = (kb, mode, lang = currentLang) => {
@@ -3002,7 +2966,7 @@
     const step = () => {
       hydrateHandle = null;
       if (currentMode === 'off') return clearHydrateQueue();
-      // 两阶段读写分离：先批量读取可见性/视口位置，再统一写入 DOM，消除多帧 Layout Thrashing
+      // Two-phase read/write split: batch visibility/viewport reads first, then write DOM to avoid layout thrashing
       const ready = [];
       while (hydrateQueue.length && ready.length < 3) {
         const it = hydrateQueue.shift();
@@ -3058,7 +3022,7 @@
     const inf = extractPanelInfo(panel);
     if (!inf.t || inf.z) {
       const prevMeta = panelMeta.get(panel);
-      // 防止 React 重绘期间短暂空文本把正在收束的思考块静默清掉并污染缓存签名
+      // Prevent transient empty text during React re-renders from clearing a settling thought block or poisoning its cache signature
       if (!inf.t && prevMeta && prevMeta.h && prevMeta.m && nowMs() - prevMeta.c < 2500) {
         scheduleScan(180);
         return;
@@ -3155,7 +3119,7 @@
       const runWaitCallback = (graceAttempt) => {
         if (currentMode === 'off') return;
         if (!isConn(btn)) {
-          // React 可能在静默等待窗口内重建了触发按钮节点，主动补扫而非静默放弃
+          // React may have remounted the trigger button during the quiet gate; reschedule scan instead of dropping
           scheduleScan(75);
           return;
         }
@@ -3166,7 +3130,7 @@
           liveAllowPreload = Boolean(allBtns.length > 0 && allBtns[allBtns.length - 1] === btn);
         }
         if (!liveExpanded && !liveAllowPreload) {
-          // 展开态若在 QUIET_GATE 期间短暂抖动为未展开，给 1 次短宽限复核，避免误清 pending 静默丢翻
+          // Allow one brief grace recheck if expanded state flickers during QUIET_GATE to avoid dropping pending translations
           if (startedExpanded && graceAttempt === 0 && isConn(panel)) {
             setPanelWaitTimer(panel, btn, () => runWaitCallback(1), 160);
             return;
@@ -3658,7 +3622,7 @@
     titleScanTimer = setTimeout(() => {
       titleScanTimer = null;
       if (!translateTitles || currentMode === 'off' || isDocHiddenOrSleep()) return;
-      /* 周期表 3D 面板打开期间让出主线程与布局带宽，避免侧边栏标题全量 getBoundingClientRect/checkVisibility 引发掉帧；关闭后自动补扫 */
+      /* Yield main-thread and layout bandwidth while the 3D periodic picker is open to prevent sidebar jank; rescan once closed */
       const rEl = docRoot();
       if (rEl && ga(rEl, 'data-ag-pp-open') === '1') {
         scheduleTitleScan(600);
@@ -3759,7 +3723,7 @@
         else if (isSafeTitleObserverRoot(parEl(el))) desired.add(parEl(el));
         else if (isSafeTitleObserverRoot(el)) desired.add(el);
       } else {
-        // 如果已在 conversation-list-sidebar 内就无需重复挂到行级
+        // Skip row-level observer if already covered by conversation-list-sidebar
         let covered = false;
         for (const root of desired) {
           try {

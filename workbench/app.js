@@ -18,97 +18,97 @@
   const MODELS = [
     {
       id: 'orchestrator',
-      group: 'Antigravity 编排中枢 · 双阶段托管',
+      group: 'Antigravity Orchestrator · Dual-Phase Managed',
       name: 'Orchestrator',
       camp: 'gemini',
       isOrchestrator: true,
       sampledId: 'Carbon (Plan) ⇄ Exec',
       fallbackId: 'gemini-4-flash-001',
-      desc: '规划核深思 ⇄ 执行核快跑 · 自动托管',
+      desc: 'Planner deep thinking <-> Executor fast pass · Auto managed',
       efforts: [],
     },
     {
       id: 'claude-4.6-sonnet',
-      group: 'Claude 4.6 系列 · 原生三档',
+      group: 'Claude 4.6 Series · Native 3-Tier',
       name: 'Claude 4.6 Sonnet',
       camp: 'claude',
       sampledId: 'claude-sonnet-4-6-20260929',
       fallbackId: 'claude-haiku-4-5-20260601',
-      desc: '日常编码与架构对齐主力 · Low / Med / High',
+      desc: 'Daily coding & architecture alignment · Low / Med / High',
       efforts: ['low', 'medium', 'high'],
     },
     {
       id: 'claude-4.6-opus',
-      group: 'Claude 4.6 系列 · 原生三档',
+      group: 'Claude 4.6 Series · Native 3-Tier',
       name: 'Claude 4.6 Opus',
       camp: 'claude',
       sampledId: 'claude-opus-4-6-20260929',
       fallbackId: 'claude-sonnet-4-5-20260715',
-      desc: '深水区重构 · High 满格激活扫掠点阵',
+      desc: 'Deep-water refactoring · High activates full sweep matrix',
       efforts: ['low', 'medium', 'high'],
     },
     {
       id: 'gemini-4-carbon',
-      group: 'Gemini 4 系列 · 原生三档',
+      group: 'Gemini 4 Series · Native 3-Tier',
       name: 'Gemini 4 Carbon',
       camp: 'gemini',
       sampledId: 'gemini-4-carbon-001',
       fallbackId: 'gemini-4-flash-001',
-      desc: '常规旗舰 · 支持 Low / Medium / High',
+      desc: 'Core flagship · Supports Low / Medium / High',
       efforts: ['low', 'medium', 'high'],
     },
     {
       id: 'gemini-4-hydrogen',
-      group: 'Gemini 4 系列 · Hydrogen 极深度',
+      group: 'Gemini 4 Series · Hydrogen Deep',
       name: 'Gemini 4 Hydrogen',
       camp: 'gemini',
       sampledId: 'gemini-4-hydrogen-001',
       fallbackId: 'gemini-4-carbon-001',
-      desc: '极深度推理 · 支持 Low..Extra (xhigh)',
+      desc: 'Extreme-depth reasoning · Supports Low..Extra (xhigh)',
       efforts: ['low', 'medium', 'high', 'xhigh'],
     },
     {
       id: 'gpt-oss-120b',
-      group: 'Fixed Depth · 单档锁定对照',
+      group: 'Fixed Depth · Single-Tier Lock Reference',
       name: 'GPT-OSS 120B (Medium)',
       camp: 'gemini',
       sampledId: 'gpt-oss-120b-medium',
       fallbackId: 'gemini-4-flash-lite',
-      desc: '固定深度 · 触发 .is-locked 置灰锁定态',
+      desc: 'Fixed depth · Triggers .is-locked dimmed lock state',
       efforts: ['medium'],
     },
   ];
 
   const ALL_EFFORTS = [
-    { id: 'low', label: 'Low', short: 'LOW', title: '轻量快速推演', bars: 1 },
-    { id: 'medium', label: 'Medium', short: 'MED', title: '均衡常规推理', bars: 2 },
-    { id: 'high', label: 'High', short: 'HIGH', title: '深度架构推演', bars: 3, top: true },
-    { id: 'xhigh', label: 'Extra', short: 'EXTRA', title: '高功耗强化推理', bars: 4, spectrum: true },
+    { id: 'low', label: 'Low', short: 'LOW', title: 'Fast lightweight reasoning', bars: 1 },
+    { id: 'medium', label: 'Medium', short: 'MED', title: 'Balanced standard reasoning', bars: 2 },
+    { id: 'high', label: 'High', short: 'HIGH', title: 'Deep architectural reasoning', bars: 3, top: true },
+    { id: 'xhigh', label: 'Extra', short: 'EXTRA', title: 'Maximum intensive reasoning', bars: 4, spectrum: true },
   ];
 
   const SESSIONS = [
-    { id: 'studio-home', group: '置顶', title: 'Studio 首页与全屏波纹光晕', time: '实时', scene: 'studio' },
-    { id: 'm3-surface-lab', group: '今天', title: 'M3 四大死角实景舱 (True CSS)', time: '实景', scene: 'm3lab' },
-    { id: 'v2-refactor', group: '今天', title: 'Obsidian Prism 视觉重构', time: '刚刚', scene: 'chat' },
-    { id: 'effort-merge', group: '今天', title: '原版 1:1 推理等级滑块', time: '运行中', scene: 'effort', running: true },
-    { id: 'dash-fastpath', group: '过去 7 天', title: '实体光学水试管与模型验真', time: '昨天', scene: 'dashboard' },
-    { id: 'theme-tokens', group: '过去 7 天', title: '外观设置与小蟹堆开关', time: '3d', scene: 'settings' },
+    { id: 'studio-home', group: 'Pinned', title: 'Studio Home & Fullscreen Ripple Glow', time: 'Live', scene: 'studio' },
+    { id: 'm3-surface-lab', group: 'Today', title: 'M3 Surface Lab (True CSS)', time: 'Live', scene: 'm3lab' },
+    { id: 'v2-refactor', group: 'Today', title: 'Obsidian Prism Visual Refactor', time: 'Now', scene: 'chat' },
+    { id: 'effort-merge', group: 'Today', title: '1:1 Native Effort Slider', time: 'Running', scene: 'effort', running: true },
+    { id: 'dash-fastpath', group: 'Past 7 Days', title: 'Optical Vial & Model Verification', time: '1d', scene: 'dashboard' },
+    { id: 'theme-tokens', group: 'Past 7 Days', title: 'Appearance Settings & Mini Crab Pile', time: '3d', scene: 'settings' },
   ];
 
   const TIME_RANGE_STATS = {
     '7d': {
-      books: '3.1 本书',
-      sub: '累计 782K Tokens · 312 条消息 · 主力模型 Gemini 4 Carbon',
+      books: '3.1 books',
+      sub: '782K Tokens · 312 messages · Top model Gemini 4 Carbon',
       scale: 0.78,
     },
     '30d': {
-      books: '14.2 本书',
-      sub: '累计 3.56M Tokens · 1,284 条消息 · 主力模型 Gemini 4 Carbon',
+      books: '14.2 books',
+      sub: '3.56M Tokens · 1,284 messages · Top model Gemini 4 Carbon',
       scale: 1,
     },
     all: {
-      books: '84.6 本书',
-      sub: '累计 21.6M Tokens · 10,254 条消息 · 主力模型 Gemini 4 Carbon',
+      books: '84.6 books',
+      sub: '21.6M Tokens · 10,254 messages · Top model Gemini 4 Carbon',
       scale: 1.18,
     },
   };
@@ -116,19 +116,19 @@
   const STREAM_FULL_PARAGRAPHS = [
     {
       type: 'h3',
-      text: '1. 唯一输入框棱镜与零色偏黑灰钛',
+      text: '1. Input-Only Prism & Zero-Tint Neutral Obsidian',
     },
     {
       type: 'p',
-      html: '将 <code>Obsidian Neutral</code> 的冷峻黑灰钛底盘全面降噪，仅在底部唯一主焦点 <code>[data-testid="agent-input-box"]</code> 保留四色光学棱镜追光边，其余浮窗与卡片回到干净的 <code>1px</code> 顶边内高光。',
+      html: 'De-noised the <code>Obsidian Neutral</code> graphite chassis so only the primary focus <code>[data-testid="agent-input-box"]</code> carries the 4-color optical prism edge, while cards and popovers return to crisp <code>1px</code> top specular highlights.',
     },
     {
       type: 'h3',
-      text: '2. 512K 无凹坑悬浮水试管与深海连续电离光谱',
+      text: '2. 512K Frameless Floating Vial & Deep-Ocean Ionized Spectrum',
     },
     {
       type: 'p',
-      html: '右侧浮窗顶部接入 <code>Sampled Model</code> 真实响应验真栏，左侧无框悬浮 WebGL2 硼硅水试管升级为 <code>512K</code> 容量基准（<code>128k / 256k / 384k</code> 激光微刻线）与深海连续电离冷光谱。',
+      html: 'Connected the live <code>Sampled Model</code> verification header on the right and upgraded the frameless WebGL2 borosilicate vial to a <code>512K</code> scale (<code>128k / 256k / 384k</code> laser tick marks) with a continuous deep-ocean spectrum.',
     },
   ];
 
@@ -205,18 +205,18 @@
       .replace(/"/g, '&quot;');
   }
 
-  // 微标签中英混排：西文保持等宽大写字距，中文段落切回无衬线且零字距，避免中文被拉散下沉
+  // Mixed-script micro-labels: keep Latin uppercase tracking while resetting Arabic spans to sans-serif with zero letter-spacing
   function fmtMicroLabel(text) {
-    return escapeHtml(text).replace(/([\u3000-\u303f\u3400-\u9fff\uff00-\uffef]+)/g, '<span class="ag-cjk">$1</span>');
+    return escapeHtml(text).replace(/([\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff]+)/g, '<span class="ag-cjk">$1</span>');
   }
 
-  // 是否需要减弱动态（含 motionLevel === 'off'）
+  // Check whether reduced motion is active (including motionLevel === 'off')
   function prefersReducedMotion() {
     if (state.motionLevel === 'off') return true;
     return Boolean(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   }
 
-  // 视图级切换：支持时用 View Transitions 做 200ms 交叉淡化，否则直接执行
+  // View-level switch: use View Transitions for 200ms crossfade when supported
   function withViewTransition(fn) {
     if (
       typeof document.startViewTransition === 'function' &&
@@ -234,10 +234,10 @@
 
   function getGreetingLabel() {
     const h = new Date().getHours();
-    if (h < 6) return '夜深了，准备构建什么？';
-    if (h < 12) return '早安，准备构建什么？';
-    if (h < 18) return '下午好，准备构建什么？';
-    return '晚上好，准备构建什么？';
+    if (h < 6) return 'Late night — what are we building?';
+    if (h < 12) return 'Good morning — ready to build?';
+    if (h < 18) return 'Good afternoon — what shall we build?';
+    return 'Good evening — what are we building?';
   }
 
   function getActiveModel() {
@@ -247,7 +247,7 @@
   function getActiveEffortMeta() {
     const model = getActiveModel();
     if (model.isOrchestrator) {
-      return { id: 'auto', label: 'Auto', short: 'AUTO', title: '双阶段智能托管', bars: 4, orchestrator: true };
+      return { id: 'auto', label: 'Auto', short: 'AUTO', title: 'Dual-phase auto orchestration', bars: 4, orchestrator: true };
     }
     const curId = state.effortByModel[model.id] || model.efforts[0];
     return ALL_EFFORTS.find((e) => e.id === curId) || ALL_EFFORTS[1];
@@ -281,7 +281,7 @@
         return rendered;
       }
     }
-    // 正统官方单星静态兜底（零碎豆、零断裂外弧）
+    // Official monochrome four-point star static fallback
     const cls = className ? ` class="${className}"` : '';
     const sparkFill = monochrome ? 'currentColor' : '#669DF6';
     return `<svg${cls} width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 1.2c.25 0 .47.17.53.41c.21.79.48 1.56.8 2.31c1.23 2.86 3.39 5.02 6.25 6.25c.75.32 1.52.59 2.31.8c.24.06.41.28.41.53s-.17.47-.41.53a16 16 0 0 0-2.31.8c-2.86 1.23-5.02 3.39-6.25 6.25c-.32.75-.59 1.52-.8 2.31a.55.55 0 0 1-.53.41a.55.55 0 0 1-.53-.41a16 16 0 0 0-.8-2.31c-1.23-2.86-3.39-5.02-6.25-6.25a16 16 0 0 0-2.31-.8A.55.55 0 0 1 1.2 12c0-.25.17-.47.41-.53c.79-.21 1.56-.48 2.31-.8c2.86-1.23 5.02-3.39 6.25-6.25c.32-.75.59-1.52.8-2.31c.06-.24.28-.41.53-.41Z" fill="${sparkFill}"/></svg>`;
@@ -351,7 +351,7 @@
     }
     const brandMark = document.getElementById('wb-brand-mark');
     if (brandMark) {
-      // 顶栏调试壳采用极简纯单色银白官方双曲星，只在底部激活模型态点亮柔光四色
+      // Topbar brand mark uses minimal silver monochrome star; full 4-color glow appears only on active model badge
       brandMark.innerHTML = renderSparkOrbitMark({ size: 14, tier: 'auto', monochrome: true });
     }
     document.querySelectorAll('[data-wb-icon]').forEach((slot) => {
@@ -488,18 +488,18 @@
         sampledModel: model.fallbackId,
         ttftText: '1.84s',
         tpsText: '42.1 tok/s',
-        note: '检测到与所选模型不一致，已触发降级路由',
+        note: 'Mismatch with selected model detected; fallback routing active',
       };
     }
     if (state.sampleSimMode === 'unreliable') {
       return {
         status: 'unreliable',
-        badgeText: '计时异常',
+        badgeText: 'Timing Anomaly',
         selectedName: model.name,
         sampledModel: model.sampledId,
         ttftText: '0.00s',
         tpsText: '--',
-        note: '首包时间样本异常，已屏蔽失真 TPS 读数',
+        note: 'First-token timing anomaly detected; distorted TPS readout suppressed',
       };
     }
     return {
@@ -509,7 +509,7 @@
       sampledModel: model.sampledId,
       ttftText: model.camp === 'claude' ? '0.46s' : '0.32s',
       tpsText: state.vialCritical ? '84.2 tok/s' : '74.8 tok/s',
-      note: '实测响应 generatorMetadata.chatModel 一致',
+      note: 'Verified response matches generatorMetadata.chatModel',
     };
   }
 
@@ -538,10 +538,10 @@
           level = 1;
         }
         level = Math.min(5, Math.max(0, level));
-        // 0 延迟玻璃提示：data-tip 交给委托式浮动胶囊；--i 供切换时段的按列错峰淡入
-        const dayLabel = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'][d];
+        // Zero-delay glass tooltip via delegated popover; --i drives staggered column fade on range switch
+        const dayLabel = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][d];
         const msgCount = level === 0 ? 0 : Math.round(level * 9 + (boosted % 11));
-        cells.push(`<span class="ag-v2-heat-cell" data-level="${level}" style="--i:${w}" data-tip="第 ${w + 1} 周 · ${dayLabel}|${msgCount} 条消息 · L${level}"></span>`);
+        cells.push(`<span class="ag-v2-heat-cell" data-level="${level}" style="--i:${w}" data-tip="Week ${w + 1} · ${dayLabel}|${msgCount} msgs · L${level}"></span>`);
       }
     }
     return cells.join('');
@@ -551,22 +551,22 @@
     if (state.cacheCleanStep === 'confirm') {
       return `
         <span class="ag-v2-inline-cleaner">
-          <span>释放 118 MB?</span>
-          <button type="button" class="ag-v2-inline-btn" data-tone="warn" data-action="cache-confirm">确认</button>
-          <button type="button" class="ag-v2-inline-btn" data-action="cache-cancel">取消</button>
+          <span>Free 118 MB?</span>
+          <button type="button" class="ag-v2-inline-btn" data-tone="warn" data-action="cache-confirm">Confirm</button>
+          <button type="button" class="ag-v2-inline-btn" data-action="cache-cancel">Cancel</button>
         </span>`;
     }
     if (state.cacheCleanStep === 'done') {
       return `
         <span class="ag-v2-inline-cleaner">
-          <span>轨迹缓存 24 MB (已释放 118 MB)</span>
-          <button type="button" class="ag-v2-inline-btn" data-tone="ok" data-action="cache-reset">还原演示</button>
+          <span>Trace Cache 24 MB (freed 118 MB)</span>
+          <button type="button" class="ag-v2-inline-btn" data-tone="ok" data-action="cache-reset">Restore Demo</button>
         </span>`;
     }
     return `
       <span class="ag-v2-inline-cleaner">
-        <span>轨迹缓存 142 MB</span>
-        <button type="button" class="ag-v2-inline-btn" data-action="cache-start">${renderAnimIcon('trash-sweep', { size: 12 })}<span>清理</span></button>
+        <span>Trace Cache 142 MB</span>
+        <button type="button" class="ag-v2-inline-btn" data-action="cache-start">${renderAnimIcon('trash-sweep', { size: 12 })}<span>Clear</span></button>
       </span>`;
   }
 
@@ -620,18 +620,18 @@
           <div class="ces-ag-section" data-effort-slot="true">
             <div class="ces-ag-effort-row" data-ces-effort-row="true" data-row-hidden="${isOrch}" aria-hidden="${isOrch}">
               <div class="ces-ag-effort-head">
-                <span class="ces-ag-effort-title">推理等级</span>
+                <span class="ces-ag-effort-title">Effort Level</span>
                 <span class="ces-ag-effort-value">${escapeHtml(curMeta.label)}</span>
               </div>
               <div class="ces-inline" data-workbench-ces-mount="true" data-effort="${escapeHtml(curEffortId)}"></div>
             </div>
             <div class="ces-ag-effort-row ag-v2-orch-row" data-testid="orchestrator-effort-bar" data-row-hidden="${!isOrch}" aria-hidden="${!isOrch}">
               <div class="ces-ag-effort-head">
-                <span class="ces-ag-effort-title">推理等级</span>
+                <span class="ces-ag-effort-title">Effort Level</span>
                 <span class="ces-ag-effort-value ag-v2-orch-value">Auto</span>
               </div>
               <div class="ces-inline">
-                <div class="ag-v2-orch-track" role="status" title="Orchestrator 固定切割光学水晶托管（Plan ⇄ Exec 自动调度，鼠标靠近触发小范围棱镜色散）" aria-label="Orchestrator 固定切割水晶棱镜推理条（Auto）">
+                <div class="ag-v2-orch-track" role="status" title="Orchestrator cut-crystal auto scheduling (Plan <-> Exec, subtle local prism dispersion on hover)" aria-label="Orchestrator crystal prism effort bar (Auto)">
                   <canvas class="ag-v2-orch-canvas" data-orch-crystal-canvas="true" aria-hidden="true"></canvas>
                 </div>
               </div>
@@ -662,7 +662,7 @@
                   <span class="ag-v2-vial-readout-label">512K</span>
                   <strong class="ag-v2-vial-readout-val" data-warn="${state.vialCritical}">${escapeHtml(ctx.pctText)}</strong>
                 </div>
-                <canvas class="ag-v2-vial-canvas" data-vial-canvas="true" width="192" height="440" title="512K 容量 (128k / 256k / 384k 激光微刻线) · 轻点拨动水波，拖拽采样栏可重力晃动流体舱"></canvas>
+                <canvas class="ag-v2-vial-canvas" data-vial-canvas="true" width="192" height="440" title="512K capacity (128k / 256k / 384k laser ticks) · Click to ripple fluid, drag sample bar to tilt gravity"></canvas>
                 <div class="ag-v2-vial-rate">${escapeHtml(ctx.rate)}</div>
               </div>
             </div>`
@@ -672,14 +672,14 @@
       ? `
                 <div class="ag-v2-ctx-bar-wrap" data-testid="context-minimal-bar" data-warn="${state.vialCritical}" data-camp="${model.camp}">
                   <div class="ag-v2-ctx-bar-track" data-has-hover="${state.hoveredSlice >= 0}">
-                    <span class="ag-v2-ctx-bar-seg" data-layer-slice="0" data-hovered="${state.hoveredSlice === 0}" style="width:${(ctx.ratios[0] * 100).toFixed(2)}%; --seg-color:${sysColor};" title="系统规则 System · ${escapeHtml(ctx.sysK)}"></span>
-                    <span class="ag-v2-ctx-bar-seg" data-layer-slice="1" data-hovered="${state.hoveredSlice === 1}" style="width:${(ctx.ratios[1] * 100).toFixed(2)}%; --seg-color:${convColor};" title="对话轮次 Conversation · ${escapeHtml(ctx.convK)}"></span>
-                    <span class="ag-v2-ctx-bar-seg" data-layer-slice="2" data-hovered="${state.hoveredSlice === 2}" style="width:${(ctx.ratios[2] * 100).toFixed(2)}%; --seg-color:${toolColor};" title="工具与子代理 Tools · ${escapeHtml(ctx.toolsK)}"></span>
-                    <i class="ag-v2-ctx-bar-threshold" aria-hidden="true" title="85% 临界压缩阈值 (435.2k / 512k)"></i>
+                    <span class="ag-v2-ctx-bar-seg" data-layer-slice="0" data-hovered="${state.hoveredSlice === 0}" style="width:${(ctx.ratios[0] * 100).toFixed(2)}%; --seg-color:${sysColor};" title="System Rules · ${escapeHtml(ctx.sysK)}"></span>
+                    <span class="ag-v2-ctx-bar-seg" data-layer-slice="1" data-hovered="${state.hoveredSlice === 1}" style="width:${(ctx.ratios[1] * 100).toFixed(2)}%; --seg-color:${convColor};" title="Conversation · ${escapeHtml(ctx.convK)}"></span>
+                    <span class="ag-v2-ctx-bar-seg" data-layer-slice="2" data-hovered="${state.hoveredSlice === 2}" style="width:${(ctx.ratios[2] * 100).toFixed(2)}%; --seg-color:${toolColor};" title="Tools & Subagents · ${escapeHtml(ctx.toolsK)}"></span>
+                    <i class="ag-v2-ctx-bar-threshold" aria-hidden="true" title="85% critical compaction threshold (435.2k / 512k)"></i>
                   </div>
                   <div class="ag-v2-ctx-bar-meta">
-                    <span>容量 ${escapeHtml(ctx.usedText)}</span>
-                    <span>刻度 128k·256k·384k</span>
+                    <span>Used ${escapeHtml(ctx.usedText)}</span>
+                    <span>Ticks 128k·256k·384k</span>
                   </div>
                 </div>`
       : '';
@@ -692,7 +692,7 @@
             <div class="ag-v2-radar-right">
               <div class="ag-v2-sample-bar" data-testid="model-sampling-bar" data-status="${samp.status}">
                 <div class="ag-v2-sample-top">
-                  <span class="ag-v2-sample-title">真实模型采样验真</span>
+                  <span class="ag-v2-sample-title">Live Model Verification</span>
                   <span class="ag-v2-sample-badge">${escapeHtml(samp.badgeText)}</span>
                 </div>
                 <div class="ag-v2-sample-id" title="${escapeHtml(samp.note)}">${escapeHtml(samp.selectedName)} → ${escapeHtml(samp.sampledModel)}</div>
@@ -704,23 +704,23 @@
 
               <div>
                 <div class="ag-v2-radar-sec-head">
-                  <span class="ag-v2-radar-label">${vialOn ? '深海电离光谱' : '上下文用量'}</span>
+                  <span class="ag-v2-radar-label">${vialOn ? 'Deep-Ocean Ionized Spectrum' : 'Context Usage'}</span>
                   <span class="ag-v2-radar-head-right">
                     <span class="ag-v2-ctx-readout" data-warn="${state.vialCritical}">${escapeHtml(ctx.usedText)} · ${escapeHtml(ctx.pctText)}</span>
-                    <button type="button" class="ag-v2-vial-mode-pill" data-testid="radar-vial-mode-toggle" data-action="toggle-context-vial" data-on="${vialOn}" title="${vialOn ? '关闭实体试管，切换为极简长条' : '开启电离星尘流体舱'}">${vialOn ? '试管' : '长条'}</button>
+                    <button type="button" class="ag-v2-vial-mode-pill" data-testid="radar-vial-mode-toggle" data-action="toggle-context-vial" data-on="${vialOn}" title="${vialOn ? 'Switch from optical vial to minimal bar' : 'Enable borosilicate fluid vial'}">${vialOn ? 'Vial' : 'Bar'}</button>
                   </span>
                 </div>${minimalBarHtml}
                 <div class="ag-v2-layer-list">
                   <div class="ag-v2-layer-row" data-layer-slice="0" data-hovered="${state.hoveredSlice === 0}">
-                    <span class="ag-v2-layer-key"><i class="ag-v2-swatch" style="background:${sysColor};"></i>系统规则 System</span>
+                    <span class="ag-v2-layer-key"><i class="ag-v2-swatch" style="background:${sysColor};"></i>System Rules</span>
                     <span class="ag-v2-layer-val">${escapeHtml(ctx.sysK)}</span>
                   </div>
                   <div class="ag-v2-layer-row" data-layer-slice="1" data-hovered="${state.hoveredSlice === 1}">
-                    <span class="ag-v2-layer-key"><i class="ag-v2-swatch" style="background:${convColor};"></i>对话轮次 Conversation</span>
+                    <span class="ag-v2-layer-key"><i class="ag-v2-swatch" style="background:${convColor};"></i>Conversation</span>
                     <span class="ag-v2-layer-val">${escapeHtml(ctx.convK)}</span>
                   </div>
                   <div class="ag-v2-layer-row" data-layer-slice="2" data-hovered="${state.hoveredSlice === 2}">
-                    <span class="ag-v2-layer-key"><i class="ag-v2-swatch" style="background:${toolColor};"></i>工具与子代理 Tools</span>
+                    <span class="ag-v2-layer-key"><i class="ag-v2-swatch" style="background:${toolColor};"></i>Tools &amp; Subagents</span>
                     <span class="ag-v2-layer-val">${escapeHtml(ctx.toolsK)}</span>
                   </div>
                 </div>
@@ -728,7 +728,7 @@
 
               <div>
                 <div class="ag-v2-radar-sec-head">
-                  <span class="ag-v2-radar-label">5h 模型配额池</span>
+                  <span class="ag-v2-radar-label">5h Model Quota Pool</span>
                   <span class="ag-v2-pool-stats">2ms Fast-RPC</span>
                 </div>
                 <div class="ag-v2-pool-stack" style="gap:8px;">
@@ -757,7 +757,7 @@
               </div>
 
               <div class="ag-v2-radar-foot">
-                <span class="ag-v2-pool-stats">本地轨迹缓存</span>
+                <span class="ag-v2-pool-stats">Local Trace Cache</span>
                 ${buildInlineCacheHtml()}
               </div>
             </div>
@@ -774,10 +774,10 @@
       ['ultra', 'Ultra'],
     ];
     return `
-          <div class="ag-v2-motion-showcase" data-testid="motion-showcase-bar" aria-label="v3.7 四档动效与英雄光学转场演练">
+          <div class="ag-v2-motion-showcase" data-testid="motion-showcase-bar" aria-label="4-tier motion & optical hero transition showcase">
             <div class="ag-v2-motion-showcase-left">
-              <span class="ag-v2-sec-title">动效档位</span>
-              <div class="ag-v2-seg-ctrl" role="group" aria-label="动效档位切换" data-testid="studio-motion-tier-tabs">
+              <span class="ag-v2-sec-title">Motion Tier</span>
+              <div class="ag-v2-seg-ctrl" role="group" aria-label="Motion tier switcher" data-testid="studio-motion-tier-tabs">
                 ${tiers
                   .map(
                     ([id, label]) =>
@@ -787,10 +787,10 @@
               </div>
             </div>
             <div class="ag-v2-motion-showcase-actions">
-              <button type="button" class="ag-v2-inline-btn" data-hero-demo="liftoff">${renderAnimIcon('arrow-up-launch', { size: 12 })}<span>Hero A 升空转场</span></button>
-              <button type="button" class="ag-v2-inline-btn" data-hero-demo="caustic">${renderAnimIcon('sparkles-pen', { size: 12 })}<span>Hero C 焦散扫光</span></button>
-              <button type="button" class="ag-v2-inline-btn" data-hero-demo="fiber">${renderAnimIcon('radar-pulse', { size: 12 })}<span>Hero D 模型光纤合焦</span></button>
-              <button type="button" class="ag-v2-inline-btn" data-hero-demo="dual-stream">${renderAnimIcon('zap-bolt', { size: 12 })}<span>双轨流式吐字</span></button>
+              <button type="button" class="ag-v2-inline-btn" data-hero-demo="liftoff">${renderAnimIcon('arrow-up-launch', { size: 12 })}<span>Hero A Liftoff</span></button>
+              <button type="button" class="ag-v2-inline-btn" data-hero-demo="caustic">${renderAnimIcon('sparkles-pen', { size: 12 })}<span>Hero C Caustic</span></button>
+              <button type="button" class="ag-v2-inline-btn" data-hero-demo="fiber">${renderAnimIcon('radar-pulse', { size: 12 })}<span>Hero D Fiber Lock</span></button>
+              <button type="button" class="ag-v2-inline-btn" data-hero-demo="dual-stream">${renderAnimIcon('zap-bolt', { size: 12 })}<span>Dual-Track Stream</span></button>
             </div>
           </div>`;
   }
@@ -812,18 +812,18 @@
             </span>
           </div>
 
-          <section class="ag-v2-bento-chassis" data-testid="studio-bento-chassis" aria-label="创作沉淀与 5 小时配额总览">
+          <section class="ag-v2-bento-chassis" data-testid="studio-bento-chassis" aria-label="Activity cadence and 5-hour quota overview">
             ${buildOrbitalGeometrySvg()}
             <div class="ag-v2-chassis-inner">
               <div class="ag-v2-chassis-grid">
                 <div class="ag-v2-bento-left">
                   <div class="ag-v2-bento-heat-zone">
                     <div class="ag-v2-bento-head">
-                      <span class="ag-v2-sec-title">活跃轨迹</span>
+                      <span class="ag-v2-sec-title">Activity Cadence</span>
                       <div class="ag-v2-seg-ctrl" data-testid="studio-time-range-tabs">
-                        <button type="button" class="ag-v2-seg-btn" data-action="pick-range" data-range="7d" data-active="${state.timeRange === '7d'}">${state.timeRange === '7d' ? '<span class="ag-v2-seg-glide-bg" data-range-glide="true" aria-hidden="true"></span>' : ''}<span>7天</span></button>
-                        <button type="button" class="ag-v2-seg-btn" data-action="pick-range" data-range="30d" data-active="${state.timeRange === '30d'}">${state.timeRange === '30d' ? '<span class="ag-v2-seg-glide-bg" data-range-glide="true" aria-hidden="true"></span>' : ''}<span>30天</span></button>
-                        <button type="button" class="ag-v2-seg-btn" data-action="pick-range" data-range="all" data-active="${state.timeRange === 'all'}">${state.timeRange === 'all' ? '<span class="ag-v2-seg-glide-bg" data-range-glide="true" aria-hidden="true"></span>' : ''}<span>全部</span></button>
+                        <button type="button" class="ag-v2-seg-btn" data-action="pick-range" data-range="7d" data-active="${state.timeRange === '7d'}">${state.timeRange === '7d' ? '<span class="ag-v2-seg-glide-bg" data-range-glide="true" aria-hidden="true"></span>' : ''}<span>7d</span></button>
+                        <button type="button" class="ag-v2-seg-btn" data-action="pick-range" data-range="30d" data-active="${state.timeRange === '30d'}">${state.timeRange === '30d' ? '<span class="ag-v2-seg-glide-bg" data-range-glide="true" aria-hidden="true"></span>' : ''}<span>30d</span></button>
+                        <button type="button" class="ag-v2-seg-btn" data-action="pick-range" data-range="all" data-active="${state.timeRange === 'all'}">${state.timeRange === 'all' ? '<span class="ag-v2-seg-glide-bg" data-range-glide="true" aria-hidden="true"></span>' : ''}<span>All</span></button>
                       </div>
                     </div>
                     <div class="ag-v2-heat-wrap">
@@ -834,7 +834,7 @@
 
                   <div class="ag-v2-bento-scale-zone">
                     <div class="ag-v2-hero-metric">
-                      相当于写下 <span class="ag-v2-hero-num" data-hero-num="true">${escapeHtml(stat.books)}</span><span class="ag-v2-scale-note">(螺丝在拧紧)</span>
+                      Equivalent to <span class="ag-v2-hero-num" data-hero-num="true">${escapeHtml(stat.books)}</span><span class="ag-v2-scale-note">(The Turn of the Screw)</span>
                     </div>
                     <div class="ag-v2-scale-sub" data-scale-sub="true">${escapeHtml(stat.sub)}</div>
                   </div>
@@ -842,8 +842,8 @@
 
                 <div class="ag-v2-bento-right">
                   <div class="ag-v2-bento-head">
-                    <span class="ag-v2-sec-title">5h 配额池余量</span>
-                    <span class="ag-v2-pool-stats">${state.vialCritical ? '临界态演示' : '实时健康'}</span>
+                    <span class="ag-v2-sec-title">5h Quota Pool</span>
+                    <span class="ag-v2-pool-stats">${state.vialCritical ? 'Critical Demo' : 'Live Healthy'}</span>
                   </div>
 
                   <div class="ag-v2-pool-stack">
@@ -873,14 +873,14 @@
                   </div>
 
                   <div class="ag-v2-pool-foot-hint">
-                    <span class="ag-v2-foot-hint-text">点击底栏右徽章打开实体光学水试管</span>
-                    <button type="button" class="ag-v2-text-link" data-action="toggle-dash-pop">${renderAnimIcon('radar-pulse', { size: 12.5 })}<span>检视</span></button>
+                    <span class="ag-v2-foot-hint-text">Click bottom-right badge to open the optical vial</span>
+                    <button type="button" class="ag-v2-text-link" data-action="toggle-dash-pop">${renderAnimIcon('radar-pulse', { size: 12.5 })}<span>Inspect</span></button>
                   </div>
                 </div>
               </div>
 
               <div class="ag-v2-chassis-foot">
-                <span class="ag-v2-chassis-telemetry">连续活跃 14 天 · 高峰时段 18:00–21:00 · 晃动鼠标划出流体尾波，点击激发四色涟漪</span>
+                <span class="ag-v2-chassis-telemetry">14-day streak · Peak 18:00–21:00 · Move pointer for fluid wake, click for 4-color ripple</span>
                 ${buildInlineCacheHtml()}
               </div>
             </div>
@@ -890,7 +890,7 @@
       </div>`;
   }
 
-  // 流式正文分块：流式阶段逐块渗出，结束后在同一批块后追加表格 / 引用 / 代码卡（便于局部补丁追加而非整树重建）
+  // Streamed prose blocks: reveal incrementally while streaming, then append table/quote/code cards in place
   function buildProseChunkHtml(item, withCaret) {
     const caret = withCaret ? '<span class="ag-v2-stream-caret"></span>' : '';
     return item.type === 'h3' ? `<h2>${escapeHtml(item.text)}${caret}</h2>` : `<p>${item.html}${caret}</p>`;
@@ -899,13 +899,13 @@
   function buildProseTailHtml() {
     return `
         <table class="ag-v2-md-table">
-          <thead><tr><th>采样指标</th><th>选定模型</th><th>实际响应</th><th class="is-num">TTFT</th></tr></thead>
+          <thead><tr><th>Metric</th><th>Selected Model</th><th>Actual Response</th><th class="is-num">TTFT</th></tr></thead>
           <tbody>
-            <tr><td>编排托管</td><td>Orchestrator</td><td>Carbon (Plan) ⇄ Exec</td><td class="is-num">0.32s</td></tr>
-            <tr><td>常规旗舰</td><td>Gemini 4 Carbon</td><td>gemini-4-carbon-001</td><td class="is-num">0.41s</td></tr>
+            <tr><td>Orchestrated</td><td>Orchestrator</td><td>Carbon (Plan) ⇄ Exec</td><td class="is-num">0.32s</td></tr>
+            <tr><td>Flagship</td><td>Gemini 4 Carbon</td><td>gemini-4-carbon-001</td><td class="is-num">0.41s</td></tr>
           </tbody>
         </table>
-        <blockquote class="ag-v2-md-quote">高级感来自 95% 的绝对克制，去衬托 5% 的光学焦点与角色灵气。</blockquote>
+        <blockquote class="ag-v2-md-quote">Refinement comes from 95% quiet restraint framing 5% optical focus and character warmth.</blockquote>
         <div class="ag-v2-code-card" data-testid="code-block-container">
           <div class="ag-v2-code-inner">
             <div class="ag-v2-code-head">
@@ -913,12 +913,12 @@
                 <span class="ag-v2-code-lang">CSS</span>
                 <span class="ag-v2-code-file">v2-tokens.css · Input-Only Prism</span>
               </div>
-              <button type="button" class="ag-v2-copy-btn" data-action="copy-code" aria-label="复制代码">
+              <button type="button" class="ag-v2-copy-btn" data-action="copy-code" aria-label="Copy code">
                 <span class="ag-v2-copy-icons" aria-hidden="true">${renderAnimIcon('copy-check', { size: 13 })}</span>
-                <span class="ag-v2-copy-label" data-copy-label="true">复制</span>
+                <span class="ag-v2-copy-label" data-copy-label="true">Copy</span>
               </button>
             </div>
-            <pre class="ag-v2-code-pre"><code><span class="ag-v2-tok-cm">/* 全站仅 agent-input-box 持有 Gemini 四色棱镜边 */</span>
+            <pre class="ag-v2-code-pre"><code><span class="ag-v2-tok-cm">/* Only agent-input-box carries the Gemini 4-color prism edge */</span>
 <span class="ag-v2-tok-prop">--elevation-1</span><span class="ag-v2-tok-punct">:</span>
   <span class="ag-v2-tok-kw">inset</span> <span class="ag-v2-tok-num">0 1px 0</span> <span class="ag-v2-tok-fn">rgba</span><span class="ag-v2-tok-punct">(</span><span class="ag-v2-tok-num">255, 255, 255</span><span class="ag-v2-tok-punct">,</span> <span class="ag-v2-tok-fn">var</span><span class="ag-v2-tok-punct">(</span><span class="ag-v2-tok-str">--ag-v2-specular</span><span class="ag-v2-tok-punct">)),</span>
   <span class="ag-v2-tok-num">0 1px 2px</span> <span class="ag-v2-tok-fn">rgba</span><span class="ag-v2-tok-punct">(</span><span class="ag-v2-tok-num">0, 0, 0, 0.48</span><span class="ag-v2-tok-punct">),</span>
@@ -943,10 +943,10 @@
   function getThinkingTriggerText() {
     const isStreaming = state.streamPhase === 'streaming';
     return state.hasToolError
-      ? '推演中断 · 发现 1 项阻断报错（已强制展开）'
+      ? 'Reasoning interrupted · 1 blocking error found (auto-expanded)'
       : isStreaming
-        ? '正在推演与调用工具...'
-        : '已思考 14s · 调用 6 步操作';
+        ? 'Reasoning & invoking tools...'
+        : 'Thought for 14s · 6 tool steps';
   }
 
   function buildThinkingTriggerInnerHtml() {
@@ -961,14 +961,14 @@
         : renderAnimIcon('chevron-right', { size: 12, className: 'ag-v2-thinking-chevron' });
     return `${spark}
                 <span class="ag-v2-thinking-label">${escapeHtml(getThinkingTriggerText())}</span>
-                <span class="ag-v2-thinking-meta">${state.thinkingOpen ? '点击收起' : '点击展开明细'}</span>${chevron}`;
+                <span class="ag-v2-thinking-meta">${state.thinkingOpen ? 'Click to collapse' : 'Click to expand'}</span>${chevron}`;
   }
 
   function buildStepRowsHtml() {
     const isStreaming = state.streamPhase === 'streaming';
     const steps = [
       { verb: 'READ', path: 'workbench/styles/v2-tokens.css#L1-L130', dur: '11ms', state: 'ok' },
-      { verb: 'EDIT', path: 'dual-mascot-rig.js (Clawd & 小紫猫)', dur: '24ms', state: 'ok' },
+      { verb: 'EDIT', path: 'dual-mascot-rig.js (Clawd & Gemini Cat)', dur: '24ms', state: 'ok' },
       { verb: 'TEST', path: 'node --test test/*.test.mjs', dur: state.hasToolError ? 'ERR 1' : '184ms', state: state.hasToolError ? 'error' : 'ok' },
       { verb: 'RPC', path: 'GetCascadeTrajectoryGeneratorMetadata', dur: isStreaming ? '...' : '2ms', state: isStreaming ? 'running' : 'ok' },
     ];
@@ -990,21 +990,21 @@
   function buildSimbarInnerHtml() {
     const isStreaming = state.streamPhase === 'streaming';
     const auraLabelMap = {
-      idle: 'IDLE · 8fps 微呼吸',
-      start: 'START · 棱镜轻涌',
-      running: 'RUNNING · 微棱镜流淌',
-      complete: 'COMPLETE · 冰雾收束',
+      idle: 'IDLE · 8fps Soft Breathe',
+      start: 'START · Prism Surge',
+      running: 'RUNNING · Prism Flow',
+      complete: 'COMPLETE · Mist Settle',
     };
     const auraLabel = auraLabelMap[state.convAuraPhase] || auraLabelMap.idle;
     return `
             <span class="ag-v2-sim-status">
               <span class="ag-v2-live-dot" data-tone="${isStreaming ? 'live' : state.hasToolError ? 'error' : 'ok'}"></span>
-              <span>${isStreaming ? '流式吐字中：底部微光轻涌，主宠执笔速记…' : state.hasToolError ? '报错看护已激活：思考链禁止自动折叠' : '生成已完成：无框手稿思考链已顺滑收拢'}</span>
+              <span>${isStreaming ? 'Streaming: bottom aura glowing while lead mascot takes notes…' : state.hasToolError ? 'Error guard active: thinking chain pinned open' : 'Complete: borderless thinking chain smoothly collapsed'}</span>
               <span class="ag-v2-aura-phase-pill" data-conv-aura-badge="${state.convAuraPhase}">${auraLabel}</span>
             </span>
             <div class="ag-v2-sim-actions">
-              <button type="button" class="ag-v2-inline-btn" data-action="replay-stream">${renderAnimIcon('zap-bolt', { size: 12 })}<span>${isStreaming ? '正在推演...' : '重播流式回答 → 观察四态光晕 & 双宠'}</span></button>
-              <button type="button" class="ag-v2-inline-btn" data-tone="${state.hasToolError ? 'warn' : ''}" data-action="toggle-tool-error">${renderAnimIcon('alert-triangle', { size: 12 })}<span>${state.hasToolError ? '恢复正常态' : '模拟工具报错'}</span></button>
+              <button type="button" class="ag-v2-inline-btn" data-action="replay-stream">${renderAnimIcon('zap-bolt', { size: 12 })}<span>${isStreaming ? 'Streaming...' : 'Replay Stream -> Watch 4-State Aura & Mascots'}</span></button>
+              <button type="button" class="ag-v2-inline-btn" data-tone="${state.hasToolError ? 'warn' : ''}" data-action="toggle-tool-error">${renderAnimIcon('alert-triangle', { size: 12 })}<span>${state.hasToolError ? 'Restore Healthy' : 'Simulate Tool Error'}</span></button>
             </div>`;
   }
 
@@ -1022,9 +1022,9 @@
           <div class="ag-v2-turn-user">
             <div data-testid="user-message-bubble">
               <div class="ag-v2-user-text-wrap" data-collapsed="${!state.userBubbleExpanded}">
-                请帮我把 Antigravity Desktop 试验台升级为 v3.3：思考档位对齐原生真实范围（无 Off），为 Orchestrator 打造双阶段自动托管推理条；Water Vial 升级为高硼硅水晶通透玻璃与清澈比尔-朗伯水体搭配真实模型采样验真；底部由官方风 Clawd 和 Gemini 小紫猫继续搭档演出。
+                Upgrade the Antigravity Desktop workbench to v3.3: align reasoning effort tiers to real host ranges (no fake Off), build the dual-phase crystal bar for Orchestrator, upgrade the Water Vial with borosilicate glass and live model verification, and pair Clawd with Gemini Cat above the composer.
               </div>
-              <button type="button" class="ag-v2-user-expand-btn" data-action="toggle-user-bubble">${state.userBubbleExpanded ? '收起长提问' : '展开全部长提问'}</button>
+              <button type="button" class="ag-v2-user-expand-btn" data-action="toggle-user-bubble">${state.userBubbleExpanded ? 'Collapse Prompt' : 'Expand Full Prompt'}</button>
             </div>
           </div>
 
@@ -1038,8 +1038,8 @@
                 <div class="ag-v2-thinking-inner">
                   <div class="ag-v2-worked-guide" ${state.streamPhase === 'streaming' && state.thinkingOpen && state.motionLevel === 'ultra' ? 'data-ag-cs-thought-streaming="1"' : ''}>
                     <div class="ag-v2-thinking-note">
-                      1. 核对 <code>dual-mascot-rig.js</code> 双宠官方纯平块点阵（PX=3, TICK=100ms, 零黑边描边）。<br />
-                      2. 验证 <code>antigravity-effort-slider</code> 原版 <code>.ces-track</code> 与 <code>.ces-claude-canvas</code> 无损挂载。
+                      1. Verify <code>dual-mascot-rig.js</code> flat pixel sprite matrix (PX=3, TICK=100ms, borderless silhouettes).<br />
+                      2. Verify <code>antigravity-effort-slider</code> native <code>.ces-track</code> and <code>.ces-claude-canvas</code> lossless mounting.
                     </div>
                     <div class="ag-v2-step-list">${buildStepRowsHtml()}</div>
                   </div>
@@ -1083,7 +1083,7 @@
       setTimeout(() => el.classList.remove('ag-cs-code-scan'), 240);
       return;
     }
-    // 普通自然语言段落/标题：包裹直接纯文本子节点并在 250ms 内自动解包还原纯原生 Text 节点
+    // Prose paragraphs/headings: wrap direct text nodes and unwrap back to native Text nodes within 250ms
     for (const ch of Array.from(el.childNodes || [])) {
       if (ch.nodeType === 3 && ch.nodeValue && ch.nodeValue.trim()) {
         const sp = document.createElement('span');
@@ -1095,7 +1095,7 @@
     }
   }
 
-  /* ── 对话流局部补丁：流式吐字 / 答完收折 / 报错展开 都只改动现有节点，保住 CSS 过渡与滚动位置 ── */
+  /* ── In-place chat stream patching: mutate existing nodes only to preserve CSS transitions & scroll position ── */
   function patchChatStreamDom(opts = {}) {
     const views = document.querySelectorAll('[data-testid="conversation-view"]');
     if (!views.length) return false;
@@ -1121,7 +1121,7 @@
           if (isThoughtStreaming) guide.setAttribute('data-ag-cs-thought-streaming', '1');
           else guide.removeAttribute('data-ag-cs-thought-streaming');
         }
-        // 步骤行：只在状态变化时改属性，完成瞬间由 CSS 触发回弹
+        // Step rows: only mutate attributes on state change so CSS triggers completion bounce
         const nextRows = document.createElement('div');
         nextRows.innerHTML = buildStepRowsHtml();
         const curRows = block.querySelectorAll('.ag-v2-step-row');
@@ -1158,7 +1158,7 @@
           Array.from(article.children).forEach((ch) => decorateDualTrackStreamNode(ch));
           return;
         }
-        // 只追加新出现的块，旧块保持不动；新块挂双轨智能分流显影动画
+        // Append only newly arrived chunks with dual-track reveal while keeping earlier blocks untouched
         article.querySelectorAll('.ag-v2-stream-caret').forEach((c) => c.remove());
         const total = STREAM_FULL_PARAGRAPHS.length;
         const isDone = state.streamPhase === 'done';
@@ -1199,7 +1199,7 @@
         <div class="ag-v2-greeting-row ag-v2-settings-head">
           <h2 class="ag-v2-settings-title" style="display:inline-flex; align-items:center; gap:8px;">
             ${renderSparkOrbitMark({ size: 18 })}
-            <span>Obsidian Prism · 黑曜棱镜</span>
+            <span>Obsidian Prism · Optical Engine</span>
           </h2>
           <span class="ag-v2-ready-badge">OBSIDIAN PRISM v1.0 → APPEARANCE</span>
         </div>
@@ -1207,100 +1207,100 @@
         <div class="ag-v2-settings-card" data-testid="appearance-settings-drawer">
           <div class="ag-v2-set-row">
             <div>
-              <div class="ag-v2-set-title">主题配色方案</div>
-              <div class="ag-v2-set-desc">旗舰默认 Obsidian 深空（零色偏黑灰钛），可选 Alabaster 暖岩与 Titanium</div>
+              <div class="ag-v2-set-title">Color Palette</div>
+              <div class="ag-v2-set-desc">Flagship default Obsidian Dark (zero-tint neutral graphite), with optional Warm Alabaster and Titanium</div>
             </div>
             <div class="ag-v2-seg-ctrl">
-              <button type="button" class="ag-v2-seg-btn" data-wb-palette="obsidian" data-active="${state.tokens.palette === 'obsidian'}">Obsidian 深空</button>
-              <button type="button" class="ag-v2-seg-btn" data-wb-palette="warm" data-active="${state.tokens.palette === 'warm'}">Alabaster 暖岩</button>
+              <button type="button" class="ag-v2-seg-btn" data-wb-palette="obsidian" data-active="${state.tokens.palette === 'obsidian'}">Obsidian Dark</button>
+              <button type="button" class="ag-v2-seg-btn" data-wb-palette="warm" data-active="${state.tokens.palette === 'warm'}">Warm Alabaster</button>
               <button type="button" class="ag-v2-seg-btn" data-wb-palette="titanium" data-active="${state.tokens.palette === 'titanium'}">Titanium</button>
             </div>
           </div>
 
           <div class="ag-v2-set-row" data-testid="settings-light-preset-row" style="border-top:1px solid var(--border-etched); padding-top:10px;">
             <div>
-              <div class="ag-v2-set-title">浅色白昼质感</div>
-              <div class="ag-v2-set-desc">调校浅色模式下的冷瓷表面层次、彩墨折射光晕与玻璃对比度。</div>
+              <div class="ag-v2-set-title">Daylight Surface Preset</div>
+              <div class="ag-v2-set-desc">Tune cool mineral surface depth, refractive ink highlights, and glass contrast in light mode.</div>
             </div>
-            <div class="ag-v2-seg-ctrl" role="group" aria-label="浅色白昼质感">
-              <button type="button" class="ag-v2-seg-btn" data-wb-light-preset="crystal" data-active="${lp === 'crystal'}">白昼冷晶</button>
-              <button type="button" class="ag-v2-seg-btn" data-wb-light-preset="alabaster" data-active="${lp === 'alabaster'}">暖白画册</button>
+            <div class="ag-v2-seg-ctrl" role="group" aria-label="Daylight surface preset">
+              <button type="button" class="ag-v2-seg-btn" data-wb-light-preset="crystal" data-active="${lp === 'crystal'}">Daylight Crystal</button>
+              <button type="button" class="ag-v2-seg-btn" data-wb-light-preset="alabaster" data-active="${lp === 'alabaster'}">Warm Alabaster</button>
             </div>
           </div>
 
           <div class="ag-v2-set-row" data-testid="settings-motion-tier-row" style="border-top:1px solid var(--border-etched); padding-top:10px;">
             <div>
-              <div class="ag-v2-set-title">动效档位</div>
-              <div class="ag-v2-set-desc">控制系统弹簧交互、流式吐字与光学场景转场的丰富程度。</div>
+              <div class="ag-v2-set-title">Motion Tier</div>
+              <div class="ag-v2-set-desc">Control spring feedback, streaming text cadence, and optical scene transition intensity.</div>
             </div>
-            <div class="ag-v2-seg-ctrl" role="group" aria-label="动效档位">
-              <button type="button" class="ag-v2-seg-btn" data-wb-motion="off" data-active="${state.motionLevel === 'off'}">关闭</button>
-              <button type="button" class="ag-v2-seg-btn" data-wb-motion="subtle" data-active="${state.motionLevel === 'subtle'}">克制</button>
-              <button type="button" class="ag-v2-seg-btn" data-wb-motion="standard" data-active="${state.motionLevel === 'standard'}">标准</button>
-              <button type="button" class="ag-v2-seg-btn" data-wb-motion="ultra" data-active="${state.motionLevel === 'ultra'}">旗舰光学</button>
+            <div class="ag-v2-seg-ctrl" role="group" aria-label="Motion tier">
+              <button type="button" class="ag-v2-seg-btn" data-wb-motion="off" data-active="${state.motionLevel === 'off'}">Off</button>
+              <button type="button" class="ag-v2-seg-btn" data-wb-motion="subtle" data-active="${state.motionLevel === 'subtle'}">Subtle</button>
+              <button type="button" class="ag-v2-seg-btn" data-wb-motion="standard" data-active="${state.motionLevel === 'standard'}">Standard</button>
+              <button type="button" class="ag-v2-seg-btn" data-wb-motion="ultra" data-active="${state.motionLevel === 'ultra'}">Ultra</button>
             </div>
           </div>
 
           <div class="ag-v2-set-row" data-testid="settings-telemetry-coexist-row" style="border-top:1px solid var(--border-etched); padding-top:10px;">
             <div>
-              <div class="ag-v2-set-title">底部遥测与 512K 光学试管（智能共存让位）</div>
-              <div class="ag-v2-set-desc">内置吸收 Dashboard 吞吐与配额采样；检测到外部同名插件时自动让位免冲突。</div>
+              <div class="ag-v2-set-title">Bottom Telemetry &amp; 512K Optical Vial (Auto-Coexist)</div>
+              <div class="ag-v2-set-desc">Built-in throughput and quota sampling; automatically yields when an external dashboard plugin is detected.</div>
             </div>
-            <div class="ag-v2-seg-ctrl" role="group" aria-label="底部遥测与 512K 光学试管">
-              <button type="button" class="ag-v2-seg-btn" data-action="set-telemetry-mod" data-mod-val="auto" data-active="${tm === 'auto'}">智能共存</button>
-              <button type="button" class="ag-v2-seg-btn" data-action="set-telemetry-mod" data-mod-val="on" data-active="${tm === 'on'}">开启</button>
-              <button type="button" class="ag-v2-seg-btn" data-action="set-telemetry-mod" data-mod-val="off" data-active="${tm === 'off'}">关闭</button>
+            <div class="ag-v2-seg-ctrl" role="group" aria-label="Bottom telemetry and 512K optical vial">
+              <button type="button" class="ag-v2-seg-btn" data-action="set-telemetry-mod" data-mod-val="auto" data-active="${tm === 'auto'}">Auto</button>
+              <button type="button" class="ag-v2-seg-btn" data-action="set-telemetry-mod" data-mod-val="on" data-active="${tm === 'on'}">On</button>
+              <button type="button" class="ag-v2-seg-btn" data-action="set-telemetry-mod" data-mod-val="off" data-active="${tm === 'off'}">Off</button>
             </div>
           </div>
 
           <div class="ag-v2-set-row" data-testid="settings-slider-coexist-row" style="border-top:1px solid var(--border-etched); padding-top:10px;">
             <div>
-              <div class="ag-v2-set-title">模型推理等级滑块（智能共存让位）</div>
-              <div class="ag-v2-set-desc">内置吸收模型菜单星空推理滑块；检测到外部滑块实例时自动让位免重复监听。</div>
+              <div class="ag-v2-set-title">Model Effort Slider (Auto-Coexist)</div>
+              <div class="ag-v2-set-desc">Built-in effort slider inside the model menu; yields automatically if an external slider instance is active.</div>
             </div>
-            <div class="ag-v2-seg-ctrl" role="group" aria-label="模型推理等级滑块">
-              <button type="button" class="ag-v2-seg-btn" data-action="set-slider-mod" data-mod-val="auto" data-active="${em === 'auto'}">智能共存</button>
-              <button type="button" class="ag-v2-seg-btn" data-action="set-slider-mod" data-mod-val="on" data-active="${em === 'on'}">开启</button>
-              <button type="button" class="ag-v2-seg-btn" data-action="set-slider-mod" data-mod-val="off" data-active="${em === 'off'}">关闭</button>
+            <div class="ag-v2-seg-ctrl" role="group" aria-label="Model effort slider">
+              <button type="button" class="ag-v2-seg-btn" data-action="set-slider-mod" data-mod-val="auto" data-active="${em === 'auto'}">Auto</button>
+              <button type="button" class="ag-v2-seg-btn" data-action="set-slider-mod" data-mod-val="on" data-active="${em === 'on'}">On</button>
+              <button type="button" class="ag-v2-seg-btn" data-action="set-slider-mod" data-mod-val="off" data-active="${em === 'off'}">Off</button>
             </div>
           </div>
 
           <div class="ag-v2-set-row" style="border-top:1px solid var(--border-etched); padding-top:10px;">
             <div>
-              <div class="ag-v2-set-title">全屏 ASCII 字符水波纹底幕</div>
-              <div class="ag-v2-set-desc">点击激发同心涟漪 + 静止态 0fps 自动休眠省电</div>
+              <div class="ag-v2-set-title">Fullscreen ASCII Glyph Wave Backdrop</div>
+              <div class="ag-v2-set-desc">Click for concentric prism ripples with automatic 0fps idle sleep</div>
             </div>
             <button type="button" class="ag-v2-switch" data-action="toggle-ripple" data-on="${state.rippleEnabled}"></button>
           </div>
 
           <div class="ag-v2-set-row" style="border-top:1px solid var(--border-etched); padding-top:10px;">
             <div>
-              <div class="ag-v2-set-title">输入框独占 Gemini 棱镜追光边</div>
-              <div class="ag-v2-set-desc">全站仅主输入框启用四色棱镜光谱，其余卡片坚守高透冷瓷/暗钛框线</div>
+              <div class="ag-v2-set-title">Input-Only Gemini Prism Focus Rim</div>
+              <div class="ag-v2-set-desc">Only the primary composer carries 4-color prism refraction; all other cards stay neutral</div>
             </div>
             <button type="button" class="ag-v2-switch" data-action="toggle-prism" data-on="${state.tokens.prismStrength > 0}"></button>
           </div>
 
           <div class="ag-v2-set-row" style="border-top:1px solid var(--border-etched); padding-top:10px;">
             <div>
-              <div class="ag-v2-set-title">首页衬线大屏点缀</div>
-              <div class="ag-v2-set-desc">仅作用于 Studio 问候语与人文标尺，绝不流入对话阅读流</div>
+              <div class="ag-v2-set-title">Home Editorial Serif Accent</div>
+              <div class="ag-v2-set-desc">Applies only to the Studio greeting and scale callouts, never inside conversation prose</div>
             </div>
             <button type="button" class="ag-v2-switch" data-action="toggle-serif" data-on="${state.tokens.editorialSerif}"></button>
           </div>
 
           <div class="ag-v2-set-row" style="border-top:1px solid var(--border-etched); padding-top:10px;">
             <div>
-              <div class="ag-v2-set-title">迷你装扮小蟹堆（牛仔帽 / 墨镜 / 巫师帽）</div>
-              <div class="ag-v2-set-desc">在输入框左侧召唤 3 只 2px 像素迷你小蟹一起溜达陪护</div>
+              <div class="ag-v2-set-title">Mini Costume Crab Pile (Cowboy / Shades / Wizard)</div>
+              <div class="ag-v2-set-desc">Summon 3 miniature 2px pixel crabs strolling beside the composer</div>
             </div>
             <button type="button" class="ag-v2-switch" data-action="toggle-mini-pile" data-on="${state.mascotMiniPile}"></button>
           </div>
 
           <div class="ag-v2-set-row" style="border-top:1px solid var(--border-etched); padding-top:10px;">
             <div>
-              <div class="ag-v2-set-title">实体光学水试管上下文</div>
-              <div class="ag-v2-set-desc">在配额雷达浮窗渲染高硼硅水试管；关闭后折叠左栏并以极简分段长条展示上下文</div>
+              <div class="ag-v2-set-title">Borosilicate Optical Vial Context</div>
+              <div class="ag-v2-set-desc">Render the WebGL2 borosilicate vial in the radar popover; disable to show a minimal segmented bar</div>
             </div>
             <button type="button" class="ag-v2-switch" data-testid="context-vial-switch" data-action="toggle-context-vial" data-on="${state.contextVialEnabled}"></button>
           </div>
@@ -1309,8 +1309,8 @@
         <div class="ag-v2-settings-card" data-testid="workbench-about-preview" style="margin-top:12px;">
           <div class="ag-v2-set-row">
             <div>
-              <div class="ag-v2-set-title">关于、Git 更新与开源致谢 · Obsidian Prism v1.0.8-beta.2</div>
-              <div class="ag-v2-set-desc">GPL-3.0 · 致谢 0DNANCY/agy-claude-style、ATtacK030130/antigrative-dashboard、LLYSH-HANNARI/antigravity-Codex-Claude-effort-slider、Nwflower/dsh-claude-style、Microqian2th/dsh-codex-effort-slider、mobius/dsh-performance-slider、claudenoshujin/claude-web (Mascot Pile &amp; Micro-Ecology Interaction Inspiration)</div>
+              <div class="ag-v2-set-title">About, Git Updates &amp; Open-Source Credits · Obsidian Prism v1.0.8-beta.2</div>
+              <div class="ag-v2-set-desc">GPL-3.0 · Credits: 0DNANCY/agy-claude-style, ATtacK030130/antigrative-dashboard, LLYSH-HANNARI/antigravity-Codex-Claude-effort-slider, Nwflower/dsh-claude-style, Microqian2th/dsh-codex-effort-slider, mobius/dsh-performance-slider, claudenoshujin/claude-web (Mascot Pile &amp; Micro-Ecology Interaction Inspiration)</div>
             </div>
             <span class="ag-v2-ready-badge">GPL-3.0 · 7 CREDITS</span>
           </div>
@@ -1322,32 +1322,32 @@
     if (state.overlayDemo === 'takeover') {
       const modeDesc =
         state.mascotYieldMode === 'leap'
-          ? '双宠已整体跃升至接管卡顶缘陪护（可拖曳/叠叠乐）'
-          : '双宠正从框后趴沿露眼偷看';
+          ? 'Mascots hopped onto the top edge of the takeover card (draggable / stackable)'
+          : 'Mascots are peeking from behind the composer edge';
       return `
         <div class="ag-v2-overlay-card" data-testid="interaction-takeover-card">
           <div class="ag-v2-overlay-head">
             <span class="ag-v2-overlay-title">
               <span class="ag-v2-perm-dot"></span>
-              <span>权限确认 · 允许写入补丁吗？（双宠礼让演练）</span>
+              <span>Permission Approval · Allow patch write? (Mascot Yield Demo)</span>
             </span>
             <span class="ag-v2-pool-stats">${escapeHtml(modeDesc)}</span>
           </div>
           <div class="ag-v2-overlay-desc">
-            试验台仅演示卡片礼让（绝不触碰真实桌面端 app.asar）。点击「切换礼让姿势」体验跃上卡片 vs 框后扒沿。
+            Workbench demo only (never touches real desktop app.asar). Click Toggle Yield Pose to compare hopping atop vs peeking behind.
           </div>
           <div class="ag-v2-overlay-actions">
-            <button type="button" class="ag-v2-inline-btn" data-action="reroll-takeover">切换礼让姿势</button>
-            <button type="button" class="ag-v2-inline-btn" data-tone="warn" data-action="close-overlay">关闭卡片</button>
+            <button type="button" class="ag-v2-inline-btn" data-action="reroll-takeover">Toggle Yield Pose</button>
+            <button type="button" class="ag-v2-inline-btn" data-tone="warn" data-action="close-overlay">Close Card</button>
           </div>
         </div>`;
     }
 
     if (state.overlayDemo === 'slash') {
       const items = [
-        { cmd: '/grill-me', desc: '通过互动访谈把设计与边界条件彻底聊透' },
-        { cmd: '/compact', desc: '在安全里程碑压缩上下文并锚定记忆' },
-        { cmd: '/teamwork', desc: '唤起多 Worker 并行协同集群' },
+        { cmd: '/grill-me', desc: 'Interactive interview to align design decisions and edge cases' },
+        { cmd: '/compact', desc: 'Compress context at a clean milestone and anchor key state' },
+        { cmd: '/teamwork', desc: 'Launch a parallel multi-worker agent swarm' },
       ];
       const rows = items
         .map(
@@ -1361,8 +1361,8 @@
       return `
         <div class="ag-v2-overlay-card" data-testid="slash-command-menu">
           <div class="ag-v2-overlay-head">
-            <span class="ag-v2-overlay-title">斜杠命令菜单 · 双宠强制框后扒沿窥视态</span>
-            <button type="button" class="ag-v2-inline-btn" data-action="close-overlay">关闭</button>
+            <span class="ag-v2-overlay-title">Slash Command Menu · Mascots Peeking Behind Edge</span>
+            <button type="button" class="ag-v2-inline-btn" data-action="close-overlay">Close</button>
           </div>
           <div>${rows}</div>
         </div>`;
@@ -1373,9 +1373,9 @@
 
   function buildComposerActionBtnHtml(allowFloat = true) {
     if (allowFloat && state.streamPhase === 'streaming') {
-      return `<button type="button" class="ag-v2-send-btn is-running" data-testid="input-cancel-button" data-action="stop-stream" aria-label="停止执行" title="停止生成"><div class="ag-v2-stop-square" aria-hidden="true"></div></button>`;
+      return `<button type="button" class="ag-v2-send-btn is-running" data-testid="input-cancel-button" data-action="stop-stream" aria-label="Stop generation" title="Stop generation"><div class="ag-v2-stop-square" aria-hidden="true"></div></button>`;
     }
-    return `<button type="button" class="ag-v2-send-btn" data-testid="send-button" aria-label="发送" title="发送">${renderAnimIcon('arrow-up-launch', { size: 15 })}</button>`;
+    return `<button type="button" class="ag-v2-send-btn" data-testid="send-button" aria-label="Send" title="Send">${renderAnimIcon('arrow-up-launch', { size: 15 })}</button>`;
   }
 
   function buildComposerHtml(allowFloat = true) {
@@ -1411,10 +1411,10 @@
           ${activePop}
 
           <div class="ag-prism-rim" data-prism-tier="1" data-testid="agent-input-box">
-            <div class="ag-v2-composer-input" contenteditable="true" data-placeholder="输入文字看小紫猫/Clawd点头跟读，拖起它们可抛出砸成薄饼或叠到对方头顶！"></div>
+            <div class="ag-v2-composer-input" contenteditable="true" data-placeholder="Type to watch Clawd & Gemini Cat nod along — drag to toss or stack them on each other!"></div>
             <div data-testid="input-box-bottom-toolbar">
               <div class="ag-v2-toolbar-left">
-                <button type="button" class="ag-v2-chip-btn ag-v2-chip-icon" title="添加附件或截图" aria-label="添加附件或截图">
+                <button type="button" class="ag-v2-chip-btn ag-v2-chip-icon" title="Attach file or screenshot" aria-label="Attach file or screenshot">
                   ${renderAnimIcon('plus-spin', { size: 14 })}
                 </button>
                 <button type="button" class="ag-v2-chip-btn ag-v2-model-trigger-pill" data-testid="model-selector-trigger" data-brand="${brand}" data-tier="${tier}" data-action="toggle-effort-pop" aria-expanded="${allowFloat && state.openPopover === 'effort'}">
@@ -1424,7 +1424,7 @@
                 </button>
                 <button type="button" class="ag-v2-chip-btn" data-testid="permissions-selector-trigger" data-action="toggle-takeover">
                   <span class="ag-v2-perm-dot"></span>
-                  <span class="ag-v2-chip-label">自动</span>
+                  <span class="ag-v2-chip-label">Auto</span>
                 </button>
               </div>
 
@@ -1432,7 +1432,7 @@
                 <div class="ag-v2-telemetry-stream" data-testid="composer-telemetry-stream">
                   <span class="ag-v2-tele-item" data-tele="speed">${escapeHtml(ctx.rate === 'IDLE' ? '74.8 tok/s' : ctx.rate)}</span>
                   <span class="ag-v2-tele-sep" aria-hidden="true">·</span>
-                  <span class="ag-v2-tele-item" data-tele="cache"><span class="ag-v2-tele-dim">缓存命中</span> 86.9%</span>
+                  <span class="ag-v2-tele-item" data-tele="cache"><span class="ag-v2-tele-dim">Cache Hit</span> 86.9%</span>
                   <span class="ag-v2-tele-sep" aria-hidden="true">·</span>
                   <button type="button" class="ag-v2-ctx-trigger" data-testid="dashboard-vial-trigger" data-vial-mode="${state.contextVialEnabled ? 'vial' : 'bar'}" data-warn="${state.vialCritical}" data-action="toggle-dash-pop" aria-expanded="${allowFloat && state.openPopover === 'dashboard'}">
                     <svg class="ag-v2-ring-svg" viewBox="0 0 16 16" aria-hidden="true" style="${state.contextVialEnabled ? '' : 'display:none;'}">
@@ -1441,7 +1441,7 @@
                     </svg>
                     <span class="ag-v2-trigger-minibar" data-trigger-minibar="true" aria-hidden="true" style="${state.contextVialEnabled ? 'display:none;' : ''}"><i style="width:${Math.round(ctx.pct)}%;"></i></span>
                     <span>${Math.round(ctx.pct)}%</span>
-                    <span class="ag-v2-ctx-tooltip">实时速度 ${escapeHtml(ctx.rate)} · 点击打开${state.contextVialEnabled ? '实体水试管' : '极简上下文面板'}</span>
+                    <span class="ag-v2-ctx-tooltip">Live rate ${escapeHtml(ctx.rate)} · Click to open ${state.contextVialEnabled ? 'optical vial' : 'minimal context bar'}</span>
                   </button>
                 </div>
                 ${buildComposerActionBtnHtml(allowFloat)}
@@ -1468,23 +1468,23 @@
 
   function buildM3LabSceneHtml() {
     const slashItems = [
-      { cmd: '/plan', desc: '双阶段规划蓝图 + 依赖拆解', kbd: 'P' },
-      { cmd: '/boost', desc: '深度架构攻坚 + 多视角验证', kbd: 'B' },
-      { cmd: '/teamwork', desc: '原生多 Agent Swarm 协同施工', kbd: 'T' },
-      { cmd: '/grill-me', desc: '交互式需求对齐与边界确认', kbd: 'G' },
-      { cmd: '/compact', desc: '干净断点上下文压缩归档', kbd: 'C' },
+      { cmd: '/plan', desc: 'Two-phase architecture blueprint + dependency breakdown', kbd: 'P' },
+      { cmd: '/boost', desc: 'Deep architectural problem solving + multi-angle verification', kbd: 'B' },
+      { cmd: '/teamwork', desc: 'Native multi-agent swarm collaboration', kbd: 'T' },
+      { cmd: '/grill-me', desc: 'Interactive requirements & edge-case alignment', kbd: 'G' },
+      { cmd: '/compact', desc: 'Clean breakpoint context compaction', kbd: 'C' },
     ];
     const diffBadge =
       state.m3DiffStatus === 'accepted'
-        ? '已采纳 · Accepted'
+        ? 'Accepted'
         : state.m3DiffStatus === 'rejected'
-          ? '已回退 · Rejected'
+          ? 'Rejected'
           : '+14 / -3 · Pending';
     const toastMeta = {
-      info: { title: 'Info · 主题已同步至 Sidecar 浮窗', detail: '已推送 5 阶 Tonal Surface 与 Google Sans 令牌' },
-      success: { title: 'Success · 全部 312 项自动化门禁通过', detail: 'style.css 纯 ASCII 校验与 0fps 休眠全部达标' },
-      warning: { title: 'Warning · 512K 水试管水位达到 84%', detail: '建议在干净断点处执行 /compact 释放上下文' },
-      error: { title: 'Error · 符号链接越界写入已被拦截', detail: '路径逃逸检测已触发 Fail-Closed 保护' },
+      info: { title: 'Info · Theme synced to Sidecar overlays', detail: 'Pushed 5-step Tonal Surface & Google Sans tokens' },
+      success: { title: 'Success · All 312 automated checks passed', detail: 'style.css pure-ASCII guard and 0fps idle sleep verified' },
+      warning: { title: 'Warning · 512K Vial reached 84%', detail: 'Run /compact at a clean checkpoint to reclaim context' },
+      error: { title: 'Error · Out-of-bounds symlink write blocked', detail: 'Path escape detector triggered Fail-Closed guard' },
     };
     const activeToast = toastMeta[state.m3ToastType] || toastMeta.info;
 
@@ -1493,10 +1493,10 @@
         <div class="wb-m3lab-wrap">
           <div class="wb-m3lab-banner">
             <div>
-              <div class="wb-m3lab-banner-title">Google M3 Expressive · 1:1 真实 style.css 四大死角实景舱</div>
-              <div class="wb-m3lab-banner-sub">直连 /shared/style.css 真实宿主选择器 · 支持右上角四大主题、明暗 Split、四主题 Quad 与圆角实时联动</div>
+              <div class="wb-m3lab-banner-title">Google M3 Expressive · 1:1 Live style.css Surface Lab</div>
+              <div class="wb-m3lab-banner-sub">Connected live to /shared/style.css host selectors · Syncs with 4 flagship themes, Split, Quad, and corner radius</div>
             </div>
-            <div class="wb-m3lab-swatches" aria-label="5 阶 Tonal Surface 色阶">
+            <div class="wb-m3lab-swatches" aria-label="5-step Tonal Surface scale">
               <span class="wb-m3lab-swatch"><i style="background:var(--ag-cs-tonal-0)"></i>T0</span>
               <span class="wb-m3lab-swatch"><i style="background:var(--ag-cs-tonal-1)"></i>T1</span>
               <span class="wb-m3lab-swatch"><i style="background:var(--ag-cs-tonal-2)"></i>T2</span>
@@ -1506,16 +1506,16 @@
           </div>
 
           <div class="wb-m3lab-grid">
-            <!-- 表面 1: Fastpick / Slash Command Menu -->
+            <!-- Surface 1: Fastpick / Slash Command Menu -->
             <section class="wb-m3lab-panel">
               <div class="wb-m3lab-panel-head">
-                <span class="wb-m3lab-panel-title">1. Fastpick &amp; Slash 指令弹层</span>
+                <span class="wb-m3lab-panel-title">1. Fastpick &amp; Slash Command Popover</span>
                 <span class="wb-m3lab-panel-tag">.agy-fastpick / [data-testid="slash-command-menu"]</span>
               </div>
               <div class="agy-fastpick" data-testid="slash-command-menu">
                 <div class="wb-m3lab-fastpick-body">
-                  <input type="text" value="/boo" placeholder="搜索 Slash 指令或工作区文件..." aria-label="Fastpick 搜索框" />
-                  <div role="listbox" aria-label="Slash 指令候选">
+                  <input type="text" value="/boo" placeholder="Search Slash commands or workspace files..." aria-label="Fastpick search input" />
+                  <div role="listbox" aria-label="Slash command options">
                     ${slashItems
                       .map((it, idx) => {
                         const sel = idx === state.m3ActiveSlashIdx;
@@ -1531,10 +1531,10 @@
               </div>
             </section>
 
-            <!-- 表面 2: Diff 审阅卡片 & 行/字级变更 -->
+            <!-- Surface 2: Diff review card & line/word diffs -->
             <section class="wb-m3lab-panel">
               <div class="wb-m3lab-panel-head">
-                <span class="wb-m3lab-panel-title">2. 代码 Diff 审阅卡片 &amp; 25px 双胶囊</span>
+                <span class="wb-m3lab-panel-title">2. Code Diff Review Card &amp; 25px Dual Pills</span>
                 <span class="wb-m3lab-panel-tag">[data-testid="changed-files-card"] / .monaco-diff-editor</span>
               </div>
               <div data-testid="changed-files-card" style="padding:10px 12px;">
@@ -1550,7 +1550,7 @@
                     <div class="wb-m3lab-diff-line line-insert"><span class="wb-m3lab-diff-ln">38</span><span>+ <span class="char-insert">'--ag-cs-tonal-3', '--ag-cs-tonal-4', '--font-sans',</span></span></div>
                   </div>
                   <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-top:1px solid var(--ag-cs-border-1);background:var(--ag-cs-tonal-2);">
-                    <span style="font-size:11px;color:var(--muted-foreground);">Hunk 1/2 · 仅影响跨源 Sidecar 令牌</span>
+                    <span style="font-size:11px;color:var(--muted-foreground);">Hunk 1/2 · Scoped to cross-origin Sidecar tokens</span>
                     <div class="ag-m3-diff-actions">
                       <button type="button" data-diff-action="accept" data-action="m3-diff-decision" data-decision="accepted">Accept</button>
                       <button type="button" data-diff-action="reject" data-action="m3-diff-decision" data-decision="rejected">Reject</button>
@@ -1560,10 +1560,10 @@
               </div>
             </section>
 
-            <!-- 表面 3: 插件 / MCP 卡片 + Sheet 表单 + 四色光学 Toast -->
+            <!-- Surface 3: Plugin / MCP cards + Sheet form + 4-tone optical Toast -->
             <section class="wb-m3lab-panel">
               <div class="wb-m3lab-panel-head">
-                <span class="wb-m3lab-panel-title">3. 插件 Bento 卡片 · Sheet 表单 · 四色光学 Toast</span>
+                <span class="wb-m3lab-panel-title">3. Plugin Bento Cards · Sheet Form · 4-Tone Optical Toast</span>
                 <span class="wb-m3lab-panel-tag">.agy-bento-card / .agy-sheet / .agy-toast</span>
               </div>
               <div class="wb-m3lab-bento-row">
@@ -1572,30 +1572,30 @@
                     <strong style="font-size:12.5px;">Obsidian Prism</strong>
                     <span style="font-size:10.5px;padding:1px 7px;border-radius:999px;background:var(--primary-soft);color:var(--primary);">Active</span>
                   </div>
-                  <span style="font-size:11.5px;color:var(--muted-foreground);">黑曜棱镜光学与 0fps 休眠引擎</span>
+                  <span style="font-size:11.5px;color:var(--muted-foreground);">Obsidian Prism optical &amp; 0fps idle-sleep engine</span>
                 </div>
                 <div class="agy-bento-card wb-m3lab-card-pad" data-testid="mcp-server-card">
                   <div style="display:flex;align-items:center;justify-content:space-between;">
                     <strong style="font-size:12.5px;">MCP · gemini-decisions</strong>
                     <span style="font-size:10.5px;padding:1px 7px;border-radius:999px;background:var(--success-soft);color:var(--success);">18ms</span>
                   </div>
-                  <span style="font-size:11.5px;color:var(--muted-foreground);">零成本结构化初筛与门禁核验</span>
+                  <span style="font-size:11.5px;color:var(--muted-foreground);">Zero-cost structured screening &amp; verification gate</span>
                 </div>
               </div>
 
               <div class="agy-sheet" style="padding:10px 12px;border-radius:var(--ag-cs-r-lg);border:1px solid var(--ag-cs-border-1);background:var(--ag-cs-tonal-1);">
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-                  <span style="font-size:12px;font-weight:500;">Sheet 抽屉表单控件与 2px 焦点光晕</span>
+                  <span style="font-size:12px;font-weight:500;">Sheet Drawer Form Controls &amp; 2px Focus Ring</span>
                   <button type="button" role="switch" aria-checked="${state.m3SwitchOn}" data-action="m3-toggle-switch" style="width:36px;height:20px;padding:2px;border:1px solid var(--ag-cs-border-2);background:${state.m3SwitchOn ? 'var(--primary)' : 'var(--ag-cs-tonal-3)'};cursor:pointer;display:inline-flex;align-items:center;justify-content:${state.m3SwitchOn ? 'flex-end' : 'flex-start'};">
                     <span style="width:14px;height:14px;border-radius:999px;background:#fff;display:block;"></span>
                   </button>
                 </div>
                 <div class="wb-m3lab-sheet-row">
-                  <input type="text" value="Obsidian Neutral" aria-label="Sheet 文本输入框" style="padding:6px 10px;font-size:12px;" />
-                  <select aria-label="Sheet 下拉选择" style="padding:6px 10px;font-size:12px;">
-                    <option>Balanced (10px 外框 + 胶囊内件)</option>
-                    <option>Soft (14px 外框 + 胶囊内件)</option>
-                    <option>Crisp (6px 精密锐角)</option>
+                  <input type="text" value="Obsidian Neutral" aria-label="Sheet text input" style="padding:6px 10px;font-size:12px;" />
+                  <select aria-label="Sheet select" style="padding:6px 10px;font-size:12px;">
+                    <option>Balanced (10px shell + pill controls)</option>
+                    <option>Soft (14px shell + pill controls)</option>
+                    <option>Crisp (6px sharp precision)</option>
                   </select>
                 </div>
               </div>
@@ -1619,30 +1619,30 @@
               </div>
             </section>
 
-            <!-- 表面 4: Prose 阅读细节 + Artifact 卡片 + 终端沉降底槽 -->
+            <!-- Surface 4: Prose reading details + Artifact card + recessed terminal -->
             <section class="wb-m3lab-panel">
               <div class="wb-m3lab-panel-head">
-                <span class="wb-m3lab-panel-title">4. Prose 表格/引用/五色警示 · Artifact · 终端底槽</span>
+                <span class="wb-m3lab-panel-title">4. Prose Table/Quote/Alerts · Artifact · Terminal Well</span>
                 <span class="wb-m3lab-panel-tag">.agy-md-table / .markdown-alert / bottom-terminal-panel</span>
               </div>
               <div data-testid="agent-response" style="display:flex;flex-direction:column;gap:10px;">
                 <table class="agy-md-table" style="width:100%;border-collapse:collapse;font-size:12px;">
                   <thead>
-                    <tr><th style="text-align:left;padding:6px 10px;">光学通道</th><th style="text-align:left;padding:6px 10px;">空闲态</th><th style="text-align:right;padding:6px 10px;">状态</th></tr>
+                    <tr><th style="text-align:left;padding:6px 10px;">Optical Channel</th><th style="text-align:left;padding:6px 10px;">Idle State</th><th style="text-align:right;padding:6px 10px;">Status</th></tr>
                   </thead>
                   <tbody>
-                    <tr><td style="padding:6px 10px;">Channel 1 · 静态主包</td><td style="padding:6px 10px;">0fps Idle</td><td style="text-align:right;padding:6px 10px;font-variant-numeric:tabular-nums;">662 KiB</td></tr>
-                    <tr><td style="padding:6px 10px;">Channel 2 · Omni Workbench</td><td style="padding:6px 10px;">暗底预涂零闪白</td><td style="text-align:right;padding:6px 10px;">Tonal Sync</td></tr>
+                    <tr><td style="padding:6px 10px;">Channel 1 · Static Bundle</td><td style="padding:6px 10px;">0fps Idle</td><td style="text-align:right;padding:6px 10px;font-variant-numeric:tabular-nums;">662 KiB</td></tr>
+                    <tr><td style="padding:6px 10px;">Channel 2 · Omni Workbench</td><td style="padding:6px 10px;">Zero-Flash Prepaint</td><td style="text-align:right;padding:6px 10px;">Tonal Sync</td></tr>
                   </tbody>
                 </table>
 
                 <blockquote style="margin:0;padding:7px 12px;font-size:12px;">
-                  外框随 corners 保持锐利克制，内部高频交互件全面采用 M3 胶囊，且 100% 保护 v1.0.3 编排无框棱镜水晶条。
+                  Outer shells follow the active corner preset while high-frequency inner controls adopt M3 pills, preserving the borderless Orchestrator crystal bar 100%.
                 </blockquote>
 
                 <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;font-size:11.5px;">
-                  <div class="markdown-alert markdown-alert-tip" style="padding:7px 10px;"><strong>TIP</strong> · 暗色靠 5 阶 Tonal 分层，弱化杂乱内描边</div>
-                  <div class="markdown-alert markdown-alert-important" style="padding:7px 10px;"><strong>IMPORTANT</strong> · 右键投喂甜甜圈，Alt+左键热咖啡</div>
+                  <div class="markdown-alert markdown-alert-tip" style="padding:7px 10px;"><strong>TIP</strong> · Dark mode relies on 5-step tonal layering instead of noisy inner borders</div>
+                  <div class="markdown-alert markdown-alert-important" style="padding:7px 10px;"><strong>IMPORTANT</strong> · Right-click for donuts, Alt+click for hot coffee</div>
                 </div>
 
                 <div data-testid="artifact-card" style="overflow:hidden;">
@@ -1650,7 +1650,7 @@
                     <span>ARCH-001-GRILL-DECISIONS.md</span>
                     <span style="font-size:10.5px;opacity:.72;">Artifact · Locked</span>
                   </div>
-                  <div style="padding:8px 11px;font-size:11.5px;color:var(--muted-foreground);">隔离开发 Worktree 全部 3 批次决策与验收基线已归档。</div>
+                  <div style="padding:8px 11px;font-size:11.5px;color:var(--muted-foreground);">All 3 batches of isolated worktree decisions and verification baselines archived.</div>
                 </div>
 
                 <div data-testid="bottom-terminal-panel" style="border-radius:var(--ag-cs-r-md);overflow:hidden;">
@@ -1678,7 +1678,7 @@
   }
 
   function buildSidebarSearchTailHtml() {
-    return `<button type="button" class="ag-v2-search-clear" data-action="clear-sidebar-search" aria-label="关闭搜索" title="关闭过滤">${renderAnimIcon('x-close', { size: 12 })}</button>`;
+    return `<button type="button" class="ag-v2-search-clear" data-action="clear-sidebar-search" aria-label="Close search" title="Clear filter">${renderAnimIcon('x-close', { size: 12 })}</button>`;
   }
 
   function buildRunningSpinnerHtml() {
@@ -1693,12 +1693,12 @@
     if (q && filtered.length === 0) {
       return `
         <div class="ag-v2-sidebar-empty" data-testid="sidebar-search-empty">
-          <span>无匹配「${escapeHtml(q)}」的会话</span>
-          <button type="button" class="ag-v2-sidebar-empty-reset" data-action="clear-sidebar-search">清除过滤</button>
+          <span>No conversations matching "${escapeHtml(q)}"</span>
+          <button type="button" class="ag-v2-sidebar-empty-reset" data-action="clear-sidebar-search">Clear Filter</button>
         </div>`;
     }
 
-    const groups = ['置顶', '今天', '过去 7 天'];
+    const groups = ['Pinned', 'Today', 'Past 7 Days'];
     return groups
       .map((grp) => {
         const groupItems = filtered.filter((s) => s.group === grp);
@@ -1713,7 +1713,7 @@
                 ${isActive ? '<span class="ag-v2-glide-bg" data-sidebar-row-glide="true" aria-hidden="true"></span>' : ''}
                 <span class="ag-v2-row-title">${escapeHtml(s.title)}</span>
                 ${isRunning ? buildRunningSpinnerHtml() : ''}
-                <span class="ag-v2-row-more" data-action="session-more" title="更多会话操作" role="presentation">${renderAnimIcon('more-horizontal', { size: 14 })}</span>
+                <span class="ag-v2-row-more" data-action="session-more" title="More conversation actions" role="presentation">${renderAnimIcon('more-horizontal', { size: 14 })}</span>
               </button>`;
           })
           .join('');
@@ -1733,10 +1733,10 @@
 
   function buildSidebarRailHtml() {
     const railItems = [
-      { scene: 'studio', icon: 'layers-stack', tip: 'Studio 首页' },
-      { scene: 'chat', icon: 'zap-bolt', tip: '深度对话' },
-      { scene: 'effort', icon: 'sliders-tune', tip: '推理滑块' },
-      { scene: 'dashboard', icon: 'radar-pulse', tip: '实体水试管' },
+      { scene: 'studio', icon: 'layers-stack', tip: 'Studio Home' },
+      { scene: 'chat', icon: 'zap-bolt', tip: 'Deep Chat' },
+      { scene: 'effort', icon: 'sliders-tune', tip: 'Effort Slider' },
+      { scene: 'dashboard', icon: 'radar-pulse', tip: 'Optical Vial' },
     ];
     const navBtns = railItems
       .map((it) => {
@@ -1751,12 +1751,12 @@
 
     const setAct = state.scene === 'settings';
     return `
-      <div class="ag-v2-sidebar-rail-body" aria-label="极简微轨导航">
-        <button type="button" class="ag-v2-rail-btn is-primary-action" data-action="pick-session" data-scene="studio" data-tip="新建对话|⌘N" aria-label="新建对话">
+      <div class="ag-v2-sidebar-rail-body" aria-label="Compact rail navigation">
+        <button type="button" class="ag-v2-rail-btn is-primary-action" data-action="pick-session" data-scene="studio" data-tip="New Conversation|Cmd+N" aria-label="New Conversation">
           ${renderAnimIcon('sparkles-pen', { size: 15 })}
         </button>
         <div class="ag-v2-rail-nav">${navBtns}</div>
-        <button type="button" class="ag-v2-rail-btn is-footer-rail" data-action="pick-session" data-scene="settings" data-active="${setAct}" data-tip="外观与偏好设置" aria-label="外观与偏好设置">
+        <button type="button" class="ag-v2-rail-btn is-footer-rail" data-action="pick-session" data-scene="settings" data-active="${setAct}" data-tip="Appearance & Preferences" aria-label="Appearance & Preferences">
           ${setAct ? '<span class="ag-v2-glide-bg" data-rail-glide="true" aria-hidden="true"></span>' : ''}
           ${renderAnimIcon('settings-gear', { size: 15, active: setAct })}
         </button>
@@ -1769,15 +1769,15 @@
     return `
       <aside data-testid="sidebar-split" data-collapsed="${collapsed}" data-search-open="${searchOpen}">
         <div class="ag-v2-sidebar-top">
-          <button type="button" class="ag-v2-workspace-label" data-testid="workspace-switcher" data-action="cycle-workspace" title="切换工作区">
+          <button type="button" class="ag-v2-workspace-label" data-testid="workspace-switcher" data-action="cycle-workspace" title="Switch workspace">
             <span class="ag-v2-workspace-name" data-workspace-name="true">${escapeHtml(state.workspaceName)}</span>
             <span class="ag-v2-workspace-caret">${renderAnimIcon('chevron-down', { size: 11 })}</span>
           </button>
           <div class="ag-v2-sidebar-top-tools">
-            <button type="button" class="ag-v2-top-icon-btn" data-testid="sidebar-search-toggle" data-action="toggle-sidebar-search" data-active="${searchOpen}" data-tip="搜索会话|⌘K" aria-label="搜索会话">
+            <button type="button" class="ag-v2-top-icon-btn" data-testid="sidebar-search-toggle" data-action="toggle-sidebar-search" data-active="${searchOpen}" data-tip="Search Conversations|Cmd+K" aria-label="Search Conversations">
               ${renderAnimIcon('search', { size: 14, active: searchOpen })}
             </button>
-            <button type="button" class="ag-v2-collapse-btn" data-testid="sidebar-collapse-btn" data-action="toggle-sidebar" data-tip="${collapsed ? '展开侧栏|[' : '收起侧栏|['}" aria-expanded="${!collapsed}" aria-label="${collapsed ? '展开侧边栏' : '收起侧边栏'}">
+            <button type="button" class="ag-v2-collapse-btn" data-testid="sidebar-collapse-btn" data-action="toggle-sidebar" data-tip="${collapsed ? 'Expand Sidebar|[' : 'Collapse Sidebar|['}" aria-expanded="${!collapsed}" aria-label="${collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}">
               ${renderAnimIcon('panel-left', { size: 14.5, active: !collapsed })}
             </button>
           </div>
@@ -1788,7 +1788,7 @@
             <button type="button" class="ag-v2-new-chat-btn" data-testid="new-conversation-button" data-action="pick-session" data-scene="studio">
               <span class="ag-v2-new-chat-lead">
                 ${renderAnimIcon('sparkles-pen', { size: 14 })}
-                <span>新建对话</span>
+                <span>New Conversation</span>
               </span>
               <span class="ag-v2-kbd-hint">⌘N</span>
             </button>
@@ -1797,7 +1797,7 @@
               <div class="ag-v2-sidebar-search-inner">
                 <div class="ag-v2-sidebar-search">
                   <span class="ag-v2-search-ico" aria-hidden="true">${renderAnimIcon('search', { size: 13 })}</span>
-                  <input type="text" class="ag-v2-search-input" data-testid="sidebar-search-input" placeholder="搜索对话…" value="${escapeHtml(state.sidebarSearchQuery)}" autocomplete="off" spellcheck="false" aria-label="过滤会话列表" />
+                  <input type="text" class="ag-v2-search-input" data-testid="sidebar-search-input" placeholder="Search conversations…" value="${escapeHtml(state.sidebarSearchQuery)}" autocomplete="off" spellcheck="false" aria-label="Filter conversation list" />
                   <span data-sidebar-search-tail="true">${buildSidebarSearchTailHtml()}</span>
                 </div>
               </div>
@@ -1811,7 +1811,7 @@
           <div class="ag-v2-sidebar-footer-wrap">
             <button type="button" class="ag-v2-sidebar-footer" data-action="pick-session" data-scene="settings" data-active="${state.scene === 'settings'}">
               ${renderAnimIcon('settings-gear', { size: 14 })}
-              <span class="ag-v2-footer-label">外观与偏好设置</span>
+              <span class="ag-v2-footer-label">Appearance &amp; Preferences</span>
             </button>
           </div>
         </div>
@@ -1838,16 +1838,16 @@
 
     const titleText =
       state.scene === 'studio'
-        ? 'Studio 总览 · 0fps 物理休眠与四色棱镜涟漪'
+        ? 'Studio Overview · 0fps Idle Sleep & 4-Color Prism Ripple'
         : isM3Lab
-          ? 'Google M3 Expressive · 1:1 真实 style.css 四大死角实景舱'
+          ? 'Google M3 Expressive · 1:1 Live style.css Surface Lab'
           : state.scene === 'effort'
-            ? '1:1 原版 Codex / Claude 推理滑块'
+            ? '1:1 Native Codex / Claude Effort Slider'
             : state.scene === 'dashboard'
-              ? '512K 光学水试管 & 真实模型采样验真'
+              ? '512K Optical Vial & Live Model Verification'
               : state.scene === 'settings'
-                ? 'Obsidian Prism · 黑曜棱镜（可折叠外观与共存模块设置）'
-                : '深度对话流 · Obsidian Prism';
+                ? 'Obsidian Prism · Collapsible Appearance & Coexistence Settings'
+                : 'Deep Conversation Stream · Obsidian Prism';
 
     const customTag = stageOpts && stageOpts.crumbTag;
     const paletteTag =
@@ -1906,8 +1906,8 @@
         <div class="wb-matrix-canvas">
           <div class="wb-matrix-header">
             <div>
-              <h1 class="wb-matrix-title">Obsidian Prism v1.0 · 全组件光学与性能矩阵</h1>
-              <p class="wb-matrix-sub">黑曜棱镜 · Daylight Crystal 白昼冷晶与 Warm Alabaster 暖白画册 · 512K 光学水试管 · 会话底光灵动呼吸与首页 0fps 真休眠。</p>
+              <h1 class="wb-matrix-title">Obsidian Prism v1.0 · Full Component Optical &amp; Performance Matrix</h1>
+              <p class="wb-matrix-sub">Obsidian Prism · Daylight Crystal &amp; Warm Alabaster · 512K Borosilicate Optical Vial · Breathing Conversation Aura &amp; 0fps Home Idle Sleep.</p>
             </div>
             <span class="ag-v2-crumb-tag">${escapeHtml(paletteTag)}</span>
           </div>
@@ -1915,7 +1915,7 @@
           <div class="wb-matrix-grid">
             <section class="wb-matrix-cell wb-span-7" style="position:relative; overflow:hidden; min-height:380px;">
               <div class="wb-cell-head" style="position:relative; z-index:2;">
-                <span class="wb-cell-title">1. Studio 首页 · 流体尾波与高显色四色棱镜涟漪</span>
+                <span class="wb-cell-title">1. Studio Home · Fluid Wake &amp; 4-Color Prism Ripple</span>
                 <span class="wb-cell-tag">[data-testid="studio-bento-chassis"]</span>
               </div>
               <div class="ag-v2-ripple-backdrop" style="inset:40px 0 0 0;" data-dormant="false">
@@ -1929,7 +1929,7 @@
 
             <section class="wb-matrix-cell wb-span-5">
               <div class="wb-cell-head">
-                <span class="wb-cell-title">2. 原版 Codex/Claude 滑块 &amp; 实体光学水试管</span>
+                <span class="wb-cell-title">2. Native Codex/Claude Slider &amp; Borosilicate Optical Vial</span>
                 <span class="wb-cell-tag">Z4 Instrument Popovers</span>
               </div>
               <div style="display:flex; flex-direction:column; gap:14px; align-items:center;">
@@ -1940,7 +1940,7 @@
 
             <section class="wb-matrix-cell wb-span-7" style="position:relative; overflow:hidden;">
               <div class="wb-cell-head" style="position:relative; z-index:2;">
-                <span class="wb-cell-title">3. 对话阅读流 · 32% 底边光晕 (0fps Sleep) / 无框手稿思考链</span>
+                <span class="wb-cell-title">3. Conversation Stream · 32% Bottom Aura (0fps Sleep) / Borderless Thinking</span>
                 <span class="wb-cell-tag">[data-testid="conversation-view"]</span>
               </div>
               <div class="ag-v2-conv-aura" data-testid="conv-aura-host" data-dormant="false" data-aura-phase="${state.convAuraPhase}" style="inset:auto 0 0 0; height:32%;" aria-hidden="true">
@@ -1953,7 +1953,7 @@
 
             <section class="wb-matrix-cell wb-span-5">
               <div class="wb-cell-head">
-                <span class="wb-cell-title">4. 输入框唯一棱镜边 · 官方风双宠舞台 · 外观开关</span>
+                <span class="wb-cell-title">4. Input-Only Prism Rim · Dual Mascot Stage · Appearance Toggles</span>
                 <span class="wb-cell-tag">Input-Only Prism &amp; Mascots</span>
               </div>
               <div style="padding-top:68px;">
@@ -2070,7 +2070,7 @@
 
   function syncInspectorControls() {
     const t = state.tokens;
-    const motionLabelMap = { off: 'Off · 关闭', subtle: 'Subtle · 克制', standard: 'Standard · 标准', ultra: 'Ultra · 旗舰光学' };
+    const motionLabelMap = { off: 'Off', subtle: 'Subtle', standard: 'Standard', ultra: 'Ultra' };
     const mtVal = document.getElementById('val-motion-tier');
     if (mtVal) mtVal.textContent = motionLabelMap[state.motionLevel] || 'Ultra';
     const lpVal = document.getElementById('val-light-preset');
@@ -2094,12 +2094,12 @@
 
     const streamBtn = document.getElementById('btn-vial-stream');
     if (streamBtn) {
-      streamBtn.textContent = `流式滴落: ${state.vialStreaming ? '开' : '关'}`;
+      streamBtn.textContent = `Stream Drip: ${state.vialStreaming ? 'On' : 'Off'}`;
       streamBtn.setAttribute('data-active', String(state.vialStreaming));
     }
     const vialModeBtn = document.getElementById('btn-vial-mode');
     if (vialModeBtn) {
-      vialModeBtn.textContent = `上下文: ${state.contextVialEnabled ? '实体试管' : '极简长条'}`;
+      vialModeBtn.textContent = `Context: ${state.contextVialEnabled ? 'Optical Vial' : 'Minimal Bar'}`;
       vialModeBtn.setAttribute('data-active', String(!state.contextVialEnabled));
     }
     const critBtn = document.getElementById('btn-vial-crit');
@@ -2108,18 +2108,18 @@
     const campBtn = document.getElementById('btn-vial-camp');
     if (campBtn) {
       const m = getActiveModel();
-      campBtn.textContent = `水色: ${m.camp === 'claude' ? '星尘微紫' : '深海冰青'}`;
+      campBtn.textContent = `Tint: ${m.camp === 'claude' ? 'Stardust Iris' : 'Deep-Sea Cyan'}`;
     }
 
     const fbBtn = document.getElementById('btn-vial-fallback');
     if (fbBtn) {
-      fbBtn.textContent = state.sampleSimMode === 'ok' ? '模拟采样降级' : state.sampleSimMode === 'fallback' ? '模拟计时异常' : '恢复采样正常';
+      fbBtn.textContent = state.sampleSimMode === 'ok' ? 'Sim Fallback' : state.sampleSimMode === 'fallback' ? 'Sim Bad Timing' : 'Restore Sample OK';
       fbBtn.setAttribute('data-active', String(state.sampleSimMode !== 'ok'));
     }
 
     const pileBtn = document.getElementById('btn-mascot-pile');
     if (pileBtn) {
-      pileBtn.textContent = `迷你三蟹堆: ${state.mascotMiniPile ? '开' : '关'}`;
+      pileBtn.textContent = `Mini Crab Pile: ${state.mascotMiniPile ? 'On' : 'Off'}`;
       pileBtn.setAttribute('data-active', String(state.mascotMiniPile));
     }
 
@@ -2162,7 +2162,7 @@
       });
     }
 
-    // 小半径检测同步到 Orchestrator 切割水晶外沿光边与 WebGL2 着色器
+    // Sync local pointer proximity to Orchestrator crystal prism edge and WebGL2 shader
     document.querySelectorAll('.ag-v2-orch-track').forEach((trackEl) => {
       if (reduceMotion || x < -1000) {
         trackEl.style.setProperty('--orch-px', '-9999px');
@@ -2243,7 +2243,7 @@
         sp.innerHTML = buildBrandMarkSvg(brand, 13, '', { tier: st === 'error' ? 'low' : 'auto', monochrome: st === 'error' });
       }
     });
-    // 同一 64px 槽位内交叉淡化：两行叠放于单格网格，高度恒定 0px 跳变
+    // Crossfade inside the same 64px grid cell so both rows overlap with zero height shift
     let switchedToOrch = false;
     document.querySelectorAll('[data-ces-effort-row="true"]').forEach((el) => {
       el.setAttribute('data-row-hidden', String(isOrch));
@@ -2258,7 +2258,7 @@
       for (const c of crystalControllers) {
         c.setPointerClient(lastPointerPos.x, lastPointerPos.y);
         c.step(0.016);
-        // 光学唤醒：切入 Orchestrator 时播放一次冷白扫光（引擎支持时）
+        // Optical wake: trigger a single cool-white sweep when switching to Orchestrator
         if (switchedToOrch && typeof c.wake === 'function') c.wake();
       }
     }
@@ -2282,7 +2282,7 @@
     syncInspectorControls();
   }
 
-  // 双宠生态联动：把界面事件广播给所有舞台（引擎不支持 notify 时静默跳过）
+  // Broadcast UI events to all mounted dual-mascot rigs (silently skip if notify unavailable)
   function notifyMascots(event, payload) {
     mascotControllers.forEach((mc) => {
       if (mc.rig && typeof mc.rig.notify === 'function') {
@@ -2294,7 +2294,7 @@
   let lastOrchState = null;
   let lastActivityAt = 0;
 
-  // 用户活动节流（≤ 每 2s 一次）：唤醒打盹中的双宠
+  // Throttle user activity (<= once per 2s) to wake dozing mascots
   function markUserActivity() {
     const now = performance.now();
     if (now - lastActivityAt < 2000) return;
@@ -2323,7 +2323,7 @@
         orchestrator: isOrchNow,
       });
     });
-    // Orchestrator 切入 / 切出：双宠抬头看向模型按钮，Clawd 头顶冰晶道具随之出现 / 收起
+    // Orchestrator toggle: mascots glance up at model trigger while Clawd summons/stows crystal prop
     if (lastOrchState !== null && lastOrchState !== isOrchNow) notifyMascots('orchestrator', { on: isOrchNow });
     lastOrchState = isOrchNow;
   }
@@ -2391,7 +2391,7 @@
         updateCalmZones();
       };
 
-      // 内容静区：问候主标题背后的字符海柔和退隐（alpha ×0.45，边缘羽化），保证衬线大标题可读
+      // Quiet zone: soften ASCII ripple behind greeting headline (alpha x0.45 feathered) for legibility
       const updateCalmZones = () => {
         if (!field || typeof field.setCalmZones !== 'function') return;
         const scope = canvas.closest('.wb-matrix-cell') || stageEl;
@@ -2582,10 +2582,10 @@
       el.setAttribute('data-aura-phase', state.convAuraPhase);
     });
     const auraLabelMap = {
-      idle: 'IDLE · 0fps 休眠',
-      start: 'START · 棱镜轻涌',
-      running: 'RUNNING · 微棱镜流淌',
-      complete: 'COMPLETE · 冰雾收束',
+      idle: 'IDLE · 0fps Sleep',
+      start: 'START · Prism Surge',
+      running: 'RUNNING · Prism Flow',
+      complete: 'COMPLETE · Mist Settle',
     };
     const label = auraLabelMap[state.convAuraPhase] || auraLabelMap.idle;
     document.querySelectorAll('[data-conv-aura-badge]').forEach((b) => {
@@ -3192,7 +3192,7 @@
             lockedPreset: true,
             sidebarCollapsed: true,
             allowFloat: false,
-            crumbTag: '1 · DARK OBSIDIAN 深空',
+            crumbTag: '1 · DARK OBSIDIAN',
           })}
         </div>
         <div class="wb-quad-pane" data-quad="warm-dark">
@@ -3203,7 +3203,7 @@
             lockedPreset: true,
             sidebarCollapsed: true,
             allowFloat: false,
-            crumbTag: '2 · DARK WARM 暖炭',
+            crumbTag: '2 · DARK WARM',
           })}
         </div>
         <div class="wb-quad-pane" data-quad="daylight-crystal">
@@ -3214,7 +3214,7 @@
             lockedPreset: true,
             sidebarCollapsed: true,
             allowFloat: false,
-            crumbTag: '3 · LIGHT DAYLIGHT CRYSTAL 白昼冷晶',
+            crumbTag: '3 · LIGHT DAYLIGHT CRYSTAL',
           })}
         </div>
         <div class="wb-quad-pane" data-quad="warm-alabaster">
@@ -3225,7 +3225,7 @@
             lockedPreset: true,
             sidebarCollapsed: true,
             allowFloat: false,
-            crumbTag: '4 · LIGHT WARM ALABASTER 暖白画册',
+            crumbTag: '4 · LIGHT WARM ALABASTER',
           })}
         </div>
       </div>`;
@@ -3271,7 +3271,7 @@
     startMasterLoop();
   }
 
-  /* ── 局部补丁层：浮窗 / 叠层卡 / 时段 / 缓存等热路径不再整树重建，保住焦点、WebGL 与过渡动画 ── */
+  /* ── In-place patch layer: update popovers/overlays/ranges/cache without rebuilding WebGL or losing focus ── */
   function pruneDetachedControllers() {
     vialControllers = vialControllers.filter((v) => {
       if (v.el && !v.el.isConnected) {
@@ -3296,7 +3296,7 @@
     });
   }
 
-  // 退场动画播完再卸载；减弱动态时立即移除
+  // Unmount after exit transition completes, or immediately under reduced motion
   function animateOut(el, onDone) {
     if (!el) {
       if (onDone) onDone();
@@ -3335,7 +3335,7 @@
     });
   }
 
-  // 浮窗锚点展收：旧浮窗播 is-closing 退场，新浮窗以 agPopIn 从触发按钮方向长出
+  // Anchored popover transitions: play is-closing on old popover and agPopIn from trigger on new one
   function swapPopovers() {
     const wraps = getFloatingComposerWraps();
     if (!wraps.length) {
@@ -3393,7 +3393,7 @@
         if (fill) fill.style.width = `${Math.round(ctx.pct)}%`;
       }
       if (tip) {
-        tip.textContent = `实时速度 ${ctx.rate} · 点击打开${state.contextVialEnabled ? '实体水试管' : '极简上下文面板'}`;
+        tip.textContent = `Live rate ${ctx.rate} · Click to open ${state.contextVialEnabled ? 'optical vial' : 'minimal context bar'}`;
       }
     });
 
@@ -3403,7 +3403,7 @@
     syncInspectorControls();
   }
 
-  // 原地切换实体水试管 ⇄ 极简分段长条，避免闪烁并安全管理 WebGL 上下文
+  // Toggle optical vial <-> minimal segmented bar in place without flicker while managing WebGL cleanly
   function setContextVialEnabled(nextOn) {
     state.contextVialEnabled = Boolean(nextOn);
     for (const v of vialControllers) {
@@ -3429,7 +3429,7 @@
     requestAnimationFrame(syncMascotsState);
   }
 
-  // 接管卡 / 斜杠菜单：同类卡片原地换内容，不同类则交叉退场 + 入场
+  // Takeover card / slash menu: patch in place for same type or crossfade between types
   function swapOverlay() {
     const wraps = getFloatingComposerWraps();
     if (!wraps.length) {
@@ -3455,7 +3455,7 @@
     requestAnimationFrame(syncMascotsState);
   }
 
-  // 切换 7 天 / 30 天 / 全部：弹簧滑移胶囊 + 热力图按列错峰重排 + 人文标尺数字翻牌
+  // Switch 7d / 30d / All: glide pill indicator + staggered heatmap reflow + scale readout flip
   function patchTimeRange() {
     const grids = document.querySelectorAll('[data-heat-grid="true"]');
     if (!grids.length) {
@@ -3498,7 +3498,7 @@
     });
   }
 
-  // 侧边栏局部折叠伸缩（236px 展开态 ⇄ 56px 窄微轨态，不销毁 WebGL 舞台）
+  // Collapse/expand sidebar in place (236px <-> 56px micro-rail) without destroying WebGL stages
   function setSidebarCollapsed(nextCollapsed) {
     const target = Boolean(nextCollapsed);
     if (state.sidebarCollapsed === target) return;
@@ -3510,9 +3510,9 @@
       sb.setAttribute('data-collapsed', String(target));
       const btn = sb.querySelector('[data-testid="sidebar-collapse-btn"]');
       if (btn) {
-        btn.setAttribute('data-tip', target ? '展开抽屉|[' : '收起抽屉|[');
+        btn.setAttribute('data-tip', target ? 'Expand Sidebar|[' : 'Collapse Sidebar|[');
         btn.setAttribute('aria-expanded', String(!target));
-        btn.setAttribute('aria-label', target ? '展开侧边栏' : '收起侧边栏');
+        btn.setAttribute('aria-label', target ? 'Expand Sidebar' : 'Collapse Sidebar');
         triggerAnimIcon(btn, target ? 'collapse' : 'expand');
       }
       if (target && globalThis.__agMotionEngine && typeof globalThis.__agMotionEngine.stagger === 'function' && !prefersReducedMotion()) {
@@ -3538,7 +3538,7 @@
     }, 330);
   }
 
-  // 侧边栏按需搜索栏展开/收起（平时隐藏零噪音）
+  // Toggle on-demand sidebar search field (hidden at rest for zero clutter)
   function setSidebarSearchOpen(nextOpen, focusInput = false) {
     const target = Boolean(nextOpen);
     state.sidebarSearchOpen = target;
@@ -3560,7 +3560,7 @@
     }
   }
 
-  // 侧边栏会话列表原地实时过滤（保住搜索框焦点与光标）
+  // Filter sidebar conversation list in place while preserving search input focus and caret
   function patchSidebarSessions(syncInputValue = false) {
     document.querySelectorAll('[data-testid="sidebar-split"]').forEach((sb) => {
       if (syncInputValue) {
@@ -3578,7 +3578,7 @@
     });
   }
 
-  // 委托式悬浮毛玻璃 Tooltip（服务于侧栏折叠钮与 56px 微轨按钮，挂在舞台根部零裁切）
+  // Delegated glass tooltip for sidebar collapse & 56px rail buttons mounted at stage root to avoid clipping
   function bindStageTooltips() {
     const hideAll = () => {
       document.querySelectorAll('[data-stage-floating-tip="true"]').forEach((t) => t.setAttribute('data-show', 'false'));
@@ -3633,11 +3633,11 @@
       w.setAttribute('data-collapsed', String(!state.userBubbleExpanded));
     });
     document.querySelectorAll('[data-action="toggle-user-bubble"]').forEach((b) => {
-      b.textContent = state.userBubbleExpanded ? '收起长提问' : '展开全部长提问';
+      b.textContent = state.userBubbleExpanded ? 'Collapse Prompt' : 'Expand Full Prompt';
     });
   }
 
-  // 热力图 0 延迟玻璃提示胶囊（委托式，全局只绑一次）
+  // Delegated zero-delay glass tooltip pill for heatmap cells (bound once globally)
   function bindHeatTooltip() {
     document.addEventListener('pointerover', (evt) => {
       const cell = evt.target && evt.target.closest ? evt.target.closest('.ag-v2-heat-cell') : null;
@@ -3702,7 +3702,7 @@
 
   function startStreamSimulation() {
     clearInterval(streamTimerId);
-    // 已在对话视图（含滑块 / 水试管场景）时只做局部补丁；否则切到对话场景整页过渡
+    // Patch in place if already in chat/effort/dashboard scene; otherwise transition to chat scene
     const needFullRender =
       state.viewMode === 'matrix' || !document.querySelector('[data-testid="conversation-view"]');
     if (needFullRender) state.scene = 'chat';
@@ -3721,7 +3721,7 @@
     }
 
     streamTimerId = setInterval(() => {
-      // 后台标签页暂停吐字节拍，回到前台继续
+      // Pause stream cadence while tab is hidden and resume when visible
       if (document.hidden) return;
       if (state.streamWordProgress < STREAM_FULL_PARAGRAPHS.length) {
         state.streamWordProgress += 1;
@@ -3734,12 +3734,12 @@
         state.convAuraPhaseAt = performance.now();
         syncConvAuraDomPhase();
         convAuraControllers.forEach((c) => c.invalidate());
-        // 整轮回答结束后才收折思考链；报错态保持展开
+        // Collapse thinking chain only after turn completes; keep open on error
         if (!state.hasToolError) {
           state.thinkingOpen = false;
         }
         if (!patchChatStreamDom()) renderWorkbench();
-        // 整轮答完：双宠庆祝（报错态则担忧）
+        // Turn complete: mascots celebrate (or show concern on error)
         notifyMascots('streamDone', { error: state.hasToolError });
       }
     }, 720);
@@ -3913,7 +3913,7 @@
     window.addEventListener('keydown', (evt) => {
       markUserActivity();
 
-      // Ctrl+K / Cmd+K：自动展开侧栏与隐藏式搜索槽并聚焦
+      // Ctrl+K / Cmd+K: auto-expand sidebar, reveal search input, and focus
       if ((evt.ctrlKey || evt.metaKey) && !evt.altKey && evt.key && evt.key.toLowerCase() === 'k') {
         evt.preventDefault();
         if (state.sidebarCollapsed) setSidebarCollapsed(false);
@@ -3921,7 +3921,7 @@
         return;
       }
 
-      // 焦点不在输入框时，按 `[` 键物理弹簧折叠/展开侧边栏
+      // Press `[` when focus is outside an input to toggle sidebar collapse
       if (evt.key === '[' && !evt.ctrlKey && !evt.metaKey && !evt.altKey) {
         const t = evt.target;
         const isEditable =
@@ -3993,7 +3993,7 @@
         state.openPopover = null;
         state.overlayDemo = 'slash';
         state.mascotYieldMode = 'peek';
-        // 局部插入斜杠菜单，不重建输入框，光标与焦点保持不动
+        // Insert slash menu in place without rebuilding composer so caret and focus remain intact
         swapPopovers();
         swapOverlay();
       }
@@ -4139,7 +4139,7 @@
         } else if (cmd === 'write') {
           startStreamSimulation();
         } else {
-          // 迷你蟹互动需要先召唤三蟹堆
+          // Mini-crab interaction requires enabling the mini crab pile first
           if ((cmd === 'crabRide' || cmd === 'crabChase') && !state.mascotMiniPile) {
             state.mascotMiniPile = true;
             syncMascotsState();
@@ -4213,7 +4213,7 @@
         return;
       }
 
-      // 发送键：发射回弹微动效 + 点火棱镜轻涌 + 领衔宠物举钳敬礼，搭档点头
+      // Send button: launch spring feedback + ignite prism surge + lead mascot salute & partner nod
       const sendBtn = evt.target.closest('[data-testid="send-button"]');
       if (sendBtn) {
         triggerAnimIcon(sendBtn, 'launch');
@@ -4357,7 +4357,7 @@
         state.mascotYieldMode = 'none';
         state.activeModelId = state.activeModelId === 'orchestrator' ? 'gemini-4-carbon' : 'orchestrator';
         if (state.openPopover === 'effort' && getFloatingComposerWraps().length) {
-          // 浮窗已打开：原地交叉淡化滑轨 ⇄ 水晶条，并触发光学唤醒
+          // Popover already open: crossfade slider <-> crystal bar in place and trigger optical wake
           syncComposerTriggerDom();
           sliderControllers.forEach((sl) => sl.notify());
         } else {
@@ -4422,15 +4422,15 @@
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(codeText).catch(() => {});
         }
-        // line-md 动态描边打勾形变反馈：复制图标 → 对勾生长，1.6s 后自动复原
+        // Animated stroke checkmark feedback: morph copy icon -> check and restore after 1.6s
         triggerAnimIcon(actionEl, 'check', { revertAfterMs: 1600 });
         const label = actionEl.querySelector('[data-copy-label]');
         actionEl.setAttribute('data-copied', 'true');
-        if (label) label.textContent = '已复制';
+        if (label) label.textContent = 'Copied';
         clearTimeout(actionEl.__copyTimer);
         actionEl.__copyTimer = setTimeout(() => {
           actionEl.removeAttribute('data-copied');
-          if (label) label.textContent = '复制';
+          if (label) label.textContent = 'Copy';
         }, 1600);
       }
     });
@@ -4485,9 +4485,9 @@
             body: JSON.stringify(state.tokens),
           });
           if (!res.ok) throw new Error('HTTP ' + res.status);
-          showToast('已保存预设到 design-tokens.json ✓');
+          showToast('Saved preset to design-tokens.json ✓');
         } catch (err) {
-          showToast('保存失败: ' + (err && err.message ? err.message : 'unknown'));
+          showToast('Save failed: ' + (err && err.message ? err.message : 'unknown'));
         }
       });
     }
@@ -4509,9 +4509,9 @@
         ].join('\n');
         try {
           await navigator.clipboard.writeText(cssSnippet);
-          showToast('已复制 CSS 变量块 ✓');
+          showToast('Copied CSS variable block ✓');
         } catch {
-          showToast('已生成 CSS 变量（剪贴板受限）');
+          showToast('Generated CSS variables (clipboard restricted)');
         }
       });
     }
@@ -4521,7 +4521,7 @@
       resetBtn.addEventListener('click', () => {
         state.tokens = { ...DEFAULT_TOKENS };
         renderWorkbench();
-        showToast('已恢复出厂默认参数');
+        showToast('Restored factory default tokens');
       });
     }
   }
@@ -4719,10 +4719,10 @@
       if (tickVal) tickVal.textContent = `Tick ${inspect.tick}`;
       if (sqwVal) sqwVal.textContent = String(inspect.sqW);
       if (sqhVal) sqhVal.textContent = String(inspect.sqH);
-      toggleBtn.textContent = `锁定检视: ${inspect.active ? '开' : '关'}`;
-      if (mirrorBtn) mirrorBtn.textContent = `Mirror: ${inspect.mirror ? '开' : '关'}`;
-      if (rulerBtn) rulerBtn.textContent = `y=9 标尺: ${inspect.ruler ? '开' : '关'}`;
-      if (blurBtn) blurBtn.textContent = `失焦 0fps: ${inspect.blur ? '开' : '关'}`;
+      toggleBtn.textContent = `Lock Inspect: ${inspect.active ? 'On' : 'Off'}`;
+      if (mirrorBtn) mirrorBtn.textContent = `Mirror: ${inspect.mirror ? 'On' : 'Off'}`;
+      if (rulerBtn) rulerBtn.textContent = `y=9 Ruler: ${inspect.ruler ? 'On' : 'Off'}`;
+      if (blurBtn) blurBtn.textContent = `Blur 0fps: ${inspect.blur ? 'On' : 'Off'}`;
       mascotControllers.forEach((m) => {
         if (typeof m.rig.inspectPose === 'function') {
           m.rig.inspectPose(inspect.active ? { ...inspect } : { active: false });
@@ -4767,16 +4767,16 @@
       apply();
     });
     const habModes = [
-      ['auto', '自动'],
-      ['cactus', '日间仙人掌'],
-      ['lamp', '深夜小路灯'],
-      ['hourglass', '守望沙漏'],
+      ['auto', 'Auto'],
+      ['cactus', 'Day Cactus'],
+      ['lamp', 'Night Lamp'],
+      ['hourglass', 'Hourglass'],
     ];
     let habIdx = 0;
     habBtn?.addEventListener('click', () => {
       habIdx = (habIdx + 1) % habModes.length;
       const [mode, label] = habModes[habIdx];
-      habBtn.textContent = `栖息地: ${label}`;
+      habBtn.textContent = `Habitat: ${label}`;
       mascotControllers.forEach((m) => m.rig.setHabitatPreview?.(mode));
     });
     sqwInput?.addEventListener('input', () => {

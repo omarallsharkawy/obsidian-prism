@@ -38,7 +38,7 @@
   const smoothCaretMod = GT.__agPrismSmoothCaret;
   const getSettingsPanelMod = () => GT.__agPrismSettingsPanel || W.__agPrismSettingsPanel || null;
 
-  // Channel 1 活跃语言迷你词典垫片：未加载按需 Settings 通道前由 bootCfg.__uiSlice 供电；全量 i18n-locales.js 就位后自动退让
+  // Channel 1 active-language mini dictionary shim: supplied by bootCfg.__uiSlice before full Settings channel loads; yields once i18n-locales.js is present
   const runtimeSliceStore = { active: 'en', byLang: O.create(null) };
   const mergeRuntimeUiSlice = (payload) => {
     if (!payload || typeof payload !== 'object') return;
@@ -57,12 +57,12 @@
       }
     }
   };
-  const LITE_SWARM_FMT = { 'zh-CN': '主会话 {0}% · 子代理 {1}%', 'zh-TW': '主工作階段 {0}% · 子代理 {1}%', ja: 'メイン {0}% · サブ {1}%', ko: '메인 {0}% · 서브 {1}%', es: 'Principal {0}% · Sub {1}%', fr: 'Principal {0}% · Sous {1}%', de: 'Haupt {0}% · Sub {1}%' };
-  const LITE_MORE_FMT = { 'zh-CN': '再显示 {0} 个', 'zh-TW': '再顯示 {0} 個', ja: 'さらに {0} 件表示', ko: '{0}개 더 보기', es: 'Mostrar {0} más', fr: 'Afficher {0} de plus', de: '{0} weitere anzeigen' };
+  const LITE_SWARM_FMT = { en: 'Main {0}% · Swarm {1}%', ar: 'الرئيسية {0}% · الوكلاء الفرعيون {1}%' };
+  const LITE_MORE_FMT = { en: 'Show {0} more', ar: 'عرض {0} إضافي' };
   const ensureLiteLocalesShim = (slicePayload) => {
     mergeRuntimeUiSlice(slicePayload);
     const cur = getLocalesMod();
-    // 绝不拿 43-key 迷你垫片覆写页面上已有的全量 8 语表（含热重载残留的旧全量表 UI_TABLE）
+    // Never overwrite a full loaded locales table (including hot-reloaded UI_TABLE) with the mini shim
     if (cur && (cur.__isFullLocales || cur.UI_TABLE)) return;
     if (cur && cur.__isLiteShim) return;
     const shim = {
@@ -89,7 +89,7 @@
   const hostEnhancerMod = GT.__agPrismHostEnhancer;
   let ownedCtxMenu = W.__agPrismContextMenu || GT.__agPrismContextMenu || null;
 
-  // 新品牌 Obsidian Prism 主存储键 + 旧版历史键平滑迁移兼容
+  // Obsidian Prism primary storage key + legacy key migration compatibility
   const STORAGE_PRISM_KEY = 'ag-prism:config';
   const STORAGE_LEGACY_COLON_KEY = 'ag-claude-style:config';
   const STORAGE_LEGACY_V3_KEY = 'agClaudeStyle.settings.v3';
@@ -168,8 +168,9 @@
       const t = v.trim();
       if (!t) return '';
       const low = t.toLowerCase().replace(/_/g, '-');
-      if (low === 'yue' || low.startsWith('yue-') || low === 'zh-yue' || low.includes('cantonese')) return 'zh-CN';
-      return t;
+      if (low === 'ar' || low.startsWith('ar-') || low === 'arabic') return 'ar';
+      if (low === 'en' || low.startsWith('en-') || low === 'english') return 'en';
+      return 'en';
     };
     const rawLang =
       (out.language && out.language !== 'auto' ? migrateLegacyLang(out.language) : '') ||
@@ -244,7 +245,7 @@
   let internalDomMutating = false;
   let pendingHiddenFullSync = false;
 
-  // 细粒度增量同步标记与脏节点队列
+  // Fine-grained incremental sync flags and dirty node queues
   const dirtyAddedRoots = new Set();
   const dirtyCollapsibleTargets = new Set();
   const dirtyBgCmds = new Set();
@@ -337,19 +338,20 @@
       pickConcreteLang(cfg.lang) ||
       pickConcreteLang(currentBaseConfig?.language) ||
       pickConcreteLang(currentBaseConfig?.lang) ||
-      (typeof navigator !== 'undefined' && (navigator.language || navigator.languages?.[0])) ||
+      (typeof navigator !== 'undefined' && (navigator.languages?.[0] || navigator.language)) ||
       'en';
     if (isFn(i18nCore?.normalizeLanguage)) return i18nCore.normalizeLanguage(raw, 'en');
     const low = String(raw || '').trim().toLowerCase().replace(/_/g, '-');
-    if (/^(?:zh|yue)|cantonese/.test(low)) return /tw|hk|mo|hant/.test(low) ? 'zh-TW' : 'zh-CN';
-    return low.match(/^(en|ja|ko|es|fr|de)(?:-|$)/)?.[1] || 'en';
+    if (low === 'ar' || low.startsWith('ar-') || low === 'arabic') return 'ar';
+    return 'en';
   };
 
   const uiText = (lang = getLang()) => {
     const mod = getLocalesMod();
     return isFn(mod?.getUiStrings) ? mod.getUiStrings(lang) : {};
   };
-  const isZh = () => { const l = getLang(); return l === 'zh-CN' || l === 'zh-TW'; };
+  const isAr = () => getLang() === 'ar';
+  const isZh = () => false;
 
   const isDarkTheme = () => {
     for (const l of [D.body?.[K_CL], de()?.[K_CL]]) {
@@ -1058,7 +1060,7 @@
     run(() => tel?.sync?.(cfg));
     run(() => eff?.sync?.(cfg));
     run(() => {
-      if (hiMode === 'auto' && curLang !== 'zh-CN') { hiInst?.destroy?.(); ra(de(), 'data-ag-prism-host-i18n'); }
+      if (hiMode === 'auto' && curLang !== 'ar') { hiInst?.destroy?.(); ra(de(), 'data-ag-prism-host-i18n'); }
       else if (isFn(hiInst?.setMode)) hiInst.setMode(hiMode === 'on' ? 'on' : hiMode === 'off' ? 'off' : 'auto');
     });
     run(() => th?.sync?.(cfg));
@@ -1101,8 +1103,9 @@
         if (ha(html, 'data-ag-cs-sidebar-collapsed')) ra(html, 'data-ag-cs-sidebar-collapsed');
         qa(D, '.ag-cs-sidebar-glide-pill').forEach((n) => n.remove());
       }
-      if (isFn(i18nCore?.isCjkLanguage) ? i18nCore.isCjkLanguage(lang) : isZh()) setAttrIfChanged(html, 'data-ag-cs-cjk', '1');
-      else if (ha(html, 'data-ag-cs-cjk')) ra(html, 'data-ag-cs-cjk');
+      if (isFn(i18nCore?.isRtlLanguage) ? i18nCore.isRtlLanguage(lang) : isAr()) setAttrIfChanged(html, 'data-ag-cs-dir', 'rtl');
+      else setAttrIfChanged(html, 'data-ag-cs-dir', 'ltr');
+      if (ha(html, 'data-ag-cs-cjk')) ra(html, 'data-ag-cs-cjk');
 
       syncMotionOffStyle(motionLv === 'off');
       syncAbsorbedModules(forceAbsorbed);
@@ -1486,14 +1489,14 @@
 
     const lc = (k) => String(ga(btn, k) || '').toLowerCase().trim(), aria = lc('aria-label'), title = lc('title'), tip = lc('data-tooltip-id');
     const origSvg = findOriginalHostSvg(btn), svgCls = String(ga(origSvg, 'class') || origSvg?.className || '').toLowerCase();
-    const rawLbl = aria || title, okTxt = !/\blucide-/.test(svgCls) && rawLbl.length <= 32 && !/[:：\r\n]/.test(rawLbl) && !/[:：\r\n]/.test(tip);
+    const rawLbl = aria || title, okTxt = !/\blucide-/.test(svgCls) && rawLbl.length <= 32 && !/[:\r\n]/.test(rawLbl) && !/[:\r\n]/.test(tip);
     const shortMeta = `${tid} ${rawLbl} ${tip}`, labelMeta = `${rawLbl} ${tip}`;
 
-    if (/\blucide-copy\b/.test(svgCls) || (okTxt && /\bcopy\b|复制|複製|コピー/.test(shortMeta))) return 'copy-check';
-    if (/\blucide-panel-left\b/.test(svgCls) || (okTxt && /(?:toggle|open|close|show|hide)\s+(?:the\s+)?(?:side\s*panel|sidebar)|切换侧边栏|切換側邊欄|折叠侧边栏|展开侧边栏|サイドバー/.test(labelMeta))) return 'panel-left';
+    if (/\blucide-copy\b/.test(svgCls) || (okTxt && /\bcopy\b|نسخ/.test(shortMeta))) return 'copy-check';
+    if (/\blucide-panel-left\b/.test(svgCls) || (okTxt && /(?:toggle|open|close|show|hide)\s+(?:the\s+)?(?:side\s*panel|sidebar)|الشريط الجانبي/.test(labelMeta))) return 'panel-left';
     const role = ga(btn, 'role');
-    if (tid === 'settings-button' || tid === 'open-settings-button' || /\blucide-settings\b/.test(svgCls) || (okTxt && (/^(?:open\s+)?settings$|^(?:打开)?设置$|^設定$/.test(rawLbl) || (!rawLbl && /^(?:open[-_\s]?)?settings(?:\b|[-_])/.test(tip))) && role !== 'menuitem' && role !== 'tab')) return 'settings-gear';
-    if (!cl(btn, '.agy-composer-footer') && cl(btn, '[data-testid="agent-input-box"], .surface-composer-card') && (/^(?:attachment|add-context|composer-plus|input-add)-button$/.test(tid) || /\blucide-plus\b/.test(svgCls) || (okTxt && /\battach|\badd\b|upload|context|附件|添加/.test(shortMeta)))) return 'plus-spin';
+    if (tid === 'settings-button' || tid === 'open-settings-button' || /\blucide-settings\b/.test(svgCls) || (okTxt && (/^(?:open\s+)?settings$|^الإعدادات$|^فتح الإعدادات$/.test(rawLbl) || (!rawLbl && /^(?:open[-_\s]?)?settings(?:\b|[-_])/.test(tip))) && role !== 'menuitem' && role !== 'tab')) return 'settings-gear';
+    if (!cl(btn, '.agy-composer-footer') && cl(btn, '[data-testid="agent-input-box"], .surface-composer-card') && (/^(?:attachment|add-context|composer-plus|input-add)-button$/.test(tid) || /\blucide-plus\b/.test(svgCls) || (okTxt && /\battach|\badd\b|upload|context|إرفاق|إضافة|مرفق/.test(shortMeta)))) return 'plus-spin';
     return '';
   };
 
@@ -2630,7 +2633,7 @@
         convAuraCtl.triggerStart(findConvForTarget(sendBtn));
         dispatchComposerSubmit(sendBtn);
       }
-      const copyBtn = cl(t, `[${A_IC}="copy-check"]`) || cl(t, 'pre button, button[aria-label*="Copy" i], button[aria-label*="复制"]');
+      const copyBtn = cl(t, `[${A_IC}="copy-check"]`) || cl(t, 'pre button, button[aria-label*="Copy" i], button[aria-label*="نسخ"]');
       if (copyBtn && !copyBtn.disabled && !isThoughtIsolatedNode(copyBtn)) {
         if (ga(copyBtn, A_IC) === 'copy-check' && !motionReduced() && isFn(motionEngine?.triggerIcon)) {
           try { motionEngine.triggerIcon(copyBtn, 'check', { revertAfterMs: 1600 }); } catch {}
@@ -2729,7 +2732,7 @@
     try {
       if (destroyed || internalDomMutating || streamChoreoCtl.isStreamMutating() || !mutations || mutations.length === 0) return;
 
-      // 后台隐藏窗口挂起深扫：避免 Swarm 多窗口后台刷屏触发海量 querySelector，切回前台时由 visibilitychange 合并一次同步！
+      // Suspend deep scans while hidden in background; merge a single sync upon returning to foreground via visibilitychange
       if (D.hidden) {
         for (let i = 0; i < mutations.length; i++) {
           const m = mutations[i];

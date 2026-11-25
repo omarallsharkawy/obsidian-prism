@@ -1,11 +1,12 @@
 /**
  * Obsidian Prism — Optional Go Native GOMEMLIMIT User Environment Helper
  *
- * 设计与风控红线（100% 零 Google 风控）：
- *   1. 仅读写操作系统标准「用户级」环境变量 GOMEMLIMIT（Go 1.19+ 运行时原生支持的软内存上限）；
- *   2. 严禁修改任何 Antigravity 官方二进制、app.asar 或强行向运行中进程注入参数；
- *   3. 严格白名单值校验，绝不接受任意表达式或命令注入；
- *   4. 所有操作显式由用户触发，重启 Antigravity 后生效，随时可一键撤销清理。
+ * Design & safety boundaries (zero risk to host or Google services):
+ *   1. Only reads/writes the standard OS user-level GOMEMLIMIT environment variable
+ *      (soft memory limit natively supported by Go 1.19+ runtime);
+ *   2. Never modifies any official Antigravity binary, app.asar, or injects flags into running processes;
+ *   3. Strict allowlist value validation — never accepts arbitrary expressions or command injection;
+ *   4. All actions are explicitly user-triggered, take effect after restarting Antigravity, and can be cleared in one click.
  */
 
 import crypto from 'node:crypto';

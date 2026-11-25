@@ -73,25 +73,22 @@ test('v2 SidebarStudioService initializes atomically (0600), enforces single-wri
     assert.deepEqual(res.snapshot.chatDraft, { kind: 'knowledge', folderId: null, sparkProjectId: null });
     assert.deepEqual(res.snapshot.assignments, {});
 
-    // 确认已原子落盘、无 .tmp 残留、POSIX 权限 0600
     assert.equal(fs.existsSync(env.statePath), true);
     const siblings = fs.readdirSync(path.dirname(env.statePath));
     assert.equal(siblings.some((f) => f.endsWith('.tmp')), false);
     if (process.platform !== 'win32') {
       const mode = fs.statSync(env.statePath).mode & 0o777;
-      assert.equal(mode, 0o600, 'POSIX 持久化文件必须严格为 0600 权限');
+      assert.equal(mode, 0o600);
     }
 
-    // 单写者锁保护：同路径并发构造第二个实例必须报 BUSY
     assert.throws(
       () => new SidebarStudioService({ statePath: env.statePath, sparkRoot: env.sparkRoot }),
       (err) => err && err.code === ERROR_CODES.BUSY
     );
 
     await svc.dispose();
-    assert.equal(fs.existsSync(`${env.statePath}.lock`), false, 'dispose 后必须释放写锁');
+    assert.equal(fs.existsSync(`${env.statePath}.lock`), false);
 
-    // 孤儿陈旧锁自动回收（不存在的 PID）
     fs.writeFileSync(`${env.statePath}.lock`, JSON.stringify({ pid: 999999999, token: 'stale-lock' }), 'utf8');
     const svcRecovered = new SidebarStudioService({
       statePath: env.statePath,
@@ -101,7 +98,6 @@ test('v2 SidebarStudioService initializes atomically (0600), enforces single-wri
     assert.equal(svcRecovered.getState().ok, true);
     await svcRecovered.dispose();
 
-    // 损坏 JSON：必须保留原始损坏文件字节不被覆盖，并返回诊断错误
     const corruptBytes = '{corrupt-json-preserve-me';
     fs.writeFileSync(env.statePath, corruptBytes, 'utf8');
     const svcCorrupt = new SidebarStudioService({
@@ -113,10 +109,9 @@ test('v2 SidebarStudioService initializes atomically (0600), enforces single-wri
     assert.equal(corruptState.ok, false);
     assert.equal(corruptState.error.code, ERROR_CODES.MIGRATION_FAILED);
     assert.equal((await svcCorrupt.updateCatalog({ health: 'ready', items: [] })).error?.code, ERROR_CODES.MIGRATION_FAILED);
-    assert.equal(fs.readFileSync(env.statePath, 'utf8'), corruptBytes, '损坏 JSON 原文件必须完整保留');
+    assert.equal(fs.readFileSync(env.statePath, 'utf8'), corruptBytes);
     await svcCorrupt.dispose();
 
-    // 未知未来版本（schemaVersion=99）：同样必须保留原文件并返回 UNSUPPORTED_SCHEMA
     const futureBytes = JSON.stringify({ schemaVersion: 99, activeMode: 'code' }, null, 2);
     fs.writeFileSync(env.statePath, futureBytes, 'utf8');
     const svcFuture = new SidebarStudioService({
@@ -127,7 +122,7 @@ test('v2 SidebarStudioService initializes atomically (0600), enforces single-wri
     const futureState = svcFuture.getState();
     assert.equal(futureState.ok, false);
     assert.equal(futureState.error.code, ERROR_CODES.UNSUPPORTED_SCHEMA);
-    assert.equal(fs.readFileSync(env.statePath, 'utf8'), futureBytes, '未来版本原文件必须完整保留');
+    assert.equal(fs.readFileSync(env.statePath, 'utf8'), futureBytes);
     await svcFuture.dispose();
   } finally {
     fs.rmSync(env.root, { recursive: true, force: true });
@@ -175,17 +170,15 @@ test('v1 backup + lossless migration to v2 archives legacyV1, starts assignments
       knowledgeRoot: env.knowledgeRoot,
     });
 
-    // 1. 原始 v1 字节完整备份
     const bakPath = `${env.statePath}.v1.bak`;
-    assert.equal(fs.existsSync(bakPath), true, '迁移前必须先写出 v1 原始字节备份');
+    assert.equal(fs.existsSync(bakPath), true);
     assert.equal(fs.readFileSync(bakPath, 'utf8'), v1Text);
 
-    // 2. v2 状态验证：assignments 从空开始，偏好无损映射，公开快照严格脱敏
     const snapRes = svc.getState();
     assert.equal(snapRes.ok, true);
     assert.equal(snapRes.snapshot.schemaVersion, 2);
     assert.equal(snapRes.snapshot.activeMode, 'code');
-    assert.deepEqual(snapRes.snapshot.assignments, {}, 'v2 assignments 必须从空开始');
+    assert.deepEqual(snapRes.snapshot.assignments, {});
     assert.equal(snapRes.snapshot.prefs.hostModeSync, false);
     assert.equal(snapRes.snapshot.prefs.modeThemes.code.accentTone, 'cobalt');
     assert.equal(snapRes.snapshot.prefs.modeThemes.chat.palette, 'claude');
@@ -196,14 +189,12 @@ test('v1 backup + lossless migration to v2 archives legacyV1, starts assignments
     assert.deepEqual(updatedPrefs.result.prefs.modeThemes, snapRes.snapshot.prefs.modeThemes);
     assert.equal(Object.hasOwn(updatedPrefs.result.prefs, 'sparkRoot'), false);
     assert.equal(Object.hasOwn(updatedPrefs.result.prefs, 'knowledgeRoot'), false);
-    assert.equal(Object.prototype.hasOwnProperty.call(snapRes.snapshot, 'legacyV1'), false, '公开快照必须省略 legacyV1');
+    assert.equal(Object.prototype.hasOwnProperty.call(snapRes.snapshot, 'legacyV1'), false);
     assert.equal(
       Object.prototype.hasOwnProperty.call(snapRes.snapshot.prefs, 'savedCodePermissionSnapshot'),
-      false,
-      '公开快照必须省略 savedCodePermissionSnapshot'
+      false
     );
 
-    // 3. 磁盘持久化中完整保留 legacyV1 归档
     const persisted = JSON.parse(fs.readFileSync(env.statePath, 'utf8'));
     assert.equal(persisted.schemaVersion, 2);
     assert.deepEqual(persisted.legacyV1.assignments, v1Raw.assignments);
@@ -212,10 +203,9 @@ test('v1 backup + lossless migration to v2 archives legacyV1, starts assignments
       v1Raw.prefs.savedCodePermissionSnapshot
     );
 
-    // 4. 所有旧 v1 三空间与全局权限写入 action 返回版本错误
     for (const legacyAct of ['set-active-space', 'set-assignment', 'bulk-assign', 'set-space-theme', 'classify-workspaces']) {
       const r = await svc.handleRpcAction(legacyAct, { space: 'spark' });
-      assert.equal(r.ok, false, `${legacyAct} 在 v2 必须被拒绝`);
+      assert.equal(r.ok, false);
       assert.equal(r.error.code, ERROR_CODES.UNSUPPORTED_SCHEMA);
     }
     const legacySnapWrite = await svc.handleRpcAction('set-prefs', {
@@ -248,7 +238,6 @@ test('Phase 1 bipolar routing memory (/c/A -> Chat / -> /c/B -> Code /c/A), back
     const s0 = svc.getState().snapshot;
     const storeId = s0.storeId;
 
-    // Code 导航到 /c/code-A
     const navA = await svc.handleRpc({
       version: 2,
       action: 'navigate',
@@ -261,7 +250,6 @@ test('Phase 1 bipolar routing memory (/c/A -> Chat / -> /c/B -> Code /c/A), back
     assert.equal(navA.snapshot.currentView, '/c/code-A');
     assert.equal(navA.snapshot.modeLastView.code, '/c/code-A');
 
-    // 切到 Chat -> 落 Chat '/'，且后台角标立即反映 Code 的 blocked > running（count=2，primary=code-blocked）
     const toChat = await svc.handleRpc({
       version: 2,
       action: 'switch-mode',
@@ -279,7 +267,6 @@ test('Phase 1 bipolar routing memory (/c/A -> Chat / -> /c/B -> Code /c/A), back
     assert.equal(toChat.snapshot.backgroundBadge.count, 2);
     assert.equal(toChat.snapshot.backgroundBadge.primary.cascadeId, 'code-blocked');
 
-    // Chat 停在 '/' 切回 Code 再切回 Chat，仍保留 Chat '/' 与 Code '/c/code-A'
     const backCode = await svc.handleRpc({
       version: 2,
       action: 'switch-mode',
@@ -302,14 +289,13 @@ test('Phase 1 bipolar routing memory (/c/A -> Chat / -> /c/B -> Code /c/A), back
     assert.equal(backChat.ok, true);
     assert.equal(backChat.snapshot.currentView, '/');
 
-    // Knowledge 子文件夹创建、重命名、折叠、关联草稿 + 首发 /c/B + 原子删除文件夹退回根目录
     const fCreate = await svc.handleRpc({
       version: 2,
       action: 'create-knowledge-folder',
       requestId: 'req-kf-create',
       storeId,
       baseRev: backChat.rev,
-      payload: { name: '架构笔记' },
+      payload: { name: 'ملاحظات البنية' },
     });
     assert.equal(fCreate.ok, true);
     const folderId = fCreate.result.folder.id;
@@ -320,10 +306,10 @@ test('Phase 1 bipolar routing memory (/c/A -> Chat / -> /c/B -> Code /c/A), back
       requestId: 'req-kf-rename',
       storeId,
       baseRev: fCreate.rev,
-      payload: { folderId, name: '架构与设计' },
+      payload: { folderId, name: 'البنية والتصميم' },
     });
     assert.equal(fRename.ok, true);
-    assert.equal(fRename.result.folder.name, '架构与设计');
+    assert.equal(fRename.result.folder.name, 'البنية والتصميم');
 
     const fCollapse = await svc.handleRpc({
       version: 2,
@@ -351,7 +337,6 @@ test('Phase 1 bipolar routing memory (/c/A -> Chat / -> /c/B -> Code /c/A), back
     assert.equal(setDraft.ok, true);
     assert.equal(setDraft.snapshot.chatDraft.folderId, folderId);
 
-    // 首发进入 /c/B（归属到该 Knowledge 子文件夹）
     const firstChat = await svc.handleRpc({
       version: 2,
       action: 'send-chat-first',
@@ -361,7 +346,7 @@ test('Phase 1 bipolar routing memory (/c/A -> Chat / -> /c/B -> Code /c/A), back
       payload: {
         navRev: setDraft.snapshot.navRev,
         draftRev: setDraft.snapshot.draftRev,
-        message: '总结一下今天的架构方案',
+        message: 'لخّص مقترح البنية اليوم',
       },
     });
     assert.equal(firstChat.ok, true);
@@ -370,7 +355,6 @@ test('Phase 1 bipolar routing memory (/c/A -> Chat / -> /c/B -> Code /c/A), back
     assert.equal(firstChat.snapshot.currentView, `/c/${chatBId}`);
     assert.equal(firstChat.snapshot.assignments[chatBId].placement.folderId, folderId);
 
-    // 切回 Code：精确恢复 /c/code-A
     const backCode2 = await svc.handleRpc({
       version: 2,
       action: 'switch-mode',
@@ -383,7 +367,6 @@ test('Phase 1 bipolar routing memory (/c/A -> Chat / -> /c/B -> Code /c/A), back
     assert.equal(backCode2.snapshot.currentView, '/c/code-A');
     assert.equal(backCode2.snapshot.modeLastView.chat, `/c/${chatBId}`);
 
-    // 再切回 Chat：回到 /c/B，然后把草稿重新绑到 folderId（在 Chat '/'）再删除文件夹，验证同事务退回根目录并更新 draftRev
     const toChat2 = await svc.handleRpc({
       version: 2,
       action: 'switch-mode',
@@ -430,7 +413,6 @@ test('Phase 1 bipolar routing memory (/c/A -> Chat / -> /c/B -> Code /c/A), back
     assert.equal(fDelete.snapshot.chatDraft.folderId, null);
     assert.equal(fDelete.snapshot.assignments[chatBId].placement.folderId, null);
 
-    // 后台角标直达：从 Chat 直达 Code 的 blocked 任务 code-blocked
     const jump = await svc.handleRpc({
       version: 2,
       action: 'open-background-task',
@@ -443,7 +425,6 @@ test('Phase 1 bipolar routing memory (/c/A -> Chat / -> /c/B -> Code /c/A), back
     assert.equal(jump.snapshot.activeMode, 'code');
     assert.equal(jump.snapshot.currentView, '/c/code-blocked');
 
-    // 失效角标跳转：目标不再 running/blocked 返回 BADGE_STALE
     const staleJump = await svc.handleRpc({
       version: 2,
       action: 'open-background-task',
@@ -455,9 +436,8 @@ test('Phase 1 bipolar routing memory (/c/A -> Chat / -> /c/B -> Code /c/A), back
     assert.equal(staleJump.ok, false);
     assert.equal(staleJump.error.code, ERROR_CODES.BADGE_STALE);
 
-    // parseView 非法路径防御复核
     for (const bad of ['', 'c/a', '/c/', '/c/a/b', '/c/%2e%2e', '/c/%2561', '/c/__proto__', '/c/a?x=1']) {
-      assert.equal(parseView(bad).ok, false, `parseView(${bad}) 必须被拒绝`);
+      assert.equal(parseView(bad).ok, false);
     }
     assert.equal(selectBackgroundBadge(jump.snapshot, { health: 'loading', items: [] }), null);
   } finally {
@@ -470,55 +450,50 @@ test('Single-writer serialization, requestId idempotency, IDEMPOTENCY_CONFLICT, 
   try {
     const s0 = svc.getState().snapshot;
 
-    // 1. 同一 requestId 相同载荷重放：即使 rev 已前进，依然幂等返回原结果且绝不重复创建
     const r1 = await svc.handleRpc({
       version: 2,
       action: 'create-knowledge-folder',
       requestId: 'idem-folder-1',
       storeId: s0.storeId,
       baseRev: s0.rev,
-      payload: { name: '幂等目录' },
+      payload: { name: 'مجلد الاختبار' },
     });
     assert.equal(r1.ok, true);
     const createdFolderId = r1.result.folder.id;
 
-    // 先做一次别的变更推进 rev
     const rOther = await svc.handleRpc({
       version: 2,
       action: 'create-knowledge-folder',
       requestId: 'idem-folder-2',
       storeId: s0.storeId,
       baseRev: r1.rev,
-      payload: { name: '另一目录' },
+      payload: { name: 'مجلد آخر' },
     });
     assert.equal(rOther.ok, true);
 
-    // 用旧 baseRev 重放 idem-folder-1：先查持久化回执再校验版本，必须幂等成功返回同一 folderId
     const replay = await svc.handleRpc({
       version: 2,
       action: 'create-knowledge-folder',
       requestId: 'idem-folder-1',
       storeId: s0.storeId,
       baseRev: s0.rev,
-      payload: { name: '幂等目录' },
+      payload: { name: 'مجلد الاختبار' },
     });
     assert.equal(replay.ok, true);
     assert.equal(replay.result.folder.id, createdFolderId);
-    assert.equal(replay.snapshot.knowledgeFolders.length, 2, '幂等重试绝不能重复新建文件夹');
+    assert.equal(replay.snapshot.knowledgeFolders.length, 2);
 
-    // 2. 同一 requestId 篡改载荷或动作 -> IDEMPOTENCY_CONFLICT
     const conflict = await svc.handleRpc({
       version: 2,
       action: 'create-knowledge-folder',
       requestId: 'idem-folder-1',
       storeId: s0.storeId,
       baseRev: rOther.rev,
-      payload: { name: '被篡改的名称' },
+      payload: { name: 'اسم معدّل' },
     });
     assert.equal(conflict.ok, false);
     assert.equal(conflict.error.code, ERROR_CODES.IDEMPOTENCY_CONFLICT);
 
-    // 3. 版本门禁：错误 storeId / 过期 baseRev / 过期 navRev / 过期 draftRev
     const badStore = await svc.handleRpc({
       version: 2,
       action: 'create-knowledge-folder',
@@ -571,13 +546,12 @@ test('Single-writer serialization, requestId idempotency, IDEMPOTENCY_CONFLICT, 
     assert.equal(badDraft.ok, false);
     assert.equal(badDraft.error.code, ERROR_CODES.STALE_DRAFT);
 
-    // 4. 单写者并发排队：10 个并发写不丢失任何变更
     const revBeforeBatch = toChat.rev;
     const batchResults = await Promise.all(
       Array.from({ length: 10 }, (_, idx) =>
         svc.handleRpcAction('create-knowledge-folder', {
           requestId: `batch-kf-${idx}`,
-          name: `并发目录-${idx}`,
+          name: `مجلد متزامن-${idx}`,
         })
       )
     );
@@ -586,7 +560,6 @@ test('Single-writer serialization, requestId idempotency, IDEMPOTENCY_CONFLICT, 
     assert.equal(finalSnap.rev, revBeforeBatch + 10);
     assert.equal(finalSnap.knowledgeFolders.length, 12);
 
-    // 5. 原型污染键拦截
     const protoPayload = JSON.parse('{"name":"ok","__proto__":{"polluted":true}}');
     const protoRes = await svc.handleRpcAction('create-knowledge-folder', protoPayload);
     assert.equal(protoRes.ok, false);
@@ -600,28 +573,26 @@ test('Single-writer serialization, requestId idempotency, IDEMPOTENCY_CONFLICT, 
 test('Phase 2 Spark lifecycle, create-spark-box traversal/symlink defense, ZERO global Code permission writes, sandbox degradation & unlink restore', async () => {
   const svc = createStudioSandboxService();
   try {
-    // 1. create-spark-box 合法名称创建 + 复用 + 路径穿越与 symlink 防御
-    const okBox1 = await svc.handleRpcAction('create-spark-box', { name: '灵感草稿 01_alpha-v2' });
+    const okBox1 = await svc.handleRpcAction('create-spark-box', { name: 'مسودة 01_alpha-v2' });
     assert.equal(okBox1.ok, true);
     assert.equal(okBox1.result.created, true);
     assert.equal(typeof okBox1.result.selectionToken, 'string');
-    assert.equal(Object.prototype.hasOwnProperty.call(okBox1.result, 'path'), false, 'v2 公开回执不得泄露内部真实路径');
+    assert.equal(Object.prototype.hasOwnProperty.call(okBox1.result, 'path'), false);
 
-    const realBoxPath = path.join(svc.defaultSparkRoot, '灵感草稿 01_alpha-v2');
+    const realBoxPath = path.join(svc.defaultSparkRoot, 'مسودة 01_alpha-v2');
     assert.equal(fs.existsSync(realBoxPath), true);
     assert.equal(isPathInsideDir(fs.realpathSync(svc.defaultSparkRoot), fs.realpathSync(realBoxPath), false), true);
 
-    const okBox2 = await svc.handleRpcAction('create-spark-box', { name: '灵感草稿 01_alpha-v2' });
+    const okBox2 = await svc.handleRpcAction('create-spark-box', { name: 'مسودة 01_alpha-v2' });
     assert.equal(okBox2.ok, true);
     assert.equal(okBox2.result.created, false);
 
     for (const evil of ['', '   ', '.', '..', '../escape', '..\\escape', 'a/b', 'a\\b', 'C:evil', '.hidden', 'trailing.', 'foo..bar', 'CON', 'nul.txt', 'bad\0name', 'bad<name>', 'a'.repeat(81)]) {
       assert.equal(validateSparkBoxName(evil).ok, false);
       const r = await svc.handleRpcAction('create-spark-box', { name: evil });
-      assert.equal(r.ok, false, `恶意名称 ${JSON.stringify(evil)} 必须被拦截`);
+      assert.equal(r.ok, false);
     }
 
-    // 符号链接/联接点逃逸拦截
     const outsideDir = path.join(svc.sandboxRoot, 'outside-secret');
     fs.mkdirSync(outsideDir, { recursive: true });
     const escapeLink = path.join(svc.defaultSparkRoot, 'escape-link');
@@ -634,10 +605,9 @@ test('Phase 2 Spark lifecycle, create-spark-box traversal/symlink defense, ZERO 
     }
     if (linkMade) {
       const symRes = await svc.handleRpcAction('create-spark-box', { name: 'escape-link' });
-      assert.equal(symRes.ok, false, '符号链接/junction 逃逸必须被拦截');
+      assert.equal(symRes.ok, false);
     }
 
-    // 2. pick-project-directory（取消与选中）+ select-spark-project
     const pickCancel = await svc.handleRpcAction('pick-project-directory', { cancel: true });
     assert.equal(pickCancel.ok, true);
     assert.equal(pickCancel.result.cancelled, true);
@@ -670,7 +640,6 @@ test('Phase 2 Spark lifecycle, create-spark-box traversal/symlink defense, ZERO 
     assert.equal(selected.snapshot.chatDraft.kind, 'spark');
     assert.equal(selected.snapshot.chatDraft.sparkProjectId, sparkProjectId);
 
-    // 折叠 Spark 项目
     const collapsed = await svc.handleRpc({
       version: 2,
       action: 'set-spark-project-collapsed',
@@ -682,7 +651,6 @@ test('Phase 2 Spark lifecycle, create-spark-box traversal/symlink defense, ZERO 
     assert.equal(collapsed.ok, true);
     assert.equal(collapsed.result.project.collapsed, true);
 
-    // 3. 作用域未隔离时（scopeIsolated=false）拒绝写入权限并返回 PROJECT_SCOPE_CONFLICT
     await svc.applyFixture({ faults: { scopeIsolated: false } });
     const conflictSend = await svc.handleRpc({
       version: 2,
@@ -693,15 +661,14 @@ test('Phase 2 Spark lifecycle, create-spark-box traversal/symlink defense, ZERO 
       payload: {
         navRev: collapsed.snapshot.navRev,
         draftRev: collapsed.snapshot.draftRev,
-        message: '不应写入权限',
+        message: 'يجب أن تبقى الأذونات كما هي',
       },
     });
     assert.equal(conflictSend.ok, false);
     assert.equal(conflictSend.error.code, ERROR_CODES.PROJECT_SCOPE_CONFLICT);
-    assert.equal(svc.getPermissionAudit().projectPermissionWrites, 0, '冲突时必须 0 写入');
-    assert.equal(svc.getPermissionAudit().globalPermissionWrites, 0, '全局权限写入必须恒为 0');
+    assert.equal(svc.getPermissionAudit().projectPermissionWrites, 0);
+    assert.equal(svc.getPermissionAudit().globalPermissionWrites, 0);
 
-    // 4. 恢复隔离但沙箱不可用（sandboxAvailable=false）：Spark 安全降级并仍应用执行与文件策略
     await svc.applyFixture({
       faults: { scopeIsolated: true },
       capabilities: { sandboxAvailable: false },
@@ -715,7 +682,7 @@ test('Phase 2 Spark lifecycle, create-spark-box traversal/symlink defense, ZERO 
       payload: {
         navRev: svc.getState().snapshot.navRev,
         draftRev: svc.getState().snapshot.draftRev,
-        message: '帮我规划一个灵感原型',
+        message: 'ساعدني في تخطيط نموذج أولي',
       },
     });
     assert.equal(sendSpark.ok, true);
@@ -723,16 +690,14 @@ test('Phase 2 Spark lifecycle, create-spark-box traversal/symlink defense, ZERO 
     assert.equal(sendSpark.result.degraded, true);
     const sparkChatId = sendSpark.result.cascadeId;
 
-    // 核心零干扰断言：全程 0 次全局 Code 权限修改，全局 TURBO 保持原样，后台 TURBO 会话仍在运行
     const audit = svc.getPermissionAudit();
-    assert.equal(audit.globalPermissionWrites, 0, '严禁修改任何全局 Code 权限（必须为 0 次）');
+    assert.equal(audit.globalPermissionWrites, 0);
     assert.equal(audit.globalCodeSettings.autoExecutionPolicy, 'turbo');
-    assert.ok(audit.projectPermissionWrites >= 2, '仅允许通过项目级 setter 写入');
+    assert.ok(audit.projectPermissionWrites >= 2);
     assert.equal(audit.permissionAuditLog.every((e) => e.scope === 'project-only' && e.globalTouched === false), true);
     const codeRunning = svc.hostAdapter.getCatalog().items.find((it) => it.cascadeId === 'code-turbo-build');
-    assert.equal(codeRunning.status, 'running', '后台 TURBO Code 会话必须持续运行零干扰');
+    assert.equal(codeRunning.status, 'running');
 
-    // 5. Code 与 Chat 彻底不互通：任何跨模式迁移（move-session-to-chat）一律拒绝且不污染 assignments
     const moveCodeToChat = await svc.handleRpc({
       version: 2,
       action: 'move-session-to-chat',
@@ -745,7 +710,6 @@ test('Phase 2 Spark lifecycle, create-spark-box traversal/symlink defense, ZERO 
     assert.equal(moveCodeToChat.error.code, ERROR_CODES.INVALID_ARGUMENT);
     assert.equal(Object.prototype.hasOwnProperty.call(svc.getState().snapshot.assignments, 'code-ci-review'), false);
 
-    // 6. unlink-spark-project：恢复项目级基线、保留目录、会话退回 Knowledge 根并标 needs-rebind、随后 resume-chat-session 恢复 ready
     const unlinkRes = await svc.handleRpc({
       version: 2,
       action: 'unlink-spark-project',
@@ -757,7 +721,7 @@ test('Phase 2 Spark lifecycle, create-spark-box traversal/symlink defense, ZERO 
     assert.equal(unlinkRes.ok, true);
     assert.equal(unlinkRes.result.status, 'succeeded');
     assert.equal(unlinkRes.result.permissionRestoreStatus, 'restored');
-    assert.equal(fs.existsSync(realBoxPath), true, '解绑绝不能删除物理目录');
+    assert.equal(fs.existsSync(realBoxPath), true);
     assert.equal(unlinkRes.snapshot.assignments[sparkChatId].placement.kind, 'knowledge');
     assert.equal(unlinkRes.snapshot.assignments[sparkChatId].placement.folderId, null);
     assert.equal(unlinkRes.snapshot.assignments[sparkChatId].continuation, 'needs-rebind');
@@ -783,7 +747,6 @@ test('WSL challenge explicit confirmation, operation sanitization, and crash-rec
   const env = makeTempEnv('ag-prism-v2-wsl-crash-');
   const hostAdapter = createSandboxHostAdapter(env.root);
   try {
-    // 1. WSL 显式确认流程与伪造/重放拦截
     hostAdapter.setFaults({ requireWslConfirmation: true });
     const svc = new SidebarStudioService({
       sandboxMode: true,
@@ -813,7 +776,7 @@ test('WSL challenge explicit confirmation, operation sanitization, and crash-rec
       payload: {
         navRev: toChat.snapshot.navRev,
         draftRev: toChat.snapshot.draftRev,
-        message: '需要 WSL 确认的首发消息',
+        message: 'رسالة أولى تتطلب تأكيد WSL',
       },
     });
     assert.equal(sendPaused.ok, true);
@@ -823,14 +786,12 @@ test('WSL challenge explicit confirmation, operation sanitization, and crash-rec
     const trusted = svc.getTrustedWslChallenge(opId);
     assert.ok(trusted && trusted.challenge);
 
-    // 公开快照和 get-operation 严禁泄露 challenge 或内部路径/基线
     const opView = await svc.handleRpcAction('get-operation', { operationId: opId });
     assert.equal(opView.ok, true);
     assert.equal(opView.result.status, 'awaiting-confirmation');
-    assert.equal(JSON.stringify(opView).includes(trusted.challenge), false, 'get-operation 绝不能泄露 WSL challenge');
-    assert.equal(JSON.stringify(svc.getState()).includes(trusted.challenge), false, 'get-state 绝不能泄露 WSL challenge');
+    assert.equal(JSON.stringify(opView).includes(trusted.challenge), false);
+    assert.equal(JSON.stringify(svc.getState()).includes(trusted.challenge), false);
 
-    // 伪造 challenge 必须被拒绝
     const badConfirm = await svc.handleRpc({
       version: 2,
       action: 'confirm-wsl',
@@ -842,7 +803,6 @@ test('WSL challenge explicit confirmation, operation sanitization, and crash-rec
     assert.equal(badConfirm.ok, false);
     assert.equal(badConfirm.error.code, ERROR_CODES.INVALID_ARGUMENT);
 
-    // 合法 challenge 恢复执行并成功完成
     const okConfirm = await svc.handleRpc({
       version: 2,
       action: 'confirm-wsl',
@@ -855,7 +815,6 @@ test('WSL challenge explicit confirmation, operation sanitization, and crash-rec
     assert.equal(okConfirm.result.status, 'succeeded');
     assert.ok(okConfirm.result.cascadeId);
 
-    // 一次性 challenge 消耗后不能再次确认
     const replayConfirm = await svc.handleRpc({
       version: 2,
       action: 'confirm-wsl',
@@ -866,7 +825,6 @@ test('WSL challenge explicit confirmation, operation sanitization, and crash-rec
     });
     assert.equal(replayConfirm.ok, false);
 
-    // 2. 崩溃恢复：session-created 后重启 -> needs-input -> 补交原消息复用同一操作
     hostAdapter.setFaults({ requireWslConfirmation: false, crashAfter: 'session-created' });
     const navHome = await svc.handleRpc({
       version: 2,
@@ -876,7 +834,7 @@ test('WSL challenge explicit confirmation, operation sanitization, and crash-rec
       baseRev: okConfirm.rev,
       payload: { mode: 'chat', view: '/', navRev: okConfirm.snapshot.navRev },
     });
-    const origMsg = '崩溃恢复后补交的同一消息正文';
+    const origMsg = 'نص الرسالة نفسه بعد الاسترداد من التعطل';
     const crashedSend = await svc.handleRpc({
       version: 2,
       action: 'send-chat-first',
@@ -891,7 +849,6 @@ test('WSL challenge explicit confirmation, operation sanitization, and crash-rec
     const reservedCid = crashedSend.result.cascadeId;
     await svc.dispose();
 
-    // 模拟进程重启，关闭崩溃注入
     hostAdapter.setFaults({ crashAfter: null });
     const svcRebooted = new SidebarStudioService({
       sandboxMode: true,
@@ -905,15 +862,13 @@ test('WSL challenge explicit confirmation, operation sanitization, and crash-rec
     assert.equal(opAfterBoot.ok, true);
     assert.equal(opAfterBoot.result.status, 'needs-input');
 
-    // 篡改消息补交 -> IDEMPOTENCY_CONFLICT
     const wrongMsg = await svcRebooted.handleRpcAction('send-chat-first', {
       resumeOperationId: crashOpId,
-      message: '被篡改的不同消息',
+      message: 'رسالة بديلة معدّلة',
     });
     assert.equal(wrongMsg.ok, false);
     assert.equal(wrongMsg.error.code, ERROR_CODES.IDEMPOTENCY_CONFLICT);
 
-    // 补交原消息 -> 复用同一操作与同一 cascadeId 投递成功
     const resumed = await svcRebooted.handleRpcAction('send-chat-first', {
       requestId: 'req-crash-resume',
       resumeOperationId: crashOpId,
@@ -923,7 +878,6 @@ test('WSL challenge explicit confirmation, operation sanitization, and crash-rec
     assert.equal(resumed.result.status, 'succeeded');
     assert.equal(resumed.result.cascadeId, reservedCid);
 
-    // 3. 崩溃恢复：delivering-message 后重启 -> needs-reconciliation 禁止盲目重放
     hostAdapter.setFaults({ crashAfter: 'delivering-message' });
     const navHome2 = await svcRebooted.handleRpcAction('navigate', {
       mode: 'chat',
@@ -933,7 +887,7 @@ test('WSL challenge explicit confirmation, operation sanitization, and crash-rec
     const ambSend = await svcRebooted.handleRpcAction('send-chat-first', {
       navRev: navHome2.snapshot.navRev,
       draftRev: navHome2.snapshot.draftRev,
-      message: '投递中途崩溃测试',
+      message: 'اختبار التعطل أثناء الإرسال',
     });
     const ambOpId = ambSend.result.operationId;
     await svcRebooted.dispose();
@@ -951,7 +905,6 @@ test('WSL challenge explicit confirmation, operation sanitization, and crash-rec
     assert.equal(ambOp.result.status, 'needs-reconciliation');
     await svcRebooted2.dispose();
 
-    // 4. 外部修改项目权限后，restoreProjectPermissionBaseline 拒绝盲覆写返回 NEEDS_RECONCILIATION
     const psp = hostAdapter.getProjectSettingsProvider();
     const applyRes = await applyProjectPermissionIsolation({
       kind: 'spark',
@@ -990,11 +943,9 @@ test('sandboxMode strictly isolates from real ~/.gemini/config and env overrides
     },
   });
   try {
-    // 诱饵真实配置目录必须绝对零触碰
-    assert.equal(fs.readdirSync(decoyDir).length, 0, 'sandboxMode 绝不能读取或写入 AG_PRISM_GEMINI_CONFIG_DIR');
-    assert.equal(isPathInsideDir(os.tmpdir(), svc.statePath, false), true, 'sandboxMode 状态文件必须位于临时目录');
+    assert.equal(fs.readdirSync(decoyDir).length, 0);
+    assert.equal(isPathInsideDir(os.tmpdir(), svc.statePath, false), true);
 
-    // sandboxMode 下严禁触发原生 pick-folder / reveal-folder 进程
     const pf = await svc.handleRpcAction('pick-folder', {});
     assert.equal(pf.ok, false);
     assert.equal(pf.error.code, ERROR_CODES.CAPABILITY_UNAVAILABLE);
@@ -1003,7 +954,6 @@ test('sandboxMode strictly isolates from real ~/.gemini/config and env overrides
     assert.equal(rf.error.code, ERROR_CODES.CAPABILITY_UNAVAILABLE);
     assert.equal(execCalls, 0);
 
-    // resetSandbox 轮换 storeId，旧 storeId 请求触发 STALE_STATE
     const oldStoreId = svc.getState().snapshot.storeId;
     const resetRes = await svc.resetSandbox();
     assert.equal(resetRes.ok, true);
@@ -1022,7 +972,7 @@ test('sandboxMode strictly isolates from real ~/.gemini/config and env overrides
   } finally {
     const ownedRoot = svc.sandboxRoot;
     await svc.dispose();
-    assert.equal(fs.existsSync(ownedRoot), false, 'dispose 必须清理 sandboxMode 自建临时根');
+    assert.equal(fs.existsSync(ownedRoot), false);
     if (prevEnv === undefined) delete process.env.AG_PRISM_GEMINI_CONFIG_DIR;
     else process.env.AG_PRISM_GEMINI_CONFIG_DIR = prevEnv;
     fs.rmSync(decoyDir, { recursive: true, force: true });
@@ -1032,7 +982,7 @@ test('sandboxMode strictly isolates from real ~/.gemini/config and env overrides
 test('non-sandbox pick-folder and reveal-folder invoke execFile safely with strict argument arrays and directory verification', async () => {
   const env = makeTempEnv('ag-prism-v2-cmd-');
   try {
-    const validDir = path.join(env.root, '中文工作区');
+    const validDir = path.join(env.root, 'مساحة عمل عربية');
     fs.mkdirSync(validDir, { recursive: true });
     const sampleFile = path.join(validDir, 'a.txt');
     fs.writeFileSync(sampleFile, 'hi', 'utf8');
@@ -1056,7 +1006,7 @@ test('non-sandbox pick-folder and reveal-folder invoke execFile safely with stri
       execFile: mockExecFile,
     });
 
-    const picked = await svc.handleRpcAction('pick-folder', { title: '选择灵感目录', initialDir: validDir });
+    const picked = await svc.handleRpcAction('pick-folder', { title: 'اختر مجلد الأفكار', initialDir: validDir });
     assert.equal(picked.ok, true);
     assert.equal(picked.canceled, false);
     assert.equal(picked.path, validDir);
@@ -1071,7 +1021,7 @@ test('non-sandbox pick-folder and reveal-folder invoke execFile safely with stri
     assert.equal(revMissing.ok, false);
     const revFile = await svc.handleRpcAction('reveal-folder', { path: sampleFile });
     assert.equal(revFile.ok, false);
-    assert.equal(calls.length, 2, '无效目录或普通文件绝不能触发外部进程');
+    assert.equal(calls.length, 2);
 
     await svc.dispose();
   } finally {
@@ -1095,7 +1045,6 @@ test('Workbench /api/studio/* isolation contract (end-to-end HTTP security, RPC,
   let sandboxRootPath = null;
 
   try {
-    // 1. GET /studio 返回 HTML（no-store），GET /shared/sidebar-state-machine.mjs 返回 JS MIME
     const pageRes = await fetch(`${baseUrl}/studio`);
     assert.equal(pageRes.status, 200);
     assert.equal(pageRes.headers.get('cache-control')?.includes('no-store'), true);
@@ -1104,20 +1053,18 @@ test('Workbench /api/studio/* isolation contract (end-to-end HTTP security, RPC,
     assert.equal(esmRes.status, 200);
     assert.equal(esmRes.headers.get('content-type')?.includes('javascript'), true);
 
-    // 2. GET /api/studio/state 返回 v2 同形快照、审计报告与每实例 X-Studio-Token
     const stRes = await fetch(`${baseUrl}/api/studio/state`);
     assert.equal(stRes.status, 200);
     const token = stRes.headers.get('x-studio-token') || (typeof server.getStudioToken === 'function' ? server.getStudioToken() : '');
-    assert.ok(token && token.length >= 16, '必须签发每实例随机 X-Studio-Token');
+    assert.ok(token && token.length >= 16);
     const stJson = await stRes.json();
     const snap0 = stJson.snapshot || stJson.result;
     assert.equal(snap0.schemaVersion, 2);
     assert.equal(snap0.activeMode, 'code');
     assert.equal(stJson.audit.globalPermissionWrites, 0);
     sandboxRootPath = typeof server.getStudioSandboxRoot === 'function' ? server.getStudioSandboxRoot() : null;
-    assert.ok(sandboxRootPath && fs.existsSync(sandboxRootPath), 'Workbench Studio 必须使用独立 mkdtemp 沙盒根');
+    assert.ok(sandboxRootPath && fs.existsSync(sandboxRootPath));
 
-    // 3. 安全门禁：缺 token -> 403；非法 Origin -> 403；非 application/json -> 400
     const noTokenRes = await fetch(`${baseUrl}/api/studio/rpc`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Origin: baseUrl },
@@ -1154,7 +1101,6 @@ test('Workbench /api/studio/* isolation contract (end-to-end HTTP security, RPC,
         body: JSON.stringify(bodyObj),
       });
 
-    // 4. 合法 POST /api/studio/rpc：切 Chat -> create-spark-box -> select-spark-project -> send-chat-first，全程 0 全局权限写入
     const swRes = await postStudio('/api/studio/rpc', {
       version: 2,
       action: 'switch-mode',
@@ -1201,23 +1147,21 @@ test('Workbench /api/studio/* isolation contract (end-to-end HTTP security, RPC,
       payload: {
         navRev: selJson.snapshot.navRev,
         draftRev: selJson.snapshot.draftRev,
-        message: 'Workbench Studio 隔离沙盒首发测试',
+        message: 'اختبار إرسال أول رسالة في Workbench Studio المعزول',
       },
     });
     assert.equal(sendRes.status, 200);
     const sendJson = await sendRes.json();
     assert.equal(sendJson.result.status, 'succeeded');
-    assert.equal(sendJson.audit.globalPermissionWrites, 0, 'Workbench /studio 全程全局权限写入必须恒为 0');
+    assert.equal(sendJson.audit.globalPermissionWrites, 0);
     assert.ok(sendJson.audit.projectPermissionWrites >= 2);
 
-    // 5. POST /api/studio/fixture：注入双极后台任务并验证角标
     const fixRes = await postStudio('/api/studio/fixture', { preset: 'dual-active-background' });
     assert.equal(fixRes.status, 200);
     const fixJson = await fixRes.json();
     assert.equal(fixJson.snapshot.backgroundBadge.targetMode, 'code');
     assert.equal(fixJson.snapshot.backgroundBadge.status, 'blocked');
 
-    // 6. POST /api/studio/reset：轮换 storeId，旧 storeId 请求返 409 STALE_STATE
     const rstRes = await postStudio('/api/studio/reset', {});
     assert.equal(rstRes.status, 200);
     const rstJson = await rstRes.json();
@@ -1235,12 +1179,11 @@ test('Workbench /api/studio/* isolation contract (end-to-end HTTP security, RPC,
     const staleJson = await staleRes.json();
     assert.equal(staleJson.error.code, ERROR_CODES.STALE_STATE);
 
-    // 7. 诱饵真实配置目录绝对零触碰
-    assert.equal(fs.readdirSync(decoyDir).length, 0, 'Workbench /studio 绝不能触碰真实配置目录');
+    assert.equal(fs.readdirSync(decoyDir).length, 0);
   } finally {
     await new Promise((resolve) => server.close(resolve));
     if (sandboxRootPath) {
-      assert.equal(fs.existsSync(sandboxRootPath), false, 'Workbench 关闭后必须自动清理自建临时沙盒根');
+      assert.equal(fs.existsSync(sandboxRootPath), false);
     }
     if (prevEnv === undefined) delete process.env.AG_PRISM_GEMINI_CONFIG_DIR;
     else process.env.AG_PRISM_GEMINI_CONFIG_DIR = prevEnv;
@@ -1254,7 +1197,6 @@ test('Shared-with-code Spark project non-destructive protection (0 global & 0 pr
     const s0 = svc.getState().snapshot;
     const storeId = s0.storeId;
 
-    // 1. 切入 Chat '/'，通过沙盒预设选择与 Code 共享物理路径的目录（obsidian-prism）
     const toChat = await svc.handleRpc({
       version: 2,
       action: 'switch-mode',
@@ -1293,7 +1235,6 @@ test('Shared-with-code Spark project non-destructive protection (0 global & 0 pr
     assert.equal(projSnap.nonDestructive, true);
     assert.equal(projSnap.permissionStatus, 'non-destructive-shared');
 
-    // 2. 在同目录双栖 Spark 项目首发消息：不阻断、不覆写 Code 权限，globalPermissionWrites === 0 且 projectPermissionWrites === 0
     const sent = await svc.handleRpc({
       version: 2,
       action: 'send-chat-first',
@@ -1303,7 +1244,7 @@ test('Shared-with-code Spark project non-destructive protection (0 global & 0 pr
       payload: {
         navRev: selected.snapshot.navRev,
         draftRev: selected.snapshot.draftRev,
-        message: '在同目录双栖仓库里安全讨论架构方案',
+        message: 'ناقش تصميم البنية في المستودع المشترك',
       },
     });
     assert.equal(sent.ok, true);
@@ -1314,18 +1255,17 @@ test('Shared-with-code Spark project non-destructive protection (0 global & 0 pr
     const sharedChatId = sent.result.cascadeId;
 
     const audit = svc.getPermissionAudit();
-    assert.equal(audit.globalPermissionWrites, 0, '同目录双栖全局权限写入必须恒为 0');
-    assert.equal(audit.projectPermissionWrites, 0, '同目录双栖非破坏保护下不得覆写任何项目级权限');
-    assert.ok(audit.nonDestructiveGuardCount >= 2, '非破坏双栖保护必须记入 permissionAuditLog');
+    assert.equal(audit.globalPermissionWrites, 0);
+    assert.equal(audit.projectPermissionWrites, 0);
+    assert.ok(audit.nonDestructiveGuardCount >= 2);
     assert.equal(
       audit.permissionAuditLog.some((e) => e.scope === 'shared-non-destructive' && e.globalTouched === false && e.nonDestructive === true),
       true
     );
     assert.equal(audit.globalCodeSettings.autoExecutionPolicy, 'turbo');
     const codeRunning = svc.hostAdapter.getCatalog().items.find((it) => it.cascadeId === 'code-turbo-build');
-    assert.equal(codeRunning.status, 'running', '同目录双栖首发期间后台 TURBO Code 会话必须持续运行零干扰');
+    assert.equal(codeRunning.status, 'running');
 
-    // 3. 解绑同目录双栖项目：跳过基线恢复（绝不误覆写 Code 权限），会话退回 Knowledge 根并标 needs-rebind
     const unlinked = await svc.handleRpc({
       version: 2,
       action: 'unlink-spark-project',
@@ -1341,7 +1281,6 @@ test('Shared-with-code Spark project non-destructive protection (0 global & 0 pr
     assert.equal(svc.getPermissionAudit().globalPermissionWrites, 0);
     assert.equal(svc.getPermissionAudit().projectPermissionWrites, 0);
 
-    // 4. P1 fail-open 回归防御：即使宿主 isScopeIsolated() 误报 true，共享目录依然无条件短路 0 写入且解绑 0 恢复
     const envMisreport = makeTempEnv('ag-prism-p1-shared-');
     try {
       const misreportAdapter = createSandboxHostAdapter(envMisreport.root);
@@ -1392,14 +1331,14 @@ test('Shared-with-code Spark project non-destructive protection (0 global & 0 pr
           payload: {
             navRev: mSel.snapshot.navRev,
             draftRev: mSel.snapshot.draftRev,
-            message: '宿主误报 isScopeIsolated=true 时的共享目录零写入防线验证',
+            message: 'تحقق من منع الكتابة في مجلد مشترك عندما يفيد المضيف خطأ بأنه معزول',
           },
         });
         assert.equal(mSend.ok, true);
         assert.equal(mSend.result.permissionStatus, 'non-destructive-shared');
         assert.equal(mSend.result.sharedWithCode, true);
         assert.equal(mSend.result.nonDestructive, true);
-        assert.equal(svcMisreport.getPermissionAudit().projectPermissionWrites, 0, 'isScopeIsolated 误报 true 时共享目录仍必须 0 写入');
+        assert.equal(svcMisreport.getPermissionAudit().projectPermissionWrites, 0);
         assert.equal(svcMisreport.getPermissionAudit().globalPermissionWrites, 0);
 
         const mUnlink = await svcMisreport.handleRpc({
@@ -1411,7 +1350,7 @@ test('Shared-with-code Spark project non-destructive protection (0 global & 0 pr
           payload: { sparkProjectId: mProjId },
         });
         assert.equal(mUnlink.ok, true);
-        assert.equal(mUnlink.result.permissionRestoreStatus, 'skipped-non-destructive', '共享目录解绑必须 0 恢复');
+        assert.equal(mUnlink.result.permissionRestoreStatus, 'skipped-non-destructive');
         assert.equal(svcMisreport.getPermissionAudit().projectPermissionWrites, 0);
         assert.equal(svcMisreport.getPermissionAudit().globalPermissionWrites, 0);
       } finally {
@@ -1425,27 +1364,25 @@ test('Shared-with-code Spark project non-destructive protection (0 global & 0 pr
   }
 });
 
-test('Chat-only move-chat-session (drag/drop into folders, running Knowledge move allowed, cross-project BUSY), strict Code<->Chat non-interop, and 5-locale GREETING_POOLS', async () => {
+test('Chat-only move-chat-session (drag/drop into folders, running Knowledge move allowed, cross-project BUSY), strict Code<->Chat non-interop, and English and Arabic greeting pools', async () => {
   const svc = createStudioSandboxService();
   try {
     const s0 = svc.getState().snapshot;
     const storeId = s0.storeId;
 
-    // 1. 5 语随机问候词库校验
-    for (const lang of ['zh-CN', 'zh-TW', 'yue', 'en', 'ja']) {
+    for (const lang of ['en', 'ar']) {
       assert.ok(Array.isArray(GREETING_POOLS[lang].withUser) && GREETING_POOLS[lang].withUser.length > 0);
       assert.ok(Array.isArray(GREETING_POOLS[lang].anonymous) && GREETING_POOLS[lang].anonymous.length > 0);
       const named = formatGreeting(lang, 'Alex', 0);
-      assert.equal(named.includes('Alex'), true, `${lang} 带用户名问候必须替换 {user}`);
+      assert.equal(named.includes('Alex'), true);
       const anon = formatGreeting(lang, '', 0);
-      assert.equal(anon.includes('{user}'), false, `${lang} 无用户名兜底不得残留占位符`);
+      assert.equal(anon.includes('{user}'), false);
     }
-    assert.equal(normalizeGreetingLang('zh-HK'), 'zh-TW');
-    assert.equal(normalizeGreetingLang('zh-yue'), 'yue');
+    assert.equal(normalizeGreetingLang('ar-EG'), 'ar');
+    assert.equal(normalizeGreetingLang('pt-BR'), 'en');
     assert.equal(normalizeGreetingLang('en-US'), 'en');
-    assert.equal(normalizeGreetingLang('ja-JP'), 'ja');
+    assert.equal(normalizeGreetingLang('ar_SA'), 'ar');
 
-    // 2. 在 Chat 创建 2 个 Knowledge 文件夹 + 1 个独立 Spark 项目，并在 Knowledge 根目录首发会话
     const toChat = await svc.handleRpc({
       version: 2,
       action: 'switch-mode',
@@ -1460,7 +1397,7 @@ test('Chat-only move-chat-session (drag/drop into folders, running Knowledge mov
       requestId: 'req-mv-f1',
       storeId,
       baseRev: toChat.rev,
-      payload: { name: '研究笔记' },
+      payload: { name: 'ملاحظات البحث' },
     });
     const f2 = await svc.handleRpc({
       version: 2,
@@ -1468,7 +1405,7 @@ test('Chat-only move-chat-session (drag/drop into folders, running Knowledge mov
       requestId: 'req-mv-f2',
       storeId,
       baseRev: f1.rev,
-      payload: { name: '灵感归档' },
+      payload: { name: 'أرشيف الأفكار' },
     });
     const folder1Id = f1.result.folder.id;
     const folder2Id = f2.result.folder.id;
@@ -1482,14 +1419,13 @@ test('Chat-only move-chat-session (drag/drop into folders, running Knowledge mov
       payload: {
         navRev: f2.snapshot.navRev,
         draftRev: f2.snapshot.draftRev,
-        message: '用来测试拖拽整理与迁回 Code 的会话',
+        message: 'محادثة لاختبار النقل بالسحب والعودة إلى Code',
       },
     });
     assert.equal(sent.ok, true);
     const chatId = sent.result.cascadeId;
     assert.equal(sent.snapshot.currentView, `/c/${chatId}`);
 
-    // 创建并登记一个独立 Spark 项目（需先回到 Chat '/' 再选项目）
     const navHome = await svc.handleRpc({
       version: 2,
       action: 'navigate',
@@ -1513,7 +1449,6 @@ test('Chat-only move-chat-session (drag/drop into folders, running Knowledge mov
     });
     const sparkProjId = selProj.result.project.id;
 
-    // 把该会话置为 running，验证同一 Knowledge 内拖拽进 folder1 与切换至 folder2 均放行不阻塞
     const liveItems = svc.hostAdapter.getCatalog().items.map((it) =>
       it.cascadeId === chatId ? { ...it, status: 'running' } : it
     );
@@ -1542,7 +1477,6 @@ test('Chat-only move-chat-session (drag/drop into folders, running Knowledge mov
     assert.equal(dragF2.ok, true);
     assert.equal(dragF2.snapshot.assignments[chatId].placement.folderId, folder2Id);
 
-    // 运行态跨项目移入 Spark 必须返回 BUSY；跨模式迁回 Code 永久禁止（INVALID_ARGUMENT）
     const crossBusy = await svc.handleRpc({
       version: 2,
       action: 'move-chat-session',
@@ -1565,7 +1499,6 @@ test('Chat-only move-chat-session (drag/drop into folders, running Knowledge mov
     assert.equal(toCodeForbiddenRunning.ok, false);
     assert.equal(toCodeForbiddenRunning.error.code, ERROR_CODES.INVALID_ARGUMENT);
 
-    // 切回 idle：允许 Chat 内部跨项目移入 Spark 并移回 Knowledge 根目录；但 Code<->Chat 跨模式迁移始终拒绝
     const idleItems = svc.hostAdapter.getCatalog().items.map((it) =>
       it.cascadeId === chatId ? { ...it, status: 'idle' } : it
     );
@@ -1607,7 +1540,6 @@ test('Chat-only move-chat-session (drag/drop into folders, running Knowledge mov
     assert.equal(openInChat.ok, true);
     assert.equal(openInChat.snapshot.currentView, `/c/${chatId}`);
 
-    // Code 与 Chat 彻底不互通：空闲态调用 move-session-to-code 同样必须拒绝，且 Chat 归属与当前视图保持原样
     const toCodeForbiddenIdle = await svc.handleRpc({
       version: 2,
       action: 'move-session-to-code',
@@ -1879,12 +1811,10 @@ test('daemon mounts safe v2 Sidebar client and still refuses any legacy client c
     buildSidebarStudioExpression: (meta, client) => ({ meta, client }),
   };
   daemon.rebuildBundle();
-  // 真实开发仓的 v2 sidebar-client.js 已通过安全守卫（client 为 undefined 表示走默认加载 v2 客户端）
   assert.equal(daemon._hasSafeV2SidebarClientFile(), true);
   assert.equal(daemon.sidebarExpr.client, undefined);
   assert.equal(daemon.sidebarExpr.meta.serviceReady, false);
 
-  // 对缺失 v2 标记或包含旧版 setPrefValues( 的客户端目录，daemon 必须硬拒绝挂载（回退为纯桥接 client: ''）
   const legacyDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ag-prism-legacy-sb-'));
   try {
     const sbDir = path.join(legacyDir, 'vendor', 'sidebar-studio');
@@ -2006,23 +1936,22 @@ test('sidebar-studio modules enforce local source hygiene, zero global writes, a
   ];
   for (const filePath of files) {
     const src = fs.readFileSync(filePath, 'utf8');
-    assert.equal(/\bexec\s*\(|\bexecSync\s*\(/.test(src), false, `${path.basename(filePath)} 禁止使用 exec/execSync`);
-    assert.equal(/\beval\s*\(|new\s+Function\s*\(/.test(src), false, `${path.basename(filePath)} 禁止使用 eval/new Function`);
-    assert.equal(/\.innerHTML\s*=|\.outerHTML\s*=/.test(src), false, `${path.basename(filePath)} 禁止使用 innerHTML/outerHTML`);
+    assert.equal(/\bexec\s*\(|\bexecSync\s*\(/.test(src), false);
+    assert.equal(/\beval\s*\(|new\s+Function\s*\(/.test(src), false);
+    assert.equal(/\.innerHTML\s*=|\.outerHTML\s*=/.test(src), false);
     for (const re of banned) {
-      assert.equal(re.test(src), false, `${path.basename(filePath)} 不得包含本机隐私路径或凭据 (${re})`);
+      assert.equal(re.test(src), false);
     }
   }
   const clientSrc = fs.readFileSync(CLIENT_FILE, 'utf8');
-  assert.ok(clientSrc.includes('SIDEBAR_STUDIO_CLIENT_V2'), 'v2 客户端必须携带 SIDEBAR_STUDIO_CLIENT_V2 标记');
-  assert.equal(/\bsetPrefValues?\s*\(/.test(clientSrc), false, 'v2 客户端严禁出现 setPrefValue/setPrefValues');
-  assert.equal(/:has\s*\(/.test(clientSrc), false, 'v2 客户端 CSS 严禁使用 :has()');
-  assert.equal(/\.isCollapsed\b/.test(clientSrc), false, 'v2 客户端严禁访问 Selection.isCollapsed');
-  assert.equal(/contain:\s*strict|contain:\s*content|contain:\s*layout/.test(clientSrc), false, '侧栏严禁 contain: layout/strict/content');
-  assert.ok(clientSrc.includes('contain:style'), '侧栏容器必须显式使用 contain:style');
-  assert.ok(clientSrc.includes('content-visibility:hidden'), '隐藏态 Chat 首页必须使用 content-visibility:hidden');
-  // 零 Emoji 铁律
-  assert.equal(/\p{Extended_Pictographic}/u.test(clientSrc), false, 'v2 客户端源码严禁包含任何 Emoji');
+  assert.ok(clientSrc.includes('SIDEBAR_STUDIO_CLIENT_V2'));
+  assert.equal(/\bsetPrefValues?\s*\(/.test(clientSrc), false);
+  assert.equal(/:has\s*\(/.test(clientSrc), false);
+  assert.equal(/\.isCollapsed\b/.test(clientSrc), false);
+  assert.equal(/contain:\s*strict|contain:\s*content|contain:\s*layout/.test(clientSrc), false);
+  assert.ok(clientSrc.includes('contain:style'));
+  assert.ok(clientSrc.includes('content-visibility:hidden'));
+  assert.equal(/\p{Extended_Pictographic}/u.test(clientSrc), false);
 });
 
 test('live-host-adapter normalizes Win32/WSL paths, matches real File ID, enforces project-only setters & 0 global writes', async () => {
@@ -2078,7 +2007,7 @@ test('live-host-adapter normalizes Win32/WSL paths, matches real File ID, enforc
       },
     });
 
-    assert.equal(adapter.getProjectSettingsProvider(), null, '未同步 projectPermissions=true 前不得暴露 PSP');
+    assert.equal(adapter.getProjectSettingsProvider(), null);
     adapter.syncFromRenderer({
       catalog: { health: 'ready', items: [{ cascadeId: 'c1', title: 'Code 1', status: 'idle', workspacePath: codeDir }] },
       codeWorkspacePaths: [codeDir],
@@ -2100,12 +2029,11 @@ test('live-host-adapter normalizes Win32/WSL paths, matches real File ID, enforc
     assert.equal(adapter.isPathSharedWithCode(upperCodeDir), isCaseInsensitiveFs);
     assert.equal(adapter.isPathSharedWithCode(sparkOnlyDir), false);
 
-    // Win32 盘符路径同步后，等价的 WSL /mnt/<drive>/... 路径也必须判定为共享目录
     if (process.platform === 'win32') {
       const m = /^([a-zA-Z]):[\\/](.*)$/.exec(codeDir);
       if (m) {
         const wslEquivalent = `/mnt/${m[1].toLowerCase()}/${m[2].replace(/\\/g, '/')}`;
-        assert.equal(adapter.isPathSharedWithCode(wslEquivalent), true, 'WSL 等价路径必须识别为与 Code 共享');
+        assert.equal(adapter.isPathSharedWithCode(wslEquivalent), true);
       }
     }
 
@@ -2118,10 +2046,8 @@ test('live-host-adapter normalizes Win32/WSL paths, matches real File ID, enforc
     await assert.rejects(() => psp.setProjectAutoExecutionPolicy('scope-spark-1', 'dangerous-value'), /Disallowed policy value/);
     await assert.rejects(() => psp.setProjectAutoExecutionPolicy('global', 'off'), /reserved global scopeRef/);
 
-    // 嵌套子目录（Code 工程下的子目录）也必须被保守识别为共享目录
     assert.equal(adapter.isPathSharedWithCode(path.join(codeDir, 'packages', 'sub')), true);
 
-    // 未知投递回执保守降级为 ambiguous；重绑返回失配 ID 必须拒绝；矛盾核对回执不得误判已收/未收
     const deliv = await adapter.deliverFirstMessage({ idempotencyKey: 'k1', cascadeId: 'c-new', message: 'hi' });
     assert.equal(deliv.status, 'ambiguous');
     mockHostOps.deliverFirstMessage = async () => ({ status: 'not-received', cascadeId: 'other-cid' });
@@ -2158,8 +2084,8 @@ test('sidebar-service rejects v2-shaped persisted JSON missing explicit schemaVe
       const svc = new SidebarStudioService(env);
       try {
         const diag = svc.getBootDiagnostic();
-        assert.ok(diag && diag.code === ERROR_CODES.INVALID_ARGUMENT, `非法/缺失版本文件必须拒载: ${rawBad}`);
-        assert.equal(fs.readFileSync(env.statePath, 'utf8'), rawBad, '原文件字节必须原样保留不得被覆写');
+        assert.ok(diag && diag.code === ERROR_CODES.INVALID_ARGUMENT);
+        assert.equal(fs.readFileSync(env.statePath, 'utf8'), rawBad);
       } finally {
         await svc.dispose();
       }
@@ -2168,7 +2094,6 @@ test('sidebar-service rejects v2-shaped persisted JSON missing explicit schemaVe
     fs.rmSync(env.root, { recursive: true, force: true });
   }
 
-  // 非沙箱模式 sync-catalog 更新实时 liveHostAdapter；沙箱模式忽略 sync-catalog
   const env2 = makeTempEnv('ag-prism-synccat-');
   try {
     const adapter = createLiveHostAdapter();
@@ -2197,7 +2122,7 @@ test('sidebar-service rejects v2-shaped persisted JSON missing explicit schemaVe
         catalog: { health: 'ready', items: [] },
       });
       assert.equal(ignored.ok, true);
-      assert.equal(sandboxSvc.hostAdapter.getCatalog().items.length, beforeItems, 'sandboxMode 必须忽略 sync-catalog');
+      assert.equal(sandboxSvc.hostAdapter.getCatalog().items.length, beforeItems);
     } finally {
       await sandboxSvc.dispose();
     }
@@ -2210,7 +2135,6 @@ test('v2 sidebar-client enforces zero-empty-screen circuit breaker, honest non-f
   const clientSrc = fs.readFileSync(CLIENT_FILE, 'utf8');
   assert.doesNotThrow(() => new vm.Script(clientSrc));
 
-  // 最小化 DOM 模拟环境以验证熔断器、PSP 代理与原子 destroy()
   function makeEl(tag) {
     const attrs = new Map();
     const classes = new Set();
@@ -2343,7 +2267,6 @@ test('v2 sidebar-client enforces zero-empty-screen circuit breaker, honest non-f
     setProjectAutoExecutionPolicy: async (s, v) => { pspCalls.push(['auto', s, v]); },
     setProjectFileAccessPolicy: async (s, v) => { pspCalls.push(['file', s, v]); },
   };
-  // 挂载 React Fiber 链供只读探测
   rootEl.__reactFiber$test = {
     tag: 10,
     memoizedProps: { value: { store: fakeStore } },
@@ -2407,7 +2330,7 @@ test('v2 sidebar-client enforces zero-empty-screen circuit breaker, honest non-f
     innerWidth: 1280,
     innerHeight: 800,
     document: doc,
-    navigator: { language: 'zh-CN' },
+    navigator: { language: 'ar' },
     getComputedStyle: () => ({ position: 'static' }),
     __agPrismSidebarBridge: {
       isOnline: () => true,
@@ -2435,20 +2358,17 @@ test('v2 sidebar-client enforces zero-empty-screen circuit breaker, honest non-f
     clearTimeout,
   });
 
-  // 默认未开启 Beta 开关时：不进入接管、不挂载顶部 Code/Chat 切换胶囊、不隐藏原生侧栏
   await new Promise((r) => setTimeout(r, 40));
-  assert.equal(win.__agPrismSidebar.getState().engaged, false, '默认关闭 Beta 开关时不得接管侧栏');
-  assert.equal(nativeSb.classList.contains('ag-prism-sb-native-hidden'), false, '默认关闭时不得隐藏原生侧栏');
-  assert.equal(layout.children.find((c) => c.getAttribute('data-testid') === 'prism-bipolar-mode-dock'), undefined, '默认关闭时不得挂载顶部 Code/Chat 切换胶囊');
+  assert.equal(win.__agPrismSidebar.getState().engaged, false);
+  assert.equal(nativeSb.classList.contains('ag-prism-sb-native-hidden'), false);
+  assert.equal(layout.children.find((c) => c.getAttribute('data-testid') === 'prism-bipolar-mode-dock'), undefined);
 
-  // 开启 Beta 开关，但此时原生侧栏有 1 行而 fakeSummaries 为空 -> 防空屏硬熔断必须触发，绝不隐藏原生侧栏！
   win.__agPrismSidebar.sync({ sidebarStudio: 'on' });
   await new Promise((r) => setTimeout(r, 40));
-  assert.equal(win.__agPrismSidebar.getState().circuitTripped, true, '开启后目录为 0 且原生有行时必须触发防空屏熔断');
+  assert.equal(win.__agPrismSidebar.getState().circuitTripped, true);
   assert.equal(win.__agPrismSidebar.getState().engaged, false);
-  assert.equal(nativeSb.classList.contains('ag-prism-sb-native-hidden'), false, '熔断期间不得隐藏原生侧栏');
+  assert.equal(nativeSb.classList.contains('ag-prism-sb-native-hidden'), false);
 
-  // 动态模型清单：必须包含 5 款纯 Gemini 模型（含 Neon 与 3.8 Flash），严禁混入 Orchestrator / Claude / GPT-OSS
   assert.deepEqual(Array.from(win.__agPrismSidebar.getState().models), [
     'Gemini 4 Neon',
     'Gemini 4 Carbon',
@@ -2457,60 +2377,52 @@ test('v2 sidebar-client enforces zero-empty-screen circuit breaker, honest non-f
     'Gemini 3.8 Flash',
   ]);
 
-  // 无真实宿主预留 API 时，reserveSession 必须诚实失败，绝不造假 chat-... ID
   const resv = await win.__agPrismSidebarHostOps.reserveSession({ idempotencyKey: 'k1', scopeRef: 's1', kind: 'knowledge' });
   assert.equal(resv.ok, false);
 
-  // PSP 代理正常工作，仅操作项目级 setter
   const pspRes = await win.__agPrismSidebarHostOps.psp.setProjectAutoExecutionPolicy({ scopeRef: 'scope-1', value: 'off' });
   assert.equal(pspRes.ok, true);
   assert.deepEqual(pspCalls, [['auto', 'scope-1', 'off']]);
 
-  // 写入真实目录数据并保持 Beta 开启 -> 解除熔断，Code 模式 100% 保留原生侧栏（绝不隐藏原生列表！）并挂载持久模式切换条（带 Beta 徽章）
   fakeSummaries['code-real-1'] = { summary: 'Real Code Task', lastModifiedTime: Date.now() };
   win.__agPrismSidebar.sync({ sidebarStudio: 'on' });
   await new Promise((r) => setTimeout(r, 180));
   assert.equal(win.__agPrismSidebar.getState().circuitTripped, false);
   assert.equal(win.__agPrismSidebar.getState().engaged, true);
-  assert.equal(nativeSb.classList.contains('ag-prism-sb-native-hidden'), false, 'Code 模式必须 100% 保留原生侧栏不得隐藏');
+  assert.equal(nativeSb.classList.contains('ag-prism-sb-native-hidden'), false);
   const modeDockBefore = layout.children.find((c) => c.getAttribute('data-testid') === 'prism-bipolar-mode-dock');
-  assert.ok(modeDockBefore, '顶栏持久模式切换胶囊必须挂载');
+  assert.ok(modeDockBefore);
 
-  // 切换到 Chat 模式：通过点击持久顶栏 Chat 按钮验证 Beta 标注与 RPC -> TanStack Router 对象签名路由 -> Chat 面板展开
   const chatBtn = modeDockBefore.children[0].children[2];
   assert.equal(chatBtn.getAttribute('data-mode-btn'), 'chat');
   const betaPill = chatBtn.children.find((c) => c.className && c.className.includes('ag-prism-sb-beta-pill'));
-  assert.ok(betaPill && /Beta/i.test(betaPill.textContent), 'Chat 顶栏按钮必须标注 Beta 徽章');
+  assert.ok(betaPill && /Beta/i.test(betaPill.textContent));
   chatBtn.click();
   await new Promise((r) => setTimeout(r, 40));
   const modeDockAfter = layout.children.find((c) => c.getAttribute('data-testid') === 'prism-bipolar-mode-dock');
-  assert.equal(modeDockAfter, modeDockBefore, '切换模式时顶栏胶囊 DOM 必须持久不重建以保证弹簧过渡');
-  assert.equal(nativeSb.classList.contains('ag-prism-sb-native-hidden'), true, 'Chat 模式应柔和隐藏原生列表区');
+  assert.equal(modeDockAfter, modeDockBefore);
+  assert.equal(nativeSb.classList.contains('ag-prism-sb-native-hidden'), true);
   assert.deepEqual(
     JSON.parse(JSON.stringify(routerNavCalls[routerNavCalls.length - 1])),
-    { to: '/c/$cascadeId', params: { cascadeId: 'chat-demo-1' } },
-    '切会话必须使用 TanStack Router 对象签名而非裸字符串'
+    { to: '/c/$cascadeId', params: { cascadeId: 'chat-demo-1' } }
   );
 
-  // 点击 Chat 侧栏面板确认已激活，再点 Code 按钮切回 Code 模式 -> 原生侧栏瞬间复原可见
   const chatPane = layout.children.find((c) => c.getAttribute('data-testid') === 'prism-bipolar-chat-pane');
   assert.equal(chatPane.getAttribute('data-active'), '1');
   const codeBtn = modeDockBefore.children[0].children[1];
   codeBtn.click();
   await new Promise((r) => setTimeout(r, 40));
-  assert.equal(nativeSb.classList.contains('ag-prism-sb-native-hidden'), false, '切回 Code 后原生侧栏必须立即复原');
+  assert.equal(nativeSb.classList.contains('ag-prism-sb-native-hidden'), false);
   assert.deepEqual(JSON.parse(JSON.stringify(routerNavCalls[routerNavCalls.length - 1])), { to: '/' });
 
-  // 热开关 on -> off -> on 必须无损解除并恢复接管（关闭时卸载顶栏 Code/Chat 胶囊，不会因 destroy 永久失活）
   win.__agPrismSidebar.sync({ sidebarStudio: 'off' });
   assert.equal(win.__agPrismSidebar.getState().engaged, false);
   assert.equal(nativeSb.classList.contains('ag-prism-sb-native-hidden'), false);
-  assert.equal(layout.children.find((c) => c.getAttribute('data-testid') === 'prism-bipolar-mode-dock'), undefined, '关闭 Beta 开关后必须移除顶部 Code/Chat 切换胶囊');
+  assert.equal(layout.children.find((c) => c.getAttribute('data-testid') === 'prism-bipolar-mode-dock'), undefined);
   win.__agPrismSidebar.sync({ sidebarStudio: 'on' });
   assert.equal(win.__agPrismSidebar.getState().engaged, true);
-  assert.ok(layout.children.find((c) => c.getAttribute('data-testid') === 'prism-bipolar-mode-dock'), '重新开启 Beta 开关后必须恢复顶部 Code/Chat 切换胶囊');
+  assert.ok(layout.children.find((c) => c.getAttribute('data-testid') === 'prism-bipolar-mode-dock'));
 
-  // destroy() 必须 100% 原子恢复原生侧栏、移除样式、宿主原语与全局句柄（避免 off->on 热重启误判 codeHash 复用僵尸实例）
   win.__agPrismSidebar.destroy();
   assert.equal(nativeSb.classList.contains('ag-prism-sb-native-hidden'), false);
   assert.equal(doc.getElementById('ag-prism-sidebar-studio-css'), null);
@@ -2531,7 +2443,6 @@ test('cdp.buildSidebarStudioExpression builds clean v2 bridge without legacy v1 
   assert.equal(expr.includes('setSpaceTheme'), false);
   assert.equal(/setPrefValues?/i.test(expr), false);
 
-  // 含括号动态访问 ops["setPrefValue"] 的伪装 v2 客户端必须被共享门禁硬拦截
   const sneakyExpr = cdp.buildSidebarStudioExpression(
     { binding: SIDEBAR_BINDING, schemaVersion: 2, serviceReady: true },
     'const SIDEBAR_STUDIO_CLIENT_V2 = "2.0.0"; ops["setPrefValue"]("global", 1);'
@@ -2680,7 +2591,6 @@ test('v2 sidebar-client bridges real native 4-getter PSP protobuf enums and lsCl
   assert.equal(ops.getCapabilities().projectPermissions, true);
   assert.equal(ops.getCapabilities().perCascadeIsolation, true);
 
-  // 1) 宿主 4-getter/setter 枚举双向编解码（按 dirPath 匹配真实 UUID，绝不误用假 scopeRef）
   const grants = await ops.psp.getProjectPermissionGrants({ scopeRef: 'spark-scope-1', dirPath: 'C:\\temp\\SparkDemo' });
   assert.equal(grants.ok, true);
   assert.deepEqual(JSON.parse(JSON.stringify(grants.grants)), {
@@ -2694,12 +2604,11 @@ test('v2 sidebar-client bridges real native 4-getter PSP protobuf enums and lsCl
   assert.equal((await ops.psp.setProjectSandboxMode({ scopeRef: 'spark-scope-1', dirPath: 'C:\\temp\\SparkDemo', value: 'enabled' })).ok, true);
   assert.deepEqual(pspState['proj-uuid-spark'], { auto: 1, file: 2, net: 1, sandbox: true });
 
-  // 2) Knowledge 会话通过 lsClient.startCascade + sendUserCascadeMessage 发送（workspaceUris: [], planModel: 1528, autoExecutionPolicy: 1）
   const resv = await ops.reserveSession({
     idempotencyKey: 'idem-live-1:reserve',
     scopeRef: 'scope-knowledge-default',
     kind: 'knowledge',
-    title: '你好',
+    title: 'مرحبًا',
     dirPath: '',
     modelId: 'Gemini 4 Hydrogen',
     effort: 'XHigh',
@@ -2713,7 +2622,7 @@ test('v2 sidebar-client bridges real native 4-getter PSP protobuf enums and lsCl
   const deliv = await ops.deliverFirstMessage({
     idempotencyKey: 'idem-live-1:send',
     cascadeId: resv.cascadeId,
-    message: '你好',
+    message: 'مرحبًا',
     scopeRef: 'scope-knowledge-default',
     kind: 'knowledge',
     dirPath: '',
@@ -2723,7 +2632,7 @@ test('v2 sidebar-client bridges real native 4-getter PSP protobuf enums and lsCl
   assert.equal(deliv.status, 'delivered');
   assert.equal(sendCalls.length, 1);
   assert.equal(sendCalls[0].cascadeId, resv.cascadeId);
-  assert.deepEqual(JSON.parse(JSON.stringify(sendCalls[0].items)), [{ chunk: { case: 'text', value: '你好' } }]);
+  assert.deepEqual(JSON.parse(JSON.stringify(sendCalls[0].items)), [{ chunk: { case: 'text', value: 'مرحبًا' } }]);
   assert.equal(sendCalls[0].cascadeConfig.plannerConfig.planModel, 1528);
   assert.equal(sendCalls[0].cascadeConfig.plannerConfig.toolConfig.runCommand.autoCommandConfig.autoExecutionPolicy, 1);
   assert.equal(dispatched.some((a) => a.type === 'modelSelection/modelPicked' && a.payload?.model === 1528), true);
@@ -2740,7 +2649,6 @@ test('non-sandbox boot self-heals zero-write needs-reconciliation and sends Know
   fs.mkdirSync(sparkDir, { recursive: true });
   const statePath = path.join(tmpDir, 'obsidian-prism-sidebar.json');
 
-  // 预置一个零写入的陈旧 Knowledge needs-reconciliation（旧版失败遗留）+ 一个真实写过权限的 Spark needs-reconciliation
   const { createDefaultStateV2 } = await import('../vendor/sidebar-studio/state-machine.mjs');
   const seeded = createDefaultStateV2({ storeId: 'store-live-heal', sparkRoot: tmpDir, knowledgeRoot: knowledgeDir });
   seeded.activeMode = 'chat';
@@ -2813,21 +2721,19 @@ test('non-sandbox boot self-heals zero-write needs-reconciliation and sends Know
   });
   t.after(() => svc.dispose());
 
-  // 1) 零写入 Knowledge 作用域已自愈，首条消息走 per-cascade 隔离成功送达且保留在乐观视图中（0 全局写入、0 项目权限写入）
   const sent = await svc.handleRpcAction('send-chat-first', {
-    message: '你好',
+    message: 'مرحبًا',
     modelId: 'Gemini 4 Hydrogen',
     effort: 'XHigh',
   });
   assert.equal(sent.ok, true);
   assert.equal(sent.result.status, 'succeeded');
   assert.equal(sent.result.cascadeId, 'live-uuid-001');
-  assert.equal(sent.snapshot.currentView, '/c/live-uuid-001', '刚送达会话必须保留在乐观视图中，不可被弹回 /');
+  assert.equal(sent.snapshot.currentView, '/c/live-uuid-001');
   assert.deepEqual(liveCalls, ['reserve', 'deliver']);
   assert.equal(adapter.getAuditReport().globalPermissionWrites, 0);
   assert.equal(adapter.getAuditReport().projectPermissionWrites, 0);
 
-  // 2) 真实写过权限（applied 非空）的 Spark 作用域绝不被自愈，仍然严格拦截为 NEEDS_RECONCILIATION
   await svc.handleRpcAction('navigate', { mode: 'chat', view: '/' });
   await svc.handleRpcAction('set-chat-draft', { draft: { kind: 'spark', folderId: null, sparkProjectId: 'sp-locked' } });
   const blocked = await svc.handleRpcAction('send-chat-first', { message: 'Should remain locked' });
@@ -2840,7 +2746,6 @@ test('Chat sidebar full CRUD: pin/rename/archive/restore/delete sessions and fol
   t.after(() => svc.dispose());
   await svc.handleRpcAction('switch-mode', { to: 'chat' });
 
-  // 1) 创建文件夹并在内发 2 条消息，再验证置顶排序、重命名、归档与恢复
   const f1 = await svc.handleRpcAction('create-knowledge-folder', { name: 'Reading Notes' });
   assert.equal(f1.ok, true);
   const fid = f1.result.folder.id;
@@ -2855,7 +2760,6 @@ test('Chat sidebar full CRUD: pin/rename/archive/restore/delete sessions and fol
   assert.equal(m2.ok, true);
   const cid2 = m2.result.cascadeId;
 
-  // 置顶旧会话 cid1 后应排在 cid2 之前，且重命名立即生效
   assert.equal((await svc.handleRpcAction('pin-chat-session', { cascadeId: cid1, pinned: true })).ok, true);
   assert.equal((await svc.handleRpcAction('rename-chat-session', { cascadeId: cid1, title: 'Pinned Note' })).ok, true);
   const folderView = svc.getSnapshot().chatSidebar.knowledge.folders.find((f) => f.id === fid);
@@ -2863,26 +2767,22 @@ test('Chat sidebar full CRUD: pin/rename/archive/restore/delete sessions and fol
   assert.equal(folderView.items[0].pinned, true);
   assert.equal(folderView.items[0].title, 'Pinned Note');
 
-  // 归档当前查看的 cid2 -> 自动从文件夹移入 archived 抽屉，且视图回退 /
   const archRes = await svc.handleRpcAction('archive-chat-session', { cascadeId: cid2, archived: true });
   assert.equal(archRes.ok, true);
   assert.equal(archRes.result.navigatedFallback, true);
   assert.equal(archRes.snapshot.currentView, '/');
   assert.equal(archRes.snapshot.chatSidebar.archived.items.some((x) => x.cascadeId === cid2), true);
 
-  // 恢复 cid2 再测试删除含会话文件夹的 childAction: 'archive'
   assert.equal((await svc.handleRpcAction('archive-chat-session', { cascadeId: cid2, archived: false })).ok, true);
   const delFoldArch = await svc.handleRpcAction('delete-knowledge-folder', { folderId: fid, childAction: 'archive' });
   assert.equal(delFoldArch.ok, true);
   assert.equal(delFoldArch.result.archivedSessionIds.length, 2);
   assert.equal(delFoldArch.snapshot.chatSidebar.archived.totalCount, 2);
 
-  // 永久删除单条归档会话 cid1
   const delOne = await svc.handleRpcAction('delete-chat-session', { cascadeId: cid1 });
   assert.equal(delOne.ok, true);
   assert.equal(delOne.snapshot.chatSidebar.archived.totalCount, 1);
 
-  // 创建 Spark 工作区并发 1 条消息，再测试删除工作区的 childAction: 'delete'
   const box = await svc.handleRpcAction('create-spark-box', { name: 'ScratchBox' });
   await svc.handleRpcAction('select-spark-project', { selectionToken: box.result.selectionToken });
   const spId = svc.getSnapshot().chatDraft.sparkProjectId;
@@ -3016,7 +2916,6 @@ test('v2 sidebar-client enforces web-like Knowledge/Spark MCP+hooks+tools isolat
 
   assert.equal(win.__agPrismSidebar.getState().hasSendGuard, true);
 
-  // 1) 首条 Pure(knowledge) startCascade + sendUserCascadeMessage 携带 CustomAgentSpec(customAgent) 并禁用 MCP / Hooks / 插件 / 本地代码与命令工具，保留联网搜索
   const resv = await win.__agPrismSidebarHostOps.reserveSession({
     idempotencyKey: 'iso-k1:r', scopeRef: 'scope-knowledge-default', kind: 'knowledge', title: 'Hi', dirPath: '',
   });
@@ -3033,17 +2932,16 @@ test('v2 sidebar-client enforces web-like Knowledge/Spark MCP+hooks+tools isolat
   assert.equal(startCalls[0].customAgentSpec.cascadeConfig.plannerConfig.toolConfig.writeToFile.forceDisable, true);
   assert.equal(startCalls[0].customAgentSpec.cascadeConfig.plannerConfig.toolConfig.searchWeb.forceDisable, false);
 
-  // 2) 后续轮次：Code 会话原样透传，Chat Pure 会话自动注入隔离配置，Chat Spark 禁用 MCP/Hooks/子代理但允许受控文件与 schedule
   const codeReq = { cascadeId: 'code-session-99', cascadeConfig: { $typeName: 'exa.cortex_pb.CascadeConfig', plannerConfig: { supportsLatexRendering: true } } };
   await fakeLsWrapper.sendUserCascadeMessage(codeReq);
-  assert.equal(wrapperSendCalls[0], codeReq, 'Code 会话必须 100% 原样零改动透传');
+  assert.equal(wrapperSendCalls[0], codeReq);
 
   await fakeLsWrapper.sendUserCascadeMessage({
     cascadeId: 'chat-know-1',
     cascadeConfig: { $typeName: 'exa.cortex_pb.CascadeConfig', plannerConfig: { $typeName: 'exa.cortex_pb.CascadePlannerConfig', planModel: 1528 } },
   });
   const patchedKnow = wrapperSendCalls[1];
-  assert.equal(patchedKnow.cascadeConfig.$typeName, undefined, '应剥离 $typeName 以便官方 Schema 重新完整序列化');
+  assert.equal(patchedKnow.cascadeConfig.$typeName, undefined);
   assert.equal(patchedKnow.cascadeConfig.plannerConfig.planModel, 1528);
   assert.equal(patchedKnow.cascadeConfig.plannerConfig.plannerTypeConfig.case, 'customAgent');
   assert.equal(patchedKnow.cascadeConfig.plannerConfig.plannerTypeConfig.value.excludeDefaultComponents, true);
@@ -3058,15 +2956,14 @@ test('v2 sidebar-client enforces web-like Knowledge/Spark MCP+hooks+tools isolat
   const patchedSpark = wrapperSendCalls[2];
   assert.equal(patchedSpark.cascadeConfig.plannerConfig.toolConfig.mcp.forceDisable, true);
   assert.equal(patchedSpark.cascadeConfig.plannerConfig.toolConfig.invokeSubagent.enabled, false);
-  assert.equal(patchedSpark.cascadeConfig.plannerConfig.toolConfig.writeToFile.forceDisable, false, 'Spark 默认保留受控文件写入');
-  assert.equal(patchedSpark.cascadeConfig.plannerConfig.toolConfig.schedule.enabled, true, 'Spark 默认开启日程定时 schedule');
-  assert.equal(patchedSpark.cascadeConfig.plannerConfig.toolConfig.runCommand.forceDisable, undefined, 'Spark 仅将命令设为 OFF 审批，不强制禁用');
+  assert.equal(patchedSpark.cascadeConfig.plannerConfig.toolConfig.writeToFile.forceDisable, false);
+  assert.equal(patchedSpark.cascadeConfig.plannerConfig.toolConfig.schedule.enabled, true);
+  assert.equal(patchedSpark.cascadeConfig.plannerConfig.toolConfig.runCommand.forceDisable, undefined);
   assert.equal(patchedSpark.cascadeConfig.plannerConfig.toolConfig.runCommand.autoCommandConfig.autoExecutionPolicy, 1);
 
-  // 3) destroy() 后 100% 卸除守卫
   const origFnBeforeDestroy = fakeLsWrapper.sendUserCascadeMessage;
   win.__agPrismSidebar.destroy();
-  assert.notEqual(fakeLsWrapper.sendUserCascadeMessage, origFnBeforeDestroy, 'destroy 必须恢复原始 sendUserCascadeMessage');
+  assert.notEqual(fakeLsWrapper.sendUserCascadeMessage, origFnBeforeDestroy);
 });
 
 test('prefs.chatPolicy persists Pure/Spark whitelist toggles atomically with sanitization and backward compatibility', async (t) => {
@@ -3075,7 +2972,6 @@ test('prefs.chatPolicy persists Pure/Spark whitelist toggles atomically with san
   const svc = new SidebarStudioService({ sandboxMode: true, sandboxRoot: env.root, ...env });
   t.after(() => svc.dispose());
 
-  // 默认策略自动补齐
   const initialPolicy = svc.getSnapshot().prefs.chatPolicy;
   assert.equal(initialPolicy.pure.webSearch, true);
   assert.equal(initialPolicy.pure.zeroTools, false);
@@ -3084,7 +2980,6 @@ test('prefs.chatPolicy persists Pure/Spark whitelist toggles atomically with san
   assert.equal(initialPolicy.spark.sandbox, true);
   assert.equal(initialPolicy.showTelemetryAboveComposer, true);
 
-  // 局部增量更新 Pure 白名单并清洗重复项与非法控制字符
   const res1 = await svc.handleRpcAction('set-prefs', {
     patch: {
       chatPolicy: {
@@ -3100,10 +2995,9 @@ test('prefs.chatPolicy persists Pure/Spark whitelist toggles atomically with san
   assert.equal(res1.ok, true);
   assert.deepEqual(res1.snapshot.prefs.chatPolicy.pure.allowedPlugins, ['companion-pack']);
   assert.deepEqual(res1.snapshot.prefs.chatPolicy.pure.allowedMcps, ['docs-mcp']);
-  assert.equal(res1.snapshot.prefs.chatPolicy.spark.schedule, true, '更新 Pure 不应影响 Spark 既有配置');
+  assert.equal(res1.snapshot.prefs.chatPolicy.spark.schedule, true);
   assert.equal(res1.snapshot.prefs.chatPolicy.showTelemetryAboveComposer, false);
 
-  // 重启后持久化不丢失且全局权限写入仍为 0
   await svc.dispose();
   const reopened = new SidebarStudioService({ sandboxMode: true, sandboxRoot: env.root, ...env });
   t.after(() => reopened.dispose());
@@ -3249,7 +3143,6 @@ test('v2 sidebar-client dynamically resolves plugin/MCP whitelists and honors Pu
   win.__agPrismSidebar.sync({ sidebarStudio: 'on' });
   await new Promise((r) => setTimeout(r, 50));
 
-  // 1) 白名单仅放行 companion-plugin 与 notes-mcp，严格隔离 dev-hooks-plugin / swarm / ops-mcp
   await win.__agPrismSidebarHostOps.reserveSession({
     idempotencyKey: 'wl-1:r', scopeRef: 'scope-knowledge-default', kind: 'knowledge', title: 'WL', dirPath: '',
   });
@@ -3265,7 +3158,6 @@ test('v2 sidebar-client dynamically resolves plugin/MCP whitelists and honors Pu
   assert.equal(spec1.cascadeConfig.plannerConfig.toolConfig.generateImage.forceDisable, true);
   assert.ok(spec1.config.value.toolNames.includes('mcp_notes-mcp_search_notes'));
 
-  // 2) 开启 Pure zeroTools 后强制清空白名单与 toolNames，并打开 forceDisableToolCalling
   activePolicy.pure.zeroTools = true;
   await win.__agPrismSidebarHostOps.reserveSession({
     idempotencyKey: 'wl-2:r', scopeRef: 'scope-knowledge-default', kind: 'knowledge', title: 'Zero', dirPath: '',
@@ -3284,19 +3176,18 @@ test('batch-chat-sessions atomically moves/archives/deletes Chat sessions while 
   t.after(() => svc.dispose());
 
   await svc.handleRpcAction('switch-mode', { to: 'chat' });
-  const fRes = await svc.handleRpcAction('create-knowledge-folder', { name: '整理夹' });
+  const fRes = await svc.handleRpcAction('create-knowledge-folder', { name: 'مجلد التنظيم' });
   const folderId = fRes.result.folder.id;
 
-  const s1 = await svc.handleRpcAction('send-chat-first', { message: '会话一' });
+  const s1 = await svc.handleRpcAction('send-chat-first', { message: 'المحادثة الأولى' });
   await svc.handleRpcAction('navigate', { mode: 'chat', view: '/' });
-  const s2 = await svc.handleRpcAction('send-chat-first', { message: '会话二' });
+  const s2 = await svc.handleRpcAction('send-chat-first', { message: 'المحادثة الثانية' });
   await svc.handleRpcAction('navigate', { mode: 'chat', view: '/' });
-  const s3 = await svc.handleRpcAction('send-chat-first', { message: '会话三' });
+  const s3 = await svc.handleRpcAction('send-chat-first', { message: 'المحادثة الثالثة' });
   const c1 = s1.result.cascadeId;
   const c2 = s2.result.cascadeId;
   const c3 = s3.result.cascadeId;
 
-  // 把 c3 标记为 running（模拟正在运行），并确认批量归档/删除会自动安全跳过 c3 与不属于 Chat 的 code-ci-review
   const origGetCatalog = svc.hostAdapter.getCatalog.bind(svc.hostAdapter);
   svc.hostAdapter.getCatalog = () => {
     const base = origGetCatalog();
@@ -3334,7 +3225,7 @@ test('batch-chat-sessions atomically moves/archives/deletes Chat sessions while 
   assert.deepEqual(del.result.succeededIds, [c2]);
   assert.deepEqual(del.result.skippedIds, [c3]);
   assert.equal(svc.getSnapshot().assignments[c2], undefined);
-  assert.ok(svc.getSnapshot().assignments[c3], '运行中会话必须被保护保留');
+  assert.ok(svc.getSnapshot().assignments[c3]);
   assert.equal(svc.getPermissionAudit().globalPermissionWrites, 0);
 });
 
@@ -3343,11 +3234,10 @@ test('Spark list-spark-files and import-spark-file enforce traversal/extension g
   t.after(() => svc.dispose());
 
   await svc.handleRpcAction('switch-mode', { to: 'chat' });
-  const box = await svc.handleRpcAction('create-spark-box', { name: '文档沙盒' });
+  const box = await svc.handleRpcAction('create-spark-box', { name: 'مجلد المستندات المعزول' });
   await svc.handleRpcAction('select-spark-project', { selectionToken: box.result.selectionToken });
   const pid = svc.getSnapshot().chatDraft.sparkProjectId;
 
-  // 正常导入两份同名文件 -> 自动重命名为合规后缀 -2 不覆写
   const imp1 = await svc.handleRpcAction('import-spark-file', {
     sparkProjectId: pid,
     fileName: 'notes.md',
@@ -3364,23 +3254,20 @@ test('Spark list-spark-files and import-spark-file enforce traversal/extension g
   assert.equal(imp2.ok, true);
   assert.equal(imp2.result.fileName, 'notes-2.md');
 
-  // 路径穿越、可执行文件与密钥文件一律拒绝
   for (const badName of ['../escape.txt', 'run.exe', 'secret.pem', 'script.ps1', '.env']) {
     const rej = await svc.handleRpcAction('import-spark-file', {
       sparkProjectId: pid,
       fileName: badName,
       base64Data: Buffer.from('bad', 'utf8').toString('base64'),
     });
-    assert.equal(rej.ok, false, `必须拒绝危险文件名: ${badName}`);
+    assert.equal(rej.ok, false);
   }
 
-  // list-spark-files 正常列出非敏感文件
   const listed = await svc.handleRpcAction('list-spark-files', { sparkProjectId: pid });
   assert.equal(listed.ok, true);
   const names = listed.result.files.map((f) => f.name).sort();
   assert.deepEqual(names, ['notes-2.md', 'notes.md']);
 
-  // showStarterChips 开关可原子切换并持久化
   assert.equal(svc.getSnapshot().prefs.chatPolicy.showStarterChips, true);
   const prefRes = await svc.handleRpcAction('set-prefs', { patch: { chatPolicy: { showStarterChips: false } } });
   assert.equal(prefRes.ok, true);
@@ -3392,7 +3279,6 @@ test('RPC envelope enforces payload limit strictly by normalized action (blocks 
   const svc = createStudioSandboxService();
   t.after(() => svc.dispose());
 
-  // 1) 伪造 src.action='import-spark-file' 企图绕过普通 RPC 128KB 上限 -> 必须被拒绝
   const spoofed = await svc.handleRpcAction('set-prefs', {
     action: 'import-spark-file',
     patch: { padding: 'A'.repeat(200 * 1024) },
@@ -3400,7 +3286,6 @@ test('RPC envelope enforces payload limit strictly by normalized action (blocks 
   assert.equal(spoofed.ok, false);
   assert.equal(spoofed.error?.code, ERROR_CODES.LIMIT_EXCEEDED);
 
-  // 2) 真实 import-spark-file 不传 src.action，导入 >128KB 合法文件必须正常放行
   await svc.handleRpcAction('switch-mode', { to: 'chat' });
   const box = await svc.handleRpcAction('create-spark-box', { name: 'PayloadCheckBox' });
   await svc.handleRpcAction('select-spark-project', { selectionToken: box.result.selectionToken });
@@ -3431,7 +3316,6 @@ test('Spark file import & listing enforce blocked extensions, Base64 precheck, -
   await svc.handleRpcAction('select-spark-project', { selectionToken: box.result.selectionToken });
   const pid = svc.getSnapshot().chatDraft.sparkProjectId;
 
-  // 1) 高危可执行/活跃脚本后缀全部拦截
   const blockedExts = [
     '.lnk', '.url', '.reg', '.wsf', '.wsh', '.jse', '.vbe', '.scf', '.hta',
     '.svg', '.html', '.htm', '.js', '.mjs', '.cjs', '.py', '.rb', '.php',
@@ -3442,11 +3326,10 @@ test('Spark file import & listing enforce blocked extensions, Base64 precheck, -
       fileName: `evil${ext}`,
       base64Data: Buffer.from('payload', 'utf8').toString('base64'),
     });
-    assert.equal(res.ok, false, `必须拦截高危后缀: ${ext}`);
+    assert.equal(res.ok, false);
     assert.equal(res.error?.code, ERROR_CODES.INVALID_ARGUMENT);
   }
 
-  // 2) 常用文档/图片/数据后缀全部正常放行
   const allowedExts = [
     '.md', '.txt', '.json', '.csv', '.pdf', '.png', '.jpg', '.jpeg', '.webp', '.gif', '.docx', '.xlsx', '.pptx',
   ];
@@ -3456,17 +3339,16 @@ test('Spark file import & listing enforce blocked extensions, Base64 precheck, -
       fileName: `doc${ext}`,
       base64Data: Buffer.from('ok', 'utf8').toString('base64'),
     });
-    assert.equal(res.ok, true, `常用文件后缀必须放行: ${ext}`);
+    assert.equal(res.ok, true);
   }
 
-  // 3) Base64 预检：非法字符、非法长度、错位 padding 与超限长度均在落盘前拒绝
   for (const badB64 of ['not-base64!!!', 'abc', 'AA=A', '====', 'SGVs bG8=']) {
     const res = await svc.handleRpcAction('import-spark-file', {
       sparkProjectId: pid,
       fileName: 'bad-b64.txt',
       base64Data: badB64,
     });
-    assert.equal(res.ok, false, `必须拒绝非法 Base64: ${badB64}`);
+    assert.equal(res.ok, false);
     assert.equal(res.error?.code, ERROR_CODES.INVALID_ARGUMENT);
   }
   const overLimitB64 = 'A'.repeat(Math.ceil((8 * 1024 * 1024) / 3) * 4 + 4);
@@ -3478,7 +3360,6 @@ test('Spark file import & listing enforce blocked extensions, Base64 precheck, -
   assert.equal(overLimitRes.ok, false);
   assert.equal(overLimitRes.error?.code, ERROR_CODES.LIMIT_EXCEEDED);
 
-  // 4) 同名冲突连续生成 -2、-3 且无括号、无残留 .tmp 文件
   const c1 = await svc.handleRpcAction('import-spark-file', {
     sparkProjectId: pid,
     fileName: 'report.md',
@@ -3502,9 +3383,8 @@ test('Spark file import & listing enforce blocked extensions, Base64 precheck, -
   const proj = svc._state.sparkProjects.find((p) => p.id === pid);
   const scopeRec = svc._state.projectScopes[proj.scopeRef];
   const entries = fs.readdirSync(scopeRec.realPath);
-  assert.equal(entries.some((name) => name.includes('.ag-spark-import-')), false, '不得残留临时文件');
+  assert.equal(entries.some((name) => name.includes('.ag-spark-import-')), false);
 
-  // 4.5) 落盘前目录身份失效触发中止 -> 自动清理临时文件且绝不留下空目标文件
   const origCheckDir = svc._isScopeDirectoryCurrent.bind(svc);
   let dirCheckCount = 0;
   svc._isScopeDirectoryCurrent = (sc) => {
@@ -3519,14 +3399,12 @@ test('Spark file import & listing enforce blocked extensions, Base64 precheck, -
   svc._isScopeDirectoryCurrent = origCheckDir;
   assert.equal(abortedImport.ok, false);
   assert.equal(abortedImport.error?.code, ERROR_CODES.PROJECT_SCOPE_CONFLICT);
-  assert.equal(fs.existsSync(path.join(scopeRec.realPath, 'aborted.md')), false, '失败不得留下空文件');
+  assert.equal(fs.existsSync(path.join(scopeRec.realPath, 'aborted.md')), false);
   assert.equal(
     fs.readdirSync(scopeRec.realPath).some((name) => name.includes('.ag-spark-import-')),
-    false,
-    '写入中止后必须自动清理临时文件'
+    false
   );
 
-  // 5) 沙盒越界与目录身份变更复核：篡改 realPath 指向 sandboxRoot 外部目录时 list/import 必须拒绝
   const origRealPath = scopeRec.realPath;
   scopeRec.realPath = fs.realpathSync(outsideDir);
   const listEscaped = await svc.handleRpcAction('list-spark-files', { sparkProjectId: pid });
@@ -3548,16 +3426,15 @@ test('batch-chat-sessions reports host errors in failedIds without swallowing, g
   t.after(() => svc.dispose());
 
   await svc.handleRpcAction('switch-mode', { to: 'chat' });
-  const s1 = await svc.handleRpcAction('send-chat-first', { message: '批量一' });
+  const s1 = await svc.handleRpcAction('send-chat-first', { message: 'المجموعة الأولى' });
   await svc.handleRpcAction('navigate', { mode: 'chat', view: '/' });
-  const s2 = await svc.handleRpcAction('send-chat-first', { message: '批量二' });
+  const s2 = await svc.handleRpcAction('send-chat-first', { message: 'المجموعة الثانية' });
   await svc.handleRpcAction('navigate', { mode: 'chat', view: '/' });
-  const s3 = await svc.handleRpcAction('send-chat-first', { message: '批量三' });
+  const s3 = await svc.handleRpcAction('send-chat-first', { message: 'المجموعة الثالثة' });
   const c1 = s1.result.cascadeId;
   const c2 = s2.result.cascadeId;
   const c3 = s3.result.cascadeId;
 
-  // 1) archive 宿主抛错或返回 ok:false -> 必须进入 failedIds，绝不能吞异常塞进 succeededIds
   const origAnnot = svc.hostAdapter.updateConversationAnnotations.bind(svc.hostAdapter);
   svc.hostAdapter.updateConversationAnnotations = async (args) => {
     if (args.cascadeId === c2) throw new Error('host annotation rpc error');
@@ -3572,9 +3449,8 @@ test('batch-chat-sessions reports host errors in failedIds without swallowing, g
   assert.deepEqual(archPartial.result.succeededIds, [c1]);
   assert.deepEqual(archPartial.result.failedIds, [c2]);
   assert.equal(svc.getSnapshot().assignments[c1].archived, true);
-  assert.notEqual(svc.getSnapshot().assignments[c2].archived, true, '宿主归档抛错不得篡改本地状态');
+  assert.notEqual(svc.getSnapshot().assignments[c2].archived, true);
 
-  // 全部失败时返回 ok:false 且带 failedIds
   const archAllFail = await svc.handleRpcAction('batch-chat-sessions', {
     op: 'archive',
     cascadeIds: [c2],
@@ -3584,7 +3460,6 @@ test('batch-chat-sessions reports host errors in failedIds without swallowing, g
   assert.deepEqual(archAllFail.result.failedIds, [c2]);
   svc.hostAdapter.updateConversationAnnotations = origAnnot;
 
-  // 2) delete 宿主返回失败/抛错 -> 必须记入 failedIds（而不是 skippedIds 或 succeededIds）
   const origDel = svc.hostAdapter.deleteConversation.bind(svc.hostAdapter);
   svc.hostAdapter.deleteConversation = async (args) => {
     if (args.cascadeId === c2) return { ok: false, error: 'disk locked' };
@@ -3599,10 +3474,9 @@ test('batch-chat-sessions reports host errors in failedIds without swallowing, g
   assert.deepEqual(delPartial.result.failedIds, [c2]);
   assert.deepEqual(delPartial.result.skippedIds, []);
   assert.equal(svc.getSnapshot().assignments[c1], undefined);
-  assert.ok(svc.getSnapshot().assignments[c2], '删除失败会话必须保留本地归属');
+  assert.ok(svc.getSnapshot().assignments[c2]);
   svc.hostAdapter.deleteConversation = origDel;
 
-  // 3) catalog 缺失项在 archive/delete 时保守跳过，且全部跳过携带 requestId 时记录幂等回执
   const origGetCatalog = svc.hostAdapter.getCatalog.bind(svc.hostAdapter);
   svc.hostAdapter.getCatalog = () => {
     const base = origGetCatalog();
@@ -3620,14 +3494,13 @@ test('batch-chat-sessions reports host errors in failedIds without swallowing, g
   assert.deepEqual(skippedRes.result.succeededIds, []);
   assert.deepEqual(skippedRes.result.skippedIds, [c3]);
   assert.deepEqual(skippedRes.result.failedIds, []);
-  assert.ok(svc.getSnapshot().assignments[c3], 'catalog 缺失项在批量删除时必须保守保留');
+  assert.ok(svc.getSnapshot().assignments[c3]);
 
-  // 恢复完整 catalog 后重放同 requestId 必须幂等命中原回执；不同 payload 必须报 IDEMPOTENCY_CONFLICT
   svc.hostAdapter.getCatalog = origGetCatalog;
   const replaySkipped = await svc.handleRpcAction('batch-chat-sessions', skippedReq);
   assert.equal(replaySkipped.ok, true);
   assert.deepEqual(replaySkipped.result.skippedIds, [c3]);
-  assert.ok(svc.getSnapshot().assignments[c3], '幂等重放全跳过回执不得二次删除会话');
+  assert.ok(svc.getSnapshot().assignments[c3]);
   const conflictSkipped = await svc.handleRpcAction('batch-chat-sessions', {
     requestId: 'batch-all-skipped-1',
     payload: { op: 'delete', cascadeIds: [c2] },
@@ -3645,18 +3518,16 @@ test('writer lock self-heals stale .lock.recovery directory while keeping fresh 
   fs.writeFileSync(lockPath, JSON.stringify({ pid: 99999999, token: 'dead-lock', createdAt: Date.now() - 120000 }), 'utf8');
   fs.mkdirSync(recoveryPath, { mode: 0o700 });
 
-  // 刚创建的 .lock.recovery 仍在活跃窗口内 -> 必须保守抛 BUSY
   assert.throws(
     () => new SidebarStudioService({ statePath: env.statePath, sparkRoot: env.sparkRoot, knowledgeRoot: env.knowledgeRoot }),
     (err) => err && err.code === ERROR_CODES.BUSY
   );
 
-  // 将 .lock.recovery 的 mtime 拨回 60 秒前模拟崩溃残留 -> 必须自动回收并正常初始化
   const staleSec = (Date.now() - 60_000) / 1000;
   fs.utimesSync(recoveryPath, staleSec, staleSec);
   const svc = new SidebarStudioService({ statePath: env.statePath, sparkRoot: env.sparkRoot, knowledgeRoot: env.knowledgeRoot });
   t.after(() => svc.dispose());
-  assert.equal(fs.existsSync(recoveryPath), false, '回收完成后不得残留 .lock.recovery 目录');
+  assert.equal(fs.existsSync(recoveryPath), false);
   assert.equal(svc.getSnapshot().schemaVersion, 2);
 });
 
@@ -3681,7 +3552,6 @@ test('state-machine permission isolation validates scopeRef/policyValues enums a
     setProjectSandboxMode: async (scopeRef, v) => { writes.push(['sandbox', scopeRef, v]); state.sandboxMode = v; },
   };
 
-  // 1) 拒绝全局保留 scopeRef 与非法 policyValues 枚举（0 写入）
   const badScope = await applyProjectPermissionIsolation({
     kind: 'spark', scopeRef: 'global', scopeIsolated: true, projectSettingsProvider: psp,
   });
@@ -3703,7 +3573,6 @@ test('state-machine permission isolation validates scopeRef/policyValues enums a
   assert.equal(badField.error.code, ERROR_CODES.INVALID_ARGUMENT);
   assert.equal(writes.length, 0);
 
-  // 2) 基线 scopeRef 错绑检测（0 写入）
   const mismatchedBaseline = await applyProjectPermissionIsolation({
     kind: 'spark',
     scopeRef: 'scope-valid-1',
@@ -3717,7 +3586,6 @@ test('state-machine permission isolation validates scopeRef/policyValues enums a
   assert.equal(mismatchedBaseline.status, 'needs-reconciliation');
   assert.equal(writes.length, 0);
 
-  // 3) 第 2 个 setter 失败 -> applied 精准记录第 1 项已生效字段，且可经 restoreProjectPermissionBaseline 完整回滚
   failFileSetter = true;
   const partial = await applyProjectPermissionIsolation({
     kind: 'spark', scopeRef: 'scope-valid-1', scopeIsolated: true, projectSettingsProvider: psp,
@@ -3737,11 +3605,10 @@ test('state-machine permission isolation validates scopeRef/policyValues enums a
   });
   assert.equal(rolledBack.ok, true);
   assert.equal(rolledBack.status, 'restored');
-  assert.equal(state.autoExecutionPolicy, 'ask', '部分写入字段必须成功回滚至原基线');
+  assert.equal(state.autoExecutionPolicy, 'ask');
 });
 
 test('state-machine cloneJsonSafe blocks deep reference leaks and sanitizeChatPolicy enforces strict booleans', () => {
-  // 1) 构造 16 层深嵌套对象，验证 depth > 12 返回空纯净对象且绝不泄漏原引用
   const leaf = { secret: 'mutable' };
   let deep = leaf;
   for (let i = 0; i < 16; i++) deep = { child: deep };
@@ -3753,12 +3620,11 @@ test('state-machine cloneJsonSafe blocks deep reference leaks and sanitizeChatPo
     cursor = cursor.child;
     origCursor = origCursor.child;
   }
-  assert.notEqual(cursor, origCursor, '超过最大深度时绝不可返回原对象引用');
+  assert.notEqual(cursor, origCursor);
   assert.deepEqual(cursor, {});
   cursor.injected = true;
   assert.equal(origCursor.injected, undefined);
 
-  // 2) 非 plain object（如 Date / 自定义类实例）不作为 plain object 透传；null 原型对象正常克隆
   class CustomBox { constructor() { this.a = 1; } }
   const nullProto = Object.assign(Object.create(null), { ok: true });
   const mixed = cloneJsonSafe({ d: new Date(), box: new CustomBox(), clean: nullProto });
@@ -3766,7 +3632,6 @@ test('state-machine cloneJsonSafe blocks deep reference leaks and sanitizeChatPo
   assert.equal(mixed.box, null);
   assert.deepEqual(mixed.clean, { ok: true });
 
-  // 3) sanitizeChatPolicy 对非布尔输入与非布尔 fallback 严格按 defaultVal 回落
   const policy = sanitizeChatPolicy(
     {
       pure: { webSearch: 0, zeroTools: 'false', imageAndFiles: 'yes' },
@@ -3798,7 +3663,6 @@ test('live-host-adapter enforces isScopeIsolated shared-path linkage, UNC/drive-
   fs.mkdirSync(sparkDir, { recursive: true });
   t.after(() => fs.rmSync(tmpDir, { recursive: true, force: true }));
 
-  // 1) 扩展 UNC 与标准 UNC 路径规范化一致
   assert.equal(normalizeHostPathKey('\\\\?\\UNC\\FileSrv\\Share\\Repo\\'), '//filesrv/share/repo');
   assert.equal(normalizeHostPathKey('\\\\FileSrv\\Share\\Repo\\'), '//filesrv/share/repo');
   assert.equal(normalizeHostPathKey('C:\\'), 'c:/');
@@ -3821,12 +3685,10 @@ test('live-host-adapter enforces isScopeIsolated shared-path linkage, UNC/drive-
     capabilities: { projectPermissions: true, perCascadeIsolation: true },
   });
 
-  // 2) UNC 与盘符根包含判断
   assert.equal(adapter.isPathSharedWithCode('\\\\127.0.0.1\\share\\repo\\sub'), true);
   assert.equal(adapter.isPathSharedWithCode('C:\\Projects\\AnySubDir'), true);
   assert.equal(adapter.isPathSharedWithCode('D:\\Projects\\OtherDrive'), false);
 
-  // 3) isScopeIsolated 在 scopeMeta.sharedWithCode 缺失时联动已注册路径复核，严禁盲判已隔离
   const isolatedAdapter = createLiveHostAdapter({ evaluateInHost: async () => ({ ok: true }) });
   isolatedAdapter.syncFromRenderer({
     catalog: { health: 'ready', items: [] },
@@ -3835,19 +3697,17 @@ test('live-host-adapter enforces isScopeIsolated shared-path linkage, UNC/drive-
   });
   isolatedAdapter.registerScopePath('scope-shared', codeDir);
   isolatedAdapter.registerScopePath('scope-clean', sparkDir);
-  assert.equal(isolatedAdapter.isScopeIsolated('scope-shared'), false, '缺失 scopeMeta 时必须联动复核共享目录');
-  assert.equal(isolatedAdapter.isScopeIsolated('scope-shared', {}), false, 'sharedWithCode 缺失时必须联动复核共享目录');
-  assert.equal(isolatedAdapter.isScopeIsolated('scope-shared', { sharedWithCode: false }), false, '已注册共享路径不可被误判隔离');
-  assert.equal(isolatedAdapter.isScopeIsolated('scope-clean'), true, '独立已注册目录应判定已隔离');
-  assert.equal(isolatedAdapter.isScopeIsolated('scope-unregistered'), false, '无路径且无显式标记不得盲判已隔离');
+  assert.equal(isolatedAdapter.isScopeIsolated('scope-shared'), false);
+  assert.equal(isolatedAdapter.isScopeIsolated('scope-shared', {}), false);
+  assert.equal(isolatedAdapter.isScopeIsolated('scope-shared', { sharedWithCode: false }), false);
+  assert.equal(isolatedAdapter.isScopeIsolated('scope-clean'), true);
+  assert.equal(isolatedAdapter.isScopeIsolated('scope-unregistered'), false);
   assert.equal(isolatedAdapter.isScopeIsolated('scope-shared', { sharedWithCode: true, wslIsolated: true }), true);
 
-  // 4) 已删会话 tombstone 防止滞后旧快照复活已删除会话
   const delRes = await adapter.deleteConversation({ cascadeId: 'chat-to-del' });
   assert.equal(delRes.ok, true);
   assert.equal(adapter.getCatalog().items.some((x) => x.cascadeId === 'chat-to-del'), false);
 
-  // 模拟渲染层推送滞后的旧快照仍包含 chat-to-del
   adapter.syncFromRenderer({
     catalog: {
       health: 'ready',
@@ -3858,7 +3718,7 @@ test('live-host-adapter enforces isScopeIsolated shared-path linkage, UNC/drive-
     },
   });
   const afterSync = adapter.getCatalog();
-  assert.equal(afterSync.items.some((x) => x.cascadeId === 'chat-to-del'), false, 'tombstone 必须阻止旧快照复活已删会话');
+  assert.equal(afterSync.items.some((x) => x.cascadeId === 'chat-to-del'), false);
   assert.equal(afterSync.lastKnownById['chat-to-del'], undefined);
   assert.equal(afterSync.items.some((x) => x.cascadeId === 'code-keep'), true);
 });

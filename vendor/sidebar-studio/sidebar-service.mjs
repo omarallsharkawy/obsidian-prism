@@ -1,9 +1,9 @@
-// Obsidian Prism v1.0.2 — Sidebar Studio v2 后端持久化、单写者事务与宿主权限服务
-// - 唯一纯状态机逻辑源：./state-machine.mjs（SCHEMA_VERSION = 2，Code / Chat 双极工作台）
-// - 持久化路径：~/.gemini/config/obsidian-prism-sidebar.json（独占写锁 + 0600 原子提交 + v1 原始备份与无损迁移）
-// - 沙盒模式（sandboxMode: true）：供 Workbench /studio 预览台使用，严格隔离临时目录与假宿主，绝不触碰真实配置
-// - 零全局 Code 权限写入：仅允许经 projectSettingsProvider 4 个项目级 setter 执行项目级权限隔离
-// - 零外部依赖，全部系统命令使用 execFile 参数数组（静态脚本 + 环境变量传参，满足 CodeQL 零告警）
+// Obsidian Prism v1.0.2 - Sidebar Studio v2 Backend Persistence, Single-Writer Transactions, and Host Permission Service
+// - Single pure state machine source of truth: ./state-machine.mjs (SCHEMA_VERSION = 2, Code / Chat bipolar workbench)
+// - Persistence path: ~/.gemini/config/obsidian-prism-sidebar.json (exclusive write lock + 0600 atomic commit + lossless v1 backup & migration)
+// - Sandbox mode (sandboxMode: true): used by Workbench /studio preview; strictly isolated temp dir & fake host, never touches real config
+// - Zero global Code permission writes: only project-level permission isolation via the 4 projectSettingsProvider setters is allowed
+// - Zero external dependencies; all system commands use execFile arg arrays (static scripts + env vars, CodeQL clean)
 
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -48,7 +48,7 @@ const RESERVED_WIN_NAMES = new Set([
   'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9',
 ]);
 
-// 旧 v1 三空间与全局权限写入动作在 v2 服务统一返回版本错误（严禁触发旧三空间全局权限切换）
+// Legacy v1 three-space and global permission write actions return a version error in v2 (never trigger legacy global permission switches)
 const LEGACY_V1_UNSUPPORTED_ACTIONS = new Set([
   'set-active-space',
   'set-assignment',
@@ -79,7 +79,7 @@ const MAX_LIVE_RECEIPTS = LIMITS.MAX_RECEIPTS - 1;
 const MAX_EVICTED_RECEIPT_KEYS = 512;
 const KNOWLEDGE_SCOPE_REF = 'scope-knowledge-default';
 
-// Windows 选目录静态 PowerShell 脚本（零动态拼接，参数仅通过环境变量传入，UTF-8 Base64 输出防中文乱码）
+// Static Windows folder picker PowerShell script (zero dynamic interpolation; args via env vars only; UTF-8 Base64 output prevents encoding corruption)
 const WIN_PICK_FOLDER_PS = [
   'Add-Type -AssemblyName System.Windows.Forms;',
   '$dlg = New-Object System.Windows.Forms.FolderBrowserDialog;',
@@ -93,10 +93,10 @@ const WIN_PICK_FOLDER_PS = [
 ].join(' ');
 const WIN_PICK_FOLDER_ENCODED = Buffer.from(WIN_PICK_FOLDER_PS, 'utf16le').toString('base64');
 
-// macOS 选目录静态 AppleScript（通过 system attribute 读取环境变量）
+// Static macOS folder picker AppleScript (reads arguments via system attribute env vars)
 const MAC_PICK_FOLDER_AS = [
   'set pTitle to system attribute "AG_PRISM_PICK_TITLE"',
-  'if pTitle is "" then set pTitle to "选择文件夹"',
+  'if pTitle is "" then set pTitle to "Choose Folder"',
   'POSIX path of (choose folder with prompt pTitle)',
 ].join('\n');
 
@@ -163,7 +163,7 @@ function normalizePathForCompare(p) {
 }
 
 /**
- * 拦截远程 Windows UNC / SMB / NT 设备路径（独立纯函数，消除对 omni-viewer 的跨频道耦合）
+ * Block remote Windows UNC / SMB / NT device paths (standalone pure function, avoiding cross-channel coupling to omni-viewer)
  */
 export function isBlockedUncPath(rawInput) {
   if (!rawInput || typeof rawInput !== 'string') return false;
@@ -224,7 +224,7 @@ function makeScopeRefFromPath(realDirPath) {
 }
 
 /**
- * 严格判定 targetPath 是否位于 baseDir 内部（允许等于 baseDir 仅当 allowEqual 为 true）
+ * Strictly check whether targetPath is inside baseDir (equal to baseDir allowed only when allowEqual is true)
  */
 export function isPathInsideDir(baseDir, targetPath, allowEqual = false) {
   if (typeof baseDir !== 'string' || typeof targetPath !== 'string') return false;
@@ -240,18 +240,18 @@ export function isPathInsideDir(baseDir, targetPath, allowEqual = false) {
 }
 
 /**
- * 校验并清洗 Spark 沙盒目录名（严防路径穿越、分隔符、保留字与控制字符）
+ * Validate and sanitize a Spark sandbox folder name (prevent path traversal, separators, reserved names, and control chars)
  */
 export function validateSparkBoxName(rawName) {
   if (typeof rawName !== 'string') {
-    return { ok: false, error: '文件夹名称必须为字符串' };
+    return { ok: false, error: 'Folder name must be a string' };
   }
   const trimmed = rawName.trim();
   if (!trimmed) {
-    return { ok: false, error: '文件夹名称不能为空' };
+    return { ok: false, error: 'Folder name cannot be empty' };
   }
   if (trimmed.length > MAX_BOX_NAME_LEN) {
-    return { ok: false, error: `文件夹名称不能超过 ${MAX_BOX_NAME_LEN} 个字符` };
+    return { ok: false, error: `Folder name cannot exceed ${MAX_BOX_NAME_LEN} characters` };
   }
   if (
     trimmed === '.' ||
@@ -264,17 +264,17 @@ export function validateSparkBoxName(rawName) {
     hasControlChars(trimmed) ||
     path.basename(trimmed) !== trimmed
   ) {
-    return { ok: false, error: '文件夹名称包含非法路径字符' };
+    return { ok: false, error: 'Folder name contains invalid path characters' };
   }
   if (trimmed.startsWith('.') || trimmed.endsWith('.')) {
-    return { ok: false, error: '文件夹名称不能以点号开头或结尾' };
+    return { ok: false, error: 'Folder name cannot start or end with a dot' };
   }
   if (!/^[\p{L}\p{N}_ .-]+$/u.test(trimmed)) {
-    return { ok: false, error: '文件夹名称包含不支持的特殊字符' };
+    return { ok: false, error: 'Folder name contains unsupported special characters' };
   }
   const upperStem = trimmed.split('.')[0].toUpperCase();
   if (RESERVED_WIN_NAMES.has(upperStem)) {
-    return { ok: false, error: '文件夹名称为系统保留名称' };
+    return { ok: false, error: 'Folder name is a reserved system name' };
   }
   return { ok: true, name: trimmed };
 }
@@ -359,23 +359,23 @@ function makeDefaultSandboxCatalog() {
 }
 
 /**
- * 为 sandboxMode / Workbench `/studio` 构建严格隔离的假宿主适配器。
- * - 维护独立的项目级权限表与只读全局 Code TURBO 权限对照；
- * - 完整记录所有项目级权限审计条目，并断言 globalPermissionWrites 恒为 0；
- * - 支持通过 applyFixture 注入权限冲突、沙箱降级、WSL 确认、部分失败、崩溃点等场景。
+ * Build a strictly isolated fake host adapter for sandboxMode / Workbench `/studio`.
+ * - Maintains an independent project-level permission table alongside a read-only global Code TURBO permission reference;
+ * - Logs all project-level permission audit entries and asserts globalPermissionWrites is always 0;
+ * - Supports injecting permission conflicts, sandbox fallback, WSL confirmation, partial failures, and crash points via applyFixture.
  */
 export function createSandboxHostAdapter(sandboxRoot, opts = {}) {
   const projectsRoot = path.join(sandboxRoot, 'projects');
   fs.mkdirSync(projectsRoot, { recursive: true, mode: 0o700 });
 
-  // 预置一个与 Code 共享物理路径的沙盒演示目录（严格位于沙盒根内，供预览台演示“同目录双栖 · 非破坏保护”）
+  // Pre-seed a sandbox demo directory sharing a physical path with Code (strictly inside sandbox root to demo shared non-destructive protection)
   const sharedCodeRepoName = 'obsidian-prism';
   const sharedCodeRepoDir = path.join(projectsRoot, sharedCodeRepoName);
   fs.mkdirSync(sharedCodeRepoDir, { recursive: true, mode: 0o700 });
   const sharedCodeRealDir = fs.realpathSync(sharedCodeRepoDir);
   const sharedCodeDirKeys = new Set([normalizePathForCompare(sharedCodeRealDir)]);
 
-  // 只读全局 Code 权限快照（本适配器不提供任何全局 setter，恒定为 TURBO 且写入次数为 0）
+  // Read-only global Code permission snapshot (this adapter exposes no global setters; permanently TURBO with 0 writes)
   const globalCodeSettings = Object.freeze({
     autoExecutionPolicy: 'turbo',
     fileAccessPolicy: 'allow-all',
@@ -779,7 +779,7 @@ export function createSandboxHostAdapter(sandboxRoot, opts = {}) {
 }
 
 /**
- * 脱敏操作记录投影：严格剔除内部路径、权限基线与 WSL challenge 令牌。
+ * Sanitized operation projection: strictly omits internal paths, permission baselines, and WSL challenge tokens.
  */
 function sanitizePublicOperation(operationId, op) {
   if (!isPlainObject(op)) return null;
@@ -829,7 +829,7 @@ export class SidebarStudioService {
     this._bootDiagnostic = null;
 
     if (this.sandboxMode) {
-      // 沙盒模式严禁读取真实 ~/.gemini/config 或环境覆盖变量
+      // Sandbox mode must never read the real ~/.gemini/config or environment override variables
       const sbRoot = options.sandboxRoot
         ? path.resolve(options.sandboxRoot)
         : fs.mkdtempSync(path.join(os.tmpdir(), 'ag-prism-studio-sb-'));
@@ -917,7 +917,7 @@ export class SidebarStudioService {
       }
     }
 
-    // 检测到已有锁文件：若持有进程已退出则回收陈旧锁；若同进程存活则直接报 BUSY
+    // Existing lock file detected: reclaim stale lock if owner process exited; return BUSY if same process is alive
     let existing = null;
     try {
       existing = JSON.parse(fs.readFileSync(lockPath, 'utf8'));
@@ -928,7 +928,7 @@ export class SidebarStudioService {
     const busy = () => Object.assign(new Error('Sidebar state already has a writer or its lock cannot be verified'), {
       code: ERROR_CODES.BUSY,
     });
-    // 不把另一个实例尚未写完的锁当成陈旧锁。
+    // Do not treat an unfinished lock being written by another instance as stale.
     if (!Number.isSafeInteger(existing?.pid) || existing.pid <= 0 || !existing.token || isPidAlive(existing.pid)) throw busy();
     const recoveryPath = `${lockPath}.recovery`;
     const acquireRecoveryDir = () => {
@@ -938,7 +938,7 @@ export class SidebarStudioService {
       } catch (err) {
         if (err?.code !== 'EEXIST') throw err;
       }
-      // 检测到残留 .lock.recovery：若已过期且确为非符号链接目录，安全回收后原子重抢，防崩溃导致永久 BUSY 死锁
+      // Stale .lock.recovery detected: if expired and verified as a non-symlink directory, safely reclaim and atomically re-acquire to prevent permanent BUSY deadlock after crashes
       let st;
       try {
         st = fs.lstatSync(recoveryPath);
@@ -991,7 +991,7 @@ export class SidebarStudioService {
         fs.unlinkSync(lp);
       }
     } catch {
-      // 若已被外部清理则静默忽略
+      // Silently ignore if already cleaned up externally
     }
   }
 
@@ -1011,7 +1011,7 @@ export class SidebarStudioService {
     try {
       fs.chmodSync(bakPath, 0o600);
     } catch {
-      // Windows NTFS 忽略 POSIX mode
+      // Windows NTFS ignores POSIX mode
     }
     this._lastV1BackupPath = bakPath;
     return bakPath;
@@ -1046,7 +1046,7 @@ export class SidebarStudioService {
 
     const rawText = rawBuf.toString('utf8').replace(/^\uFEFF/, '').trim();
     if (!rawText) {
-      // 0-byte 空文件：保留诊断并不盲覆盖，或安全重建仅当显式无内容
+      // 0-byte empty file: preserve diagnostics without blind overwrite, or safely rebuild only when explicitly empty
       this._bootDiagnostic = makeRpcError(
         ERROR_CODES.MIGRATION_FAILED,
         'Persisted sidebar state file is empty; original file preserved for inspection',
@@ -1063,7 +1063,7 @@ export class SidebarStudioService {
     try {
       parsed = JSON.parse(rawText);
     } catch (err) {
-      // 损坏 JSON：必须保留原文件不覆盖，返回诊断
+      // Corrupted JSON: must preserve the original file without overwriting and return diagnostics
       this._bootDiagnostic = makeRpcError(
         ERROR_CODES.MIGRATION_FAILED,
         'Corrupt JSON in sidebar state file (original file preserved)',
@@ -1076,7 +1076,7 @@ export class SidebarStudioService {
       });
     }
 
-    // 严格版本字段校验：任何非法类型、冲突版本、未来版本或缺少显式 schemaVersion=2 的 v2 结构，一律拒载并保留原文件
+    // Strict version field validation: reject any invalid type, conflicting version, future version, or v2 structure missing explicit schemaVersion=2, preserving the original file
     const hasSchemaField = isPlainObject(parsed) && Object.prototype.hasOwnProperty.call(parsed, 'schemaVersion');
     const hasLegacyVerField = isPlainObject(parsed) && Object.prototype.hasOwnProperty.call(parsed, 'version');
     const rawSv = hasSchemaField ? parsed.schemaVersion : undefined;
@@ -1113,7 +1113,7 @@ export class SidebarStudioService {
       });
     }
 
-    // 存在任何 v2 专有结构键时，必须显式声明 schemaVersion === 2，绝不宽容落入 v1 迁移
+    // When any v2-only structural key is present, schemaVersion === 2 must be declared explicitly; never fall back into v1 migration
     const hasV2ShapeKeys =
       isPlainObject(parsed) &&
       (
@@ -1154,7 +1154,7 @@ export class SidebarStudioService {
       return checked.state;
     }
 
-    // v1 无损迁移：先完整备份原始 v1 字节，再调用 migrateV1，最后原子落盘 v2
+    // Lossless v1 migration: back up raw v1 bytes first, invoke migrateV1, then atomically persist v2
     const migrated = migrateV1(parsed, {
       storeId: randomId('store', 8),
       sparkRoot: this.defaultSparkRoot,
@@ -1175,7 +1175,7 @@ export class SidebarStudioService {
 
     this._backupLegacyV1Bytes(rawBuf);
     this._saveStateAtomic(migrated.state);
-    this.logger(`[sidebar-studio] 已备份 v1 原始文件并无损迁移至 v2: ${this._lastV1BackupPath}`);
+    this.logger(`[sidebar-studio] Backed up original v1 file and losslessly migrated to v2: ${this._lastV1BackupPath}`);
     return migrated.state;
   }
 
@@ -1205,11 +1205,11 @@ export class SidebarStudioService {
     try {
       fs.chmodSync(tmpPath, 0o600);
     } catch {
-      // Windows NTFS 忽略 POSIX mode
+      // Windows NTFS ignores POSIX mode
     }
 
     try {
-      // Windows 短暂占用只重试原子替换，不截断最后一份有效状态。
+      // On transient Windows sharing violations, retry atomic replace without truncating the last valid state.
       for (let attempt = 0; ; attempt++) {
         try {
           fs.renameSync(tmpPath, this.statePath);
@@ -1229,17 +1229,17 @@ export class SidebarStudioService {
     try {
       fs.chmodSync(this.statePath, 0o600);
     } catch {
-      // Windows NTFS 忽略 POSIX mode
+      // Windows NTFS ignores POSIX mode
     }
 
-    // POSIX 平台对父目录 fsync 确保目录项持久化（Windows 安全忽略）
+    // Fsync parent directory on POSIX platforms to ensure directory entry durability (safely ignored on Windows)
     if (process.platform !== 'win32') {
       let dirFd = null;
       try {
         dirFd = fs.openSync(dir, 'r');
         fs.fsyncSync(dirFd);
       } catch {
-        // 部分文件系统不支持目录 fsync，忽略
+        // Some filesystems do not support directory fsync; ignore
       } finally {
         if (dirFd !== null) {
           try { fs.closeSync(dirFd); } catch {}
@@ -1295,7 +1295,7 @@ export class SidebarStudioService {
       if (!isPlainObject(op)) continue;
       if (op.kind === 'send-chat-first' && op.status === 'pending') {
         if (op.phase === 'applying-permissions') {
-          // 宿主可能只完成部分写入，保留原基线并阻止自动重新应用。
+          // Host may have only completed partial writes; keep original baseline and block automatic re-application.
           op.status = 'needs-reconciliation';
           op.updatedAt = now;
           op.error = makeRpcError(ERROR_CODES.NEEDS_RECONCILIATION, 'Project permission application was interrupted');
@@ -1303,7 +1303,7 @@ export class SidebarStudioService {
           if (scope) scope.permissionStatus = 'needs-reconciliation';
           changed = true;
         } else if (op.phase === 'delivering-message') {
-          // 投递阶段崩溃：无法确认宿主是否已接收，禁止盲目重放，进入核对态
+          // Crashed during delivery phase: cannot confirm host receipt, forbid blind replay, enter reconciliation state
           op.status = 'needs-reconciliation';
           op.updatedAt = now;
           op.error = makeRpcError(
@@ -1313,7 +1313,7 @@ export class SidebarStudioService {
           );
           changed = true;
         } else if (op.phase === 'message-confirmed') {
-          // 消息已确认送达但在提交完成态前崩溃：启动即自动补完归属
+          // Message confirmed delivered but crashed before committing completion: auto-finalize assignment on startup
           const completed = reduce(
             this._state,
             {
@@ -1349,7 +1349,7 @@ export class SidebarStudioService {
           }
           changed = true;
         } else {
-          // 创建/权限/预留会话阶段重启且内存正文不可用：标记 needs-input，等待补交原消息复用同一操作
+          // Restarted during create/permission/reservation phase with in-memory body lost: mark needs-input and await resubmission reusing the same operation
           op.status = 'needs-input';
           op.updatedAt = now;
           op.error = makeRpcError(
@@ -1362,7 +1362,7 @@ export class SidebarStudioService {
       }
     }
 
-    // 真机安全自愈：若历史未写过任何宿主项目权限（applied 为空、无 baseline）且无任何已预留会话或中断写权限操作，清除陈旧的零写入 needs-reconciliation 死锁
+    // Live safe self-healing: if no host project permissions were ever written (empty applied, no baseline) and no reserved session or interrupted permission write exists, clear stale zero-write needs-reconciliation deadlock
     if (!this.sandboxMode) {
       const blockedScopes = new Set();
       for (const op of Object.values(this._state.operations || {})) {
@@ -1473,8 +1473,8 @@ export class SidebarStudioService {
   }
 
   /**
-   * 仅限可信宿主确认弹窗（或测试/Workbench 假宿主）获取指定暂停操作的 WSL 一次性 challenge。
-   * 严禁通过 get-state / get-operation 等普通公开 RPC 暴露！
+   * Restricted to trusted host confirmation dialogs (or test/Workbench fake hosts) to obtain the one-time WSL challenge for a paused operation.
+   * Must NEVER be exposed through ordinary public RPCs like get-state or get-operation!
    */
   getTrustedWslChallenge(operationId) {
     const entry = this._wslChallenges.get(operationId);
@@ -1492,7 +1492,7 @@ export class SidebarStudioService {
   }
 
   /**
-   * 将任意任务串行排入单写者队列，杜绝并发读改写竞态。
+   * Enqueue any task serially onto the single-writer queue to eliminate concurrent read-modify-write races.
    */
   _enqueue(fn) {
     const next = this._queue.then(fn, fn);
@@ -1501,7 +1501,7 @@ export class SidebarStudioService {
   }
 
   /**
-   * 统一更新运行时宿主目录镜像（通过同一单写者队列提交，支持自动核对归属与视图回退）。
+   * Unified update for the runtime host catalog mirror (submitted via the same single-writer queue, supporting automatic assignment reconciliation and view fallback).
    */
   updateCatalog(catalogPayload) {
     return this._enqueue(async () => {
@@ -1528,7 +1528,7 @@ export class SidebarStudioService {
   }
 
   /**
-   * 仅 sandboxMode 可用：从固定 fixture 更新假目录、状态、能力或故障注入点（走同一单写者队列）。
+   * sandboxMode only: update fake catalog, state, capabilities, or fault injection points from a fixture (via the same single-writer queue).
    */
   applyFixture(fixture = {}) {
     return this._enqueue(async () => {
@@ -1564,7 +1564,7 @@ export class SidebarStudioService {
         this.hostAdapter.setCatalog(fixture.catalog);
       }
 
-      // 若显式要求同步重建某些测试归属（仅沙盒 fixture 场景），先校验再原子提交
+      // If fixture explicitly requests rebuilding test assignments (sandbox fixture only), validate before atomic commit
       if (fixture.preset === 'dual-active-background') {
         const now = this._now();
         this.hostAdapter.setCatalog({
@@ -1620,7 +1620,7 @@ export class SidebarStudioService {
   }
 
   /**
-   * 仅 sandboxMode 可用：排空队列并生成全新临时状态与全新 storeId（旧 storeId 请求将触发 STALE_STATE）。
+   * sandboxMode only: drain the queue and generate fresh temporary state with a new storeId (stale storeId requests trigger STALE_STATE).
    */
   resetSandbox() {
     return this._enqueue(async () => {
@@ -1681,7 +1681,7 @@ export class SidebarStudioService {
         };
       }
     }
-    // 首发先持久化操作记录，进程可能在生成最终回执之前停止。
+    // Persist the operation record first on initial attempt; the process may stop before generating the final receipt.
     const op = Object.values(this._state.operations).find((item) => item.requestId === requestId);
     if (op) {
       if (op.requestFingerprint !== fingerprint) return { hit: true, conflict: true };
@@ -1700,7 +1700,7 @@ export class SidebarStudioService {
 
     const liveKeys = Object.keys(stateObj.receipts).filter((k) => k !== EVICTED_RECEIPT_BUCKET_KEY);
     if (liveKeys.length >= MAX_LIVE_RECEIPTS && !Object.prototype.hasOwnProperty.call(stateObj.receipts, requestId)) {
-      // 按时间升序淘汰最旧回执，并将其指纹压缩归档，持续保留拒绝旧键重放/冲突的依据
+      // Evict oldest receipts in chronological order and archive their compressed fingerprints to keep detecting old key replays/conflicts
       liveKeys.sort((a, b) => (stateObj.receipts[a]?.ts || 0) - (stateObj.receipts[b]?.ts || 0));
       const evictKey = liveKeys[0];
       const evicted = stateObj.receipts[evictKey];
@@ -1721,7 +1721,7 @@ export class SidebarStudioService {
       }
     }
 
-    // 回执不重复存完整 snapshot（体积膨胀），仅保留结果/错误与 rev；读取时补最新 snapshot
+    // Receipts do not duplicate the full snapshot (to avoid bloat); store only result/error and rev, hydrating latest snapshot on read
     const slimResponse = response.ok
       ? { ok: true, rev: response.rev, result: cloneJson(response.result) }
       : { ok: false, rev: response.rev, error: cloneJson(response.error) };
@@ -1896,19 +1896,19 @@ export class SidebarStudioService {
       fs.mkdirSync(sparkRoot, { recursive: true, mode: 0o700 });
       const rootLstat = fs.lstatSync(sparkRoot);
       if (rootLstat.isSymbolicLink()) {
-        return { ok: false, error: makeRpcError(ERROR_CODES.INVALID_ARGUMENT, '拒绝在符号链接根目录内创建沙盒') };
+        return { ok: false, error: makeRpcError(ERROR_CODES.INVALID_ARGUMENT, 'Refusing to create sandbox inside a symlink root directory') };
       }
       realSparkRoot = fs.realpathSync(sparkRoot);
     } catch (err) {
       return {
         ok: false,
-        error: makeRpcError(ERROR_CODES.PERSISTENCE_FAILED, '无法初始化灵感沙盒根目录'),
+        error: makeRpcError(ERROR_CODES.PERSISTENCE_FAILED, 'Unable to initialize Spark sandbox root directory'),
       };
     }
 
     const candidatePath = path.resolve(realSparkRoot, safeName);
     if (!isPathInsideDir(realSparkRoot, candidatePath, false)) {
-      return { ok: false, error: makeRpcError(ERROR_CODES.INVALID_ARGUMENT, '目标路径越界，已拦截') };
+      return { ok: false, error: makeRpcError(ERROR_CODES.INVALID_ARGUMENT, 'Target path escaped boundary and was blocked') };
     }
 
     let created = false;
@@ -1916,14 +1916,14 @@ export class SidebarStudioService {
       if (fs.existsSync(candidatePath)) {
         const lstat = fs.lstatSync(candidatePath);
         if (lstat.isSymbolicLink()) {
-          return { ok: false, error: makeRpcError(ERROR_CODES.INVALID_ARGUMENT, '拒绝操作符号链接目标') };
+          return { ok: false, error: makeRpcError(ERROR_CODES.INVALID_ARGUMENT, 'Refusing to operate on a symlink target') };
         }
         const realExisting = fs.realpathSync(candidatePath);
         if (!isPathInsideDir(realSparkRoot, realExisting, false)) {
-          return { ok: false, error: makeRpcError(ERROR_CODES.INVALID_ARGUMENT, '目标真实路径越出沙盒根目录，已拦截') };
+          return { ok: false, error: makeRpcError(ERROR_CODES.INVALID_ARGUMENT, 'Resolved target path escaped sandbox root and was blocked') };
         }
         if (!lstat.isDirectory()) {
-          return { ok: false, error: makeRpcError(ERROR_CODES.INVALID_ARGUMENT, '同名文件已存在且不是目录') };
+          return { ok: false, error: makeRpcError(ERROR_CODES.INVALID_ARGUMENT, 'A file with the same name already exists and is not a directory') };
         }
         const selectionToken = this._issueSelectionToken(realExisting, safeName);
         return {
@@ -1938,7 +1938,7 @@ export class SidebarStudioService {
       const realCreated = fs.realpathSync(candidatePath);
       if (postLstat.isSymbolicLink() || !isPathInsideDir(realSparkRoot, realCreated, false)) {
         try { fs.rmdirSync(candidatePath); } catch {}
-        return { ok: false, error: makeRpcError(ERROR_CODES.INVALID_ARGUMENT, '创建的目录越出沙盒根目录，已回滚') };
+        return { ok: false, error: makeRpcError(ERROR_CODES.INVALID_ARGUMENT, 'Created directory escaped sandbox root and was rolled back') };
       }
 
       const selectionToken = this._issueSelectionToken(realCreated, safeName);
@@ -1949,7 +1949,7 @@ export class SidebarStudioService {
     } catch (err) {
       return {
         ok: false,
-        error: makeRpcError(ERROR_CODES.PERSISTENCE_FAILED, '创建沙盒目录失败'),
+        error: makeRpcError(ERROR_CODES.PERSISTENCE_FAILED, 'Failed to create sandbox directory'),
       };
     }
   }
@@ -2061,7 +2061,7 @@ export class SidebarStudioService {
       return { ok: false, rev: this._state.rev, error: op.error };
     }
 
-    // 阶段 1：项目级零干扰权限隔离（严格仅写 projectSettingsProvider 4 个项目级 setter，0 次全局权限修改；同目录双栖走非破坏保护；无独立宿主 Project 的 Knowledge/轻量 Spark 走单会话 cascadeConfig 零写入隔离）
+    // Stage 1: Project-level non-intrusive permission isolation (strictly only calls the 4 project-level setters on projectSettingsProvider, 0 global permission writes; shared directories use non-destructive protection; Knowledge / lightweight Spark without a host Project uses zero-write per-cascade cascadeConfig isolation)
     let permRes;
     if (usesPerCascade) {
       if (typeof this.hostAdapter?.recordPerCascadeIsolationAudit === 'function') {
@@ -2174,7 +2174,7 @@ export class SidebarStudioService {
     op.updatedAt = this._now();
     this._saveStateAtomic(this._state);
 
-    // 故障注入点：权限应用后崩溃模拟（便于单测验证崩溃恢复）
+    // Fault injection point: simulate crash after applying permissions (for crash recovery unit tests)
     const faults = this.hostAdapter && typeof this.hostAdapter.getFaults === 'function' ? this.hostAdapter.getFaults() : {};
     if (faults.crashAfter === 'permission-applied') {
       return {
@@ -2189,7 +2189,7 @@ export class SidebarStudioService {
       };
     }
 
-    // 阶段 2：幂等预留隐藏空会话
+    // Stage 2: Idempotently reserve a hidden empty session
     if (!op.cascadeId) {
       if (typeof this.hostAdapter.reserveSession !== 'function') {
         op.status = 'failed';
@@ -2210,7 +2210,7 @@ export class SidebarStudioService {
           effort: op.effort || null,
         });
       } catch {
-        // 预留失败可补交原正文；恢复时继续使用同一宿主幂等键。
+        // Reservation failure allows resubmitting the original body; recovery reuses the same host idempotency key.
         op.status = 'needs-input';
         op.updatedAt = this._now();
         op.error = makeRpcError(ERROR_CODES.CAPABILITY_UNAVAILABLE, 'Host reservation unavailable; resubmit the original message', true);
@@ -2244,7 +2244,7 @@ export class SidebarStudioService {
       };
     }
 
-    // 阶段 3：按幂等键交付首条消息
+    // Stage 3: Deliver the first message with the idempotency key
     op.phase = 'delivering-message';
     op.updatedAt = this._now();
     this._saveStateAtomic(this._state);
@@ -2283,7 +2283,7 @@ export class SidebarStudioService {
         effort: op.effort || null,
       });
     } catch {
-      // 传输抛错不能证明宿主没收到消息，禁止自动重投。
+      // Transport error does not prove the host did not receive the message; never auto-replay.
     }
     this._pendingMessageBodies.delete(opId);
     const deliveryMatches = delivered?.cascadeId === op.cascadeId;
@@ -2329,7 +2329,7 @@ export class SidebarStudioService {
       };
     }
 
-    // 阶段 4：确认交付后，调用纯状态机 complete-chat-first 原子提交归属、条件清草稿与条件切路由
+    // Stage 4: After delivery is confirmed, invoke pure state machine complete-chat-first to atomically commit ownership, conditionally clear draft, and conditionally switch route
     const catalog = this._getRuntimeCatalog();
     const completed = reduce(
       this._state,
@@ -2390,7 +2390,7 @@ export class SidebarStudioService {
       return {
         ok: false,
         rev: this._state.rev,
-        error: makeRpcError(ERROR_CODES.BUSY, 'SidebarStudioService 已释放'),
+        error: makeRpcError(ERROR_CODES.BUSY, 'SidebarStudioService has been disposed'),
       };
     }
 
@@ -2405,7 +2405,7 @@ export class SidebarStudioService {
 
     if (!this._bootDiagnostic) this._expireWslConfirmations();
 
-    // 1. 查询在同一队列中观察已清理的操作状态
+    // 1. Queries observe cleaned operation state within the same serialized queue
     if (action === 'get-state') {
       return this.getState();
     }
@@ -2448,7 +2448,7 @@ export class SidebarStudioService {
       };
     }
 
-    // 2. 旧 v1 三空间与全局权限写入 action 在 v2 服务统一返回版本错误
+    // 2. Legacy v1 three-space and global permission write actions return a version error in v2
     if (LEGACY_V1_UNSUPPORTED_ACTIONS.has(action)) {
       return {
         ok: false,
@@ -2461,7 +2461,7 @@ export class SidebarStudioService {
       };
     }
 
-    // 3. 幂等回执优先检查（同一请求重试先查持久化回执，再做版本校验）
+    // 3. Check idempotency receipts first (retries look up persisted receipt before version checks)
     const requestId = envelope.requestId;
     const fingerprint = requestId
       ? sha256Hex(canonicalStringify({ action, payload: envelope.payload }))
@@ -2490,7 +2490,7 @@ export class SidebarStudioService {
       }
     }
 
-    // 4. 持久化状态写前版本门禁（storeId / baseRev）
+    // 4. Version guard before mutating persisted state (storeId / baseRev)
     const isStateMutatingAction = action !== 'pick-project-directory' && action !== 'create-spark-box' && action !== 'pick-folder' && action !== 'reveal-folder';
     if (isStateMutatingAction) {
       const verErr = this._checkVersionGuard(envelope, { requireStore: true, requireBaseRev: true });
@@ -2502,7 +2502,7 @@ export class SidebarStudioService {
     const payload = envelope.payload || {};
     const catalog = this._getRuntimeCatalog();
 
-    // 5. 纯状态机规约类动作统一提交 helper
+    // 5. Unified commit helper for pure state-machine reduction actions
     const commitPureEvent = (eventObj, extraFacts = {}) => {
       const res = reduce(this._state, eventObj, { catalog, ...extraFacts });
       if (!res.ok) {
@@ -2634,7 +2634,7 @@ export class SidebarStudioService {
 
       case 'set-prefs': {
         const patch = isPlainObject(payload.patch) ? payload.patch : payload;
-        // 严禁在 v2 写入旧版全局权限快照字段
+        // Strictly forbid writing legacy global permission snapshot fields in v2
         if (Object.prototype.hasOwnProperty.call(patch, 'savedCodePermissionSnapshot')) {
           return {
             ok: false,
@@ -2729,7 +2729,7 @@ export class SidebarStudioService {
         }
         const nextState = res.nextState;
         if (!isPlainObject(nextState.projectScopes[scopeRef])) {
-          // 为固定 Knowledge 作用域保留一个槽位；不淘汰仍需人工核对的权限证据。
+          // Reserve one slot for the fixed Knowledge scope; never evict permission evidence still requiring manual reconciliation.
           const maxScopes = LIMITS.MAX_PROJECT_SCOPES - (Object.hasOwn(nextState.projectScopes, KNOWLEDGE_SCOPE_REF) ? 0 : 1);
           if (Object.keys(nextState.projectScopes).length >= maxScopes) {
             const active = new Set(nextState.sparkProjects.map((project) => project.scopeRef));
@@ -2887,7 +2887,7 @@ export class SidebarStudioService {
           }
           files.sort((a, b) => {
             if (a.isDir !== b.isDir) return a.isDir ? -1 : 1;
-            return b.updatedAt - a.updatedAt || a.name.localeCompare(b.name, 'zh-CN');
+            return b.updatedAt - a.updatedAt || a.name.localeCompare(b.name);
           });
           return {
             ok: true,
@@ -2959,7 +2959,7 @@ export class SidebarStudioService {
             snapshot: this._buildSnapshot(),
           };
         }
-        // 在 Buffer.from 前预检 Base64 长度上限、合法字符集与解码大小，防内存放大与畸形编码
+        // Pre-validate Base64 length limit, valid charset, and decoded size before Buffer.from to prevent memory amplification and malformed encoding
         const rawB64 = payload.base64Data.trim();
         if (rawB64.length > MAX_SPARK_IMPORT_BASE64_CHARS) {
           return {
@@ -3187,7 +3187,7 @@ export class SidebarStudioService {
         const opId = randomId('op', 6);
         const now = this._now();
         const nextState = preview.nextState;
-        // 在任何宿主写之前检查容量，避免落盘生成下次无法加载的状态。
+        // Check capacity before any host writes so we never persist a state that cannot be loaded next time.
         nextState.operations[opId] = { status: 'pending', updatedAt: now };
         this._pruneOperations(nextState);
         if (Object.keys(nextState.operations).length > LIMITS.MAX_OPERATIONS) {
@@ -3306,7 +3306,7 @@ export class SidebarStudioService {
           prev.kind !== targetPlacement.kind ||
           (targetPlacement.kind === 'spark' && prev.sparkProjectId !== targetPlacement.sparkProjectId);
 
-        // 跨项目/跨 kind 移入先通过宿主空闲与重绑能力核验；同一 Knowledge 内拖拽/整理子文件夹直接原子提交不阻塞运行态
+        // Cross-project/cross-kind moves require host idle & rebind capability verification; reorganizing subfolders within Knowledge commits atomically without blocking running state
         if (crossProjectMove && this.hostAdapter && typeof this.hostAdapter.validateSessionRebind === 'function') {
           const rebindCheck = await this.hostAdapter.validateSessionRebind({
             cascadeId: cid,
@@ -3650,7 +3650,7 @@ export class SidebarStudioService {
           };
         }
 
-        // 从已提交归属推导目标作用域并核验项目级权限
+        // Derive target scope from committed ownership and verify project-level permissions
         let targetScopeRef = KNOWLEDGE_SCOPE_REF;
         if (assign.placement.kind === 'knowledge') {
           this._ensureKnowledgeScopeRecord(this._state);
@@ -3738,7 +3738,7 @@ export class SidebarStudioService {
         try {
           rebound = await this.hostAdapter.rebindSession({ cascadeId: cid, scopeRef: targetScopeRef, placement: assign.placement });
         } catch {
-          // 不能把未确认的宿主重绑标记为可续聊。
+          // Do not mark an unconfirmed host rebind as ready to continue.
         }
         if (rebound?.ok !== true || rebound.cascadeId !== cid || rebound.scopeRef !== targetScopeRef) {
           this._saveStateAtomic(this._state);
@@ -3759,7 +3759,7 @@ export class SidebarStudioService {
           };
         }
 
-        // 支持重启后对 needs-input 操作补交原消息复用同一操作
+        // Allow resubmitting the original message to reuse a needs-input operation after restart
         if (payload.resumeOperationId !== undefined) {
           const resumeId = payload.resumeOperationId;
           if (!isSafeIdentifier(resumeId)) {
@@ -3803,7 +3803,7 @@ export class SidebarStudioService {
           return { ...execRes, snapshot: this._buildSnapshot() };
         }
 
-        // 常规首发校验：必须在 Chat `/`、校验 navRev & draftRev
+        // Standard first-message checks: must be on Chat `/`, verify navRev & draftRev
         if (payload.navRev !== undefined && payload.navRev !== this._state.navRev) {
           return {
             ok: false,
@@ -3829,7 +3829,7 @@ export class SidebarStudioService {
           };
         }
 
-        // 一次只允许一个未完成的首发占用同一草稿版本
+        // Only one incomplete first-message operation may occupy the same draft revision at a time
         for (const op of Object.values(this._state.operations || {})) {
           if (
             op &&
@@ -3910,7 +3910,7 @@ export class SidebarStudioService {
           updatedAt: now,
         };
 
-        // 等待确认也是初始事务的一部分，不能先落盘一个可直接恢复的 created 状态。
+        // Waiting for confirmation is part of the initial transaction; do not persist a directly resumable created state beforehand.
         const requiresWsl = await this.hostAdapter?.requiresWslConfirmation?.(draft.kind, scopeRef);
         const next = cloneJson(this._state);
         next.operations[opId] = opRecord;
@@ -3994,7 +3994,7 @@ export class SidebarStudioService {
             snapshot: this._buildSnapshot(),
           };
         }
-        // 使用常量时间比较校验一次性 challenge
+        // Verify one-time challenge using constant-time comparison
         const aBuf = Buffer.from(entry.challenge, 'utf8');
         const bBuf = Buffer.from(challenge.trim(), 'utf8');
         if (aBuf.length !== bBuf.length || !crypto.timingSafeEqual(aBuf, bBuf)) {
@@ -4005,10 +4005,10 @@ export class SidebarStudioService {
             snapshot: this._buildSnapshot(),
           };
         }
-        // 一次性消耗 challenge
+        // Consume one-time challenge
         this._wslChallenges.delete(opId);
 
-        // 恢复前重新核验 WSL 环境与必需策略
+        // Re-verify WSL environment and required policies before resuming
         let wslOk = false;
         try { wslOk = await this.hostAdapter?.verifyWslEnvironment?.(op.scopeRef) === true; } catch {}
         if (!wslOk) {
@@ -4067,14 +4067,14 @@ export class SidebarStudioService {
         return {
           ok: false,
           rev: this._state.rev,
-          error: makeRpcError(ERROR_CODES.INVALID_ARGUMENT, `未知的 sidebar-studio 动作: ${action}`),
+          error: makeRpcError(ERROR_CODES.INVALID_ARGUMENT, `Unknown sidebar-studio action: ${action}`),
           snapshot: this._buildSnapshot(),
         };
     }
   }
 
   /**
-   * 统一 v2 RPC 入口：接收 `{ version: 2, action, requestId, storeId, baseRev, payload }`。
+   * Unified v2 RPC entry point: accepts `{ version: 2, action, requestId, storeId, baseRev, payload }`.
    */
   async handleRpc(request) {
     if (!isPlainObject(request)) {
@@ -4089,7 +4089,7 @@ export class SidebarStudioService {
   }
 
   /**
-   * 兼容 sidecars/daemon/main.mjs 的分派入口（同时支持平铺参数与 v2 RpcRequest envelope）。
+   * Compatibility dispatch entry point for sidecars/daemon/main.mjs (supports both flat params and v2 RpcRequest envelopes).
    */
   async handleRpcAction(action, params = {}) {
     const normalized = this._normalizeEnvelope(action, params);
@@ -4127,7 +4127,7 @@ export class SidebarStudioService {
       };
     }
     const rawTitle = typeof params?.title === 'string' ? params.title.trim() : '';
-    const safeTitle = (rawTitle || '选择工作区文件夹').replace(/[\u0000-\u001f]/g, '').slice(0, 120);
+    const safeTitle = (rawTitle || 'Choose Workspace Folder').replace(/[\u0000-\u001f]/g, '').slice(0, 120);
     let safeInitDir = '';
     if (typeof params?.initialDir === 'string' && params.initialDir.trim() && !params.initialDir.includes('\0') && !isBlockedUncPath(params.initialDir)) {
       const candidateInitDir = path.resolve(params.initialDir.trim());
@@ -4180,20 +4180,27 @@ export class SidebarStudioService {
         if (zErr && zErr.code === 1) {
           return { ok: true, canceled: true, path: null };
         }
-        const { stdout } = await this._execFile(
-          'kdialog',
-          ['--getexistingdirectory', safeInitDir || os.homedir(), '--title', safeTitle],
-          { env, timeout: 120000 }
-        );
-        const picked = String(stdout || '').trim();
-        return picked ? { ok: true, canceled: false, path: picked } : { ok: true, canceled: true, path: null };
+        try {
+          const { stdout } = await this._execFile(
+            'kdialog',
+            ['--getexistingdirectory', safeInitDir || os.homedir(), '--title', safeTitle],
+            { env, timeout: 120000 }
+          );
+          const picked = String(stdout || '').trim();
+          return picked ? { ok: true, canceled: false, path: picked } : { ok: true, canceled: true, path: null };
+        } catch (kErr) {
+          if (kErr && kErr.code === 1) {
+            return { ok: true, canceled: true, path: null };
+          }
+          throw kErr;
+        }
       }
     } catch (err) {
       const msg = String(err?.stderr || err?.message || '');
       if (msg.includes('-128') || msg.toLowerCase().includes('user canceled')) {
         return { ok: true, canceled: true, path: null };
       }
-      return { ok: false, error: `打开目录选择框失败: ${err?.message || err}` };
+      return { ok: false, error: `Failed to open folder picker: ${err?.message || err}` };
     }
   }
 
@@ -4206,22 +4213,22 @@ export class SidebarStudioService {
     }
     const rawPath = params?.path;
     if (typeof rawPath !== 'string' || !rawPath.trim() || rawPath.length > MAX_PATH_LEN || rawPath.includes('\0') || isBlockedUncPath(rawPath)) {
-      return { ok: false, error: '无效的目录路径' };
+      return { ok: false, error: 'Invalid directory path' };
     }
 
     const candidatePath = path.resolve(rawPath.trim());
     if (isBlockedUncPath(candidatePath)) {
-      return { ok: false, error: '无效的目录路径' };
+      return { ok: false, error: 'Invalid directory path' };
     }
 
     let realPath;
     try {
       realPath = fs.realpathSync(candidatePath);
       if (isBlockedUncPath(realPath) || !fs.statSync(realPath).isDirectory()) {
-        return { ok: false, error: '目标路径不是有效目录' };
+        return { ok: false, error: 'Target path is not a valid directory' };
       }
     } catch {
-      return { ok: false, error: '目标目录不存在或无法访问' };
+      return { ok: false, error: 'Target directory does not exist or is inaccessible' };
     }
 
     try {
@@ -4238,17 +4245,17 @@ export class SidebarStudioService {
       }
       return { ok: true, path: realPath };
     } catch (err) {
-      return { ok: false, error: `打开目录失败: ${err?.message || err}` };
+      return { ok: false, error: `Failed to reveal folder: ${err?.message || err}` };
     }
   }
 
   async dispose() {
     this._disposed = true;
-    // 排空单写者队列后再释放锁与沙盒临时目录
+    // Drain the single-writer queue before releasing the lock and sandbox temp dir
     try {
       await this._queue;
     } catch {
-      // 忽略已排空任务的尾部异常
+      // Ignore trailing errors from drained tasks
     }
     this._selectionTokens.clear();
     this._wslChallenges.clear();
@@ -4260,7 +4267,7 @@ export class SidebarStudioService {
       try {
         fs.rmSync(owned, { recursive: true, force: true });
       } catch {
-        // 忽略临时目录清理异常
+        // Ignore temp directory cleanup errors
       }
     }
   }

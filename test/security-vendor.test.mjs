@@ -296,45 +296,41 @@ function createSidebarClientHarness({
 test('P1 sidebar-client: off-mode module self-protection mounts 0 listeners/timers/hostOps, lazy-activates on sync("on"), and symmetrically unbinds on sync("off")', async () => {
   const h = createSidebarClientHarness();
 
-  // 1) 加载后未 sync({ sidebarStudio: 'on' }) 前：零监听、零定时器、零订阅、零 __agPrismSidebarHostOps、零 sendGuard
-  assert.equal(h.win.__agPrismSidebarHostOps, undefined, '关闭态绝不得提前暴露 window.__agPrismSidebarHostOps');
-  assert.equal(h.getCounts().docListeners, 0, '关闭态不得提前挂载 8 个 document 监听');
-  assert.equal(h.getCounts().winListeners, 0, '关闭态不得提前挂载 window resize 监听');
-  assert.equal(h.getCounts().activeTimers, 0, '关闭态不得启动 scheduleDiscovery 轮询定时器');
-  assert.equal(h.getCounts().storeSubCount, 0, '关闭态不得订阅 host.store');
-  assert.equal(h.getCounts().routerSubCount, 0, '关闭态不得订阅 host.router');
-  assert.equal(h.fakeLsWrapper.sendUserCascadeMessage, h.origWrapperSend, '关闭态不得 patch sendUserCascadeMessage');
-  assert.equal(h.fakeLsClient.sendUserCascadeMessage, h.origRawSend, '关闭态不得 patch rawLs.sendUserCascadeMessage');
+  assert.equal(h.win.__agPrismSidebarHostOps, undefined);
+  assert.equal(h.getCounts().docListeners, 0);
+  assert.equal(h.getCounts().winListeners, 0);
+  assert.equal(h.getCounts().activeTimers, 0);
+  assert.equal(h.getCounts().storeSubCount, 0);
+  assert.equal(h.getCounts().routerSubCount, 0);
+  assert.equal(h.fakeLsWrapper.sendUserCascadeMessage, h.origWrapperSend);
+  assert.equal(h.fakeLsClient.sendUserCascadeMessage, h.origRawSend);
   assert.equal(h.win.__agPrismSidebar.getState().listenersBound, false);
 
-  // 2) sync({ sidebarStudio: 'on' }) 切入开启态 -> 懒挂载全部监听、注册 hostOps、安装 sendGuard、订阅 store/router
   h.win.__agPrismSidebar.sync({ sidebarStudio: 'on' });
   await Promise.resolve();
-  assert.ok(h.win.__agPrismSidebarHostOps, '开启态应注册 window.__agPrismSidebarHostOps');
-  assert.equal(h.getCounts().docListeners, 8, '开启态应挂载 8 个 document 监听');
-  assert.equal(h.getCounts().winListeners, 1, '开启态应挂载 1 个 window resize 监听');
-  assert.equal(h.getCounts().storeSubCount, 1, '开启态应订阅 host.store');
-  assert.equal(h.getCounts().routerSubCount, 1, '开启态应订阅 host.router');
-  assert.notEqual(h.fakeLsWrapper.sendUserCascadeMessage, h.origWrapperSend, '开启态应挂载 wrapper sendGuard');
-  assert.notEqual(h.fakeLsClient.sendUserCascadeMessage, h.origRawSend, '开启态应挂载 rawLs sendGuard');
+  assert.ok(h.win.__agPrismSidebarHostOps);
+  assert.equal(h.getCounts().docListeners, 8);
+  assert.equal(h.getCounts().winListeners, 1);
+  assert.equal(h.getCounts().storeSubCount, 1);
+  assert.equal(h.getCounts().routerSubCount, 1);
+  assert.notEqual(h.fakeLsWrapper.sendUserCascadeMessage, h.origWrapperSend);
+  assert.notEqual(h.fakeLsClient.sendUserCascadeMessage, h.origRawSend);
 
-  // 重复 sync('on') 必须幂等，不得重复注册监听或订阅
   h.win.__agPrismSidebar.sync({ sidebarStudio: 'on' });
   assert.equal(h.getCounts().docListeners, 8);
   assert.equal(h.getCounts().winListeners, 1);
   assert.equal(h.getCounts().storeSubCount, 1);
   assert.equal(h.getCounts().routerSubCount, 1);
 
-  // 3) sync({ sidebarStudio: 'off' }) 切出关闭态 -> 对称清理全部监听、定时器、订阅、hostOps 与 sendGuard
   h.win.__agPrismSidebar.sync({ sidebarStudio: 'off' });
-  assert.equal(h.win.__agPrismSidebarHostOps, undefined, '切回 off 必须注销 window.__agPrismSidebarHostOps');
-  assert.equal(h.getCounts().docListeners, 0, '切回 off 必须移除全部 8 个 document 监听');
-  assert.equal(h.getCounts().winListeners, 0, '切回 off 必须移除 window resize 监听');
-  assert.equal(h.getCounts().activeTimers, 0, '切回 off 必须清理 probeTimer/syncTimer');
-  assert.equal(h.getCounts().storeUnsubCount, 1, '切回 off 必须执行 host.unsubStore');
-  assert.equal(h.getCounts().routerUnsubCount, 1, '切回 off 必须执行 host.unsubRouter');
-  assert.equal(h.fakeLsWrapper.sendUserCascadeMessage, h.origWrapperSend, '切回 off 必须卸载 wrapper sendGuard');
-  assert.equal(h.fakeLsClient.sendUserCascadeMessage, h.origRawSend, '切回 off 必须卸载 rawLs sendGuard');
+  assert.equal(h.win.__agPrismSidebarHostOps, undefined);
+  assert.equal(h.getCounts().docListeners, 0);
+  assert.equal(h.getCounts().winListeners, 0);
+  assert.equal(h.getCounts().activeTimers, 0);
+  assert.equal(h.getCounts().storeUnsubCount, 1);
+  assert.equal(h.getCounts().routerUnsubCount, 1);
+  assert.equal(h.fakeLsWrapper.sendUserCascadeMessage, h.origWrapperSend);
+  assert.equal(h.fakeLsClient.sendUserCascadeMessage, h.origRawSend);
   assert.equal(h.win.__agPrismSidebar.getState().listenersBound, false);
 
   h.win.__agPrismSidebar.destroy();
@@ -355,7 +351,6 @@ test('P1 sidebar-client: Chat send guard & reserveSession enforce strict fail-cl
   h.win.__agPrismSidebar.sync({ sidebarStudio: 'on' });
   await new Promise((r) => setTimeout(r, 10));
 
-  // 1) Chat 会话发送时若 applyChatIsolationToSendArg 内部抛错（如恶意/损坏 getter），必须 fail-closed 抛错拒发，绝不调用原始 orig
   const brokenChatReq = { cascadeId: 'chat-iso-1' };
   Object.defineProperty(brokenChatReq, 'cascadeConfig', {
     enumerable: true,
@@ -366,30 +361,26 @@ test('P1 sidebar-client: Chat send guard & reserveSession enforce strict fail-cl
 
   assert.throws(
     () => h.fakeLsWrapper.sendUserCascadeMessage(brokenChatReq),
-    /Chat isolation failed \(fail-closed\)/,
-    'wrapper sendGuard 对 Chat 会话隔离异常必须 fail-closed 抛错'
+    /Chat isolation failed \(fail-closed\)/
   );
-  assert.equal(h.wrapperSendCalls.length, 0, 'fail-closed 拒发绝不得调用原始 lsWrapper.sendUserCascadeMessage');
+  assert.equal(h.wrapperSendCalls.length, 0);
 
   assert.throws(
     () => h.fakeLsClient.sendUserCascadeMessage(brokenChatReq),
-    /Chat isolation failed \(fail-closed\)/,
-    'rawLs sendGuard 对 Chat 会话隔离异常必须 fail-closed 抛错'
+    /Chat isolation failed \(fail-closed\)/
   );
-  assert.equal(h.rawSendCalls.length, 0, 'fail-closed 拒发绝不得调用原始 rawLs.sendUserCascadeMessage');
+  assert.equal(h.rawSendCalls.length, 0);
 
-  // 2) Code 会话不受影响，原样零改动放行（包括未在 assignments 中的普通会话与原型键名）
   const codeReq = { cascadeId: 'code-session-ok', cascadeConfig: { plannerConfig: { planModel: 1532 } } };
   await h.fakeLsWrapper.sendUserCascadeMessage(codeReq);
   assert.equal(h.wrapperSendCalls.length, 1);
-  assert.equal(h.wrapperSendCalls[0], codeReq, 'Code 会话必须原样引用透传');
+  assert.equal(h.wrapperSendCalls[0], codeReq);
 
   const protoNameReq = { cascadeId: 'toString', cascadeConfig: {} };
   await h.fakeLsWrapper.sendUserCascadeMessage(protoNameReq);
   assert.equal(h.wrapperSendCalls.length, 2);
   assert.equal(h.wrapperSendCalls[1], protoNameReq);
 
-  // 3) reserveSession：带 customAgentSpec 的 3 种创建变体均失败后必须 fail-closed 报错拒绝，严禁第 4 次以裸 basePayload 创建会话
   const resv = await h.win.__agPrismSidebarHostOps.reserveSession({
     idempotencyKey: 'fc-reserve-1',
     scopeRef: 'scope-knowledge-default',
@@ -397,12 +388,11 @@ test('P1 sidebar-client: Chat send guard & reserveSession enforce strict fail-cl
     title: 'Fail Closed Test',
     dirPath: '',
   });
-  assert.equal(resv.ok, false, '全部隔离变体失败后 reserveSession 必须拒绝');
+  assert.equal(resv.ok, false);
   assert.match(resv.error, /chat-isolation-spec-rejected/);
-  assert.equal(h.startCalls.length, 3, '严禁降级发起第 4 次无 customAgentSpec 的裸 startCascade');
+  assert.equal(h.startCalls.length, 3);
   assert.ok(
-    h.startCalls.every((payload) => Boolean(payload && payload.customAgentSpec)),
-    '所有尝试发起的 Chat startCascade 请求必须携带 customAgentSpec'
+    h.startCalls.every((payload) => Boolean(payload && payload.customAgentSpec))
   );
   assert.equal(h.win.__agPrismSidebarLastStartStage, 'rejected-fail-closed');
 
@@ -436,16 +426,14 @@ test('P1 sidebar-client: bounded FIFO cap (<= 256) and off/destroy clear for res
   }
 
   const stPeak = h.win.__agPrismSidebar.getState();
-  assert.equal(stPeak.mapSizes.reserved, 256, 'host.reservedMap 必须严格封顶 256 条');
-  assert.equal(stPeak.mapSizes.delivered, 256, 'host.deliveredMap 必须严格封顶 256 条');
+  assert.equal(stPeak.mapSizes.reserved, 256);
+  assert.equal(stPeak.mapSizes.delivered, 256);
 
-  // 最早写入的第 0 条已被 FIFO 淘汰，最新的第 269 条仍命中幂等缓存
   const chkOld = await ops.checkDeliveryStatus({ idempotencyKey: 'deliv-key-0', cascadeId: 'any' });
   const chkNew = await ops.checkDeliveryStatus({ idempotencyKey: 'deliv-key-269', cascadeId: 'any' });
-  assert.equal(chkOld.delivered, false, '超出 256 上限的最旧条目应被 FIFO 淘汰');
-  assert.equal(chkNew.delivered, true, '最新条目应保留在容量窗口内');
+  assert.equal(chkOld.delivered, false);
+  assert.equal(chkNew.delivered, true);
 
-  // 切 off 必须立即清空全部有界 Map
   h.win.__agPrismSidebar.sync({ sidebarStudio: 'off' });
   const stOff = h.win.__agPrismSidebar.getState();
   assert.equal(stOff.mapSizes.reserved, 0);
@@ -456,7 +444,6 @@ test('P1 sidebar-client: bounded FIFO cap (<= 256) and off/destroy clear for res
 });
 
 test('P1 translator-service: blocks IPv6 SSRF variants, tightens keyless ULA regex, and never leaks 3rd-party API keys to api.openai.com', async () => {
-  // 1) IPv6 SSRF 变体全覆盖：IPv4-mapped / IPv4-compatible / NAT64 / fe80::/10 / fd00:ec2::254 / ::
   const blockedUrls = [
     'http://[::ffff:169.254.169.254]/latest/meta-data/',
     'http://[::ffff:a9fe:a9fe]/latest/meta-data/',
@@ -483,13 +470,11 @@ test('P1 translator-service: blocks IPv6 SSRF variants, tightens keyless ULA reg
 
   for (const url of blockedUrls) {
     const check = validateOpenAiBaseUrl(url);
-    assert.equal(check.ok, false, `validateOpenAiBaseUrl 必须拦截危险地址: ${url}`);
-    assert.equal(isKeylessAllowedEndpoint(url), false, `isKeylessAllowedEndpoint 必须拒绝危险地址: ${url}`);
-    // 兼容既有 normalizeOpenAiBaseUrl 单测契约
+    assert.equal(check.ok, false);
+    assert.equal(isKeylessAllowedEndpoint(url), false);
     assert.equal(normalizeOpenAiBaseUrl(url), 'https://api.openai.com/v1');
   }
 
-  // 2) 合法本地大模型与普通内网地址保留放行
   const allowedLocalUrls = [
     'http://127.0.0.1:11434/v1',
     'http://[::1]:8000/v1',
@@ -502,17 +487,15 @@ test('P1 translator-service: blocks IPv6 SSRF variants, tightens keyless ULA reg
     'http://[fc00::1]:11434/v1',
   ];
   for (const url of allowedLocalUrls) {
-    assert.equal(validateOpenAiBaseUrl(url).ok, true, `合法本地/内网端点不应被误杀: ${url}`);
-    assert.equal(isKeylessAllowedEndpoint(url), true, `合法本地/内网端点应允许免 Key: ${url}`);
+    assert.equal(validateOpenAiBaseUrl(url).ok, true);
+    assert.equal(isKeylessAllowedEndpoint(url), true);
   }
 
-  // 3) isKeylessAllowedEndpoint 公网 fc/fd 域名前缀禁止误放行
   assert.equal(isKeylessAllowedEndpoint('https://fc2.com/v1'), false);
   assert.equal(isKeylessAllowedEndpoint('https://fd-evil.com/v1'), false);
   assert.equal(isKeylessAllowedEndpoint('https://fc00.example.com/v1'), false);
   assert.equal(isKeylessAllowedEndpoint('https://fd99.example.org/v1'), false);
 
-  // 4) 防第三方 Key 静默泄漏至 api.openai.com
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prism-sec-trans-'));
   try {
     const fetchCalls = [];
@@ -524,7 +507,6 @@ test('P1 translator-service: blocks IPv6 SSRF variants, tightens keyless ULA reg
     const svc = new ThoughtTranslatorService({ configDir: tmpDir, fetchImpl: spyFetch });
     const thirdPartyKey = 'sk-thirdparty-secret-99887766';
 
-    // 4a) 直接传被拦截的 baseUrl + 第三方 Key 给 fetchModels / testConnection
     const fmRes = await svc.fetchModels({ baseUrl: 'http://[::a9fe:a9fe]/v1', apiKey: thirdPartyKey });
     assert.equal(fmRes.ok, false);
     assert.match(fmRes.error, /Blocked Base URL/);
@@ -537,7 +519,6 @@ test('P1 translator-service: blocks IPv6 SSRF variants, tightens keyless ULA reg
     assert.equal(tcRes.ok, false);
     assert.match(tcRes.error, /Blocked Base URL/);
 
-    // 4b) 通过 saveConfig 保存含被拦截 URL + 第三方 Key 的 profile，再执行翻译与跨重启加载，均绝不发往 api.openai.com
     svc.saveConfig({
       activeProfileId: 'evil-ssrf',
       profiles: [
@@ -557,7 +538,6 @@ test('P1 translator-service: blocks IPv6 SSRF variants, tightens keyless ULA reg
     assert.equal(trRes.ok, false);
     assert.match(trRes.error, /Blocked Base URL/);
 
-    // 模拟重启重新从磁盘加载该配置，同样必须拒绝而非落盘成 api.openai.com
     const svcReloaded = new ThoughtTranslatorService({ configDir: tmpDir, fetchImpl: spyFetch });
     const trReloaded = await svcReloaded.translateThought({
       text: 'Reloaded profile with blocked baseUrl must stay fail-closed without hitting OpenAI.',
@@ -565,9 +545,8 @@ test('P1 translator-service: blocks IPv6 SSRF variants, tightens keyless ULA reg
     });
     assert.equal(trReloaded.ok, false);
     assert.match(trReloaded.error, /Blocked Base URL/);
-    assert.equal(fetchCalls.length, 0, '任何被拦截 URL 场景下 fetchImpl 必须为 0 次调用，绝不把第三方 Key 发往 api.openai.com');
+    assert.equal(fetchCalls.length, 0);
 
-    // 4c) 留空 baseUrl 时明确使用默认 OpenAI 端点（回归兼容）
     svcReloaded.saveConfig({
       activeProfileId: 'default-openai',
       profiles: [{ id: 'default-openai', name: 'Default OpenAI', baseUrl: '', apiKey: thirdPartyKey, model: 'gpt-4o-mini' }],
@@ -606,7 +585,6 @@ test('P2 live-host-adapter: rejects __proto__/constructor/prototype cascadeId an
 test('P2 pulse-dashboard: store LRU preserves processing background sessions & bounds cachedSession; trajectory-reader drops stale 0-byte zombies; usage & background-statistics cap caches and surface diagnostics', async () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prism-sec-pulse-'));
   try {
-    // 1) MetricsStore: LRU 淘汰跳过活跃后台处理态会话，且 cachedSession 复用 32 条上限淘汰
     const mkGuid = (n) => `10000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
     const bgId = mkGuid(0);
     const fakeClient = {
@@ -645,29 +623,26 @@ test('P2 pulse-dashboard: store LRU preserves processing background sessions & b
       background: fakeBackground,
       transcripts: null,
     });
-    // 放入一个活跃后台处理态会话
     store.sessions.set(bgId, { data: null, backgroundOnly: true, pending: null, updatedAt: 0 });
     for (let i = 1; i <= 40; i++) {
       await store.session(mkGuid(i), true);
     }
-    assert.equal(store.sessions.has(bgId), true, 'LRU 淘汰必须跳过活跃后台处理态会话');
-    assert.ok(store.sessions.size <= 32, `session() 后 sessions.size 必须 <= 32，实测 ${store.sessions.size}`);
+    assert.equal(store.sessions.has(bgId), true);
+    assert.ok(store.sessions.size <= 32);
 
-    // cachedSession() 同样复用上限淘汰（非后台会话不突破 32 上限）
     store.sessions.clear();
     for (let i = 100; i < 145; i++) {
       await store.cachedSession(mkGuid(i));
     }
-    assert.ok(store.sessions.size <= 32, `cachedSession() 后 sessions.size 必须 <= 32，实测 ${store.sessions.size}`);
+    assert.ok(store.sessions.size <= 32);
 
-    // 2) TrajectoryReader.read(): 调用方 isCurrent() 变 false 中止时清理 0 字节僵尸条目
     let stillCurrent = true;
     const reader = new TrajectoryReader({
       now: () => Date.now(),
       discover: async () => ({ pid: 1, port: 4321, csrf: 'tok' }),
       call: async (method) => {
         if (method === 'GetAllCascadeTrajectories') {
-          stillCurrent = false; // 模拟中途调用方失活（未触发 reset）
+          stillCurrent = false;
           return { trajectorySummaries: { [bgId]: { stepCount: 1, status: 'IDLE', lastModifiedTime: '2026-11-20T00:00:00Z' } } };
         }
         return { steps: [], generatorMetadata: [] };
@@ -675,28 +650,26 @@ test('P2 pulse-dashboard: store LRU preserves processing background sessions & b
     });
     await assert.rejects(
       () => reader.read(bgId, { isCurrent: () => stillCurrent }),
-      /后台已重新连接/
+      /Backend reconnected/
     );
-    assert.equal(reader.entries.has(bgId), false, 'isCurrent() 变 false 中止后不得在 entries 中残留 0 字节僵尸条目');
+    assert.equal(reader.entries.has(bgId), false);
 
-    // 3) UsageLedger.caches & diskSummaryRetries 容量上限 <= 64 且 DesktopUsage.dispose() 同步置空 ledger._cache
     const ledger = new UsageLedger(path.join(tmpDir, 'usage-v1'));
     for (let i = 0; i < 80; i++) {
       ledger.cache = { key: `k:${i}`, revision: i, value: { totalTokens: i } };
       ledger.diskSummaryRetry = { key: `r:${i}`, at: Date.now() + 30000 };
     }
-    assert.equal(ledger.caches.size, 64, 'UsageLedger.caches 必须封顶 64 条');
-    assert.equal(ledger.diskSummaryRetries.size, 64, 'UsageLedger.diskSummaryRetries 必须封顶 64 条');
+    assert.equal(ledger.caches.size, 64);
+    assert.equal(ledger.diskSummaryRetries.size, 64);
     assert.ok(ledger._cache !== null);
 
     const desktopUsage = new DesktopUsage(store, ledger);
     desktopUsage.dispose();
-    assert.equal(ledger._cache, null, 'DesktopUsage.dispose() 必须同步置空 ledger._cache');
-    assert.equal(ledger._diskSummaryRetry, null, 'DesktopUsage.dispose() 必须同步置空 ledger._diskSummaryRetry');
+    assert.equal(ledger._cache, null);
+    assert.equal(ledger._diskSummaryRetry, null);
     assert.equal(ledger.caches.size, 0);
     assert.equal(ledger.diskSummaryRetries.size, 0);
 
-    // 4) BackgroundStatistics 识别 Worker OOM 并暴露可诊断提示（worker-oom）
     const fakeWorker = new EventEmitter();
     fakeWorker.terminate = async () => {};
     const bg = new BackgroundStatistics({

@@ -93,7 +93,7 @@ jobs:
               printf 'Release %s of Obsidian Prism. See CHANGELOG.md for details.\n\n' "${TAG_NAME}"
             fi
             cat <<'EOF'
-          ### Standalone Installers / 独立安装包
+          ### Standalone Installers
           - **Windows (`x64`)**: `obsidian-prism-installer.exe`
           - **macOS (`Universal: Apple Silicon + Intel`)**: `Obsidian-Prism-macOS-universal.dmg`
           - **Linux (`Portable Archive`)**: `obsidian-prism-linux-portable.tar.gz`

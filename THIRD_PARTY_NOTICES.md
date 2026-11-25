@@ -11,6 +11,8 @@
 
 **Obsidian Prism** (`https://github.com/RMvdesi/obsidian-prism`, Copyright (C) 2026 RMvdesi) as a combined work and all original modules authored for this repository are licensed under the **GNU General Public License v3.0 (`GPL-3.0-only`)**, subject to the attribution preservation and non-endorsement conditions in [`LICENSE`](./LICENSE) and [`NOTICE`](./NOTICE).
 
+> **Fork Modification Notice (GPL-3.0 Section 5(a))**: Modified on `2026-11-25` in [`omarallsharkawy/obsidian-prism`](https://github.com/omarallsharkawy/obsidian-prism) to deliver a bilingual English (`en`) & Arabic (`ar`, RTL) edition. All upstream licenses, copyright notices, and attributions below are preserved in full.
+
 Any derivative work or modified redistribution MUST remain open-source under **GPL-3.0** and preserve full attribution to **RMvdesi / Obsidian Prism** as well as the upstream notices below.
 
 ---
@@ -34,7 +36,7 @@ Any derivative work or modified redistribution MUST remain open-source under **G
 
 ### 1.3 `LLYSH-HANNARI/antigravity-Codex-Claude-effort-slider`
 - **Repository**: <https://github.com/LLYSH-HANNARI/antigravity-Codex-Claude-effort-slider>
-- **Copyright**: `Copyright (c) 2026 月上寒 (LLYSH-HANNARI)`
+- **Copyright**: `Copyright (c) 2026 Yueshanghan (LLYSH-HANNARI)`
 - **Original License**: MIT License (compatible with `GPL-3.0-only`)
 - **Scope in Obsidian Prism**: Absorbed in `vendor/effort-slider/` for interactive reasoning effort slider inside the model selector menu, enhanced with smart coexistence yielding and 120ms MutationObserver throttling.
 
@@ -43,7 +45,7 @@ Any derivative work or modified redistribution MUST remain open-source under **G
 - **Upstream Baseline**: `v3.3.63` (Author: `yiheng8023`)
 - **Copyright**: `Copyright (c) 2026 Antigravity Chinese Localization Contributors`
 - **Original License**: MIT License (compatible with `GPL-3.0-only`)
-- **Scope in Obsidian Prism**: Upstream `zh-CN` dictionary source (`vendor/host-i18n/zh-CN.json`) and DOM translation matching pattern reference; re-architected cleanly in `vendor/host-i18n/host-i18n-runtime.js` (Zero-ASAR pure CDP Channel 4 on-demand localization) and `vendor/host-i18n/swarm-i18n-runtime.js` + `vendor/host-i18n/swarm-zh-CN.json` (zero-Ch1-byte Swarm OOPIF `plugin://swarm--swarm_board-*` on-demand localization), featuring universal 4-layer auto-yield (explicitly yielding to `yiheng8023` `__AGY_SWARM_I18N__` / `[data-agy-i18n]`, `Antigravity-Hans`, `3169657175`, `renkeshui`, `Zero-Touch`, and generic localization markers), ping-pong conflict circuit breaker, and `WeakMap`-backed lossless `destroy()`.
+- **Scope in Obsidian Prism**: Upstream dictionary structure and DOM translation matching patterns adapted for Arabic (`vendor/host-i18n/ar.json`); re-architected cleanly in `vendor/host-i18n/host-i18n-runtime.js` (Zero-ASAR pure CDP Channel 4 on-demand localization) and `vendor/host-i18n/swarm-i18n-runtime.js` + `vendor/host-i18n/swarm-ar.json` (zero-Ch1-byte Swarm OOPIF `plugin://swarm--swarm_board-*` on-demand localization), featuring universal 4-layer auto-yield (explicitly yielding to `yiheng8023` `__AGY_SWARM_I18N__` / `[data-agy-i18n]`, `Antigravity-Hans`, `3169657175`, `renkeshui`, `Zero-Touch`, and generic localization markers), ping-pong conflict circuit breaker, and `WeakMap`-backed lossless `destroy()`.
 
 ---
 
@@ -82,7 +84,7 @@ MIT License
 
 Copyright (c) 2026 0DNANCY (agy-claude-style)
 Copyright (c) 2026 AG Pulse contributors (antigrative-dashboard)
-Copyright (c) 2026 月上寒 / LLYSH-HANNARI (antigravity-Codex-Claude-effort-slider)
+Copyright (c) 2026 Yueshanghan / LLYSH-HANNARI (antigravity-Codex-Claude-effort-slider)
 Copyright (c) 2026 Antigravity Chinese Localization Contributors (yiheng8023/antigravity-chinese)
 Copyright (c) 2026 chimney / @wp3171216237 (dsh-TUI / Deepy mascot reference)
 

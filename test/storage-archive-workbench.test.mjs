@@ -17,9 +17,8 @@ const settingsPanel = require(path.join(ROOT, 'settings-panel.js'));
 const i18nLocales = require(path.join(ROOT, 'i18n-locales.js'));
 const i18nCore = require(path.join(ROOT, 'i18n-core.js'));
 
-const SUPPORTED_8 = ['zh-CN', 'zh-TW', 'en', 'ja', 'ko', 'es', 'fr', 'de'];
-const NON_CJK_4 = ['en', 'es', 'fr', 'de'];
-const CJK_RE = /[\u4e00-\u9fff\u3400-\u4dbf]/;
+const SUPPORTED_2 = ['en', 'ar'];
+const CJK_RE = /[\u4e00-\u9fff\u3400-\u4dbf\u3000-\u303f\uff00-\uffef]/;
 
 function makeTempDir(prefix) {
   return fs.mkdtempSync(path.join(os.tmpdir(), prefix));
@@ -32,10 +31,6 @@ function writeSizedFile(filePath, bytes, mtimeMs) {
     const t = mtimeMs / 1000;
     fs.utimesSync(filePath, t, t);
   }
-}
-
-function stripAllowedProperNouns(txt) {
-  return String(txt || '').replace(/简体中文|繁體中文|日本語|한국어|月上寒/g, '');
 }
 
 function createMiniDom() {
@@ -221,7 +216,7 @@ function createMiniDom() {
   return { doc, makeEl };
 }
 
-test('conversation-archive: topConsumers Top-5 sort, strong secret redaction (ghp_/?token=/user:pass@/xai-/AIza/Bearer), and 8-locale report with 0 CJK leak', () => {
+test('conversation-archive: topConsumers Top-5 sort, strong secret redaction (ghp_/?token=/user:pass@/xai-/AIza/Bearer), and bilingual en/ar report with 0 CJK leak', () => {
   // 1) Direct sanitizeTitleForReport redaction matrix
   const samples = [
     ['OpenAI sk-secret1234567890abcd done', 'sk-secret'],
@@ -309,26 +304,24 @@ test('conversation-archive: topConsumers Top-5 sort, strong secret redaction (gh
     assert.equal(scan.archivableOldMainCount, 1);
     assert.equal(scan.archivableOldMainMb, 5.5);
 
-    // 3) 8-language parity, zero yue dictionary, fallback to en (NOT zh-CN), 0 CJK leak in en/es/fr/de
-    assert.deepEqual(arch.WORKBENCH_SUPPORTED_LANGS, SUPPORTED_8);
-    assert.equal(arch.WORKBENCH_SUPPORTED_LANGS.includes('yue'), false);
-    assert.equal(arch.normalizeWorkbenchLang('yue'), 'zh-CN');
+    // 3) Bilingual en/ar parity, fallback to en, 0 CJK leak across all supported locales
+    assert.deepEqual(arch.WORKBENCH_SUPPORTED_LANGS, SUPPORTED_2);
+    assert.equal(arch.normalizeWorkbenchLang('ar-SA'), 'ar');
+    assert.equal(arch.normalizeWorkbenchLang('arabic'), 'ar');
     assert.equal(arch.normalizeWorkbenchLang('pt-BR'), 'en');
     assert.equal(arch.normalizeWorkbenchLang('unknown-xx'), 'en');
 
-    for (const lang of SUPPORTED_8) {
+    for (const lang of SUPPORTED_2) {
       const labels = arch.getStorageWorkbenchLabels(lang);
       assert.ok(labels.summary && labels.archiveOldMain && labels.restoreBtn && labels.refreshBtn && labels.oldMainReadyTpl);
       const txt = arch.formatStorageDetailReport({ ...scan, batches: [] }, lang);
       assert.ok(txt.includes('Legacy Main Session'), `Detail report (${lang}) should include top consumer title`);
       assert.ok(txt.includes(labels.topTitle), `Detail report (${lang}) should include localized Top-5 heading`);
       assert.ok(txt.includes('0.5 MB'), `Detail report (${lang}) should include WAL size`);
-      if (NON_CJK_4.includes(lang)) {
-        for (const [k, v] of Object.entries(labels)) {
-          assert.equal(CJK_RE.test(v), false, `CJK leak in STORAGE_WB_I18N[${lang}].${k}: ${v}`);
-        }
-        assert.equal(CJK_RE.test(txt), false, `CJK leak in formatStorageDetailReport(${lang}): ${txt}`);
+      for (const [k, v] of Object.entries(labels)) {
+        assert.equal(CJK_RE.test(v), false, `CJK leak in STORAGE_WB_I18N[${lang}].${k}: ${v}`);
       }
+      assert.equal(CJK_RE.test(txt), false, `CJK leak in formatStorageDetailReport(${lang}): ${txt}`);
     }
     const fallbackTxt = arch.formatStorageDetailReport({ ...scan, batches: [] }, 'pt-BR');
     assert.equal(CJK_RE.test(fallbackTxt), false, 'Unknown locale fallback must be en with 0 CJK');
@@ -551,14 +544,14 @@ test('PrismDaemon: storage-detail, confirmed >14d prepare-archive, multi-batch r
     daemon.ensureLsClient = async () => ({ call: async () => ({ trajectorySummaries: summaries }) });
 
     // 1) storage-detail returns topConsumers (redacted), walMb, batches, localized detailText, and does NOT clobber storage-health cache
-    const detail = await daemon._handleStorageAction('storage-detail', { convDir, archiveDir, lsMemoryMb: 1024, now }, { lang: 'de' });
+    const detail = await daemon._handleStorageAction('storage-detail', { convDir, archiveDir, lsMemoryMb: 1024, now }, { lang: 'ar' });
     assert.equal(detail.ok, true);
     assert.equal(detail.batches.length, 2);
     assert.equal(detail.walMb, 0.3);
     assert.equal(detail.topConsumers[0].id, mainOld);
     assert.equal(detail.topConsumers[0].title.includes('ghp_123456'), false);
     assert.ok(detail.detailText.includes(batch1.batchName) && detail.detailText.includes(batch2.batchName));
-    assert.equal(CJK_RE.test(detail.detailText), false, 'German detailText must have 0 CJK leakage');
+    assert.equal(CJK_RE.test(detail.detailText), false, 'Arabic detailText must have 0 CJK leakage');
     assert.equal(daemon._storageHealthCache, null, 'storage-detail must not clobber storage-health cache');
 
     // 2) prepare-archive(old-main) REQUIRES confirm:true and writes isolated archive-old-main.* without clobbering default script
@@ -590,13 +583,13 @@ test('PrismDaemon: storage-detail, confirmed >14d prepare-archive, multi-batch r
     const prepRes = await daemon._handleStorageAction(
       'prepare-restore',
       { convDir, archiveDir, now },
-      { lang: 'fr', batch: batch1.batchName }
+      { lang: 'ar', batch: batch1.batchName }
     );
     assert.equal(prepRes.ok, true);
     assert.equal(prepRes.batchName, batch1.batchName);
     assert.ok(path.basename(prepRes.restoreScriptPath).startsWith(`restore-${batch1.batchName}.`));
     assert.ok(fs.readFileSync(prepRes.restoreScriptPath, 'utf8').includes(`--restore ${batch1.batchName} --wait-exit`));
-    assert.equal(CJK_RE.test(prepRes.chipText || ''), false, 'FR prepare-restore chipText must have 0 CJK');
+    assert.equal(CJK_RE.test(prepRes.chipText || ''), false, 'AR prepare-restore chipText must have 0 CJK');
 
     const badPrepRes = await daemon._handleStorageAction('prepare-restore', { convDir, archiveDir, now }, { batchName: '../escape;id' });
     assert.equal(badPrepRes.ok, false);
@@ -652,7 +645,7 @@ test('PrismDaemon: storage-detail, confirmed >14d prepare-archive, multi-batch r
       payload: JSON.stringify({
         id: 42,
         action: 'prepare-archive',
-        lang: 'ko',
+        lang: 'ar',
         mode: 'subagents+old-main',
         oldMain: true,
         batch: batch1.batchName,
@@ -670,7 +663,7 @@ test('PrismDaemon: storage-detail, confirmed >14d prepare-archive, multi-batch r
     assert.equal(capturedCalls.length, 1);
     const forwarded = capturedCalls[0];
     assert.equal(forwarded.action, 'prepare-archive');
-    assert.equal(forwarded.lang, 'ko');
+    assert.equal(forwarded.lang, 'ar');
     assert.equal(forwarded.mode, 'subagents+old-main');
     assert.equal(forwarded.oldMain, true);
     assert.equal(forwarded.batch, batch1.batchName);
@@ -688,7 +681,7 @@ test('PrismDaemon: storage-detail, confirmed >14d prepare-archive, multi-batch r
   }
 });
 
-test('settings-panel (Ch9): lazy <details> drawer, 3-way mutually exclusive confirm gates (>14d + archive-restart + multi-batch restore), 8-locale 0 CJK leak, and 0 B into Ch1 / 0 BOM / 0 CRLF', async () => {
+test('settings-panel (Ch9): lazy <details> drawer, 3-way mutually exclusive confirm gates (>14d + archive-restart + multi-batch restore), bilingual en/ar 0 CJK leak, and 0 B into Ch1 / 0 BOM / 0 CRLF', async () => {
   // 1) Architecture & engineering gates: settings-panel.js stays in Ch9 (0 B into Ch1), pulse-vial-bridge < 31KB, 0 BOM / 0 CRLF
   assert.equal(cdp.RUNTIME_PARTS.includes('settings-panel.js'), false, 'settings-panel.js must remain outside Ch1 RUNTIME_PARTS');
   assert.ok(fs.statSync(path.join(ROOT, 'pulse-vial-bridge.js')).size < 31000, 'pulse-vial-bridge.js must stay < 31,000 B');
@@ -886,8 +879,8 @@ test('settings-panel (Ch9): lazy <details> drawer, 3-way mutually exclusive conf
     assert.equal(oldBox.hidden, true);
     assert.ok(chip.textContent.includes('archive-old-main.command'));
 
-    // 3) All 8 locales mount cleanly with 0 CJK leakage in non-CJK languages (en/es/fr/de)
-    for (const lang of SUPPORTED_8) {
+    // 3) Both bilingual locales (en/ar) mount cleanly with 0 CJK leakage
+    for (const lang of SUPPORTED_2) {
       const { doc: langDoc } = createMiniDom();
       const lStore = new Map([['ag-prism:settings-open', '1'], ['ag-prism:settings-subtab', 'about']]);
       const lStorage = {
@@ -912,7 +905,7 @@ test('settings-panel (Ch9): lazy <details> drawer, 3-way mutually exclusive conf
         version: '1.0.8',
         getLang: () => lang,
         uiText: (l) => i18nLocales.getUiStrings(l),
-        isZh: () => lang === 'zh-CN' || lang === 'zh-TW',
+        isZh: () => false,
         i18nCore,
         formatSettingsSummary: () => 'summary',
         resolveSettingRowActiveValue: (k) => lState[k],
@@ -927,10 +920,7 @@ test('settings-panel (Ch9): lazy <details> drawer, 3-way mutually exclusive conf
       await new Promise((r) => setTimeout(r, 10));
       const lSec = langDoc.getElementById(settingsPanel.SETTINGS_SEC_ID);
       assert.ok(lSec.querySelector('[data-ag-cs-storage-wb="1"]'), `Workbench drawer must mount for ${lang}`);
-      if (NON_CJK_4.includes(lang)) {
-        const cleaned = stripAllowedProperNouns(lSec.textContent);
-        assert.equal(CJK_RE.test(cleaned), false, `Settings panel (${lang}) leaked CJK: ${cleaned}`);
-      }
+      assert.equal(CJK_RE.test(lSec.textContent), false, `Settings panel (${lang}) leaked CJK: ${lSec.textContent}`);
     }
   } finally {
     if (prevDoc === undefined) delete globalThis.document;

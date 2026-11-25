@@ -633,9 +633,9 @@ test('installPlugin / uninstallPlugin Linux branch: case-sensitive paths, manage
     assert.ok(launcherText.includes('/home/dev/Apps/Antigravity-2.29.1.AppImage --remote-debugging-port=0 %U'));
 
     const summary = installer.formatInstallSelfCheckSummary(installRes);
-    assert.ok(summary.includes('Linux 无损桌面启动器已就绪'));
-    assert.ok(summary.includes('XDG 影子覆写'));
     assert.ok(summary.includes('Linux lossless launcher ready'));
+    assert.ok(summary.includes('XDG Shadow Override'));
+    assert.ok(summary.includes('rootless XDG shadow override'));
 
     // Watcher detection on Linux
     assert.equal(installer.isStandaloneWatcherInstalled({ platformOverride: 'linux', homeDir: fakeHome }), false);

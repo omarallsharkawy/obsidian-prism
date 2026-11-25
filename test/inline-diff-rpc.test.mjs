@@ -492,7 +492,7 @@ test('inline-diff-rpc 4: PrismDaemon registers INLINE_DIFF_BINDING regardless of
 
     // 4) Oversized payloads (ASCII > 16384 bytes & multi-byte UTF-8 > 16384 bytes) and malformed payloads are dropped
     const asciiHuge = JSON.stringify({ id: 21, action: 'readInlineDiff', uri: `file:///${'a'.repeat(17000)}` });
-    const utf8Huge = JSON.stringify({ id: 22, action: 'readInlineDiff', uri: '中'.repeat(6000) }); // length ~6040, UTF-8 bytes > 18000
+    const utf8Huge = JSON.stringify({ id: 22, action: 'readInlineDiff', uri: '€'.repeat(6000) }); // length ~6040, UTF-8 bytes > 18000
     assert.ok(utf8Huge.length < 16384 && Buffer.byteLength(utf8Huge, 'utf8') > 16384);
     const uriTooLong = JSON.stringify({ id: 23, action: 'readInlineDiff', uri: `file:///${'b'.repeat(2050)}` });
     const badPayloads = [

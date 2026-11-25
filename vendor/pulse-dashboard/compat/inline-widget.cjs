@@ -357,7 +357,7 @@ module.exports = function installAgPulseInlineWidget() {
       if(!activeEditors.includes(editor)||activeEditors.length!==1)continue;
       if(Array.from(box.querySelectorAll('[data-testid="model-selector-trigger"]')).some(e=>owned(e)&&visible(e)))continue;
       const controls=Array.from(box.querySelectorAll('[data-testid="send-button"],[data-tooltip-id*="send-button"],[data-testid="stop-button"],[data-testid="cancel-button"],button[aria-label]'))
-        .filter(e=>owned(e)&&visible(e)&&(e.hasAttribute('data-testid')&&/^(send|stop|cancel)-button$/.test(e.dataset.testid)||e.getAttribute('data-tooltip-id')?.includes('send-button')||/^(?:cancel|stop|取消|停止)(?:\b|\s|生成|任务|响应|$)/i.test(e.getAttribute('aria-label')||'')));
+        .filter(e=>owned(e)&&visible(e)&&(e.hasAttribute('data-testid')&&/^(send|stop|cancel)-button$/.test(e.dataset.testid)||e.getAttribute('data-tooltip-id')?.includes('send-button')||/^(?:cancel|stop|إلغاء|إيقاف)(?:\b|\s|$)/i.test(e.getAttribute('aria-label')||'')));
       for(const send of controls){
         let row=send.parentElement,distance=1;
         while(row?.parentElement&&row.parentElement!==box&&!row.parentElement.contains(editor)){row=row.parentElement;distance++;}
@@ -492,15 +492,16 @@ module.exports = function installAgPulseInlineWidget() {
   }
   function localize(){
     attribute(node,'lang',language.language);
+    attribute(node,'dir',language.language==='ar'?'rtl':'ltr');
     for(const e of root.querySelectorAll('[data-i18n]')){const value=t(e.dataset.i18n);if(e.textContent!==value)e.textContent=value;}
     for(const e of root.querySelectorAll('[data-i18n-aria]'))attribute(e,'aria-label',t(e.dataset.i18nAria));
     for(const e of root.querySelectorAll('[data-i18n-aria][title]'))attribute(e,'title',t(e.dataset.i18nAria));
     for(const button of root.querySelectorAll('[data-language-choice]')){attribute(button,'aria-pressed',button.dataset.languageChoice===language.language);attribute(button,'data-save-failed',preferences.error);attribute(button,'title',preferences.error?t('languageSaveFailed'):(button.getAttribute('aria-label')||button.textContent));}
     text('language-save-note',preferences.error?t('languageSaveFailed'):'');
     for(const button of root.querySelectorAll('[data-speed-style-choice]')){const value=button.dataset.speedStyleChoice,name=t(value==='cat'?'styleCat':'styleMinimal'),failed=speedStyle.error&&speedStyle.style===value;attribute(button,'aria-label',name);attribute(button,'title',failed?`${name} · ${t('styleSaveFailed')}`:name);attribute(button,'aria-pressed',speedStyle.style===value);attribute(button,'data-save-failed',failed);}
-    const zh=language.language==='zh-CN',tw=language.language==='zh-TW';
-    text('usage-today-label',tw?'今日用量':(zh?'今日用量':'Today'));text('usage-month-label',tw?'本月用量':(zh?'本月用量':'This month'));
-    text('usage-open-label',tw?'檢視用量統計':(zh?'查看用量统计':'View token usage'));updateMenu?.localize();
+    const ar=language.language==='ar';
+    text('usage-today-label',ar?'اليوم':'Today');text('usage-month-label',ar?'هذا الشهر':'This month');
+    text('usage-open-label',ar?'عرض استخدام الرموز':'View token usage');updateMenu?.localize();
     updateGuide();
   }
   function stopDensityMotion(){
@@ -866,17 +867,17 @@ module.exports = function installAgPulseInlineWidget() {
   }
   function updateGuide(){
     const tip=$('language-guide');if(!tip)return;
-    const tw=language.language==='zh-TW',hint=tip.querySelector('#guide-open span[lang]');
-    const heading=tip.querySelector('.guide-heading strong span'),headingText=tw?'/ 語言':'/ 语言',hintText=tw?'在上下文詳細資料中切換語言':'在上下文详情中切换语言';
+    const ar=language.language==='ar',hint=tip.querySelector('#guide-open span[lang]');
+    const heading=tip.querySelector('.guide-heading strong span'),headingText='/ العربية',hintText='تبديل اللغة من تفاصيل السياق';
     if(heading.textContent!==headingText)heading.textContent=headingText;
-    attribute(hint,'lang',tw?'zh-TW':'zh-CN');if(hint.textContent!==hintText)hint.textContent=hintText;
-    attribute($('guide-close'),'aria-label',tw?'Dismiss language tip / 關閉語言提示':'Dismiss language tip / 关闭语言提示');
+    attribute(hint,'lang','ar');attribute(hint,'dir','rtl');if(hint.textContent!==hintText)hint.textContent=hintText;
+    attribute($('guide-close'),'aria-label',ar?'إغلاق تلميح اللغة / Dismiss language tip':'Dismiss language tip / إغلاق تلميح اللغة');
     const visible=!disposed&&!instDisposed&&!parked&&isPrimary&&guideReady&&!guideDismissed&&!guideOpened&&!cardName&&node?.isConnected&&['main','ide'].includes(composer?.kind)&&node.dataset.layout==='ready'&&node.style.visibility!=='hidden';
     const entering=visible&&tip.hidden;
     cardVisibility(tip,visible);
     const button=root.querySelector('[data-card="context"]');
     if(visible){if(button.getAttribute('aria-describedby')!=='language-guide')button.setAttribute('aria-describedby','language-guide');}else if(button.hasAttribute('aria-describedby'))button.removeAttribute('aria-describedby');
-    text('guide-save-note',guideError?(tw?'Could not save. Please retry. / 未能儲存，請重試。':'Could not save. Please retry. / 未能保存，请重试。'):'');
+    text('guide-save-note',guideError?(ar?'تعذر الحفظ. يرجى المحاولة مرة أخرى. / Could not save. Please retry.':'Could not save. Please retry. / تعذر الحفظ. يرجى المحاولة مرة أخرى.'):'');
     $('guide-close').disabled=guideSaving;
     positionGuide();
     if(entering)tip.animate([{opacity:0,transform:`translateY(${tip.dataset.side==='above'?'4':'-4'}px)`},{opacity:1,transform:'translateY(0)'}],{duration:160,easing:'cubic-bezier(0.23,1,0.32,1)'});
@@ -1069,15 +1070,15 @@ module.exports = function installAgPulseInlineWidget() {
       notice.querySelector('details').addEventListener('toggle',()=>{if(!disposed)position();});
     }
     const languageRow=document.createElement('div');languageRow.className='card-language';
-    setMarkup(languageRow,'<div class="language-options" role="group" data-i18n-aria="language"><button type="button" class="language-button" id="card-language-en" data-language-choice="en" aria-label="English">EN</button><button type="button" class="language-button" id="card-language-zh" data-language-choice="zh-CN" aria-label="简体中文">简</button><button type="button" class="language-button" id="card-language-zh-tw" data-language-choice="zh-TW" aria-label="繁體中文">繁</button></div>');
+    setMarkup(languageRow,'<div class="language-options" role="group" data-i18n-aria="language"><button type="button" class="language-button" id="card-language-en" data-language-choice="en" aria-label="English">EN</button><button type="button" class="language-button" id="card-language-ar" data-language-choice="ar" aria-label="العربية">عربي</button></div>');
     $('context-card').append(languageRow);
     if(window.__agPulseUpdateFactory&&window.agPulseHost.updatePlugin)updateMenu=window.__agPulseUpdateFactory({root,row:languageRow,language,setMarkup,request:input=>window.agPulseHost.updatePlugin(input),onOpen:hide});
     const saveNote=document.createElement('p');saveNote.className='footnote';saveNote.id='language-save-note';languageRow.after(saveNote);
-    const guide=document.createElement('section');guide.className='language-guide';guide.id='language-guide';guide.hidden=true;guide.setAttribute('role','region');guide.setAttribute('aria-label','Language / 語言 / 语言');
-    setMarkup(guide,'<div class="guide-heading"><strong>Language <span>/ 语言</span></strong><button type="button" id="guide-close" aria-label="Dismiss language tip / 关闭语言提示" title="Dismiss / 关闭">×</button></div><button type="button" id="guide-open"><span><span>Switch in context details</span><span lang="zh-CN">在上下文详情中切换语言</span></span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 4 4 4-4 4"/></svg></button><p class="footnote" id="guide-save-note"></p>');
+    const guide=document.createElement('section');guide.className='language-guide';guide.id='language-guide';guide.hidden=true;guide.setAttribute('role','region');guide.setAttribute('aria-label','Language / العربية');
+    setMarkup(guide,'<div class="guide-heading"><strong>Language <span>/ العربية</span></strong><button type="button" id="guide-close" aria-label="Dismiss language tip / إغلاق تلميح اللغة" title="Dismiss / إغلاق">×</button></div><button type="button" id="guide-open"><span><span>Switch in context details</span><span lang="ar" dir="rtl">تبديل اللغة من تفاصيل السياق</span></span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 4 4 4-4 4"/></svg></button><p class="footnote" id="guide-save-note"></p>');
     root.append(guide);
     $('guide-close').addEventListener('click',()=>void dismissGuide());
-    $('guide-open').addEventListener('click',()=>{guideOpened=true;show('context');const btn=$(language.language==='zh-TW'?'card-language-zh-tw':'card-language-zh');btn.scrollIntoView({block:'nearest'});btn.focus({preventScroll:true});});
+    $('guide-open').addEventListener('click',()=>{guideOpened=true;show('context');const btn=$(language.language==='ar'?'card-language-ar':'card-language-en');btn.scrollIntoView({block:'nearest'});btn.focus({preventScroll:true});});
     // Escape ancestor stacking/paint contexts; ordinary z-index cannot do this.
     if(typeof HTMLElement.prototype.showPopover==='function')for(const card of root.querySelectorAll('.card'))card.setAttribute('popover','manual');
     if(typeof guide.showPopover==='function')guide.setAttribute('popover','manual');

@@ -25,7 +25,6 @@ function makeTempDir(prefix) {
 }
 
 test('security-daemon 1: isLanguageServerRunning detects platform-suffixed Windows/POSIX host processes, excludes self, and fails closed on query errors', () => {
-  // Windows 全量 CSV：命中 language_server_windows_x64.exe / arm64 / Antigravity.exe / agy.exe
   const cleanWinCsv = [
     '"System Idle Process","0","Services","0","8 K"',
     '"node.exe","4321","Console","1","45,120 K"',
@@ -33,8 +32,7 @@ test('security-daemon 1: isLanguageServerRunning detects platform-suffixed Windo
   ].join('\r\n');
   assert.equal(
     arch.isLanguageServerRunning({ platform: 'win32', exec: () => cleanWinCsv }),
-    false,
-    '无关进程列表应返回 false'
+    false
   );
 
   for (const img of [
@@ -47,12 +45,10 @@ test('security-daemon 1: isLanguageServerRunning detects platform-suffixed Windo
     const csvWithTarget = `${cleanWinCsv}\r\n"${img}","9876","Console","1","512,000 K"\r\n`;
     assert.equal(
       arch.isLanguageServerRunning({ platform: 'win32', exec: () => csvWithTarget }),
-      true,
-      `Windows 必须检出目标进程 ${img}`
+      true
     );
   }
 
-  // Windows 异常输出、空输出、命令失败 -> 严格 fail-closed (true)
   assert.equal(arch.isLanguageServerRunning({ platform: 'win32', exec: () => '' }), true);
   assert.equal(arch.isLanguageServerRunning({ platform: 'win32', exec: () => 'ERROR: Access denied.' }), true);
   assert.equal(
@@ -64,11 +60,9 @@ test('security-daemon 1: isLanguageServerRunning detects platform-suffixed Windo
         throw e;
       },
     }),
-    true,
-    'Windows 进程查询非零退出必须 fail-closed'
+    true
   );
 
-  // POSIX ps 输出：检出 language_server 与 Antigravity 主进程，同时排除归档脚本自身命令行
   const cleanPosixPs = [
     '    1 /sbin/launchd',
     '  500 /usr/local/bin/node /tmp/demo/sidecars/daemon/conversation-archive.mjs --archive',
@@ -77,8 +71,7 @@ test('security-daemon 1: isLanguageServerRunning detects platform-suffixed Windo
   ].join('\n');
   assert.equal(
     arch.isLanguageServerRunning({ platform: 'darwin', selfPid: 500, selfPpid: 499, exec: () => cleanPosixPs }),
-    false,
-    'POSIX 应排除当前归档脚本与父包装脚本，避免自误判'
+    false
   );
 
   for (const procLine of [
@@ -92,12 +85,10 @@ test('security-daemon 1: isLanguageServerRunning detects platform-suffixed Windo
     const psWithTarget = `${cleanPosixPs}\n${procLine}\n`;
     assert.equal(
       arch.isLanguageServerRunning({ platform: 'linux', selfPid: 500, selfPpid: 499, exec: () => psWithTarget }),
-      true,
-      `POSIX 必须检出目标进程: ${procLine}`
+      true
     );
   }
 
-  // POSIX 空输出 / 非法输出 / 进程查询报错 -> fail-closed (true)
   assert.equal(arch.isLanguageServerRunning({ platform: 'linux', exec: () => '' }), true);
   assert.equal(arch.isLanguageServerRunning({ platform: 'linux', exec: () => 'ps: permission denied' }), true);
   assert.equal(
@@ -114,7 +105,6 @@ test('security-daemon 1: isLanguageServerRunning detects platform-suffixed Windo
 });
 
 test('security-daemon 2: parseCliArgs rejects invalid numeric flags (fail-closed) and scanConversationStorage falls back to safe defaults instead of zeroing thresholds', () => {
-  // 1) parseCliArgs 非法参数全部抛错拒绝
   const invalidArgLists = [
     ['--subagent-hours='],
     ['--subagent-hours=   '],
@@ -138,18 +128,15 @@ test('security-daemon 2: parseCliArgs rejects invalid numeric flags (fail-closed
   for (const argv of invalidArgLists) {
     assert.throws(
       () => arch.parseCliArgs(argv),
-      /Invalid CLI option/,
-      `非法 CLI 参数必须直接抛错: ${JSON.stringify(argv)}`
+      /Invalid CLI option/
     );
   }
 
-  // 合法参数（含显式 0 与小数小时/天数）正常解析
   const okOpts = arch.parseCliArgs(['--archive', '--subagent-hours=0.5', '--main-days=0', '--keep-main=0']);
   assert.equal(okOpts.subagentHours, 0.5);
   assert.equal(okOpts.mainDays, 0);
   assert.equal(okOpts.keepRecentMain, 0);
 
-  // CLI 真实入口对非法参数以非零退出码退出
   const scriptPath = path.join(ROOT_DIR, 'sidecars', 'daemon', 'conversation-archive.mjs');
   assert.throws(
     () => {
@@ -160,11 +147,9 @@ test('security-daemon 2: parseCliArgs rejects invalid numeric flags (fail-closed
         stdio: ['ignore', 'pipe', 'pipe'],
       });
     },
-    (err) => err && err.status !== 0,
-    'CLI 遇到非法阈值参数必须以非零状态码退出'
+    (err) => err && err.status !== 0
   );
 
-  // 2) scanConversationStorage 对非有限/负值/空字符串参数回退安全默认值（6 / 14 / 20），严禁静默清零
   const tmpRoot = makeTempDir('ag-prism-sec-thresh-');
   try {
     const convDir = path.join(tmpRoot, 'conversations');
@@ -219,17 +204,14 @@ test('security-daemon 2: parseCliArgs rejects invalid numeric flags (fail-closed
       });
       assert.equal(
         scan.archivableSubagentCount,
-        0,
-        `非法 subagentMaxAgeHours=${String(badVal)} 必须回退默认 6h（2h 旧子代理不得被列为可归档）`
+        0
       );
       assert.equal(
         scan.archivableOldMainCount,
-        0,
-        `非法 mainMaxAgeDays/keepRecentMain=${String(badVal)} 必须回退默认 14d/20（不得清空主对话保护）`
+        0
       );
     }
 
-    // 显式传入合法 0 仍按预期生效
     const explicitZero = arch.scanConversationStorage({
       convDir,
       archiveDir,
@@ -248,7 +230,7 @@ test('security-daemon 2: parseCliArgs rejects invalid numeric flags (fail-closed
 
 test('security-daemon 3: conversation-archive POSIX helper scripts tighten permissions to 0o700', () => {
   const src = fs.readFileSync(path.join(ROOT_DIR, 'sidecars', 'daemon', 'conversation-archive.mjs'), 'utf8');
-  assert.equal(src.includes('0o755'), false, 'POSIX 辅助脚本不得保留 0o755 权限');
+  assert.equal(src.includes('0o755'), false);
   assert.ok(src.includes('atomicWriteTextExclusiveSync(archiveShPath, archiveSh, 0o700)'));
   assert.ok(src.includes('atomicWriteTextExclusiveSync(restoreShPath, restoreSh, 0o700)'));
 
@@ -345,7 +327,6 @@ test('security-daemon 4: verifyAndHealEntry serializes via _runEntryExclusive to
     },
   };
 
-  // 同时发起互斥队列操作与 verifyAndHealEntry，验证绝不并发交叉执行
   const exclusiveOp = daemon._runEntryExclusive(entry, async () => {
     activeCdpOps += 1;
     maxConcurrentCdpOps = Math.max(maxConcurrentCdpOps, activeCdpOps);
@@ -358,7 +339,7 @@ test('security-daemon 4: verifyAndHealEntry serializes via _runEntryExclusive to
   const healOp2 = daemon.verifyAndHealEntry(entry, true);
 
   await Promise.all([exclusiveOp, healOp1, healOp2]);
-  assert.equal(maxConcurrentCdpOps, 1, 'verifyAndHealEntry 必须与 _runEntryExclusive 严格串行化，最大并发必须为 1');
+  assert.equal(maxConcurrentCdpOps, 1);
   assert.deepEqual(trace, [
     'exclusive:enter',
     'exclusive:exit',
@@ -380,7 +361,6 @@ test('security-daemon 5: _handleStorageAction refreshes on NaN updatedAt and pro
     const subId = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
     fs.writeFileSync(path.join(convDir, `${subId}.db`), 'synthetic-sub-db', 'utf8');
 
-    // 写入包含非法 updatedAt 的 catalog index（Date.parse 结果为 NaN）
     const indexPath = path.join(archiveDir, '.last-catalog-index.json');
     fs.writeFileSync(
       indexPath,
@@ -417,7 +397,6 @@ test('security-daemon 5: _handleStorageAction refreshes on NaN updatedAt and pro
         assert.equal(method, 'GetAllCascadeTrajectories');
         lsCalls += 1;
         inFlightObserved = daemon._telemetryInFlight;
-        // 模拟并发 tick() 在 RPC 飞行中尝试释放空闲客户端
         releaseDuringFlightSoft = daemon._releaseIdleTelemetry(false);
         releaseDuringFlightForce = daemon._releaseIdleTelemetry(true);
         return {
@@ -437,20 +416,18 @@ test('security-daemon 5: _handleStorageAction refreshes on NaN updatedAt and pro
 
     const res = await daemon._handleStorageAction('storage-health', { convDir, archiveDir });
     assert.equal(res.ok, true);
-    assert.equal(lsCalls, 1, '非法 updatedAt (NaN) 必须视为过期并触发索引刷新');
-    assert.equal(inFlightObserved, 1, 'ensureLsClient RPC 期间 _telemetryInFlight 必须递增为 1');
-    assert.equal(releaseDuringFlightSoft, false, 'RPC 飞行期间 _releaseIdleTelemetry(false) 必须被拦截');
-    assert.equal(releaseDuringFlightForce, false, 'RPC 飞行期间 _releaseIdleTelemetry(true) 也必须被拦截');
-    assert.equal(disposedCount, 0, 'RPC 飞行期间绝不可 dispose 正在使用的客户端');
-    assert.equal(daemon._telemetryInFlight, 0, 'RPC 结束后 _telemetryInFlight 必须归 0');
-    assert.ok(daemon._lastTelemetryActivityAt > 0, 'RPC 结束后必须刷新 _lastTelemetryActivityAt');
+    assert.equal(lsCalls, 1);
+    assert.equal(inFlightObserved, 1);
+    assert.equal(releaseDuringFlightSoft, false);
+    assert.equal(releaseDuringFlightForce, false);
+    assert.equal(disposedCount, 0);
+    assert.equal(daemon._telemetryInFlight, 0);
+    assert.ok(daemon._lastTelemetryActivityAt > 0);
 
-    // 验证落盘索引的 updatedAt 已刷新为有效时间戳
     const refreshed = JSON.parse(fs.readFileSync(indexPath, 'utf8'));
-    assert.ok(Number.isFinite(Date.parse(refreshed.updatedAt)), '刷新后索引 updatedAt 必须为有效时间戳');
+    assert.ok(Number.isFinite(Date.parse(refreshed.updatedAt)));
     assert.equal(refreshed.count, 1);
 
-    // 验证 RPC 抛错时 finally 仍能安全释放 _telemetryInFlight
     daemon._storageHealthCache = null;
     daemon.ensureLsClient = async () => {
       throw new Error('simulated ls disconnect');
@@ -462,7 +439,7 @@ test('security-daemon 5: _handleStorageAction refreshes on NaN updatedAt and pro
     );
     const errFallbackRes = await daemon._handleStorageAction('storage-health', { convDir, archiveDir });
     assert.equal(errFallbackRes.ok, true);
-    assert.equal(daemon._telemetryInFlight, 0, 'RPC 异常时 finally 必须归零 _telemetryInFlight');
+    assert.equal(daemon._telemetryInFlight, 0);
   } finally {
     fs.rmSync(tmpRoot, { recursive: true, force: true });
   }
@@ -476,17 +453,14 @@ test('security-daemon 6: writeFileAtomicSync rejects symlink parent directory an
     fs.mkdirSync(realDir, { recursive: true });
     fs.mkdirSync(outsideDir, { recursive: true });
 
-    // 正常写入不存在目标文件（ENOENT 忽略）
     const normalFile = path.join(realDir, 'config.json');
     writeFileAtomicSync(normalFile, '{"ok":true}\n', { mode: 0o600 });
     assert.equal(fs.readFileSync(normalFile, 'utf8'), '{"ok":true}\n');
     assert.equal(
       fs.readdirSync(realDir).some((f) => f.endsWith('.tmp')),
-      false,
-      '原子写完成后不得残留 .tmp 文件'
+      false
     );
 
-    // 父目录为符号链接/junction 时必须拒绝写入
     const linkedParent = path.join(tmpRoot, 'linked-parent');
     let dirLinkCreated = false;
     try {
@@ -498,13 +472,11 @@ test('security-daemon 6: writeFileAtomicSync rejects symlink parent directory an
       fs.writeFileSync(victimInOutside, 'ORIGINAL_SECRET', 'utf8');
       assert.throws(
         () => writeFileAtomicSync(path.join(linkedParent, 'config.json'), 'OVERWRITTEN'),
-        /symbolic link/i,
-        '符号链接/junction 父目录必须被 writeFileAtomicSync 拒绝'
+        /symbolic link/i
       );
       assert.equal(fs.readFileSync(victimInOutside, 'utf8'), 'ORIGINAL_SECRET');
     }
 
-    // 目标文件为符号链接时必须拒绝覆盖
     const victimFile = path.join(outsideDir, 'victim.json');
     fs.writeFileSync(victimFile, 'KEEP_INTACT', 'utf8');
     const linkedTarget = path.join(realDir, 'linked-config.json');
@@ -516,21 +488,18 @@ test('security-daemon 6: writeFileAtomicSync rejects symlink parent directory an
     if (fileLinkCreated) {
       assert.throws(
         () => writeFileAtomicSync(linkedTarget, 'OVERWRITTEN'),
-        /symbolic link/i,
-        '符号链接目标文件必须被 writeFileAtomicSync 拒绝'
+        /symbolic link/i
       );
       assert.equal(fs.readFileSync(victimFile, 'utf8'), 'KEEP_INTACT');
     }
 
-    // 静态核验 Windows copyFileSync 回退分支前存在父目录与目标文件 lstatSync 符号链接守卫
     const mainSrc = fs.readFileSync(path.join(ROOT_DIR, 'sidecars', 'daemon', 'main.mjs'), 'utf8');
     const copyIdx = mainSrc.indexOf('fs.copyFileSync(tmpPath, resolvedTarget)');
-    assert.ok(copyIdx > 0, '应保留 Windows copyFileSync 回退逻辑');
+    assert.ok(copyIdx > 0);
     const beforeCopyWindow = mainSrc.slice(Math.max(0, copyIdx - 220), copyIdx);
     assert.ok(
       beforeCopyWindow.includes("assertNotSymlinkSync(dir, 'target directory')") &&
-        beforeCopyWindow.includes("assertNotSymlinkSync(resolvedTarget, 'target file')"),
-      'copyFileSync 回退前必须再次校验父目录与目标文件非符号链接'
+        beforeCopyWindow.includes("assertNotSymlinkSync(resolvedTarget, 'target file')")
     );
   } finally {
     fs.rmSync(tmpRoot, { recursive: true, force: true });
@@ -555,7 +524,7 @@ test('security-daemon 7: SIDEBAR_BINDING has zero exposure in disabled state and
       pollIntervalMs: 5000,
       silent: true,
     });
-    assert.equal(daemon.cdp.DEFAULT_CONFIG.sidebarStudio, 'off', 'DEFAULT_CONFIG.sidebarStudio 必须保持 off');
+    assert.equal(daemon.cdp.DEFAULT_CONFIG.sidebarStudio, 'off');
 
     const evListeners = new Map();
     const timeline = [];
@@ -591,7 +560,6 @@ test('security-daemon 7: SIDEBAR_BINDING has zero exposure in disabled state and
         } else if (s.includes(`delete window.${SIDEBAR_BINDING}`)) {
           timeline.push('evaluate:sidebar-cleanup');
         } else if (s.includes('hasSidebarBridge')) {
-          // verifyAndHealEntry 探针返回全健康但无侧栏
           return {
             ready: true,
             isHostDom: true,
@@ -629,7 +597,6 @@ test('security-daemon 7: SIDEBAR_BINDING has zero exposure in disabled state and
       dispose: async () => {},
     });
 
-    // 1) 关闭态 attachTarget 与 verifyAndHealEntry 绝不注册 SIDEBAR_BINDING
     const entry = await daemon.attachTarget({
       id: 'T_SB_ZERO',
       title: 'Antigravity',
@@ -638,21 +605,18 @@ test('security-daemon 7: SIDEBAR_BINDING has zero exposure in disabled state and
     });
     daemon.cdp.CdpSession.connect = origConnect;
 
-    assert.equal(entry.sidebarBindingAdded, false, '关闭态 attachTarget 不得标记 sidebarBindingAdded');
+    assert.equal(entry.sidebarBindingAdded, false);
     assert.equal(
       bindingCalls.some((c) => c.method === 'Runtime.addBinding' && c.name === SIDEBAR_BINDING),
-      false,
-      '关闭态 attachTarget 严禁预注册 SIDEBAR_BINDING'
+      false
     );
 
     await daemon.verifyAndHealEntry(entry, true);
     assert.equal(
       bindingCalls.some((c) => c.method === 'Runtime.addBinding' && c.name === SIDEBAR_BINDING),
-      false,
-      '关闭态 verifyAndHealEntry 严禁注册 SIDEBAR_BINDING'
+      false
     );
 
-    // 关闭态直接调用 handleBindingCall 仍保留 JSON.parse 前硬拦截纵深防御
     const disabledDirectRes = await daemon.handleBindingCall(entry, {
       name: SIDEBAR_BINDING,
       executionContextId: 1,
@@ -660,29 +624,25 @@ test('security-daemon 7: SIDEBAR_BINDING has zero exposure in disabled state and
     });
     assert.deepEqual(disabledDirectRes, { ok: false, error: 'Chat Beta is disabled' });
 
-    // 2) 热切 off -> on：broadcastConfigRefresh 必须先于 sidebar-client 注入补绑 SIDEBAR_BINDING
     timeline.length = 0;
     daemon.updateConfigSetting('sidebarStudio', 'on');
     await daemon.broadcastConfigRefresh();
 
     const addIdx = timeline.indexOf(`Runtime.addBinding:${SIDEBAR_BINDING}`);
     const evalIdx = timeline.indexOf('evaluate:sidebar-client');
-    assert.ok(addIdx >= 0, 'off->on 热开时必须调用 Runtime.addBinding 注册 SIDEBAR_BINDING');
-    assert.ok(evalIdx > addIdx, 'SIDEBAR_BINDING 必须在注入 sidebar-client 之前完成注册');
+    assert.ok(addIdx >= 0);
+    assert.ok(evalIdx > addIdx);
     assert.equal(entry.sidebarBindingAdded, true);
     assert.equal(entry.sidebarMounted, true);
 
-    // 3) 切回 on -> off：移除 SIDEBAR_BINDING 并下发清理脚本
     timeline.length = 0;
     daemon.updateConfigSetting('sidebarStudio', 'off');
     await daemon.broadcastConfigRefresh();
     assert.ok(
-      timeline.includes(`Runtime.removeBinding:${SIDEBAR_BINDING}`),
-      'on->off 切换时应调用 Runtime.removeBinding 移除 SIDEBAR_BINDING'
+      timeline.includes(`Runtime.removeBinding:${SIDEBAR_BINDING}`)
     );
     assert.ok(
-      timeline.includes('evaluate:sidebar-cleanup'),
-      'on->off 切换时应清理页面侧栏与全局句柄'
+      timeline.includes('evaluate:sidebar-cleanup')
     );
     assert.equal(entry.sidebarBindingAdded, false);
     assert.equal(entry.sidebarMounted, false);
@@ -694,20 +654,18 @@ test('security-daemon 7: SIDEBAR_BINDING has zero exposure in disabled state and
 
 test('security-daemon 8: install-plugin atomicWriteFileSync uses crypto.randomBytes + O_EXCL ("wx") and copyDirRecursiveSync skips pid/log/tmp files', () => {
   const installerSrc = fs.readFileSync(path.join(ROOT_DIR, 'tools', 'install-plugin.cjs'), 'utf8');
-  assert.ok(installerSrc.includes('crypto.randomBytes(8).toString("hex")'), 'atomicWriteFileSync 必须使用 crypto.randomBytes 生成临时文件名');
-  assert.ok(installerSrc.includes('fs.openSync(tmpPath, "wx", mode)'), 'atomicWriteFileSync 必须使用 wx 排他创建临时文件');
-  assert.equal(installerSrc.includes('Math.random()'), false, 'atomicWriteFileSync 不得再使用弱随机 Math.random()');
+  assert.ok(installerSrc.includes('crypto.randomBytes(8).toString("hex")'));
+  assert.ok(installerSrc.includes('fs.openSync(tmpPath, "wx", mode)'));
+  assert.equal(installerSrc.includes('Math.random()'), false);
 
   const tmpRoot = makeTempDir('ag-prism-sec-install-');
   try {
-    // 1) atomicWriteFileSync 正常写盘与符号链接拒绝
     const outFile = path.join(tmpRoot, 'out', 'meta.json');
     installPluginTool.atomicWriteFileSync(outFile, '{"v":1}\n', { encoding: 'utf8', mode: 0o600 });
     assert.equal(fs.readFileSync(outFile, 'utf8'), '{"v":1}\n');
     assert.equal(
       fs.readdirSync(path.dirname(outFile)).some((f) => f.includes('.tmp.')),
-      false,
-      'atomicWriteFileSync 写盘后不得残留临时文件'
+      false
     );
 
     const outsideDir = path.join(tmpRoot, 'outside');
@@ -725,7 +683,6 @@ test('security-daemon 8: install-plugin atomicWriteFileSync uses crypto.randomBy
       );
     }
 
-    // 2) copyDirRecursiveSync 跳过 .daemon.pid / *.log / *.tmp / *.tmp.* / __pycache__ / .DS_Store
     const srcDir = path.join(tmpRoot, 'src-sidecars');
     const dstDir = path.join(tmpRoot, 'dst-sidecars');
     fs.mkdirSync(path.join(srcDir, 'daemon'), { recursive: true });
@@ -742,14 +699,14 @@ test('security-daemon 8: install-plugin atomicWriteFileSync uses crypto.randomBy
     fs.writeFileSync(path.join(srcDir, '__pycache__', 'x.pyc'), 'pyc\n', 'utf8');
 
     const copiedCount = installPluginTool.copyDirRecursiveSync(srcDir, dstDir);
-    assert.equal(copiedCount, 2, '仅应复制 2 个合法运行时文件');
+    assert.equal(copiedCount, 2);
     assert.equal(fs.existsSync(path.join(dstDir, 'daemon', 'main.mjs')), true);
     assert.equal(fs.existsSync(path.join(dstDir, 'daemon', 'sidecar.json')), true);
-    assert.equal(fs.existsSync(path.join(dstDir, 'daemon', '.daemon.pid')), false, '必须跳过 .daemon.pid');
-    assert.equal(fs.existsSync(path.join(dstDir, 'daemon', 'daemon.log')), false, '必须跳过 *.log');
-    assert.equal(fs.existsSync(path.join(dstDir, 'daemon', 'TRACE.LOG')), false, '必须大小写不敏感跳过 *.LOG');
-    assert.equal(fs.existsSync(path.join(dstDir, 'daemon', 'scratch.tmp')), false, '必须跳过 *.tmp');
-    assert.equal(fs.existsSync(path.join(dstDir, 'daemon', 'config.json.tmp.99.aabbcc')), false, '必须跳过 *.tmp.*');
+    assert.equal(fs.existsSync(path.join(dstDir, 'daemon', '.daemon.pid')), false);
+    assert.equal(fs.existsSync(path.join(dstDir, 'daemon', 'daemon.log')), false);
+    assert.equal(fs.existsSync(path.join(dstDir, 'daemon', 'TRACE.LOG')), false);
+    assert.equal(fs.existsSync(path.join(dstDir, 'daemon', 'scratch.tmp')), false);
+    assert.equal(fs.existsSync(path.join(dstDir, 'daemon', 'config.json.tmp.99.aabbcc')), false);
     assert.equal(fs.existsSync(path.join(dstDir, '.DS_Store')), false);
     assert.equal(fs.existsSync(path.join(dstDir, '__pycache__')), false);
   } finally {
@@ -1172,7 +1129,7 @@ test('security-daemon 10: self-heals missing mainFrameId after initial Page.getF
   }
 });
 
-test('security-daemon 11 (#229 P1-2, P1-4, P2-4): WALLPAPER_BINDING 禁内联 Token、多窗严判 contextId 广播、detachAll/tick 移除绑定及无帧树非测试态 fail-closed', async () => {
+test('security-daemon 11 (#229 P1-2, P1-4, P2-4): wallpaper binding excludes inline tokens, validates window contexts and cleans up bindings', async () => {
   const workDir = makeTempDir('ag-sec-wp-p1-');
   const portFile = path.join(workDir, 'DevToolsActivePort');
   fs.writeFileSync(portFile, '49991\n/devtools/browser/test\n', 'utf8');
@@ -1308,7 +1265,6 @@ test('security-daemon 11 (#229 P1-2, P1-4, P2-4): WALLPAPER_BINDING 禁内联 To
     });
     daemon.running = true;
 
-    // 1) P1-2: _buildWallpaperExprForConfig 严禁将 initialWallpaperConfig / Bearer Token / mediaPath 内联到 NewDocument 表达式
     const capturedOpts = [];
     const origBuildWp = daemon.cdp.buildWallpaperExpression;
     daemon.cdp = {
@@ -1327,13 +1283,11 @@ test('security-daemon 11 (#229 P1-2, P1-4, P2-4): WALLPAPER_BINDING 禁内联 To
       false,
       '_buildWallpaperExprForConfig must NOT pass initialWallpaperConfig to buildWallpaperExpression'
     );
-    // 即使外部 cacheOpts 意外夹带 initialWallpaperConfig 也必须被剥离
     const expr2 = daemon._buildWallpaperExprForConfig(null, {
       initialWallpaperConfig: { mediaUrl: 'http://127.0.0.1:45555/media?token=LEAKED_FROM_OPTS' },
     });
     assert.equal(expr2.includes('LEAKED_FROM_OPTS'), false, 'Explicit initialWallpaperConfig in cacheOpts must be stripped');
 
-    // 2) P1-4: 多窗口广播必须正判 sidebarHostVerified === true 且显式绑定 contextId: other.sidebarHostContextId
     const sHost1 = makeHostSession({ mainFrameId: 'F_HOST_1', mainCtxId: 11 });
     const sHost2 = makeHostSession({ mainFrameId: 'F_HOST_2', mainCtxId: 22 });
     const sUndef = makeHostSession({ mainFrameId: 'F_UNDEF', mainCtxId: 33 });
@@ -1361,7 +1315,6 @@ test('security-daemon 11 (#229 P1-2, P1-4, P2-4): WALLPAPER_BINDING 禁内联 To
     assert.equal(entry2.sidebarHostVerified, true);
     assert.equal(entry2.sidebarHostContextId, 22);
 
-    // 注入 4 个未通过验证/导航中/代际失配会话，验证广播全部严格跳过
     daemon.sessions.set('ws://127.0.0.1:49991/undef', {
       wsUrl: 'ws://127.0.0.1:49991/undef',
       session: sUndef,
@@ -1432,13 +1385,11 @@ test('security-daemon 11 (#229 P1-2, P1-4, P2-4): WALLPAPER_BINDING 禁内联 To
       );
     }
 
-    // 清理测试占位会话，保留 entry1 / entry2 测试生命周期剥离
     daemon.sessions.delete('ws://127.0.0.1:49991/undef');
     daemon.sessions.delete('ws://127.0.0.1:49991/false');
     daemon.sessions.delete('ws://127.0.0.1:49991/noctx');
     daemon.sessions.delete('ws://127.0.0.1:49991/staledoc');
 
-    // 3) P1-4: tick() 剥离清理路径必须调用 _removeWallpaperBinding(entry2)
     sHost2.setHostDom(false);
     await daemon.tick();
     assert.equal(
@@ -1448,7 +1399,6 @@ test('security-daemon 11 (#229 P1-2, P1-4, P2-4): WALLPAPER_BINDING 禁内联 To
     );
     assert.equal(entry2.wallpaperBindingAdded, false);
 
-    // 4) P1-4: detachAll() 必须调用 _removeWallpaperBinding(entry1)
     await daemon.detachAll(false);
     assert.equal(
       sHost1.getCalls().some((c) => c.method === 'Runtime.removeBinding' && c.params?.name === WALLPAPER_BINDING),
@@ -1457,7 +1407,6 @@ test('security-daemon 11 (#229 P1-2, P1-4, P2-4): WALLPAPER_BINDING 禁内联 To
     );
     assert.equal(entry1.wallpaperBindingAdded, false);
 
-    // 5) P2-4: hasTrackedFrames === false 分支必须在 sidebarHostVerified !== true 时拒绝，且在非测试运行时 100% fail-closed
     const noFrameUnverifiedEntry = {
       session: makeHostSession({ mainFrameId: 'NONE', mainCtxId: 1 }),
       hasFrameTree: false,
@@ -1472,7 +1421,6 @@ test('security-daemon 11 (#229 P1-2, P1-4, P2-4): WALLPAPER_BINDING 禁内联 To
     });
     assert.equal(actionCalls, prevActionCalls, 'WALLPAPER_BINDING must reject unverified entry even when hasTrackedFrames === false');
 
-    // 在干净的非测试子进程中验证 hasTrackedFrames === false 即使 sidebarHostVerified=true 也因 !isAutomatedTestRuntime() 强制 fail-closed
     const cleanEnv = { ...process.env };
     delete cleanEnv.NODE_ENV;
     delete cleanEnv.NODE_TEST_CONTEXT;

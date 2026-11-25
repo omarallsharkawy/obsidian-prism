@@ -34,14 +34,8 @@
   const A_OVC = 'data-ag-ov-sec-closing';
 
   const UI_RAW = {
-    'zh-CN': '折叠|展开|行|提问导航| 轮|收起步骤|已收起 | 项|已是最简|过滤本会话提问...|无匹配提问|章节|',
-    'zh-TW': '摺疊|展開|行|提問導覽| 輪|收起步驟|已收起 | 項|已是最簡|過濾本會話提問...|無匹配提問|章節|',
     en: 'Fold|Expand|L|Outline| turns|Fold Steps|Folded ||All clean|Filter prompts...|No matching prompts|Chapter|Prompts',
-    ja: '折りたたむ|展開|行|プロンプト目次||手順を畳む||件畳みました|完了|質問を絞り込む...|一致なし|章|',
-    ko: '접기|펼치기|줄|질문 목차| 턴|단계 접기||개 접힘|완료|질문 검색...|일치 항목 없음|챕터|',
-    es: 'Contraer|Expandir|L|Esquema| turnos|Contraer pasos|Contraído ||Todo limpio|Filtrar preguntas...|Sin coincidencias|Capítulo|Preguntas',
-    fr: 'Replier|Déplier|L|Plan| tours|Replier étapes|Replié ||Tout est clair|Filtrer les requêtes...|Aucun résultat|Chapitre|Requêtes',
-    de: 'Einklappen|Ausklappen|Z|Gliederung| Runden|Schritte einklappen|Eingeklappt ||Bereinigt|Prompts filtern...|Keine Treffer|Kapitel|Prompts',
+    ar: 'طي|توسيع|س|فهرس الأسئلة| جولات|طي الخطوات|تم طي | خطوات|الكل مطوي|تصفية الأسئلة...|لا توجد أسئلة مطابقة|فصل|الأسئلة',
   };
   const UI_STRINGS = {};
   for (const k in UI_RAW) {
@@ -58,7 +52,6 @@
       chapterBadge: a[11],
     };
   }
-  UI_STRINGS.zh = UI_STRINGS['zh-CN'];
 
   function isElementLike(n) {
     return Boolean(n && (n.nodeType === 1 || (n.nodeType === undefined && typeof n.tagName === 'string')));
@@ -67,14 +60,7 @@
   function normEnhLang(langRaw) {
     const l = String(langRaw || '').trim().toLowerCase().replace(/_/g, '-');
     if (!l || l === 'auto') return 'en';
-    if (l === 'yue' || l.startsWith('yue-') || l === 'zh-yue' || l.includes('cantonese')) return 'zh-CN';
-    if (/^zh-(tw|hant|hk|mo)/.test(l) || l === 'tw' || l === 'hant') return 'zh-TW';
-    if (/^zh/.test(l)) return 'zh-CN';
-    if (/^(ja|jp)/.test(l) || l === 'japanese') return 'ja';
-    if (/^(ko|kr)/.test(l) || l === 'korean') return 'ko';
-    if (/^es/.test(l) || l === 'spanish') return 'es';
-    if (/^fr/.test(l) || l === 'french') return 'fr';
-    if (/^de/.test(l) || l === 'german') return 'de';
+    if (l === 'ar' || l.startsWith('ar-') || l === 'arabic' || l === 'العربية') return 'ar';
     return 'en';
   }
 
@@ -104,7 +90,7 @@
     A_NAV = 'data-ag-cs-settings-nav',
     A_ACT = 'data-ag-cs-nav-active';
   const S_NAV_KW =
-    /\b(?:general|appearance|shortcuts?|keybindings?|account|models?|agent|browser|mcp|notifications?|about|theme|editor|privacy|extensions?|plugins?|rules|workflows?|customiz|keyboard|billing|usage|terminal|voice|audio|skills?)\b|通用|常规|常規|一般|外观|外觀|外観|快捷键|快捷鍵|ショートカット|账户|帳戶|模型|智能体|浏览器|瀏覽器|通知|关于|關於|主题|主題|编辑器|編輯器|隐私|隱私|扩展|擴展|插件|规则|規則|工作流|键盘|鍵盤|用量|终端|終端|语音|語音|技能/i;
+    /\b(?:general|appearance|shortcuts?|keybindings?|account|models?|agent|browser|mcp|notifications?|about|theme|editor|privacy|extensions?|plugins?|rules|workflows?|customiz|keyboard|billing|usage|terminal|voice|audio|skills?)\b|عام|المظهر|الاختصارات|الحساب|النماذج|الوكيل|المتصفح|الإشعارات|حول|السمة|المحرر|الخصوصية|الإضافات|القواعد|سير العمل|لوحة المفاتيح|الاستخدام|الطرفية|الصوت|المهارات/i;
   const S_ACT_BG = /^(?:(?:dark|light):)?(?:bg-secondary|bg-sidebar-secondary|bg-sidebar-accent|bg-accent|bg-muted)(?:\/\d+)?$/;
   const S_ACT_BG2 = /^(?:(?:dark|light):)?(?:bg-secondary|bg-sidebar-secondary|bg-sidebar-accent)(?:\/\d+)?$/;
   const normLbl = (s) => String(s || '').replace(/\s+/g, ' ').trim().toLowerCase();
@@ -141,7 +127,7 @@
         ) {
           continue;
         }
-        if (/\b(?:close|dismiss)\b|关闭|關閉|閉じる/i.test(`${ga(b, 'aria-label') || ''} ${ga(b, 'data-testid') || ''}`)) continue;
+        if (/\b(?:close|dismiss)\b|إغلاق|تجاهل/i.test(`${ga(b, 'aria-label') || ''} ${ga(b, 'data-testid') || ''}`)) continue;
         const t = normLbl(b.textContent);
         if (t.length >= 1 && t.length <= 48) out.push(b);
       }
@@ -360,8 +346,8 @@
     }
 
     const SIDEBAR_MORE_FB = {
-      sidebarMoreLabel: { 'zh-CN': '更多', 'zh-TW': '更多', en: 'More', ja: 'その他', ko: '더보기', es: 'Más', fr: 'Plus', de: 'Mehr' },
-      sidebarLessLabel: { 'zh-CN': '收起', 'zh-TW': '收起', en: 'Less', ja: '折りたたむ', ko: '접기', es: 'Menos', fr: 'Moins', de: 'Weniger' },
+      sidebarMoreLabel: { en: 'More', ar: 'المزيد' },
+      sidebarLessLabel: { en: 'Less', ar: 'أقل' },
     };
     function getUiText(key, fallback) {
       if (tFn) {
@@ -1749,7 +1735,7 @@
     function triggerQueuedRowActionFeedback(btn, card) {
       if (isDead() || !btn || !card || ga(btn, 'data-testid') === 'queued-messages-expand-button') return false;
       const meta = `${ga(btn, 'data-testid') || ''} ${ga(btn, 'aria-label') || ''} ${ga(btn, 'title') || ''}`;
-      if (!/send|delete|remove|trash|发送|發送|删除|刪除|送信|削除|전송|삭제/i.test(meta) && /\bedit\b|编辑|編輯|編集|수정/i.test(meta)) {
+      if (!/send|delete|remove|trash|إرسال|حذف|إزالة/i.test(meta) && /\bedit\b|تعديل|تحرير/i.test(meta)) {
         return false;
       }
       if (

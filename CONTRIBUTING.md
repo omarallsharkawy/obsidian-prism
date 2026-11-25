@@ -12,7 +12,7 @@ To prevent monolithic file growth, runtime features are cleanly separated into f
 
 - `cdp.js` / `inject.js` / `remove.js` — Zero-dependency lexical CSS/JS bundler, single-source-of-truth config validator (`VALIDATORS` & `SYNC_ROOT_FILES`), CDP transport, and clean teardown.
 - `style.css` — Obsidian & Warm dark themes + Daylight Crystal & Warm Alabaster light presets.
-- `i18n-locales.js` / `i18n-core.js` — 5-language (`zh-CN`, `zh-TW`, `yue`, `en`, `ja`) UI copy table.
+- `i18n-locales.js` / `i18n-core.js` — Bilingual English (`en`) & Arabic (`ar`, RTL) UI copy table.
 - `motion-engine.js` / `animated-icons.js` — 4-tier damped spring physics & 21 micro-animated SVG icons.
 - `ripple-core.js` / `conv-aura.js` — WebGL2 horizon aurora shader, 32% conversation aura scheduler, and character ripple matrix.
 - `smooth-caret.js` — FastDOM read/write-separated gliding caret controller.

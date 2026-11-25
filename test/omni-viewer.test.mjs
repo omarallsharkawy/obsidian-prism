@@ -717,7 +717,7 @@ test('Engine 1 (Video & Audio): frame stepping, A-B loop, PNG frame capture, mar
   // Part A: Video Workbench driven via client URL query parameters on empty renderWorkbenchHtml({})
   const videoHtml = renderWorkbenchHtml({});
   const videoEnv = bootRenderedWorkbenchInVm(videoHtml, {
-    locationHref: 'http://127.0.0.1:43199/viewer?token=tok1&path=%2Fmedia%2Fdemo.mp4&theme=dark&lang=zh-CN',
+    locationHref: 'http://127.0.0.1:43199/viewer?token=tok1&path=%2Fmedia%2Fdemo.mp4&theme=dark&lang=ar',
     onFetch: async (url) => {
       if (url.includes('/meta')) {
         return {
@@ -746,33 +746,33 @@ test('Engine 1 (Video & Audio): frame stepping, A-B loop, PNG frame capture, mar
 
   // Frame stepping (+1F / -1F = 1/30s)
   videoEl.currentTime = 1.0;
-  findBtn('1帧 >').click();
+  findBtn('إطار تالٍ').click();
   assert.ok(Math.abs(videoEl.currentTime - (1.0 + 1 / 30)) < 1e-6);
-  findBtn('< 1帧').click();
+  findBtn('إطار سابق').click();
   assert.ok(Math.abs(videoEl.currentTime - 1.0) < 1e-6);
 
   // A-B Loop wraparound
   videoEl.currentTime = 2.0;
-  findBtn('设 A 点').click();
+  findBtn('تعيين A').click();
   videoEl.currentTime = 4.0;
-  findBtn('设 B 点').click();
+  findBtn('تعيين B').click();
   videoEl.currentTime = 4.25;
   videoEl.dispatchEvent('timeupdate');
   assert.equal(videoEl.currentTime, 2.0, 'reaching B point should loop back to A point');
 
   // Frame PNG download & clipboard copy
-  findBtn('下载帧 PNG').click();
+  findBtn('حفظ الإطار').click();
   assert.equal(videoEnv.downloads.length, 1);
   assert.match(videoEnv.downloads[0].download, /^frame-.*\.png$/);
 
-  findBtn('复制帧').click();
+  findBtn('نسخ الإطار').click();
   await videoEnv.settle();
   assert.equal(videoEnv.clipboardLog.items.length, 1);
 
   // Markers add & copy
   videoEl.currentTime = 5.123;
-  findBtn('+ 打点').click();
-  findBtn('复制时间点').click();
+  findBtn('+ علامة').click();
+  findBtn('نسخ التوقيتات').click();
   await videoEnv.settle();
   assert.ok(videoEnv.clipboardLog.texts.includes('00:05.123'));
 
@@ -831,13 +831,13 @@ test('Engine 1 (Video & Audio): frame stepping, A-B loop, PNG frame capture, mar
 test('Engine 2 & 5 (SVG & Mermaid Vector Lens): XSS sanitization, wheel zoom, drag pan, PNG export & postMessage sync', async () => {
   const html = renderWorkbenchHtml({
     kind: 'mermaid',
-    lang: 'zh-CN',
+    lang: 'ar',
   });
   const env = bootRenderedWorkbenchInVm(html);
   await env.settle();
 
   // Initially waiting for diagram payload
-  assert.match(env.stageEl.textContent, /等待传入图表数据/);
+  assert.match(env.stageEl.textContent, /بانتظار بيانات المخطط/);
 
   // Inject SVG with malicious script & onload via ag-prism-workbench-sync and switch to Japanese + Alabaster
   env.win.postMessageToSelf({
@@ -860,7 +860,7 @@ test('Engine 2 & 5 (SVG & Mermaid Vector Lens): XSS sanitization, wheel zoom, dr
   assert.equal(env.htmlEl.getAttribute('data-wb-light-preset'), 'alabaster');
   assert.equal(env.htmlEl.getAttribute('data-wb-accent'), 'iris');
   assert.equal(env.htmlEl.getAttribute('data-wb-corners'), 'soft');
-  assert.equal(env.htmlEl.getAttribute('lang'), 'ja');
+  assert.equal(env.htmlEl.getAttribute('lang'), 'en');
   assert.equal(env.titleEl.textContent, 'Architecture Flow');
   assert.match(env.pillsEl.textContent, /400×200/);
 
@@ -1097,7 +1097,7 @@ test('Bitmap Image pan-zoom, JSONL grid mounting & 5-locale + host theme-change 
     baseUrl: 'http://127.0.0.1:43199',
     token: 'tok-img',
     path: '/assets/sprite.webp',
-    lang: 'yue',
+    lang: 'ar',
   });
   const imgEnv = bootRenderedWorkbenchInVm(imgHtml, {
     onFetch: async (url) => {
@@ -1118,7 +1118,7 @@ test('Bitmap Image pan-zoom, JSONL grid mounting & 5-locale + host theme-change 
   assert.equal(imgEnv.badgeEl.textContent, 'IMAGE');
   assert.match(imgEnv.pillsEl.textContent, /1024×512/);
   const btns = imgEnv.toolsEl.querySelectorAll('button');
-  assert.ok(btns.some((b) => b.textContent === '棋盤格'), 'Cantonese (yue) locale label should render');
+  assert.ok(btns.some((b) => b.textContent === 'مربعات'), 'Arabic checkerboard label should render');
   btns.find((b) => b.textContent === '1:1').click();
   assert.match(imgEnv.toolsEl.textContent, /100%/);
 
@@ -1136,7 +1136,7 @@ test('Bitmap Image pan-zoom, JSONL grid mounting & 5-locale + host theme-change 
   // Switch to zh-TW JSONL grid via ag-prism-workbench-sync
   imgEnv.win.postMessageToSelf({
     type: 'ag-prism-workbench-sync',
-    lang: 'zh-TW',
+    lang: 'ar',
     kind: 'table',
     path: '/logs/trace.jsonl',
     rawContent: '{"id":1,"msg":"init"}\n{"id":2,"msg":"ready"}\n',
@@ -1145,8 +1145,8 @@ test('Bitmap Image pan-zoom, JSONL grid mounting & 5-locale + host theme-change 
   assert.equal(imgEnv.badgeEl.textContent, 'TABLE');
   assert.match(imgEnv.stageEl.textContent, /ready/);
   assert.ok(
-    imgEnv.toolsEl.querySelectorAll('button').some((b) => b.textContent === '純文字'),
-    'Traditional Chinese (zh-TW) locale label should render'
+    imgEnv.toolsEl.querySelectorAll('button').some((b) => b.textContent === 'نص خام'),
+    'Arabic raw-text label should render'
   );
 });
 
@@ -1155,7 +1155,7 @@ test('Plain text fallback stage supports line-wrap toggle, clipboard copy & chun
     baseUrl: 'http://127.0.0.1:43199',
     token: 'tok-txt',
     path: '/logs/daemon.log',
-    lang: 'zh-CN',
+    lang: 'ar',
   });
   const txtEnv = bootRenderedWorkbenchInVm(txtHtml, {
     onFetch: async (url) => {
@@ -1191,10 +1191,10 @@ test('Plain text fallback stage supports line-wrap toggle, clipboard copy & chun
   const pre = txtEnv.stageEl.querySelector('pre');
   assert.equal(pre.getAttribute('data-wrap'), '1');
   const btns = txtEnv.toolsEl.querySelectorAll('button');
-  btns.find((b) => b.textContent === '自动换行').click();
+  btns.find((b) => b.textContent === 'التفاف الأسطر').click();
   assert.equal(pre.getAttribute('data-wrap'), '0');
 
-  const moreBtn = btns.find((b) => b.textContent === '加载更多切片');
+  const moreBtn = btns.find((b) => b.textContent === 'تحميل المزيد');
   await moreBtn.onclick();
   await txtEnv.settle();
   assert.equal(pre.textContent, 'line-1\nline-2\n');
@@ -1357,12 +1357,12 @@ test('Compliance & copy hygiene: zero machine path leaks, zero secret patterns, 
     new RegExp(['\\bs', 'k-[A-Za-z0-9]{10,}'].join('')),
     new RegExp(
       [
-        ['宇宙', '第一'].join(''),
-        ['颠覆', '性'].join(''),
-        ['史诗', '级'].join(''),
-        ['吊', '打'].join(''),
-        ['遥遥', '领先'].join(''),
-        ['黑科', '技'].join(''),
+        ['universe', 'first'].join(''),
+        ['ground', 'breaking'].join(''),
+        ['epic', 'tier'].join(''),
+        ['out', 'class'].join(''),
+        ['far', 'ahead'].join(''),
+        ['advanced', 'tech'].join(''),
       ].join('|')
     ),
   ];
@@ -1458,7 +1458,7 @@ test('Battle 3: strict HTML sandbox="allow-scripts", srcdoc CSP meta, /sandbox-i
   const rawHtml = '<!doctype html><html><body><div id="a">hi</div><script>window.x=1;</script></body></html>';
   const srcdocPage = renderWorkbenchHtml({
     kind: 'html',
-    lang: 'zh-CN',
+    lang: 'ar',
     rawContent: rawHtml,
   });
   const srcdocEnv = bootRenderedWorkbenchInVm(srcdocPage);
@@ -1505,7 +1505,7 @@ test('Battle 3: strict HTML sandbox="allow-scripts", srcdoc CSP meta, /sandbox-i
     baseUrl: 'http://127.0.0.1:43199',
     token: 'tok-svg',
     path: '/assets/logo.svg',
-    lang: 'zh-CN',
+    lang: 'ar',
   });
   const svgEnv = bootRenderedWorkbenchInVm(svgPage, {
     onFetch: async (url) => {
@@ -1541,7 +1541,7 @@ test('Battle 3: strict HTML sandbox="allow-scripts", srcdoc CSP meta, /sandbox-i
   assert.ok(svgLayer.innerHTML.includes('<rect'), 'Safe SVG geometry must remain');
   const svgBadge = svgEnv.toolsEl.querySelector('.wb-sandbox-badge');
   assert.ok(svgBadge);
-  assert.equal(svgBadge.textContent, '沙盒隔离');
+  assert.equal(svgBadge.textContent, 'معزول في بيئة آمنة');
 
   const svgBtns = svgEnv.toolsEl.querySelectorAll('button');
   for (const bgId of ['checker-light', 'checker-dark', 'dark', 'light', 'checker']) {
@@ -1559,7 +1559,7 @@ test('Battle 3: strict HTML sandbox="allow-scripts", srcdoc CSP meta, /sandbox-i
   assert.notEqual(svgLayer.style.transform, tfAfterZoomIn, '− zoom button must update transform');
   svgBtns.find((b) => b.textContent === '1:1').click();
   assert.match(svgEnv.toolsEl.textContent, /100%/);
-  svgBtns.find((b) => b.textContent === '适应窗口').click();
+  svgBtns.find((b) => ['Fit', 'ملاءمة'].includes(b.textContent)).click();
 
   // Visible-state reload message refreshes once; hidden-state skips refresh
   const callsBeforeReload = svgMetaCalls;
@@ -1574,9 +1574,9 @@ test('Battle 3: strict HTML sandbox="allow-scripts", srcdoc CSP meta, /sandbox-i
 
   // 5. Full 8+1 locales coverage & strict 0 CJK in non-CJK locales (en/ko/es/fr/de)
   const cjkRe = /[\u3400-\u9FFF\uF900-\uFAFF]/;
-  const localeCols = ['zh-CN', 'zh-TW', 'yue', 'en', 'ja', 'ko', 'es', 'fr', 'de'];
+  const localeCols = ['en', 'ar'];
   for (const [key, row] of Object.entries(WORKBENCH_I18N)) {
-    assert.equal(row.length, localeCols.length, `WORKBENCH_I18N.${key} must provide all 9 locale columns`);
+    assert.equal(row.length, localeCols.length, `WORKBENCH_I18N.${key} must provide both locale columns`);
     for (let i = 0; i < localeCols.length; i++) {
       assert.ok(typeof row[i] === 'string' && row[i].length > 0, `WORKBENCH_I18N.${key}[${localeCols[i]}] must be non-empty`);
       if (['en', 'ko', 'es', 'fr', 'de'].includes(localeCols[i])) {
@@ -1586,10 +1586,8 @@ test('Battle 3: strict HTML sandbox="allow-scripts", srcdoc CSP meta, /sandbox-i
   }
 
   for (const [lang, expectedBadge, expectedLightChecker] of [
-    ['ko', '샌드박스 격리', '밝은 체커'],
-    ['es', 'Aislado en sandbox', 'Damero claro'],
-    ['fr', 'Isolé en sandbox', 'Damier clair'],
-    ['de', 'Sandbox-isoliert', 'Helles Raster'],
+    ['en', 'Sandbox Isolated', 'Light Checker'],
+    ['ar', 'معزول في بيئة آمنة', 'مربعات فاتحة'],
   ]) {
     const p = renderWorkbenchHtml({
       kind: 'svg',

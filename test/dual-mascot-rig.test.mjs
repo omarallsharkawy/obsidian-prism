@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const rig = require('../dual-mascot-rig.js');
@@ -299,7 +300,7 @@ test('static frame cache & adaptive heartbeat: skips redundant clearRect + style
   const stage = rig.mountDualMascotStage(host, {
     camp: 'gemini',
     streaming: false,
-    reducedMotion: false, // 挂载后前 2.4s 内无随机眨眼/微抖，直接测试活跃 100ms 心跳下的静态帧缓存命中
+    reducedMotion: false, // No random blink/jitter in first 2.4s after mount; directly tests static frame cache hits under active 100ms heartbeat
   });
 
   try {
@@ -308,7 +309,7 @@ test('static frame cache & adaptive heartbeat: skips redundant clearRect + style
     assert.equal(clearRectCount, 3, 'Initial mount draws both mascots + 1 static habitat prop once');
     assert.equal(transformAssignCount, 2, 'Initial mount writes initial style.transform once per mascot');
 
-    // 等待 260ms（跨过 2 拍心跳）：因姿态、帧签名与坐标完全未变，必须 0 次 clearRect、0 次 style.transform 写入！
+    // Wait 260ms (across 2 heartbeat ticks): with unchanged pose, frame signature, and coords, must perform 0 clearRect & 0 style.transform writes
     await new Promise((r) => setTimeout(r, 260));
     const snapIdle = stage.getLayoutSnapshot();
     assert.equal(clearRectCount, 3, 'Unchanged idle frames must completely skip Canvas clearRect/redraw');
@@ -316,25 +317,25 @@ test('static frame cache & adaptive heartbeat: skips redundant clearRect + style
     assert.ok(snapIdle.perf.canvasSkips >= 2, 'Must record skipped canvas redraws');
     assert.ok(snapIdle.perf.domTransformSkips >= 2, 'Must record skipped DOM transform writes');
 
-    // 进入 dozing 打盹态 -> 定时器自动拉宽至 400ms！
+    // Enter dozing state -> heartbeat timer automatically widens to 400ms
     stage.triggerDemo('doze');
     const snapDoze = stage.getLayoutSnapshot();
     assert.equal(snapDoze.dozing, true);
     assert.equal(snapDoze.perf.timerIntervalMs, 400, 'Dozing state must widen heartbeat timer to 400ms');
 
-    // 鼠标靠近舞台 -> 0ms 立即唤醒恢复 100ms 灵敏心跳！
+    // Pointer approaches stage -> wakes in 0ms and restores 100ms responsive heartbeat
     host.dispatch('pointerenter');
     const snapWoke = stage.getLayoutSnapshot();
     assert.equal(snapWoke.dozing, false);
     assert.equal(snapWoke.perf.timerIntervalMs, 100, 'Pointer approach must restore 100ms heartbeat in 0ms');
 
-    // 再次进入打盹，验证打字同样瞬间唤醒 100ms
+    // Re-enter dozing and verify typing also immediately wakes back to 100ms
     stage.triggerDemo('doze');
     assert.equal(stage.getLayoutSnapshot().perf.timerIntervalMs, 400);
     stage.onUserType('hello!');
     assert.equal(stage.getLayoutSnapshot().perf.timerIntervalMs, 100, 'User typing must restore 100ms heartbeat in 0ms');
 
-    // document.hidden = true -> 100% 暂停定时器（timerIntervalMs === 0）
+    // document.hidden = true -> 100% pauses timer (timerIntervalMs === 0)
     mockDoc.hidden = true;
     mockDoc.dispatchDoc('visibilitychange');
     const snapHidden = stage.getLayoutSnapshot();
@@ -345,7 +346,7 @@ test('static frame cache & adaptive heartbeat: skips redundant clearRect + style
     await new Promise((r) => setTimeout(r, 240));
     assert.equal(stage.getLayoutSnapshot().actors[0].tick, tickAtHide, 'Zero ticks may fire while document.hidden');
 
-    // 标签页恢复可见 -> 自动重启心跳
+    // Tab becomes visible again -> automatically resumes heartbeat
     mockDoc.hidden = false;
     mockDoc.dispatchDoc('visibilitychange');
     assert.equal(stage.getLayoutSnapshot().perf.timerPaused, false);
@@ -508,14 +509,14 @@ test('resolveGroundSeparation enforces >= 6px rigid-body clear gap across all 5 
     }
   }
 
-  // 验证真实 5 宠舞台拖拽同位松手后自动刚体推挤防重叠
+  // Verify rigid-body separation prevents overlap when dropping two pets at the exact same spot on a 5-pet stage
   const { stage, findActorEl } = createInteractiveStageHarness({ miniPileEnabled: true, reducedMotion: true });
   try {
     const snap0 = stage.getLayoutSnapshot();
     const clawdCx = snap0.actors.find((a) => a.id === 'clawd').worldCx;
     const catCx = snap0.actors.find((a) => a.id === 'cat').worldCx;
     const catEl = findActorEl('cat');
-    // 将 cat 直接拖到与 clawd 完全重合的地面位置松手
+    // Drag cat directly onto clawd's exact ground position and release
     catEl.dispatch('pointerdown', { clientX: catCx, clientY: 80 });
     catEl.dispatch('pointermove', { clientX: clawdCx, clientY: 80 });
     catEl.dispatch('pointerup', { clientX: clawdCx, clientY: 80 });
@@ -542,7 +543,7 @@ test('obstacle encounters support parabolic leapfrog (~26px peak), autoPerch hit
 
   const { stage } = createInteractiveStageHarness({ miniPileEnabled: true, reducedMotion: false });
   try {
-    // (a) 抛物线撑跳越过（leapfrog）：跃起峰值约 ~26px，落地到伙伴另一侧
+    // (a) Parabolic leapfrog vault: arc peak ~26px, landing cleanly on the far side of partner
     stage.triggerDemo('leapfrog');
     let minArcY = 0;
     for (let i = 0; i < 8; i++) {
@@ -556,7 +557,7 @@ test('obstacle encounters support parabolic leapfrog (~26px peak), autoPerch hit
     const clawdAfter = afterLeap.actors.find((a) => a.id === 'clawd');
     assert.ok(catAfter.worldCx > clawdAfter.worldCx + 44, 'Cat must land cleanly on the far side of Clawd after leapfrog');
 
-    // (b) 顺势跳上头顶搭便车（autoPerch）：底座散步驮着上层同步位移
+    // (b) AutoPerch hitchhike: walking base carries rider synchronously
     stage.triggerDemo('autoPerch');
     await new Promise((r) => setTimeout(r, 680));
     const perched = stage.getLayoutSnapshot();
@@ -571,7 +572,7 @@ test('obstacle encounters support parabolic leapfrog (~26px peak), autoPerch hit
     assert.notEqual(clawdMoved.worldCx, startBaseCx, 'Walking base must carry the stack forward');
     assert.equal(catMoved.worldCx, clawdMoved.worldCx, 'Perched rider must move in lockstep with walking base');
 
-    // (c) 驻足礼貌互动后转身（greetTurn）
+    // (c) Polite greet and turn reversal (greetTurn)
     stage.triggerDemo('unstack');
     const act = stage.triggerObstacle('cowboy', 'clawd', 'greetTurn');
     assert.equal(act, 'greetTurn');
@@ -584,7 +585,7 @@ test('obstacle encounters support parabolic leapfrog (~26px peak), autoPerch hit
 test('multi-tier totem stack (up to 5 tiers), pointer drag stacking, pull-out gravity settle, and vigorous side-hop dismount', async () => {
   const { stage, findMiniEl } = createInteractiveStageHarness({ miniPileEnabled: true, reducedMotion: false });
   try {
-    // 1. 构建 4 层混搭图腾塔：clawd -> cowboy -> cat -> shades，再用鼠标指针拖拽 wizard 叠上第 5 层！
+    // 1. Build 4-tier mixed totem tower: clawd -> cowboy -> cat -> shades, then pointer-drag wizard onto tier 5
     assert.equal(stage.stackOnto('cowboy', 'clawd'), true);
     assert.equal(stage.stackOnto('cat', 'cowboy'), true);
     assert.equal(stage.stackOnto('shades', 'cat'), true);
@@ -594,7 +595,7 @@ test('multi-tier totem stack (up to 5 tiers), pointer drag stacking, pull-out gr
     const wizSnap0 = snap4.minis.find((m) => m.id === 'wizard');
     const wizEl = findMiniEl('wizard');
 
-    // 模拟真实鼠标拖拽第 5 只迷你蟹 wizard 到塔顶 shades 头顶（perchY = shades.y - 16）悬停稳放松手
+    // Simulate pointer dragging 5th mini-crab wizard onto top shades (perchY = shades.y - 16) and releasing
     const targetDropY = shadesSnap.y - 16;
     wizEl.dispatch('pointerdown', { clientX: wizSnap0.worldCx, clientY: 100 });
     wizEl.dispatch('pointermove', { clientX: shadesSnap.worldCx, clientY: 100 + targetDropY });
@@ -604,7 +605,7 @@ test('multi-tier totem stack (up to 5 tiers), pointer drag stacking, pull-out gr
     const snap5 = stage.getLayoutSnapshot();
     assert.deepEqual(snap5.towers, [['clawd', 'cowboy', 'cat', 'shades', 'wizard']], '5-pet mode must support full 5-tier mixed totem stack');
 
-    // 2. 抽走中间层 'cowboy'：上方 ['cat', 'shades', 'wizard'] 受重力顺滑下落补位，扣合在 'clawd' 头顶重组为 4 层塔！
+    // 2. Pull out middle tier 'cowboy': upper ['cat', 'shades', 'wizard'] gravity-settle onto 'clawd' as a 4-tier tower
     stage.pullFromStack('cowboy', 'settle');
     await new Promise((r) => setTimeout(r, 340));
     const snapSettledMid = stage.getLayoutSnapshot();
@@ -614,7 +615,7 @@ test('multi-tier totem stack (up to 5 tiers), pointer drag stacking, pull-out gr
       'Upper sub-tower must smoothly gravity-settle onto lower holder after middle pet is pulled out'
     );
 
-    // 3. 抽走最底层底座 'clawd'：上方子塔 ['cat', 'shades', 'wizard'] 顺滑落回地面 y=0！
+    // 3. Pull out base 'clawd': upper sub-tower ['cat', 'shades', 'wizard'] smoothly settles back onto ground y=0
     stage.pullFromStack('clawd', 'settle');
     await new Promise((r) => setTimeout(r, 360));
     const snapSettledBottom = stage.getLayoutSnapshot();
@@ -626,7 +627,7 @@ test('multi-tier totem stack (up to 5 tiers), pointer drag stacking, pull-out gr
     const catBase = snapSettledBottom.actors.find((a) => a.id === 'cat');
     assert.equal(catBase.y, 0, 'New root cat must settle cleanly on ground y=0');
 
-    // 4. 剧烈动作（如 onFire）触发上方骑乘者轻巧侧跳落地解绑
+    // 4. Vigorous action (e.g. onFire) triggers safe side-hop dismount for riders
     stage.triggerDemo('fire');
     await new Promise((r) => setTimeout(r, 450));
     const snapAfterFire = stage.getLayoutSnapshot();
@@ -637,7 +638,7 @@ test('multi-tier totem stack (up to 5 tiers), pointer drag stacking, pull-out gr
 });
 
 test('three-stage chromaResonance state machine, diagonal spectrum flow, crystal ear glints, persistence, and 4-tap toggle', () => {
-  // 验证对角线色相梯度与暗部体块阴影插值
+  // Verify diagonal hue gradient and darkened shadow volume interpolation
   const cA = rig.evalChromaColorAt(2, 2, 0.1, false);
   const cB = rig.evalChromaColorAt(9, 6, 0.1, false);
   const cShadow = rig.evalChromaColorAt(2, 2, 0.1, true);
@@ -647,13 +648,13 @@ test('three-stage chromaResonance state machine, diagonal spectrum flow, crystal
 
   const h1 = createInteractiveStageHarness({ miniPileEnabled: true, reducedMotion: false });
   try {
-    // 搭起 3 层塔（clawd -> cowboy -> cat），但在前置编码门禁达成前连点 4 次绝不误触发
+    // Build 3-tier tower (clawd -> cowboy -> cat), but 4 taps before session gates must NOT trigger awakening
     h1.stage.stackOnto('cowboy', 'clawd');
     h1.stage.stackOnto('cat', 'cowboy');
     for (let i = 0; i < 4; i++) h1.stage.poke('cat');
     assert.equal(h1.stage.getLayoutSnapshot().chromaResonance.active, false, 'Must not awaken before both session gates');
 
-    // 达成 Gate 1（算力调谐）+ Gate 2（编码锻造）
+    // Satisfy Gate 1 (model-shift) + Gate 2 (code-copied)
     h1.stage.notify('model-shift');
     h1.stage.notify('code-copied');
     const gated = h1.stage.getLayoutSnapshot().chromaResonance;
@@ -661,7 +662,7 @@ test('three-stage chromaResonance state machine, diagonal spectrum flow, crystal
     assert.equal(gated.forged, true);
     assert.equal(gated.active, false);
 
-    // Gate 3：在 >=3 层叠塔态 1.8s 内连点小紫猫 4 次 -> 迸发 12 粒棱镜像素星屑并觉醒！
+    // Gate 3: 4 taps on cat within 1.8s in >=3-tier tower -> bursts 12 prismatic sparks and awakens
     for (let i = 0; i < 4; i++) h1.stage.poke('cat');
     const awakened = h1.stage.getLayoutSnapshot();
     assert.equal(awakened.chromaResonance.active, true, '4 taps in 3-tier tower after gates must awaken chromaResonance');
@@ -674,7 +675,7 @@ test('three-stage chromaResonance state machine, diagonal spectrum flow, crystal
       'Chroma cat must paint pure #FFFFFF crystal ear glints'
     );
 
-    // 验证跨会话重挂载自动恢复炫彩形态，且叠塔连点 4 次可自由切回原色紫猫
+    // Verify cross-session remount restores chroma state automatically, and 4 taps in tower toggles back to classic coat
     const h2 = createInteractiveStageHarness({
       miniPileEnabled: false,
       reducedMotion: false,
@@ -682,7 +683,7 @@ test('three-stage chromaResonance state machine, diagonal spectrum flow, crystal
     });
     try {
       assert.equal(h2.stage.getLayoutSnapshot().chromaResonance.active, true, 'Saved __op_chroma_v1=1 must restore on mount');
-      // 双宠模式下叠成 2 层塔，连点 4 次切回原色紫猫
+      // In dual mode, stack 2-tier tower and tap 4 times to toggle back to classic purple coat
       h2.stage.stackOnto('cat', 'clawd');
       for (let i = 0; i < 4; i++) h2.stage.poke('cat');
       assert.equal(h2.stage.getLayoutSnapshot().chromaResonance.active, false, '4 taps in tower must toggle off back to classic purple coat');
@@ -710,7 +711,7 @@ test('high-rate pointer dragging of mini-crabs and main actors disables CSS tran
     miniEl.dispatch('pointerdown', { clientX: snap0.worldCx, clientY: 100 });
     rectReadsDuringMove = 0;
 
-    // 模拟 1000Hz 电竞鼠标连续亚像素微移
+    // Simulate 1000Hz gaming mouse continuous subpixel micro-moves
     miniEl.dispatch('pointermove', { clientX: snap0.worldCx + 8.37, clientY: 91.64 });
     miniEl.dispatch('pointermove', { clientX: snap0.worldCx + 14.73, clientY: 84.28 });
     assert.equal(rectReadsDuringMove, 0, 'pointermove must perform 0 synchronous getBoundingClientRect reflows');
@@ -727,7 +728,7 @@ test('high-rate pointer dragging of mini-crabs and main actors disables CSS tran
     assert.equal(catEl.getAttribute('title'), null, 'Cat must never show hover title tooltip');
     assert.equal(miniEl.getAttribute('title'), null, 'Mini crabs must never show hover title tooltip');
 
-    // 主宠同步验证零重排与直通锁
+    // Main actor also verifies zero reflows and direct transform lock
     const catCx0 = stage.getLayoutSnapshot().actors.find((a) => a.id === 'cat').worldCx;
     catEl.dispatch('pointerdown', { clientX: catCx0, clientY: 100 });
     rectReadsDuringMove = 0;
@@ -747,21 +748,21 @@ test('reducedMotion pauses idle heartbeat to 0fps (timerIntervalMs=0) and revive
     assert.equal(h.stage.getLayoutSnapshot().perf.timerIntervalMs, 100);
     assert.equal(h.stage.getLayoutSnapshot().perf.timerPaused, false);
 
-    // 切换全局禁动效 reducedMotion: true（非流式忙碌态）-> 立即停表至 0fps
+    // Enable reducedMotion: true (non-streaming idle) -> immediately stops timer to 0fps
     h.stage.setState({ reducedMotion: true });
     const pausedSnap = h.stage.getLayoutSnapshot();
     assert.equal(pausedSnap.reducedMotion, true);
     assert.equal(pausedSnap.perf.timerIntervalMs, 0, 'Idle reducedMotion must stop 100ms heartbeat to 0fps');
     assert.equal(pausedSnap.perf.timerPaused, true);
 
-    // 在 reducedMotion (motionLevel='off') 下即使进入流式忙碌态，仍保持 0fps 停摆并同步一次单帧姿态
+    // Under reducedMotion (motionLevel='off'), even when streaming starts, timer stays at 0fps and syncs a static pose
     h.stage.setState({ streaming: true });
     assert.equal(h.stage.getLayoutSnapshot().perf.timerIntervalMs, 0);
     assert.equal(h.stage.getLayoutSnapshot().perf.timerPaused, true);
     h.stage.setState({ streaming: false });
     assert.equal(h.stage.getLayoutSnapshot().perf.timerIntervalMs, 0);
 
-    // 从 reducedMotion: true 解冻切回 false -> 立即复活 100ms 心跳，绝不僵死！
+    // Unfreeze reducedMotion back to false -> immediately revives 100ms heartbeat without stalling
     h.stage.setState({ reducedMotion: false });
     const revivedSnap = h.stage.getLayoutSnapshot();
     assert.equal(revivedSnap.reducedMotion, false);
@@ -2139,18 +2140,18 @@ test('PR #45 Quad mascot mode: GPT White Dragon & DeepSeek Whale sprites, 4-camp
   const mgc = require('../model-glyph-crystal.js');
   assert.equal(mgc.resolveMascotCamp('Claude Sonnet 4.6'), 'claude');
   assert.equal(mgc.resolveMascotCamp('Gemini 2.5 Pro'), 'gemini');
-  assert.equal(mgc.resolveMascotCamp('GPT-5.2 (低)'), 'gpt');
+  assert.equal(mgc.resolveMascotCamp('GPT-5.2 (منخفض)'), 'gpt');
   assert.equal(mgc.resolveMascotCamp('o3-mini'), 'gpt');
   assert.equal(mgc.resolveMascotCamp('DeepSeek R1'), 'deepseek');
-  assert.equal(mgc.resolveMascotCamp('深度求索 V3'), 'deepseek');
-  assert.deepEqual(mgc.parseModelLabelInfo('GPT-5.2 (低)'), {
+  assert.equal(mgc.resolveMascotCamp('DeepSeek V3'), 'deepseek');
+  assert.deepEqual(mgc.parseModelLabelInfo('GPT-5.2 (منخفض)'), {
     brand: 'openai',
     tier: 'low',
     isOrchestrator: false,
     camp: 'gemini',
   });
   const ctrl = mgc.createModelGlyphCrystalController({});
-  const mockBtn = { nodeType: 1, textContent: 'DeepSeek R1 (高思考)', getAttribute: () => null };
+  const mockBtn = { nodeType: 1, textContent: 'DeepSeek R1 (عميق)', getAttribute: () => null };
   const trigInfo = ctrl.parseModelTriggerInfo(mockBtn);
   assert.equal(trigInfo.brand, 'openai');
   assert.equal(trigInfo.camp, 'gemini');
@@ -2332,7 +2333,7 @@ test('Periodic picker PP_OPEN 0fps sleep covers 4-species quad-minis roster and 
   }
 });
 
-test('Octopath HD-2D 16:9 Mascot Casting Stage sub-panel: Ch9 fallback when mascot=off, 5-slot pure toggles, 4 presets, 0x0 VRAM reclaim, 36 schema keys, 8-lang zero-CJK & MIT credits', () => {
+test('Octopath HD-2D 16:9 Mascot Casting Stage sub-panel: Ch9 fallback when mascot=off, 5-slot pure toggles, 4 presets, 0x0 VRAM reclaim, 37 schema keys, bilingual zero-CJK & MIT credits', () => {
   const fs = require('node:fs');
   const path = require('node:path');
   const sp = require('../settings-panel.js');
@@ -2342,7 +2343,7 @@ test('Octopath HD-2D 16:9 Mascot Casting Stage sub-panel: Ch9 fallback when masc
   assert.equal(Object.keys(sp.PRISM_SETTINGS_SCHEMA).length, 37, 'PRISM_SETTINGS_SCHEMA must remain strictly 37 keys');
   assert.deepEqual([...sp.PRISM_SETTINGS_SCHEMA.mascot.allowed], ['crab', 'quad', 'quad-minis', 'off']);
 
-  // 2. 8-language coverage (including all stage keys), /4 cap copy, zero CJK in en/es/fr/de, and 0 new keys leaked into RUNTIME_UI_KEYS
+  // 2. Bilingual (en/ar) coverage (including all stage keys), /4 cap copy, zero CJK across all locales, and 0 new keys leaked into RUNTIME_UI_KEYS
   const newKeys = [
     'optMascotCrab', 'optMascotMinis', 'optMascotQuad', 'optMascotQuadMinis', 'optMascotOff',
     'mascotRosterTitle', 'mascotRosterCount', 'mascotRosterMinis',
@@ -2356,19 +2357,17 @@ test('Octopath HD-2D 16:9 Mascot Casting Stage sub-panel: Ch9 fallback when masc
     assert.equal(runtimeKeySet.has(k), false, `New mascot settings key '${k}' must NOT be in RUNTIME_UI_KEYS`);
   }
   const CJK_RE = /[\u3000-\u30ff\u3400-\u9fff\uac00-\ud7af\uff00-\uffef]/;
-  for (const lang of ['zh-CN', 'zh-TW', 'en', 'ja', 'ko', 'es', 'fr', 'de']) {
+  for (const lang of ['en', 'ar']) {
     const ui = i18nLocales.getUiStrings(lang);
     assert.ok(ui.mascotRosterCount.includes('/4'), `mascotRosterCount for ${lang} must reflect /4 cap`);
     for (const k of newKeys) {
       assert.ok(typeof ui[k] === 'string' && ui[k].trim().length > 0, `Missing i18n key ${k} for ${lang}`);
-      if (['en', 'es', 'fr', 'de'].includes(lang)) {
-        assert.equal(CJK_RE.test(ui[k]), false, `CJK leak in ${lang}.${k}: ${ui[k]}`);
-      }
+      assert.equal(CJK_RE.test(ui[k]), false, `CJK leak in ${lang}.${k}: ${ui[k]}`);
     }
   }
 
   // 3. Credits & third-party MIT attribution for wp3171216237/dsh-TUI
-  const rootDir = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), '..');
+  const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
   const noticeTxt = fs.readFileSync(path.join(rootDir, 'NOTICE'), 'utf8');
   const thirdPartyTxt = fs.readFileSync(path.join(rootDir, 'THIRD_PARTY_NOTICES.md'), 'utf8');
   assert.ok(noticeTxt.includes('wp3171216237/dsh-TUI'), 'NOTICE must credit wp3171216237/dsh-TUI');
@@ -2391,7 +2390,7 @@ test('Octopath HD-2D 16:9 Mascot Casting Stage sub-panel: Ch9 fallback when masc
   doc.body.appendChild(dlg);
 
   const state = { ...sp.getDefaultSettingsPatch(), mascot: 'off' };
-  const langNow = 'zh-CN';
+  const langNow = 'ar';
   const prevDoc = globalThis.document;
   const prevArt = globalThis.__agPrismMascotArt;
   const prevRig = globalThis.__agDualMascotRig;
@@ -2717,7 +2716,7 @@ test('Octopath WebGL2 HD-2D engine: 4-FBO MRT pipeline, GL_NEAREST pixel filteri
   // Hot-swap external tavern-atlas-data.js if present (seamless Image decode -> gl.NEAREST upgrade)
   const fs = require('node:fs');
   const path = require('node:path');
-  const atlasFile = path.join(path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), '..'), 'vendor', 'clawd-mascot', 'tavern-atlas-data.js');
+  const atlasFile = path.join(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'), 'vendor', 'clawd-mascot', 'tavern-atlas-data.js');
   if (fs.existsSync(atlasFile)) {
     const prevAtlas = globalThis.__agOctopathTavernAtlas;
     const prevImg = globalThis.Image;

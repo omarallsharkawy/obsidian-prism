@@ -931,7 +931,7 @@ export function buildRendererRpcExpression(method, body = {}) {
       try {
         if (typeof location !== 'undefined' && location && typeof location.href === 'string') addFrom(location.href);
         if (typeof document !== 'undefined' && document && typeof document.querySelectorAll === 'function') {
-          // 严格限定仅采集侧栏主对话行，排除子代理子树（避免主对话内子代理卡片 UUID 混入 protectedMainIds 导致永久漏归档）
+          // Strictly collect only sidebar main conversation rows, excluding subagent subtrees so subagent card UUIDs do not leak into protectedMainIds.
           const subTreeSel = '[data-testid="subagent-node"], [data-testid="subagent-tab-conversation"], [data-ag-sub-running]';
           const rows = document.querySelectorAll('[data-testid="conversation-row-sidebar"], nav [data-cascade-id], aside [data-cascade-id]');
           for (let i = 0; i < rows.length && i < 400 && seen.size < 512; i += 1) {
@@ -987,7 +987,7 @@ export function buildRendererRpcExpression(method, body = {}) {
           for (let j = 0; j < ms.length && found.size < 512; j += 1) addSub(ms[j], parentId);
         }
       };
-      // 1) 当前对话页内已渲染的子代理卡片/标签节点（零 RPC，绝不唤醒沉睡 .db）
+      // 1) Rendered subagent card/tab nodes in the current conversation page (zero RPC; never wakes sleeping .db files).
       try {
         if (typeof document !== 'undefined' && document && typeof document.querySelectorAll === 'function') {
           const subRoots = document.querySelectorAll('[data-testid="subagent-node"], [data-testid="subagent-tab-conversation"], [data-ag-sub-running]');
@@ -1017,7 +1017,7 @@ export function buildRendererRpcExpression(method, body = {}) {
                 if (!p || typeof p !== 'object') continue;
                 const pId = p.parentConversationId || p.parentCascadeId || p.parentId || parentHint;
                 markExcludedParent(pId);
-                // 仅在卡片自身 Fiber(d===0)接受通用 cascadeId/conversationId，祖先层严禁把父主对话容器 ID 误当子代理
+                // Only accept generic cascadeId/conversationId on the card's own Fiber (d===0); never treat ancestor main-conversation container IDs as subagents.
                 const childKeys = d === 0
                   ? ['subagentId', 'childConversationId', 'cascadeId', 'conversationId', 'trajectoryId']
                   : ['subagentId', 'childConversationId'];
@@ -1029,7 +1029,7 @@ export function buildRendererRpcExpression(method, body = {}) {
           }
         }
       } catch {}
-      // 2) 当前活跃会话 AgentManager 纯内存状态中的委托子代理（零 GetCascadeTrajectory RPC）
+      // 2) Delegated subagents in the active session AgentManager's in-memory state (zero GetCascadeTrajectory RPC).
       try {
         const mgr = findAgentMgr();
         if (mgr && typeof mgr.getAgentStates === 'function') {

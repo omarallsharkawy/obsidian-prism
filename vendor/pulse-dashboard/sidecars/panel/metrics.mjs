@@ -151,7 +151,7 @@ function findPostChatCompaction(response, trajectory, steps, lastChatInfo, lastA
             (hasBothTimes && cpMs > lastChatInfo.createdMs);
         }
       } else if (hasBothTimes && cpMs < lastChatInfo.createdMs) {
-        // 无强 stepIndices 锚点时，若 checkpoint 时间早于最新 chat 请求时间则严格否决，避免旧压缩误清高水位
+        // Without a strong stepIndices anchor, strictly reject checkpoints older than the latest chat request to avoid stale compactions clearing the high-water mark.
         isAfter = false;
       } else if (lastChatInfo.anchorStepIndex !== null) {
         if (i > lastChatInfo.anchorStepIndex) isAfter = true;
@@ -379,7 +379,7 @@ export function trajectoryMetrics(response, storage = null) {
         chat,
         maxStepIndex,
         startStepIndex,
-        // proto3 未设置标量常序列化为 0，仅在 startStepIndex > 0 时作为弱回退锚点，避免将 0 误判为有效步序锚点
+        // Unset proto3 scalars serialize as 0; only use startStepIndex > 0 as a weak fallback anchor to avoid misreading 0 as a valid step anchor.
         anchorStepIndex: maxStepIndex !== null ? maxStepIndex : (startStepIndex !== null && startStepIndex > 0 ? startStepIndex : null),
         checkpointIndex,
         createdAt,

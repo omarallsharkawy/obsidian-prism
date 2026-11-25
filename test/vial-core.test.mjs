@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const vialCore = require('../vial-core.js');
@@ -170,34 +171,34 @@ test('isSettled() enters true 0fps sleep after >=1.1s convergence and immediatel
       }),
     });
 
-    // 入场未满 1.1s 时严禁提前报 settled
+    // Must not report settled before the 1.1s entry age window elapses
     assert.equal(vial.isSettled(), false, 'Must not report settled before 1.1s entry age');
     for (let i = 0; i < 15; i++) vial.step(0.05); // 0.75s
     assert.equal(vial.isSettled(), false, 'Must remain unsettled at 0.75s');
 
-    // 推进超过 1.1s（累计 1.25s），液位与波能静止收敛 -> true
+    // Advance past 1.1s (1.25s total); liquid level and wave energy converge -> true
     for (let i = 0; i < 10; i++) vial.step(0.05); // +0.5s = 1.25s
     assert.equal(vial.isSettled(), true, 'Must report settled after >=1.1s when calm');
 
-    // 1. setLevel 立即恢复 false，插值误差收敛 < 0.001 后恢复 true
+    // 1. setLevel immediately flips to false, then re-settles once interpolation error < 0.001
     vial.setLevel(0.78);
     assert.equal(vial.isSettled(), false, 'setLevel must immediately wake isSettled() -> false');
     for (let i = 0; i < 40; i++) vial.step(0.04);
     assert.equal(vial.isSettled(), true, 'Must re-settle once level interpolation error < 0.001');
 
-    // 2. agitate 立即恢复 false，阻尼耗散后恢复 true
+    // 2. agitate immediately flips to false, then re-settles once damping dissipates waves
     vial.agitate(2.0);
     assert.equal(vial.isSettled(), false, 'agitate must immediately wake isSettled() -> false');
     for (let i = 0; i < 120; i++) vial.step(0.04);
     assert.equal(vial.isSettled(), true, 'Must re-settle after slosh waves decay');
 
-    // 3. tilt 立即恢复 false，水平仪回正后恢复 true
+    // 3. tilt immediately flips to false, then re-settles once the pendulum levels out
     vial.tilt(0.32);
     assert.equal(vial.isSettled(), false, 'tilt must immediately wake isSettled() -> false');
     for (let i = 0; i < 100; i++) vial.step(0.04);
     assert.equal(vial.isSettled(), true, 'Must re-settle after tilt pendulum stabilizes');
 
-    // 4. 主题切换立即恢复 false，重绘新主题帧后恢复 true
+    // 4. Theme switch immediately flips to false, then re-settles after rendering the updated frame
     themeDark = false;
     assert.equal(vial.isSettled(), false, 'Theme switch must immediately flip isSettled() -> false');
     vial.step(0.016);
@@ -282,7 +283,7 @@ test('mountPhysicalWaterVial renders high-contrast daylight borosilicate glass &
     inst.step(0.016);
     assert.deepEqual(canvas.drawnLabels.slice(0, 3), ['250k', '500k', '750k']);
 
-    // 浅色白昼模式对比度校验：管壁折射 rgba(30, 64, 175, 0.28)、皇家钴蓝-晴空蓝水柱、rgba(30, 41, 59, 0.62) 刻度字
+    // Daylight mode contrast checks: glass rim refraction rgba(30, 64, 175, 0.28), Royal Cobalt to Clear Sky column, rgba(30, 41, 59, 0.62) tick labels
     canvas.fillStyles.length = 0;
     canvas.gradStops.length = 0;
     curState = { ...curState, isDark: false, fill: 0.42, streaming: false };
@@ -517,7 +518,7 @@ test('OP-3.5 vial-core accentTone response: mono silver-titanium, iris, amber, a
 test('Issue #2/#4/#5 high-Hz & win-blur guards: pulse-vial-bridge (<31,000B) 33ms steady throttle + 0fps blur sleep, and prism-rim-canvas DPR 1.5 + <1.5px micro-move skip', async () => {
   const fs = require('node:fs');
   const path = require('node:path');
-  const bridgePath = path.join(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), '..', 'pulse-vial-bridge.js');
+  const bridgePath = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'pulse-vial-bridge.js');
   const bridgeBytes = fs.statSync(bridgePath).size;
   assert.ok(bridgeBytes < 31000, `pulse-vial-bridge.js must stay < 31,000 B, got ${bridgeBytes} B`);
 

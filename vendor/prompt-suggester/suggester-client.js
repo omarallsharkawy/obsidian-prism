@@ -1,11 +1,11 @@
 // Obsidian Prism — Channel 11 Context-Aware Next-Prompt Ghost Suggester Client Runtime (v1.0.8 · Beta)
-// - 严格按会话 data-cascade-id 隔离：绝不跨会话泄漏建议
-// - 精确展示生命周期：
-//   * 历史/静止对话重开保持静默，绝不自动发起请求或显示陈旧建议
-//   * /btw 侧栏问答与子智能体标签页严格排除
-//   * 主会话刚完成回复后触发一次预测，严格绑定该 cascadeId 与 turnSig
-//   * 关闭态（enabled: false）零 MutationObserver、零 document 捕获监听、零运行时样式注入
-// - Lexical 单次指令插入（杜绝异步双插）
+// - Strictly isolated per conversation data-cascade-id: never leaks suggestions across conversations
+// - Exact display lifecycle:
+//   * Reopening historical/idle conversations stays silent, never auto-requests or shows stale suggestions
+//   * /btw side Q&A panel and subagent tabs are strictly excluded
+//   * Triggers once when the main conversation completes a reply, strictly bound to cascadeId and turnSig
+//   * Disabled state (enabled: false) runs zero MutationObservers, zero document capture listeners, zero runtime styles
+// - Single-command Lexical insertion (prevents async double insertion)
 
 (function (root) {
   'use strict';
@@ -24,14 +24,14 @@
   const AUTO_SETTLE_MS = 750;
   const MAX_SESSION_ENTRIES = 24;
 
-  // 严格排除 /btw 侧边问答面板与子智能体对话页签
+  // Strictly exclude /btw side Q&A panels and subagent conversation tabs
   const EXCLUDED_PANE_SEL =
     '[data-side-panel-focus-scope="true"], [data-testid="side-question-panel"], [data-testid="subagent-tab-conversation"]';
 
   const RUNNING_SEL =
     '[data-testid="input-cancel-button"], [data-testid="stop-button"], [data-testid="cancel-button"], [data-testid="agent-loading"], [data-testid="thinking-collapsible-trigger"][data-op-thought-state="streaming"]';
 
-  // 浮层与阻断式交互面板选择器（严格排除周期表、模型菜单、全能菜单、右键菜单、侧栏弹窗、对话框与设置面板）
+  // Floating overlays and blocking interactive panels (excludes periodic table, model menu, omni menu, context menu, sidebar modals, dialogs, settings)
   const BLOCKING_UI_SEL = [
     '[data-testid="interaction-takeover-card"]',
     '[data-testid="slash-command-menu"]',
@@ -68,19 +68,13 @@
     ['data-ag-no-i18n', ''],
   ];
 
-  // 完整 8 语无障碍标签（去 yue，en/es/fr/de 严格 0 CJK）
+  // Bilingual EN/AR accessibility labels
   const ARIA_LABELS = {
-    'zh-CN': { accept: '使用建议的提示词' },
-    'zh-TW': { accept: '使用建議的提示詞' },
     en: { accept: 'Use suggested prompt' },
-    ja: { accept: '提案されたプロンプトを使用' },
-    ko: { accept: '추천 프롬프트 사용' },
-    es: { accept: 'Usar sugerencia de prompt' },
-    fr: { accept: 'Utiliser la suggestion de prompt' },
-    de: { accept: 'Vorgeschlagenen Prompt verwenden' },
+    ar: { accept: 'استخدام الرسالة المقترحة' },
   };
 
-  // 运行时高频幽灵建议样式：严格纯 ASCII、0 :has()、行高对齐主输入框 22px，仅在 enabled === true 时注入
+  // Runtime ghost suggestion styles: strictly pure ASCII, 0 :has(), 22px line-height aligned with main composer, injected only when enabled === true
   const SUGGESTER_CSS = [
     '[data-ag-prism-ghost-active="1"]{position:relative !important;min-height:var(--ag-prism-ghost-min-h,40px);}',
     '[data-ag-prism-ghost-active="1"]>p,[data-ag-prism-ghost-active="1"]>[data-ag-cs-placeholder]{opacity:0 !important;visibility:hidden !important;}',
@@ -101,18 +95,11 @@
     return el;
   }
 
-  // 对齐全仓 8 语规范（yue -> zh-CN，zh-HK/MO -> zh-TW，未知返回空字符串交由调用方兜底 en）
+  // Bilingual EN/AR normalization (unknown returns empty string so callers fall back to 'en')
   function normalizeLang(raw) {
     const s = String(raw || '').trim().toLowerCase().replace(/_/g, '-');
     if (!s || s === 'auto') return '';
-    if (s === 'yue' || s.startsWith('yue-') || s === 'zh-yue' || s.includes('cantonese')) return 'zh-CN';
-    if (/^zh-(tw|hk|mo|hant)/.test(s) || s === 'tw' || s === 'hant') return 'zh-TW';
-    if (/^zh(?:\b|-)/.test(s)) return 'zh-CN';
-    if (/^(ja|jp)(?:\b|-)/.test(s) || s === 'japanese') return 'ja';
-    if (/^(ko|kr)(?:\b|-)/.test(s) || s === 'korean') return 'ko';
-    if (/^es(?:\b|-)/.test(s) || s === 'spanish') return 'es';
-    if (/^fr(?:\b|-)/.test(s) || s === 'french') return 'fr';
-    if (/^de(?:\b|-)/.test(s) || s === 'german') return 'de';
+    if (s === 'ar' || s.startsWith('ar-') || s === 'arabic') return 'ar';
     if (/^en(?:\b|-)/.test(s) || s === 'english') return 'en';
     return '';
   }
@@ -202,7 +189,7 @@
     return Boolean(el && typeof el.closest === 'function' && el.closest(BLOCKING_CONTAINER_SEL));
   }
 
-  // 解析当前可见的主对话容器及其唯一 cascadeId
+  // Resolve the currently visible main conversation container and its unique cascadeId
   function getActiveMainCascade(doc) {
     if (!doc || typeof doc.querySelectorAll !== 'function') {
       return { view: null, composerRoot: null, cascadeId: '', editor: null };
@@ -326,7 +313,7 @@
     return false;
   }
 
-  // 检测周期表（Ch8）、模型菜单、全能菜单、右键菜单、弹窗、设置面板等阻断式浮层是否处于打开状态
+  // Detect whether blocking overlays (periodic table, model menu, omni menu, context menu, modals, settings) are open
   function hasBlockingUiOpen(doc) {
     if (!doc) return false;
     const de = doc.documentElement;
@@ -440,7 +427,7 @@
     let mountRaf = 0;
     let mountRafUsesTimeout = false;
 
-    // 按 cascadeId 隔离的内存态存储
+    // In-memory state isolated per cascadeId
     const sessionStore = new Map();
     const runningByCascade = new Map();
     const sidebarRunningByCascade = new Map();
@@ -471,7 +458,7 @@
         const b = btns[i];
         const tid = String(b.getAttribute?.('data-testid') || '');
         const lbl = String(b.getAttribute?.('aria-label') || b.getAttribute?.('title') || '');
-        if (/(?:stop|cancel)/i.test(tid) || /(?:stop|cancel|停止|取消)/i.test(lbl)) return true;
+        if (/(?:stop|cancel)/i.test(tid) || /(?:stop|cancel|إيقاف|إلغاء)/i.test(lbl)) return true;
       }
       return false;
     };
@@ -519,10 +506,10 @@
         if (!isVisibleNode(b)) continue;
         const tid = String(b.getAttribute?.('data-testid') || '').trim();
         const lbl = String(b.getAttribute?.('aria-label') || b.getAttribute?.('title') || '').trim();
-        if (/取消置顶|取消固定|unpin|\b(?:pin|menu|more|options|delete|archive|rename|close|dismiss|voice|context)\b/i.test(`${tid} ${lbl}`)) {
+        if (/إلغاء التثبيت|unpin|\b(?:pin|menu|more|options|delete|archive|rename|close|dismiss|voice|context)\b/i.test(`${tid} ${lbl}`)) {
           continue;
         }
-        if (/(?:^|[^a-z])(?:stop|cancel|abort)(?:[^a-z]|$)/i.test(tid) || /(?:^|\b)(?:stop|cancel|abort)(?:\b|$)|停止|取消|中止/i.test(lbl)) {
+        if (/(?:^|[^a-z])(?:stop|cancel|abort)(?:[^a-z]|$)/i.test(tid) || /(?:^|\b)(?:stop|cancel|abort)(?:\b|$)|إيقاف|إلغاء/i.test(lbl)) {
           return true;
         }
       }
@@ -664,7 +651,7 @@
       });
     };
 
-    // 仅解析严格属于当前可见 cascadeId 且对应最新轮次的建议
+    // Resolve only suggestions strictly belonging to the active visible cascadeId and latest turn
     const getOfferedSuggestionForActiveCascade = () => {
       if (destroyed || !config.enabled || isComposing) return null;
       if (suppressUntilMs > 0 && nowMs() < suppressUntilMs) return null;
@@ -708,7 +695,7 @@
       }, Math.min(2147483600, offered.remainMs + 60));
       if (ttlExpiryTimer && typeof ttlExpiryTimer.unref === 'function') ttlExpiryTimer.unref();
 
-      // 清除挂载在非当前宿主上的残留浮层
+      // Remove stale overlays mounted on non-current hosts
       doc.querySelectorAll?.(`[data-testid="${OVERLAY_TESTID}"]`)?.forEach?.((n) => {
         if (n.parentElement !== host) n.remove();
       });
@@ -790,7 +777,7 @@
       }
       acceptingNow = true;
       try {
-        // 保留在有效 TTL 内的缓存建议，用户若清空未发送草稿可无损恢复
+        // Keep cached suggestion within TTL so clearing an unsent draft restores it cleanly
         suppressUntilMs = nowMs() + 80;
         removeOverlayDom();
         return insertTextIntoComposer(doc, offered.editor, offered.suggestion);
@@ -861,7 +848,7 @@
         return { ok: false, error: res?.error || res?.reason || 'suggest-failed' };
       }
 
-      // 严格落盘在目标 targetCascadeId + sigNow 下，切走后绝不串写到其他会话
+      // Store strictly under targetCascadeId + sigNow to prevent cross-session leakage after switching
       const originTs = Number(opts.completedAt) > 0 ? Number(opts.completedAt) : nowMs();
       touchSessionEntry(targetCascadeId, {
         turnSig: sigNow,
@@ -881,7 +868,7 @@
       };
     };
 
-    // 校验当前键盘事件焦点是否允许触发 Tab / Escape 建议快捷键（杜绝劫持周期表、浮层与外部控件）
+    // Verify current focus is eligible for Tab / Escape suggestion shortcuts (never hijack modals, menus, or external controls)
     const isFocusAllowedForShortcut = (target, offered) => {
       if (hasBlockingUiOpen(doc)) return false;
       const activeEl = doc.activeElement && doc.activeElement.nodeType === 1 ? doc.activeElement : null;
@@ -902,12 +889,12 @@
       if (!focusEl || isNeutralTag(focusEl)) return true;
       if (isExcludedPaneNode(focusEl) || isInBlockingContainer(focusEl)) return false;
 
-      // 焦点直接位于主编辑器或其子节点
+      // Focus is directly inside the main editor or its children
       if (offered?.editor && (focusEl === offered.editor || offered.editor.contains?.(focusEl))) {
         return true;
       }
 
-      // 焦点在 .surface-composer 内部时，仅放行主编辑区或幽灵接受按钮，放过工具栏中的模型/发送等按钮
+      // Inside .surface-composer, allow only the main editor or ghost accept button (ignore toolbar buttons like model/send)
       if (typeof focusEl.closest === 'function' && focusEl.closest('.surface-composer')) {
         return Boolean(
           focusEl.closest(
@@ -916,7 +903,7 @@
         );
       }
 
-      // 其他外部按钮、输入框、链接或可聚焦控件一律不劫持
+      // Never hijack external buttons, inputs, links, or other focusable controls
       return false;
     };
 
@@ -1048,13 +1035,13 @@
 
       const runningNow = isSnapRunning(snap);
 
-      // 会话切换检测
+      // Conversation switch detection
       if (cid !== currentCascadeId) {
         currentCascadeId = cid;
         clearSettleTimer();
         runningByCascade.set(cid, runningNow);
 
-        // 检查该会话是否在后台刚完成且仍处于 ttlMinutes 有效窗口内
+        // Check whether this conversation recently finished in the background within ttlMinutes
         const bgDoneAt = bgCompletedAtByCascade.get(cid) || 0;
         if (bgDoneAt > 0) {
           const ageMs = nowMs() - bgDoneAt;
@@ -1071,7 +1058,7 @@
         }
 
         if (!runningNow && !sessionStore.has(cid)) {
-          // 刚打开的历史静止对话记录初始 sampledSig，绝不误触发预测
+          // Record initial sampledSig for newly opened idle historical conversations to avoid false triggers
           const existingSig = computeTurnSig(extractTurnsFromView(snap.view));
           if (existingSig) {
             touchSessionEntry(cid, {
@@ -1105,14 +1092,14 @@
         return;
       }
 
-      // 同一会话从运行态（true）过渡至完成态（false）
+      // Same conversation transitioned from running (true) to completed (false)
       if (wasRunning && !runningNow && config.enabled) {
         bgCompletedAtByCascade.delete(cid);
         scheduleSettleForCascade(cid, AUTO_SETTLE_MS, nowMs(), 4);
         return;
       }
 
-      // 切回后台已完成会话后异步 DOM 水合补偿
+      // Async DOM hydration catch-up after switching back to a background-completed conversation
       const pendingBgDoneAt = bgCompletedAtByCascade.get(cid) || 0;
       if (pendingBgDoneAt > 0 && config.enabled && !settleTimer && !inflightByCascade.has(cid)) {
         const ageMs = nowMs() - pendingBgDoneAt;
@@ -1123,7 +1110,7 @@
         bgCompletedAtByCascade.delete(cid);
       }
 
-      // 历史静止对话异步水合时补登 sampledSig
+      // Backfill sampledSig once an idle historical conversation hydrates asynchronously
       if (!sessionStore.has(cid) && !settleTimer && !inflightByCascade.has(cid)) {
         const existingSig = computeTurnSig(extractTurnsFromView(snap.view));
         if (existingSig) {
@@ -1158,13 +1145,13 @@
       }
     };
 
-    // 按需开启运行时监控：仅在 enabled === true 时挂载样式、事件监听与 MutationObserver
+    // Lazily activate runtime monitoring: mount styles, listeners, and MutationObserver only when enabled === true
     const activateRuntime = () => {
       if (destroyed || runtimeActive) return;
       runtimeActive = true;
       ensureStyle();
 
-      // 记录当前已打开会话的初始静态基线，避免刚开启时对历史回复误触发
+      // Record initial static baseline for open conversation to avoid triggering on historical replies upon enabling
       const initSnap = getActiveMainCascade(doc);
       currentCascadeId = initSnap.cascadeId;
       if (currentCascadeId) {
@@ -1228,7 +1215,7 @@
       }
     };
 
-    // 切回关闭态或销毁时彻底断开 Observer、解除 8 个捕获监听、清空全部运行时容器与定时器
+    // When disabled or destroyed, disconnect observer, remove all capture listeners, and clear containers/timers
     const deactivateRuntime = () => {
       runtimeActive = false;
       clearSettleTimer();
@@ -1334,7 +1321,7 @@
       };
     };
 
-    // 默认关闭态：严禁注入运行时样式、严禁启动 MutationObserver、严禁绑定捕获监听，仅拉取配置
+    // Disabled by default: never inject runtime styles, MutationObserver, or capture listeners; only fetch config
     removeLegacyButtons();
     void refresh();
 

@@ -354,7 +354,7 @@ test(
       assert.ok(jErr.failedPath.toLowerCase().includes('evil-plugin-junction'));
       assert.ok(jErr.errorType.includes('InvalidOperationException'));
       assert.ok(
-        /符号链接|目录联接|symlink|junction/i.test(String(jErr.hint || '')),
+        /symlink|junction|رابط رمزي|وصلة/i.test(String(jErr.hint || '')),
         `Expected symlink/junction hint, got: ${jErr.hint}`
       );
     } finally {
@@ -419,7 +419,7 @@ test('tools/install-plugin.cjs overwrites read-only files cleanly, preserves sym
       registrySynced: false,
       shortcuts: { supported: true, patched: [], alreadySet: [], skipped: ['C:\\ProgramData\\Antigravity.lnk'] },
     });
-    assert.ok(summary.includes('权限不足跳过 1 个'));
+    assert.ok(summary.includes('skipped 1 (permission required)'));
     assert.ok(summary.includes('config.json'));
 
     // Symlink targetDir must still be refused (zero security regression)
@@ -464,7 +464,7 @@ test('Windows CdpClient and macOS Setup main.swift contain v1.0.7-beta.3 install
   assert.ok(macSwift.includes('clearReadOnlyPermissionsNoSymlink'), 'main.swift must clear readonly permissions safely');
   assert.ok(macSwift.includes('copyItemSafelyWithRetry'), 'main.swift must retry locked/readonly copies and block symlinks');
   assert.ok(macSwift.includes('cleanupLegacySiblingPluginDir'), 'main.swift must clean legacy antigravity-prism sibling');
-  assert.ok(macSwift.includes('配置 LaunchAgent 登录自启失败（非致命'), 'main.swift must degrade non-fatally when LaunchAgent fails');
+  assert.ok(macSwift.includes('Failed to configure LaunchAgent auto-start (non-fatal'), 'main.swift must degrade non-fatally when LaunchAgent fails');
   assert.match(
     macSwift,
     /static func runInstall[\s\S]*?isDangerousRootPath\(installDir\)/,

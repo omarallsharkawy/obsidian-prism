@@ -15,9 +15,9 @@ test('formatCompactTokens matches expected units and rounding', () => {
 });
 
 test('formatHomeHour formats AM/PM in zh and en', () => {
-  assert.equal(usageCore.formatHomeHour(0, true), '上午 12 点');
-  assert.equal(usageCore.formatHomeHour(12, true), '下午 12 点');
-  assert.equal(usageCore.formatHomeHour(15, true), '下午 3 点');
+  assert.equal(usageCore.formatHomeHour(0, true), '12 ص');
+  assert.equal(usageCore.formatHomeHour(12, true), '12 م');
+  assert.equal(usageCore.formatHomeHour(15, true), '3 م');
   assert.equal(usageCore.formatHomeHour(0, false), '12 AM');
   assert.equal(usageCore.formatHomeHour(14, false), '2 PM');
 });
@@ -123,9 +123,9 @@ test('aggregateUsageRollup excludes subagents from sessions, filters ranges, and
   assert.equal(all.calls, 6);
   assert.equal(all.tokens, 58000);
   assert.equal(all.activeDays, 3);
-  assert.equal(all.peakHour, '下午 3 点');
+  assert.equal(all.peakHour, '3 م');
   assert.equal(all.model, 'Gemini 4 Argon');
-  assert.match(all.funBook, /《道德经》/);
+  assert.match(all.funBook, /تاو تي تشينغ/);
 
   const seven = usageCore.aggregateUsageRollup(records, '7d', 0.0, true, now);
   assert.equal(seven.sessions, 1);
@@ -295,7 +295,7 @@ test('v0.9.1 chatModel parsing, Swarm subagent token split, cacheHitRate, and wo
   assert.equal(otherWsRec.workspace, 'another-repo');
 
   const now = new Date('2026-11-16T12:00:00.000Z');
-  const fullRollup = usageCore.aggregateUsageRollup([mainRec, subRec, otherWsRec], 'all', 0, 'zh-CN', now);
+  const fullRollup = usageCore.aggregateUsageRollup([mainRec, subRec, otherWsRec], 'all', 0, 'ar', now);
   assert.equal(fullRollup.sessions, 2);
   assert.equal(fullRollup.subagentSessions, 1);
   assert.equal(fullRollup.mainTokens, 21000 + 5000);
@@ -308,7 +308,7 @@ test('v0.9.1 chatModel parsing, Swarm subagent token split, cacheHitRate, and wo
   assert.equal(fullRollup.workspaces[0].tokens, 43000); // includes inherited subagent!
 
   // Filtered by obsidian-prism workspace
-  const wsRollup = usageCore.aggregateUsageRollup([mainRec, subRec, otherWsRec], 'all', 0, 'zh-CN', now, {
+  const wsRollup = usageCore.aggregateUsageRollup([mainRec, subRec, otherWsRec], 'all', 0, 'ar', now, {
     workspace: 'obsidian-prism',
   });
   assert.equal(wsRollup.sessions, 1);
@@ -365,10 +365,10 @@ test('v0.9.1 quota helpers: Argon weekly pool matching, linear depletion forecas
   assert.equal(fcExhaust.endRemaining, 0);
   assert.ok(Math.abs(fcExhaust.forecastDrop - 0.2) < 0.01);
 
-  const paceZh = usageCore.groupQuotaPace(groups[1], 'zh-CN', nowMs);
+  const paceZh = usageCore.groupQuotaPace(groups[1], 'ar', nowMs);
   assert.equal(paceZh.status, 'exhaust');
-  assert.equal(paceZh.label, '提前耗尽');
-  assert.match(paceZh.detail, /预计 .*后耗尽/);
+  assert.equal(paceZh.label, 'ينفد مبكراً');
+  assert.match(paceZh.detail, /يُتوقع النفاد خلال/);
 
   const paceEn = usageCore.groupQuotaPace(groups[0], 'en', nowMs);
   assert.equal(paceEn.status, 'ok');
@@ -496,7 +496,7 @@ test('home-studio-panel backfills Swarm subagent summaries via usageBridge.listS
       storageUsageCacheKey: 'test:rollup:v101',
       isDestroyed: () => false,
       getHomeLayout: () => 'studio',
-      getLang: () => 'zh-CN',
+      getLang: () => 'ar',
       uiText: () => ({}),
       getDisplayName: () => 'Dev',
       ensureHooks: () => ({
@@ -537,7 +537,7 @@ test('home-studio-panel backfills Swarm subagent summaries via usageBridge.listS
 
     ctl.flushUsageCacheNow();
     const persisted = JSON.parse(storeMem.get('test:rollup:v101') || '{}');
-    const wsRollup = usageCore.aggregateUsageRollup(Object.values(persisted), 'all', 0, 'zh-CN', new Date(1763400100 * 1000), {
+    const wsRollup = usageCore.aggregateUsageRollup(Object.values(persisted), 'all', 0, 'ar', new Date(1763400100 * 1000), {
       workspace: 'obsidian-prism',
     });
     assert.equal(wsRollup.tokens, 22000, 'Subagent tokens must inherit parent workspace during workspace filtering');
@@ -691,7 +691,7 @@ test('UX-4 & UX-9 Effort Slider off-mode trigger tint cleanup and 5-language tit
     window: { document: sliderDoc },
     seat: { getLevels: () => ['low', 'medium', 'high'], getIndex: () => 1, setIndex() {} },
   });
-  assert.equal(hostBoxJa.children[0].getAttribute('aria-label'), '推論レベル');
+  assert.equal(hostBoxJa.children[0].getAttribute('aria-label'), 'Reasoning Effort');
   mountedJa.unmount();
   ctl.destroy();
 });
@@ -2216,7 +2216,7 @@ test('Redteam #192 [P0-1 & P2-4]: unverified SSH window bypasses local HTTP LS, 
     try {
       await assert.rejects(
         () => sshOnlyDaemon._lazyStore.client.rendererRpc('Probe', {}),
-        /等待 Antigravity 主窗口连接/,
+        /Waiting for Antigravity main window connection/,
         'MetricsStore local-pinned rendererRpc must reject when only SSH window is open'
       );
       assert.equal(explicitSshScrapes, 0, 'MetricsStore must make 0 RPCs to SSH window');
@@ -2309,7 +2309,7 @@ test('Redteam #193 [P0-2, P1-3, P2-1]: style hot-upgrade overwrite, data-ag-pris
     dom1.doc.documentElement.setAttribute('data-ag-prism-scope', 'ssh:stale-host');
 
     let activeLang = 'ja';
-    let activeName = '太郎';
+    let activeName = 'Sami';
     let bridgeScope = 'local';
     let bridgeOnline = true;
     let shouldThrowBatch = false;
@@ -2382,11 +2382,11 @@ test('Redteam #193 [P0-2, P1-3, P2-1]: style hot-upgrade overwrite, data-ag-pris
     // 3) [P2-1] Japanese greeting uses Japanese ideographic comma '、' while zh-CN uses '，'
     ctl.syncGreeting(true);
     const h1 = dom1.doc.querySelector('[data-testid="home-greeting"] h1');
-    assert.equal(h1.textContent, '次は何をしますか、太郎？', 'Japanese greeting must use Japanese comma 、');
-    activeLang = 'zh-CN';
-    activeName = '小明';
+    assert.equal(h1.textContent, "What's up next, Sami?", 'Unsupported locale falls back to English punctuation');
+    activeLang = 'ar';
+    activeName = 'عمر';
     ctl.syncGreeting(true);
-    assert.equal(h1.textContent, '接下来做什么，小明？', 'zh-CN greeting must use Chinese comma ，');
+    assert.equal(h1.textContent, 'ما التالي، عمر؟', 'Arabic greeting preserves the user name');
 
     // 4) [P0-2] canPrune tightened to bridgeOnline only (missing bridge never prunes archived cache)
     storeMem.set('test:rt193:prune', JSON.stringify({ 'archived-port-1': makeRec('archived-port-1', 88000) }));
@@ -2569,7 +2569,7 @@ test('v1.0.7-beta.2 regression: Home Studio handles Protobuf BigInt timestamps i
       storageUsageCacheKey: 'test:bigint:v1',
       isDestroyed: () => false,
       getHomeLayout: () => 'studio',
-      getLang: () => 'zh-CN',
+      getLang: () => 'ar',
       uiText: () => ({}),
       getDisplayName: () => 'Dev',
       ensureHooks: () => ({ store: { getState: () => ({ trajectorySummaries: { summaries: reduxSums } }) }, svc: {} }),
@@ -2595,7 +2595,7 @@ test('v1.0.7-beta.2 regression: Home Studio handles Protobuf BigInt timestamps i
       storageUsageCacheKey: 'test:bigint:v1',
       isDestroyed: () => false,
       getHomeLayout: () => 'studio',
-      getLang: () => 'zh-CN',
+      getLang: () => 'ar',
       uiText: () => ({}),
       getDisplayName: () => 'Dev',
       ensureHooks: () => null,
@@ -2886,7 +2886,7 @@ test('PR #33 hardening: home-studio-panel BigInt safety in >1200 cache trim, JSO
       storageUsageCacheKey: 'test:bigint:trim',
       isDestroyed: () => false,
       getHomeLayout: () => 'studio',
-      getLang: () => 'zh-CN',
+      getLang: () => 'ar',
       uiText: () => ({}),
       getDisplayName: () => 'Dev',
       ensureHooks: () => ({ store: { getState: () => ({ trajectorySummaries: { summaries: {} } }) }, svc: {} }),
@@ -2930,7 +2930,7 @@ test('PR #33 hardening: home-studio-panel BigInt safety in >1200 cache trim, JSO
       storageUsageCacheKey: 'test:bigint:trim',
       isDestroyed: () => false,
       getHomeLayout: () => 'studio',
-      getLang: () => 'zh-CN',
+      getLang: () => 'ar',
       uiText: () => ({}),
       getDisplayName: () => 'Dev',
       ensureHooks: () => ({ store: { getState: () => ({ trajectorySummaries: { summaries: {} } }) }, svc: {} }),
@@ -3062,7 +3062,7 @@ test('PR #33 hardening: usage-core BigInt safety across analyzeTrajectoryForUsag
   assert.equal(merged.days[expectedDay].models['Gemini 4 Carbon'].total, 575);
 
   // aggregateUsageRollup with raw BigInt record
-  const rollup = usageCore.aggregateUsageRollup([merged], 'all', 0.07, 'zh-CN', stepDate);
+  const rollup = usageCore.aggregateUsageRollup([merged], 'all', 0.07, 'ar', stepDate);
   assert.doesNotThrow(() => JSON.stringify(rollup));
   assert.equal(rollup.tokens, 575);
   assert.equal(rollup.calls, 3);
@@ -3276,7 +3276,7 @@ test('Deleted conversations preserve historical token usage across daemon list-s
 
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prism-deleted-usage-'));
   const cachePath = path.join(tmpDir, 'usage-rollup-cache.json');
-  const repoRoot = path.resolve(new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
+  const repoRoot = require('node:url').fileURLToPath(new URL('..', import.meta.url));
 
   const liveId = 'aaaaaaaa-1111-4111-8111-111111111111';
   const deletedId = 'bbbbbbbb-2222-4222-8222-222222222222';
@@ -3394,7 +3394,7 @@ test('Deleted conversations preserve historical token usage across daemon list-s
       storageUsageCacheKey: 'test:deleted:rollup',
       isDestroyed: () => false,
       getHomeLayout: () => 'studio',
-      getLang: () => 'zh-CN',
+      getLang: () => 'ar',
       uiText: () => ({}),
       getDisplayName: () => 'Dev',
       ensureHooks: () => ({ store: { getState: () => ({ trajectorySummaries: { summaries: activeSummaries } }) }, svc: {} }),
@@ -3409,7 +3409,7 @@ test('Deleted conversations preserve historical token usage across daemon list-s
     const persisted = JSON.parse(storeMem.get('test:deleted:rollup') || '{}');
     assert.ok(persisted[deletedId], 'Deleted conversation usage must persist in localStorage');
     assert.equal(persisted[emptyDeletedId], undefined, '0-token deferred placeholder must be pruned from localStorage');
-    const agg = usageCore.aggregateUsageRollup(Object.values(persisted), 'all', 0, 'zh-CN', new Date((nowSec + 60) * 1000));
+    const agg = usageCore.aggregateUsageRollup(Object.values(persisted), 'all', 0, 'ar', new Date((nowSec + 60) * 1000));
     assert.equal(agg.tokens, 52000, 'Total tokens must stay 52,000 (10k live + 42k deleted)');
 
     // 3) Even when ALL live conversations are deleted (entries.length === 0), archived records from listSummaries still hydrate cleanly
@@ -3420,7 +3420,7 @@ test('Deleted conversations preserve historical token usage across daemon list-s
       storageUsageCacheKey: 'test:deleted:rollup:empty',
       isDestroyed: () => false,
       getHomeLayout: () => 'studio',
-      getLang: () => 'zh-CN',
+      getLang: () => 'ar',
       uiText: () => ({}),
       getDisplayName: () => 'Dev',
       ensureHooks: () => ({ store: { getState: () => ({ trajectorySummaries: { summaries: {} } }) }, svc: {} }),
@@ -3444,7 +3444,7 @@ test('Deleted conversations preserve historical token usage across daemon list-s
       storageUsageCacheKey: slowKey,
       isDestroyed: () => false,
       getHomeLayout: () => 'studio',
-      getLang: () => 'zh-CN',
+      getLang: () => 'ar',
       uiText: () => ({}),
       getDisplayName: () => 'Dev',
       ensureHooks: () => ({ store: { getState: () => ({ trajectorySummaries: { summaries: activeSummaries } }) }, svc: {} }),
@@ -3482,7 +3482,7 @@ test('Deleted conversations preserve historical token usage across daemon list-s
       storageUsageCacheKey: frozenKey,
       isDestroyed: () => false,
       getHomeLayout: () => 'studio',
-      getLang: () => 'zh-CN',
+      getLang: () => 'ar',
       uiText: () => ({}),
       getDisplayName: () => 'Dev',
       ensureHooks: () => ({ store: { getState: () => ({ trajectorySummaries: { summaries: frozenSummaries } }) }, svc: {} }),
@@ -3539,7 +3539,6 @@ test('Boundary: stepCount: 0 live conversation coexists with archived: true dele
       body: null,
     };
     const activeSummaries = {
-      // 模拟宿主摘要暂报 stepCount: 0 但 lastModifiedTime 未变的在线会话
       [zeroStepId]: { stepCount: 0, lastModifiedTime: { seconds: nowSec }, workspaces: [{ workspaceFolderAbsoluteUri: 'file:///c:/proj/busy-bohr' }] },
     };
     let fetchBatchCalls = 0;
@@ -3561,7 +3560,7 @@ test('Boundary: stepCount: 0 live conversation coexists with archived: true dele
       storageUsageCacheKey: key,
       isDestroyed: () => false,
       getHomeLayout: () => 'studio',
-      getLang: () => 'zh-CN',
+      getLang: () => 'ar',
       uiText: () => ({}),
       getDisplayName: () => 'Dev',
       ensureHooks: () => ({ store: { getState: () => ({ trajectorySummaries: { summaries: activeSummaries } }) }, svc: {} }),
@@ -3606,7 +3605,6 @@ test('Boundary: slow fetchBatch triggers saveUsageCache and renderHomePanel imme
   try {
     const storeMem = new Map();
     const key = 'test:boundary:slow:autopersist';
-    // 预置 liveId 让 usageHasData 在初始化时即为 true，确保能直接验证 !usageHasData || seededCache 分支
     storeMem.set(key, JSON.stringify({ [liveId]: makeRec(liveId, 5000, 1, 2) }));
     globalThis.localStorage = {
       getItem: (k) => (storeMem.has(k) ? storeMem.get(k) : null),
@@ -3642,7 +3640,7 @@ test('Boundary: slow fetchBatch triggers saveUsageCache and renderHomePanel imme
       storageUsageCacheKey: key,
       isDestroyed: () => false,
       getHomeLayout: () => { renderLayoutChecks += 1; return 'studio'; },
-      getLang: () => 'zh-CN',
+      getLang: () => 'ar',
       uiText: () => ({}),
       getDisplayName: () => 'Dev',
       ensureHooks: () => ({ store: { getState: () => ({ trajectorySummaries: { summaries: activeSummaries } }) }, svc: {} }),
@@ -3651,7 +3649,6 @@ test('Boundary: slow fetchBatch triggers saveUsageCache and renderHomePanel imme
       runGuardedMut: (fn) => fn(),
     });
     const prom = ctl.refreshUsageRollup(true);
-    // 等待 saveUsageCache() 的 1200ms 延迟存盘自然触发，全程不调用 flushUsageCacheNow()，且 fetchBatch 仍处于 pending
     await new Promise((r) => setTimeout(r, 1350));
     assert.ok(renderLayoutChecks >= 1, 'renderHomePanel must run immediately before slow fetchBatch finishes even when usageHasData is already true');
     const savedBeforeBatchDone = JSON.parse(storeMem.get(key) || '{}');
@@ -3827,7 +3824,7 @@ test('Self-referential rootConversationId on main conversations is never misclas
       storageUsageCacheKey: key,
       isDestroyed: () => false,
       getHomeLayout: () => 'studio',
-      getLang: () => 'zh-CN',
+      getLang: () => 'ar',
       uiText: () => ({}),
       getDisplayName: () => 'Dev',
       ensureHooks: () => ({ store: { getState: () => ({ trajectorySummaries: { summaries: { [mainId]: { stepCount: 25, lastModifiedTime: { seconds: nowSec + 10 }, rootConversationId: mainId } } } }) }, svc: {} }),
@@ -4009,7 +4006,7 @@ test('Boundary: legacy poisoned { cascadeId: X, subagent: true, parentId: "", ro
       storageUsageCacheKey: key,
       isDestroyed: () => false,
       getHomeLayout: () => 'studio',
-      getLang: () => 'zh-CN',
+      getLang: () => 'ar',
       uiText: () => ({}),
       getDisplayName: () => 'Dev',
       ensureHooks: () => ({ store: { getState: () => ({ trajectorySummaries: { summaries: { [mainId]: { stepCount: 12, lastModifiedTime: { seconds: nowSec }, rootConversationId: mainIdUpper } } } }) }, svc: {} }),
@@ -4247,7 +4244,7 @@ test('PR #41: Home Studio distinguishes cumulative vs active-only sessions with 
   const archMain = mkRec('22222222-2222-4222-8222-222222222222', 3000, 4, { archived: true });
   const archSub = mkRec('33333333-3333-4333-8333-333333333333', 500, 1, { subagent: true, parentId: archMain.cascadeId });
 
-  const allAgg = usageCore.aggregateUsageRollup([liveMain, selfRefMain, archMain, archSub], 'all', 0.1, 'zh-CN', new Date(nowSec * 1000), { includeArchived: true });
+  const allAgg = usageCore.aggregateUsageRollup([liveMain, selfRefMain, archMain, archSub], 'all', 0.1, 'ar', new Date(nowSec * 1000), { includeArchived: true });
   assert.equal(allAgg.sessions, 3);
   assert.equal(allAgg.activeSessions, 2);
   assert.equal(allAgg.archivedSessions, 1);
@@ -4255,7 +4252,7 @@ test('PR #41: Home Studio distinguishes cumulative vs active-only sessions with 
   assert.equal(allAgg.tokens, 5100);
   assert.equal(allAgg.calls, 8);
 
-  const actAgg = usageCore.aggregateUsageRollup([liveMain, selfRefMain, archMain, archSub], 'all', 0.1, 'zh-CN', new Date(nowSec * 1000), { includeArchived: false });
+  const actAgg = usageCore.aggregateUsageRollup([liveMain, selfRefMain, archMain, archSub], 'all', 0.1, 'ar', new Date(nowSec * 1000), { includeArchived: false });
   assert.equal(actAgg.sessions, 2, 'Active-only mode must count only non-archived main sessions (including self-parent healed main)');
   assert.equal(actAgg.activeSessions, 2);
   assert.equal(actAgg.archivedSessions, 1, 'archivedSessions count must stay available when active-only is enabled');
@@ -4264,14 +4261,8 @@ test('PR #41: Home Studio distinguishes cumulative vs active-only sessions with 
   assert.equal(actAgg.calls, 3);
 
   const EXPECTED_8 = {
-    'zh-CN': { all: '含归档', active: '仅当前', kA: '当前', kH: '归档' },
-    'zh-TW': { all: '含歸檔', active: '僅當前', kA: '當前', kH: '歸檔' },
+    'ar': { all: 'مع الأرشيف', active: 'الحالي فقط', kA: 'نشط', kH: 'مؤرشف' },
     en: { all: 'All', active: 'Current', kA: 'Active', kH: 'Archived' },
-    ja: { all: '履歴含む', active: '現在のみ', kA: '現在', kH: 'アーカイブ' },
-    ko: { all: '보관 포함', active: '현재만', kA: '현재', kH: '보관' },
-    es: { all: 'Todo', active: 'Actuales', kA: 'Activas', kH: 'Archiv.' },
-    fr: { all: 'Tout', active: 'Actuelles', kA: 'Actives', kH: 'Archiv.' },
-    de: { all: 'Alle', active: 'Aktuell', kA: 'Aktiv', kH: 'Archiv.' },
   };
   const NON_CJK = new Set(['en', 'es', 'fr', 'de']);
   const HAN_RE = /[\u4E00-\u9FFF]/;
@@ -4404,14 +4395,8 @@ test('PR #49: Home Studio clarifies local-sessions-only scope across all 8 langu
   const prevStorage = globalThis.localStorage;
 
   const EXPECTED_LOCAL_8 = {
-    'zh-CN': ['仅本地', '仅统计本机已保存会话（不含云端）'],
-    'zh-TW': ['僅本機', '僅統計本機已儲存工作階段（不含雲端）'],
+    'ar': ['محلي فقط', 'يحسب الجلسات المحفوظة محلياً فقط (دون السحابة)'],
     en: ['Local only', 'Counts saved local sessions only (excludes cloud)'],
-    ja: ['ローカルのみ', 'ローカル保存済みセッションのみ集計（クラウド除く）'],
-    ko: ['로컬만', '로컬 저장 세션만 집계 (클라우드 제외)'],
-    es: ['Solo local', 'Solo sesiones locales guardadas (sin nube)'],
-    fr: ['Local', 'Sessions locales enregistrées uniquement (hors cloud)'],
-    de: ['Nur lokal', 'Nur lokal gespeicherte Sitzungen (ohne Cloud)'],
   };
   const NON_CJK = new Set(['en', 'es', 'fr', 'de']);
   const HAN_RE = /[\u4E00-\u9FFF]/;
@@ -4573,7 +4558,7 @@ test('PR #49: Home Studio clarifies local-sessions-only scope across all 8 langu
     }
     await runScenario('en', true, false);
     await runScenario('en', true, true);
-    await runScenario('zh-CN', true, true);
+    await runScenario('ar', true, true);
 
     // Empty Models tab also displays local-scope note
     const emptyDom = createMockStudioDom('obsidian-prism — Antigravity');
@@ -4598,7 +4583,7 @@ test('PR #49: Home Studio clarifies local-sessions-only scope across all 8 langu
     assert.ok(emptyDom.doc.querySelector('.ag-cs-home-models-empty'));
     const emptyNote = emptyDom.doc.querySelector('.ag-cs-home-local-note');
     assert.ok(emptyNote, 'Empty Models tab must still render local-scope note');
-    assert.equal(emptyNote.textContent, EXPECTED_LOCAL_8.de[1]);
+    assert.equal(emptyNote.textContent, EXPECTED_LOCAL_8.en[1]);
   } finally {
     if (prevWin === undefined) delete globalThis.window;
     else globalThis.window = prevWin;

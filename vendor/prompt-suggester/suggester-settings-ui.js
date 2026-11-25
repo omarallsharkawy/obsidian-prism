@@ -1,7 +1,7 @@
-// Obsidian Prism — Channel 11 Context-Aware Next-Prompt Suggester Settings Card UI (v1.0.8 · Beta, 8-Locale, 0 innerHTML)
-// 复用与思考转译一致的 OpenAI 兼容渠道工作台（.ag-cs-thought-cfg-box）：
-// - 与思考转译双向共享渠道凭据池，通过 reloadProfiles()/syncFromPeer() 防止跨卡片陈旧凭据覆写
-// - 独立保存提示词建议选中的渠道与各渠道模型 ID
+// Obsidian Prism — Channel 11 Context-Aware Next-Prompt Suggester Settings Card UI (v1.0.8 · Beta, Bilingual EN/AR, 0 innerHTML)
+// Reuses the OpenAI-compatible provider workbench (.ag-cs-thought-cfg-box) aligned with Thought Translator:
+// - Shares provider credentials bidirectionally via reloadProfiles()/syncFromPeer() to prevent stale overwrites
+// - Persists active profile and per-profile Model ID independently for Prompt Suggester
 
 (function (root) {
   'use strict';
@@ -58,24 +58,12 @@
     'ttlFmt',
   ];
 
-  // 8 语词典（zh-CN / zh-TW / en / ja / ko / es / fr / de，移除 yue，en/es/fr/de 严格 0 CJK）
+  // Bilingual EN/AR dictionary
   const I18N_ROWS = {
-    'zh-CN':
-      '建议下一条提示词 (Beta)|实验性功能，默认关闭。开启后每轮回复完成时（含后台完成的会话），结合上下文在空输入框中预测下一条消息，按 Tab 使用它。|开启|关闭|OpenAI 兼容渠道预设|OpenAI 兼容主力渠道|自定义渠道|+ 新增渠道|删除当前|渠道名称|例如：Gemini AI Studio / 主力网关|接口地址 (Base URL)|接口密钥 (API Key)|模型 ID (Model)|拉取模型列表|保存渠道配置|发送测试消息|清空缓存|清除密钥|待保存清除|本地渠道可留空免密|本地免密|已保存 {0}（留空保持不变）|▾ 从已拉取的 {0} 个上游模型中快速选择…|缓存 {0} 条|正在拉取上游模型列表…|✓ 成功拉取 {0} 个模型 · {1}ms|拉取模型失败|正在保存配置…|✓ 已保存（{0} · {1}）|保存失败|正在保存并发送测试消息…|✓ 连通正常 · {0}ms · {1} 回复: 「{2}」|测试连接失败|✓ 已清空提示词建议缓存|仅同步渠道提供商（名称、地址、API 密钥）；同一渠道下选择的「模型 ID」与「思考转译」完全独立保存，互不覆盖。|有效时长限制|{0} 分钟',
-    'zh-TW':
-      '建議下一條提示詞 (Beta)|實驗性功能，預設關閉。開啟後每輪回覆完成時（含背景完成的對話），結合上下文在空輸入框中預測下一條訊息，按 Tab 使用它。|開啟|關閉|OpenAI 相容管道預設|OpenAI 相容主力管道|自訂管道|+ 新增管道|刪除目前|管道名稱|例如：Gemini AI Studio / 主力閘道|介面位址 (Base URL)|介面金鑰 (API Key)|模型 ID (Model)|擷取模型清單|儲存管道設定|傳送測試訊息|清除快取|清除金鑰|待儲存清除|本機管道可留空免密|本機免密|已儲存 {0}（留空維持不變）|▾ 從已擷取的 {0} 個上游模型中快速選擇…|快取 {0} 筆|正在擷取上游模型清單…|✓ 成功擷取 {0} 個模型 · {1}ms|擷取模型失敗|正在儲存設定…|✓ 已儲存（{0} · {1}）|儲存失敗|正在儲存並傳送測試訊息…|✓ 連線正常 · {0}ms · {1} 回覆: 「{2}」|測試連線失敗|✓ 已清除提示詞建議快取|僅同步管道提供者（名稱、位址、API 金鑰）；同一管道下選擇的「模型 ID」與「思考轉譯」完全獨立儲存，互不覆蓋。|有效時長限制|{0} 分鐘',
     en:
       'Suggest next prompt (Beta)|Experimental, off by default. Predicts your next message in an empty composer after each completed reply (including background tasks). Press Tab to use it.|On|Off|OpenAI Endpoint Profiles|Primary OpenAI Profile|Profile|+ New|Delete|Profile Name|e.g. Gemini AI Studio / Primary Gateway|Base URL|API Key|Model ID|Fetch Models|Save Config|Send Test Message|Clear Cache|Clear|Pending clear|Optional for local endpoint|Keyless OK|Saved {0} (leave blank to keep)|▾ Quick-select from {0} models…|Cache: {0}|Fetching upstream /models…|✓ Loaded {0} models · {1}ms|Failed to fetch models|Saving configuration…|✓ Saved ({0} · {1})|Save failed|Testing endpoint latency…|✓ Connected · {0}ms · {1} Reply: "{2}"|Connection test failed|✓ Cleared prompt suggestion cache|Syncs provider credentials (Name, Base URL, API Key) only; the selected Model ID per profile is saved independently from Thought Translator.|Suggestion Expiry|{0} min',
-    ja:
-      '次のプロンプトを提案 (Beta)|実験的機能（初期状態はオフ）。有効化すると応答完了後（バックグラウンド完了タスクを含む）に空の入力欄へ次のメッセージを予測します。Tab で使用します。|オン|オフ|OpenAI 互換接続先プリセット|OpenAI 互換メインプロファイル|カスタム接続先|+ 追加|削除|接続先名|例: Gemini AI Studio / メインGW|Base URL|API Key|Model ID|モデル一覧取得|設定を保存|接続テスト送信|キャッシュ消去|キー消去|保存時に消去|ローカル接続先は空欄可|キー不要|保存済み {0}（空欄で維持）|▾ 取得した {0} 個のモデルから選択…|キャッシュ {0} 件|上流のモデル一覧を取得中…|✓ {0} 個のモデルを取得 · {1}ms|モデル一覧の取得に失敗しました|設定を保存中…|✓ 保存完了（{0} · {1}）|保存失敗|保存して接続テストを送信中…|✓ 接続正常 · {0}ms · {1} 応答: 「{2}」|接続テストに失敗しました|✓ 提案キャッシュを消去しました|接続先情報（名前・URL・APIキー）のみ共有され、選択したモデルIDは「思考翻訳」とは完全に独立して保存されます。|有効期限|{0} 分',
-    ko:
-      '다음 프롬프트 제안 (Beta)|실험적 기능(기본 꺼짐). 활성화하면 각 응답 완료 후(백그라운드 완료 작업 포함) 문맥을 바탕으로 빈 입력창에 다음 메시지를 예측하며 Tab 키로 입력할 수 있습니다.|켜짐|꺼짐|OpenAI 호환 프로필 프리셋|OpenAI 호환 기본 프로필|사용자 지정 프로필|+ 추가|삭제|프로필 이름|예: Gemini AI Studio / 메인 게이트웨이|Base URL|API Key|Model ID|모델 목록 가져오기|설정 저장|테스트 전송|캐시 비우기|키 지우기|저장 시 삭제|로컬 엔드포인트는 비워 둘 수 있음|키 불필요|{0} 저장됨 (비우면 유지)|▾ 가져온 {0}개 모델 중 빠른 선택…|캐시 {0}개|모델 목록을 불러오는 중…|✓ {0}개 모델 로드 · {1}ms|모델 목록 가져오기 실패|설정을 저장하는 중…|✓ 저장됨 ({0} · {1})|저장 실패|저장 후 연결 테스트 중…|✓ 연결 정상 · {0}ms · {1} 응답: "{2}"|연결 테스트 실패|✓ 프롬프트 제안 캐시를 비웠습니다|공급자 자격 증명(이름, Base URL, API 키)만 동기화되며, 프로필별 선택 모델 ID는 사고 번역과 완전히 독립적으로 저장됩니다.|제안 유효 시간|{0}분',
-    es:
-      'Sugerir siguiente prompt (Beta)|Función experimental, desactivada por defecto. Al activarla, predice tu siguiente mensaje en el editor vacío tras cada respuesta (incluidas tareas en segundo plano). Pulsa Tab para usarlo.|Activado|Desactivado|Perfiles OpenAI compatibles|Perfil OpenAI principal|Perfil personalizado|+ Nuevo|Eliminar|Nombre del perfil|ej. Gemini AI Studio / Pasarela principal|Base URL|API Key|Model ID|Obtener modelos|Guardar config.|Enviar prueba|Limpiar caché|Borrar clave|Pendiente borrar|Opcional para servidor local|Sin clave|Guardado {0} (vacío para mantener)|▾ Selección rápida de {0} modelos…|Caché: {0}|Obteniendo /models…|✓ {0} modelos cargados · {1}ms|Error al obtener modelos|Guardando configuración…|✓ Guardado ({0} · {1})|Error al guardar|Probando latencia del endpoint…|✓ Conectado · {0}ms · {1} Respuesta: "{2}"|Error de conexión|✓ Caché de sugerencias limpiada|Solo sincroniza credenciales del proveedor (Nombre, Base URL, API Key); el Model ID elegido por perfil se guarda de forma independiente al Traductor de pensamiento.|Vigencia de sugerencia|{0} min',
-    fr:
-      'Suggérer le prompt suivant (Beta)|Fonction expérimentale, désactivée par défaut. Prédit votre prochain message dans la zone de saisie vide après chaque réponse (tâches en arrière-plan incluses). Appuyez sur Tab pour l’utiliser.|Activé|Désactivé|Profils OpenAI compatibles|Profil OpenAI principal|Profil personnalisé|+ Nouveau|Supprimer|Nom du profil|ex. Gemini AI Studio / Passerelle principale|Base URL|API Key|Model ID|Charger les modèles|Enregistrer|Tester l’envoi|Vider le cache|Effacer clé|Suppression en attente|Facultatif en local|Sans clé|Enregistré {0} (laisser vide pour garder)|▾ Choisir parmi {0} modèles…|Cache : {0}|Récupération de /models…|✓ {0} modèles chargés · {1}ms|Échec de récupération des modèles|Enregistrement…|✓ Enregistré ({0} · {1})|Échec d’enregistrement|Test de connexion en cours…|✓ Connecté · {0}ms · {1} Réponse : « {2} »|Échec du test de connexion|✓ Cache de suggestions vidé|Synchronise uniquement les identifiants du fournisseur (Nom, Base URL, API Key) ; le Model ID par profil reste indépendant du Traducteur de réflexion.|Durée de validité|{0} min',
-    de:
-      'Nächsten Prompt vorschlagen (Beta)|Experimentell, standardmäßig aus. Sagt nach jeder abgeschlossenen Antwort (auch bei Hintergrundaufgaben) deine nächste Nachricht im leeren Eingabefeld voraus. Mit Tab übernehmen.|Ein|Aus|OpenAI-kompatible Profile|Primäres OpenAI-Profil|Benutzerdefiniertes Profil|+ Neu|Löschen|Profilname|z. B. Gemini AI Studio / Haupt-Gateway|Base URL|API Key|Model ID|Modelle abrufen|Speichern|Test senden|Cache leeren|Löschen|Löschen vorgemerkt|Für lokal optional|Ohne Schlüssel|{0} gespeichert (leer lassen zum Behalten)|▾ Schnellauswahl aus {0} Modellen…|Cache: {0}|Rufe /models ab…|✓ {0} Modelle geladen · {1}ms|Modellabruf fehlgeschlagen|Speichere Konfiguration…|✓ Gespeichert ({0} · {1})|Speichern fehlgeschlagen|Teste Endpunktlatenz…|✓ Verbunden · {0}ms · {1} Antwort: „{2}“|Verbindungstest fehlgeschlagen|✓ Prompt-Vorschlagscache geleert|Synchronisiert nur Anbieterdaten (Name, Base URL, API-Schlüssel); die gewählte Modell-ID pro Profil wird unabhängig vom Denk-Übersetzer gespeichert.|Gültigkeitsdauer|{0} Min.',
+    ar:
+      'اقتراح الرسالة التالية (تجريبي)|ميزة تجريبية معطلة افتراضياً. تتنبأ برسالتك التالية في مربع الإدخال الفارغ بعد اكتمال كل رد (بما في ذلك المهام الخلفية). اضغط Tab لاستخدامها.|تشغيل|إيقاف|ملفات نقاط نهاية OpenAI|ملف OpenAI الرئيسي|ملف مخصص|+ جديد|حذف|اسم الملف|مثال: Gemini AI Studio / البوابة الرئيسية|عنوان الرابط (Base URL)|مفتاح API|معرّف النموذج (Model)|جلب النماذج|حفظ الإعدادات|إرسال رسالة اختبار|مسح الذاكرة المؤقتة|مسح المفتاح|بانتظار الحفظ للمسح|اختياري للنقاط المحلية|بدون مفتاح|محفوظ {0} (اتركه فارغاً للإبقاء)|▾ اختيار سريع من بين {0} نموذجاً…|الذاكرة المؤقتة: {0}|جارٍ جلب قائمة النماذج…|✓ تم جلب {0} نموذجاً · {1}ms|فشل جلب النماذج|جارٍ حفظ الإعدادات…|✓ تم الحفظ ({0} · {1})|فشل الحفظ|جارٍ حفظ الإعدادات واختبار الاتصال…|✓ متصل بنجاح · {0}ms · {1} الرد: «{2}»|فشل اختبار الاتصال|✓ تم مسح ذاكرة اقتراحات الرسائل|يتم مزامنة بيانات المزوّد فقط (الاسم، Base URL، ومفتاح API)؛ بينما يُحفظ معرّف النموذج المختار لكل ملف بشكل مستقل عن مترجم التفكير.|مدة صلاحية الاقتراح|{0} دقيقة',
   };
 
   const fmt = (tpl, args) => String(tpl || '').replace(/\{(\d)\}/g, (_, i) => String(args[i] ?? ''));
@@ -89,18 +77,11 @@
     })
   );
 
-  // 对齐 wallpaper-settings-ui.js 8 语规范（yue -> zh-CN，zh-HK/MO -> zh-TW，未知返回空字符串交由调用方兜底 en）
+  // Aligns with bilingual EN/AR normalization (unknown returns empty string for caller fallback to 'en')
   function normalizeLang(raw) {
     const s = String(raw || '').trim().toLowerCase().replace(/_/g, '-');
     if (!s || s === 'auto') return '';
-    if (s === 'yue' || s.startsWith('yue-') || s === 'zh-yue' || s.includes('cantonese')) return 'zh-CN';
-    if (/^zh-(tw|hk|mo|hant)/.test(s) || s === 'tw' || s === 'hant') return 'zh-TW';
-    if (/^zh(?:\b|-)/.test(s)) return 'zh-CN';
-    if (/^(ja|jp)(?:\b|-)/.test(s) || s === 'japanese') return 'ja';
-    if (/^(ko|kr)(?:\b|-)/.test(s) || s === 'korean') return 'ko';
-    if (/^es(?:\b|-)/.test(s) || s === 'spanish') return 'es';
-    if (/^fr(?:\b|-)/.test(s) || s === 'french') return 'fr';
-    if (/^de(?:\b|-)/.test(s) || s === 'german') return 'de';
+    if (s === 'ar' || s.startsWith('ar-') || s === 'arabic') return 'ar';
     if (/^en(?:\b|-)/.test(s) || s === 'english') return 'en';
     return '';
   }
@@ -165,7 +146,7 @@
     return el;
   }
 
-  // 设置卡片基础样式与模型下拉菜单样式：按需在挂载设置 UI 时注入，destroy() 时彻底移除（纯 ASCII、0 :has()）
+  // Base card and model dropdown styles: injected on demand when mounting settings UI and removed on destroy() (pure ASCII, 0 :has())
   const MODEL_DD_STYLE_ID = 'ag-prism-model-dd-css';
   const MODEL_DD_CSS = [
     '[data-testid="prism-suggester-slot"]{margin-top:10px;}',
@@ -209,7 +190,7 @@
     }
   }
 
-  // 记录当前窗口已挂载的 Suggester 设置卡片句柄，供跨卡片/跨窗口 reloadProfiles() 统一刷新
+  // Track mounted Suggester settings card handles for cross-card/cross-window reloadProfiles()
   const activeHandles = new Set();
 
   function mountSuggesterUi(slotEl, ctx = {}) {
@@ -283,9 +264,10 @@
     const card = mk('div', 'ag-prism-sg-card');
     card.setAttribute('data-testid', 'prism-suggester-card');
     card.setAttribute('data-ag-cs-lang', curLang);
+    card.setAttribute('dir', curLang === 'ar' ? 'rtl' : 'ltr');
     markNoTrOwned(card);
 
-    // 1) 头部行：标题、说明与 Beta 总开关
+    // 1) Header row: title, description, and Beta master switch
     const headRow = mk('div', 'ag-prism-sg-row');
     const headMeta = mk('div', 'ag-prism-sg-meta');
     const titleEl = mk('span', 'ag-prism-sg-title', pack.title);
@@ -307,7 +289,7 @@
     headRow.appendChild(headMeta);
     headRow.appendChild(enableGrp);
 
-    // 2) 与思考转译视觉对齐的渠道配置工作台（.ag-cs-thought-cfg-box）
+    // 2) Provider config workbench aligned visually with Thought Translator (.ag-cs-thought-cfg-box)
     const cfgBox = mk('div', 'ag-cs-thought-cfg-box');
     cfgBox.setAttribute('data-testid', 'prism-sg-ai-config');
 
@@ -629,7 +611,7 @@
             closeModelMenu();
             modelSelectWrap.hidden = true;
             renderProfilePillsAndForm();
-            // 立即持久化提示词建议独立选中的渠道标签页
+            // Immediately persist the independently selected profile tab for Prompt Suggester
             const bridge = resolveBridge();
             if (bridge && !bridge.isDisposed?.()) {
               void bridge.call('save-config', { activeProfileId: p.id }, 6000).then((res) => {
@@ -732,7 +714,7 @@
       if (cfg.activeProfileId && state.profiles.some((p) => p.id === cfg.activeProfileId)) {
         state.activeProfileId = cfg.activeProfileId;
       } else if (state.activeProfileId && state.profiles.some((p) => p.id === state.activeProfileId)) {
-        // 保留当前仍然存在的渠道选择
+        // Keep current profile selection if it still exists
       } else if (state.profiles.length > 0) {
         state.activeProfileId = state.profiles[0].id;
       }
@@ -906,7 +888,7 @@
           },
           18000
         );
-        // test-connection 内部已先保存共享渠道配置，无论连通结果均通知思考转译 UI 与本地重载最新渠道
+        // test-connection already persisted shared provider config; notify Thought Translator UI and reload locally regardless of result
         notifyPeerThoughtUi();
         await refreshState();
         if (res && res.ok) {
@@ -950,7 +932,7 @@
       return res || { ok: false };
     }
 
-    // 跨卡片/跨窗口共享凭据刷新钩子：思考转译卡片保存渠道或守护进程广播时调用，防止陈旧 state.profiles 覆写新密钥
+    // Cross-card/cross-window shared credentials refresh hook: called when Thought Translator saves or daemon broadcasts
     function reloadProfiles() {
       if (uiDestroyed) return Promise.resolve({ ok: false, destroyed: true });
       if (reloadPromise) return reloadPromise;
@@ -970,6 +952,7 @@
       pack = SUGGESTER_I18N[curLang] || SUGGESTER_I18N.en;
       guard(() => {
         card.setAttribute('data-ag-cs-lang', curLang);
+        card.setAttribute('dir', curLang === 'ar' ? 'rtl' : 'ltr');
         titleEl.textContent = pack.title;
         descEl.textContent = pack.desc;
         enableOnBtn.textContent = pack.on;
@@ -1003,7 +986,7 @@
       if (slotEl.__agPrismSgUiHandle === handle) {
         slotEl.__agPrismSgUiHandle = null;
       }
-      // 无存活卡片实例时彻底卸载 #ag-prism-model-dd-css，杜绝样式标签残留泄漏
+      // Remove #ag-prism-model-dd-css when no live card instances remain to avoid leaked style tags
       if (activeHandles.size === 0) {
         try {
           doc.getElementById?.(MODEL_DD_STYLE_ID)?.remove?.();

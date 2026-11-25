@@ -375,7 +375,7 @@ test('Redteam P0-1 & P1-1 & P1-4: zombie singleton prevention, no-RPC native fal
     return el;
   };
 
-  const html = makeEl('html', { 'data-ag-cs-lang': 'zh-CN' });
+  const html = makeEl('html', { 'data-ag-cs-lang': 'en' });
   const head = makeEl('head');
   const body = makeEl('body', { class: 'monaco-workbench' });
   html.appendChild(head);
@@ -584,7 +584,7 @@ test('Redteam P1-2 & P1-3 & P0-1(ui-runtime): style.css exclusions/contrasts, si
     const dlg = mk('div', { role: 'dialog' });
     const panel = mk('div', { class: 'p-6' });
     const h2 = mk('h2');
-    h2.textContent = '外观';
+    h2.textContent = 'المظهر';
     const anchorSec = mk('div', { class: 'space-y-2' });
     panel.appendChild(h2);
     panel.appendChild(anchorSec);
@@ -608,8 +608,8 @@ test('Redteam P1-2 & P1-3 & P0-1(ui-runtime): style.css exclusions/contrasts, si
     const st = { ...cdp.DEFAULT_CONFIG, sidebarRestyle: false, sidebarNavFold: 'on' };
     settingsPanel.mountOrSyncSettingsSection({
       version: cdp.PLUGIN_VERSION,
-      getLang: () => 'zh-CN',
-      uiText: () => i18nLocales.getUiStrings('zh-CN'),
+      getLang: () => 'ar',
+      uiText: () => i18nLocales.getUiStrings('ar'),
       isZh: () => true,
       i18nCore: {},
       formatSettingsSummary: () => 'summary',

@@ -236,13 +236,13 @@ test('inject expression mounts cleanly without model-button or telemetry conflic
 
   const inputBox = makeNode('div', { id: 'antigravity.agentSidePanelInputBox', attrs: { 'data-testid': 'agent-input-box' } });
   const queuedWrap = makeNode('div', { className: 'relative z-[1] flex flex-col gap-2 w-full hidden-if-empty mb-2' });
-  const queuedCard = makeNode('div', { text: '排队中的消息 1 · 智能体完成后发送' });
+  const queuedCard = makeNode('div', { text: 'Queued message 1 · Sends after agent finishes working' });
   queuedWrap.appendChild(queuedCard);
   inputBox.appendChild(queuedWrap);
   const composerShell = makeNode('div', { id: 'antigravity.agentSidePanelInputBox', className: 'surface-composer' });
   const card = makeNode('div', { className: 'surface-composer-card' });
   const editorWrap = makeNode('div', { className: 'relative w-full' });
-  const placeholder = makeNode('p', { className: 'pointer-events-none', text: '有问题尽管问' });
+  const placeholder = makeNode('p', { className: 'pointer-events-none', text: 'How can I help you today?' });
   const editorEl = makeNode('div', { attrs: { contenteditable: 'true', 'data-lexical-editor': 'true' } });
   editorWrap.appendChild(placeholder);
   editorWrap.appendChild(editorEl);
@@ -263,12 +263,12 @@ test('inject expression mounts cleanly without model-button or telemetry conflic
   // Simulated Settings dialog containing General BEFORE Appearance
   const dialog = makeNode('div', { attrs: { role: 'dialog' } });
   const generalPanel = makeNode('div', { className: 'p-6 flex flex-col gap-4' });
-  const generalH2 = makeNode('h2', { text: '常规' });
+  const generalH2 = makeNode('h2', { text: 'General' });
   const generalSec = makeNode('div', { className: 'space-y-2' });
   generalPanel.appendChild(generalH2);
   generalPanel.appendChild(generalSec);
   const appearancePanel = makeNode('div', { className: 'p-6 flex flex-col gap-4' });
-  const appearanceH2 = makeNode('h2', { text: '外观' });
+  const appearanceH2 = makeNode('h2', { text: 'المظهر' });
   const appearanceWrap = makeNode('div', { className: 'flex flex-col gap-8' });
   const appearanceSec = makeNode('div', { className: 'space-y-2' });
   appearanceWrap.appendChild(appearanceSec);
@@ -306,7 +306,7 @@ test('inject expression mounts cleanly without model-button or telemetry conflic
     window: null,
     globalThis: null,
     document: doc,
-    navigator: { language: 'zh-CN' },
+    navigator: { language: 'ar' },
     location: { pathname: '/' },
     addEventListener(ev, cb) {
       if (!winListeners.has(ev)) winListeners.set(ev, []);
@@ -360,8 +360,8 @@ test('inject expression mounts cleanly without model-button or telemetry conflic
     assert.equal(html.getAttribute('data-ag-cs-style'), '1');
     assert.equal(html.getAttribute('data-ag-cs-palette'), 'obsidian');
     assert.equal(html.getAttribute('data-ag-cs-home'), 'studio');
-    assert.equal(h1.textContent, '接下来做什么？');
-    assert.equal(placeholder.getAttribute('data-ag-cs-placeholder'), '描述任务或提出问题');
+    assert.equal(h1.textContent, 'ما التالي؟');
+    assert.equal(placeholder.getAttribute('data-ag-cs-placeholder'), 'كيف يمكنني مساعدتك اليوم؟');
 
     // Coexistence & zero-interference guarantees
     assert.equal(sandbox.window.__agCsI18n, undefined);
@@ -445,7 +445,7 @@ test('inject expression mounts cleanly without model-button or telemetry conflic
     assert.equal(generalPanel.querySelector('#ag-cs-settings-sec'), null);
     const settingsSec = appearancePanel.querySelector('#ag-cs-settings-sec');
     assert.ok(settingsSec);
-    assert.equal(settingsSec.querySelector('h3')?.textContent, 'Obsidian Prism · 黑曜棱镜');
+    assert.equal(settingsSec.querySelector('h3')?.textContent, 'Obsidian Prism · أوبسيديان بريزم');
     assert.equal(settingsSec.querySelector('.ag-cs-settings-ver')?.textContent, 'v1.0.8-beta.2');
     const brandMarkHtml = settingsSec.querySelector('.ag-cs-settings-brand-mark')?.innerHTML || '';
     assert.ok(
@@ -516,7 +516,7 @@ test('inject expression mounts cleanly without model-button or telemetry conflic
     assert.ok(licPreText.includes('RMvdesi'));
     assert.ok(licPreText.includes('MIT License'));
     assert.ok(
-      aboutBox.querySelector('.ag-cs-about-disclaimer')?.textContent?.includes('not affiliated with or endorsed by Google LLC')
+      aboutBox.querySelector('.ag-cs-about-disclaimer')?.textContent?.includes('Google LLC')
     );
     assert.ok(aboutBox.querySelector('button[data-ag-cs-repo-sync]'), 'Expected Git sync button in About box');
 
@@ -589,38 +589,14 @@ test('inject expression mounts cleanly without model-button or telemetry conflic
       assert.equal(placeholder.getAttribute('data-ag-cs-placeholder'), expectedPlaceholder);
     };
 
-    // Verify all 8 language buttons switch dashboard, greeting, placeholder & settings copy + emit CDP binding (no yue)
-    assert.equal(getLangBtns().length, 8, 'Expected exactly 8 language buttons');
-    assert.equal(getLangBtns().some((b) => b.getAttribute('data-ag-cs-val') === '"yue"'), false, 'yue button must be removed');
-    checkLangSwitch('zh-TW', '外觀', '介面語言', '概覽', '接下來做什麼？', '描述任務或提出問題');
-    checkLangSwitch('ko', 'Appearance', 'UI 언어', '개요', '다음은 무엇을 할까요?', '작업 설명이나 질문을 입력하세요');
-    assert.equal(html.getAttribute('data-ag-cs-cjk'), '1');
-    checkLangSwitch('es', 'Appearance', 'Idioma de la interfaz', 'Resumen', '¿Qué hacemos ahora?', 'Describe una tarea o haz una pregunta');
-    assert.equal(html.hasAttribute('data-ag-cs-cjk'), false);
-    checkLangSwitch('fr', 'Appearance', 'Langue de l’interface', 'Aperçu', 'Que faisons-nous ensuite ?', 'Décrivez une tâche ou posez une question');
-    assert.equal(html.hasAttribute('data-ag-cs-cjk'), false);
-    checkLangSwitch('de', 'Appearance', 'UI-Sprache', 'Übersicht', 'Was steht als Nächstes an?', 'Aufgabe beschreiben oder Frage stellen');
-    assert.equal(html.hasAttribute('data-ag-cs-cjk'), false);
+    // Each setting updates the dashboard, greeting, placeholder and renderer direction.
+    assert.equal(getLangBtns().length, 2);
     checkLangSwitch('en', 'Appearance', 'UI Language', 'Overview', "What's up next?", 'How can I help you today?');
-    assert.equal(html.hasAttribute('data-ag-cs-cjk'), false);
-    checkLangSwitch('ja', '外観', '表示言語', '概要', '次は何をしますか？', 'タスクの説明や質問を入力してください');
-    assert.equal(html.getAttribute('data-ag-cs-cjk'), '1');
-    checkLangSwitch('zh-CN', '外观', '界面语言', '概览', '接下来做什么？', '描述任务或提出问题');
-
-    assert.deepEqual(
-      bindingCalls.map((c) => [c.key, c.value]),
-      [
-        ['language', 'zh-TW'],
-        ['language', 'ko'],
-        ['language', 'es'],
-        ['language', 'fr'],
-        ['language', 'de'],
-        ['language', 'en'],
-        ['language', 'ja'],
-        ['language', 'zh-CN'],
-      ]
-    );
-    appearanceH2.textContent = '外观';
+    assert.equal(html.getAttribute('data-ag-cs-dir'), 'ltr');
+    checkLangSwitch('ar', 'المظهر', 'لغة الواجهة', 'نظرة عامة', 'ما التالي؟', 'كيف يمكنني مساعدتك اليوم؟');
+    assert.equal(html.getAttribute('data-ag-cs-dir'), 'rtl');
+    assert.deepEqual(bindingCalls.map((call) => [call.key, call.value]), [['language', 'en'], ['language', 'ar']]);
+    appearanceH2.textContent = 'المظهر';
 
     // Switching palette/mascot externally syncs root attrs & setting button active state immediately (claude alias normalized to warm)
     sandbox.window.__agPrism.refreshConfig({ ...cdp.DEFAULT_CONFIG, palette: 'claude' });
@@ -629,7 +605,7 @@ test('inject expression mounts cleanly without model-button or telemetry conflic
       .querySelectorAll('#ag-cs-settings-sec button')
       .find((b) => b.getAttribute('data-ag-cs-key') === 'palette' && b.getAttribute('data-ag-cs-val') === '"warm"');
     assert.ok(warmBtn, 'Expected Alabaster Warm palette button');
-    assert.equal(warmBtn.textContent, 'Alabaster 暖岩');
+    assert.equal(warmBtn.textContent, 'ألباستر دافئ');
     assert.equal(warmBtn.getAttribute('aria-pressed'), 'true');
     assert.equal(warmBtn.hasAttribute('data-pressed'), true);
 
@@ -664,7 +640,6 @@ test('inject expression mounts cleanly without model-button or telemetry conflic
     assert.equal(batchCall.entries.ambientIntensity, '70');
     assert.equal(html.getAttribute('data-ag-cs-target-fps'), '180');
 
-    // HS-1: mascot 'minis' ("双宠+三蟹") must be preserved verbatim over wire (never downgraded to 'crab')
     const beforeMinisLen = bindingCalls.length;
     sandbox.window.__agPrism.saveSettingsBatch({ mascot: 'minis', targetFps: '120' });
     const minisBatch = bindingCalls.slice(beforeMinisLen).find((c) => c.action === 'patch-batch');
@@ -828,7 +803,7 @@ test('buildInjectExpression defers cleanly when documentElement is null at docum
     window: null,
     globalThis: null,
     document: doc,
-    navigator: { language: 'zh-CN' },
+    navigator: { language: 'ar' },
     location: { pathname: '/' },
     addEventListener(ev, cb) {
       if (!winListeners.has(ev)) winListeners.set(ev, []);
@@ -1064,7 +1039,7 @@ test('Q&A takeover card, side-question panel, and running tasks clear Clawd masc
     window: null,
     globalThis: null,
     document: doc,
-    navigator: { language: 'zh-CN' },
+    navigator: { language: 'ar' },
     location: { pathname: '/' },
     localStorage: { _m: {}, getItem(k) { return this._m[k] || null; }, setItem(k, v) { this._m[k] = String(v); } },
     getComputedStyle: () => ({ getPropertyValue: () => '' }),
@@ -1098,7 +1073,7 @@ test('Q&A takeover card, side-question panel, and running tasks clear Clawd masc
     assert.equal(runningWrap.hasAttribute('data-ag-cs-queued'), false);
 
     // 2. When queued message is also present, queuedWrap takes the 46px clearance and takeoverWrap avoids double spacing
-    const queuedItem = makeEl('div', { text: '排队中的消息' });
+    const queuedItem = makeEl('div', { text: 'Queued messages' });
     queuedWrap.appendChild(queuedItem);
     sandbox.window.__agClaudeStyle.refreshConfig(cdp.DEFAULT_CONFIG);
     assert.equal(queuedWrap.getAttribute('data-ag-cs-queued'), '1');
@@ -1362,7 +1337,7 @@ test('v3.5.1 mounts dual mascot stage, brand optical glyphs, Orchestrator crysta
   // Conversation view with thinking trigger & composer
   const convView = makeNode('div', { attrs: { 'data-testid': 'conversation-view' } });
   const thinkTrig = makeNode('button', { attrs: { 'data-testid': 'thinking-collapsible-trigger' } });
-  thinkTrig.appendChild(makeNode('span', { text: '正在推演...' }));
+  thinkTrig.appendChild(makeNode('span', { text: 'Streaming...' }));
   convView.appendChild(thinkTrig);
 
   const inputBox = makeNode('div', { attrs: { 'data-testid': 'agent-input-box' } });
@@ -1391,11 +1366,11 @@ test('v3.5.1 mounts dual mascot stage, brand optical glyphs, Orchestrator crysta
   });
   const claudeLead = makeNode('span', { className: 'flex items-center gap-1.5 min-w-0' });
   const claudeName = makeNode('span', { attrs: { 'data-testid': 'model-selector-effort-group' }, text: 'Claude Sonnet 4.6' });
-  const claudeBadge = makeNode('span', { className: 'rounded-full', text: '新建' });
+  const claudeBadge = makeNode('span', { className: 'rounded-full', text: 'New' });
   claudeLead.appendChild(claudeName);
   claudeMenuItem.appendChild(claudeLead);
   claudeMenuItem.appendChild(claudeBadge);
-  const usageMenuItem = makeNode('div', { className: 'agy-overlay-item', attrs: { role: 'menuitem' }, text: '查看用量明细' });
+  const usageMenuItem = makeNode('div', { className: 'agy-overlay-item', attrs: { role: 'menuitem' }, text: 'View usage details' });
   const cesSec = makeNode('div', { className: 'ces-ag-section' });
   const cesRow = makeNode('div', { className: 'ces-ag-effort-row' });
   cesSec.appendChild(cesRow);
@@ -1415,7 +1390,7 @@ test('v3.5.1 mounts dual mascot stage, brand optical glyphs, Orchestrator crysta
   ctxChip.appendChild(ctxRing);
   ctxChip.appendChild(ctxPct);
   const ctxCard = makeNode('div', { id: 'context-card', className: 'card context-card' });
-  const ctxHeading = makeNode('div', { className: 'heading', text: '上下文窗口' });
+  const ctxHeading = makeNode('div', { className: 'heading', text: 'Context window' });
   const ctxTrack = makeNode('div', { id: 'context-track' });
   const ctxFill = makeNode('div', { id: 'context-fill' });
   ctxTrack.appendChild(ctxFill);
@@ -1445,7 +1420,7 @@ test('v3.5.1 mounts dual mascot stage, brand optical glyphs, Orchestrator crysta
     globalThis: null,
     document: docRef,
     devicePixelRatio: 1,
-    navigator: { language: 'zh-CN' },
+    navigator: { language: 'ar' },
     location: { pathname: '/' },
     localStorage: { _m: {}, getItem(k) { return this._m[k] || null; }, setItem(k, v) { this._m[k] = String(v); } },
     agPulseHost: {
@@ -1531,7 +1506,7 @@ test('v3.5.1 mounts dual mascot stage, brand optical glyphs, Orchestrator crysta
     assert.equal(claudeRowGlyph.style.getPropertyValue('opacity'), '0.78');
     assert.equal(claudeLead.firstChild, claudeRowGlyph);
     assert.equal(claudeName.textContent, 'Claude Sonnet 4.6');
-    assert.equal(claudeBadge.textContent, '新建');
+    assert.equal(claudeBadge.textContent, 'New');
     assert.equal(usageMenuItem.querySelector('.ag-cs-panel-row-glyph'), null, 'Non-model menu item must be skipped');
 
     // Verify live Base UI selection via data-ces-model-selected="true" lights up brand glow & inline opacity: 1
@@ -1877,7 +1852,7 @@ test('v3.6.1 auto-unfolds inner thinking & tool collapsibles idempotently and dr
     globalThis: null,
     document: docRef,
     devicePixelRatio: 1,
-    navigator: { language: 'zh-CN' },
+    navigator: { language: 'ar' },
     location: { pathname: '/c/12345678-1234-1234-1234-1234567890ab' },
     localStorage: { _m: {}, getItem(k) { return this._m[k] || null; }, setItem(k, v) { this._m[k] = String(v); } },
     addEventListener(ev, cb) { if (!winListeners.has(ev)) winListeners.set(ev, []); winListeners.get(ev).push(cb); },
@@ -2249,12 +2224,12 @@ test('v3.7 orchestrates 4-tier motionLevel, Hero A~E optical transitions, dual-t
   const sidebarToggleBtn = makeNode('button', { attrs: { 'data-testid': 'sidebar-toggle-button' } });
   sidebarToggleBtn.appendChild(makeNode('svg', { attrs: { width: '16', height: '16' } }));
   const addProjBtn = makeNode('button', {
-    attrs: { 'data-testid': 'sidebar-add-project-button', 'aria-label': '新建项目', 'data-ag-cs-icon-injected': 'panel-left' },
+    attrs: { 'data-testid': 'sidebar-add-project-button', 'aria-label': 'New Project', 'data-ag-cs-icon-injected': 'panel-left' },
   });
   addProjBtn.appendChild(makeNode('svg', { className: 'ag-anim-icon' }));
   addProjBtn.appendChild(makeNode('svg', { attrs: { width: '16', height: '16', hidden: '', 'data-ag-cs-orig-svg': '1' } }));
   const overviewToggleBtn = makeNode('button', {
-    attrs: { 'data-testid': 'toggle-overview-panel', 'aria-label': '切换概览面板' },
+    attrs: { 'data-testid': 'toggle-overview-panel', 'aria-label': 'Toggle Overview Panel' },
   });
   overviewToggleBtn.appendChild(makeNode('svg', { attrs: { width: '16', height: '16' } }));
   const autoBtn = makeNode('button', { attrs: { 'data-testid': 'automations-button' } });
@@ -2304,7 +2279,7 @@ test('v3.7 orchestrates 4-tier motionLevel, Hero A~E optical transitions, dual-t
   // Settings dialog for motionLevel & group glide test
   const dialog = makeNode('div', { attrs: { role: 'dialog' }, rect: { left: 320, top: 100, right: 960, bottom: 700, width: 640, height: 600 } });
   const appPanel = makeNode('div', { className: 'p-6' });
-  appPanel.appendChild(makeNode('h2', { text: '外观' }));
+  appPanel.appendChild(makeNode('h2', { text: 'المظهر' }));
   appPanel.appendChild(makeNode('div', { className: 'space-y-2' }));
   dialog.appendChild(appPanel);
   body.appendChild(dialog);
@@ -2331,7 +2306,7 @@ test('v3.7 orchestrates 4-tier motionLevel, Hero A~E optical transitions, dual-t
     innerWidth: 1280,
     innerHeight: 800,
     devicePixelRatio: 1,
-    navigator: { language: 'zh-CN' },
+    navigator: { language: 'ar' },
     location: { pathname: '/' },
     localStorage: { _m: {}, getItem(k) { return this._m[k] || null; }, setItem(k, v) { this._m[k] = String(v); } },
     addEventListener(ev, cb) { if (!winListeners.has(ev)) winListeners.set(ev, []); winListeners.get(ev).push(cb); },
@@ -2841,16 +2816,16 @@ test('Prism v1.0 regression guard: Thought Translator overlay (.ag-prism-thought
   // Construct Thought Chinese Thought Translation DOM inside expanded thinking panel
   const thinkTrig = makeNode('button', {
     attrs: { 'data-testid': 'thinking-collapsible-trigger', 'aria-expanded': 'true', 'data-op-thought-state': 'streaming' },
-    text: '正在思考...',
+    text: 'Thinking...',
   });
   const thinkPanel = makeNode('div', {
     attrs: { 'data-op-zh-ready': '1' },
   });
   const thoughtOverlay = makeNode('div', { className: 'ag-prism-thought-overlay' });
-  const thoughtBody = makeNode('span', { className: 'ag-prism-thought-body', text: '正在规划增量调度...' });
-  const thoughtRawToggle = makeNode('button', { className: 'ag-prism-thought-raw-toggle', attrs: { 'aria-label': 'Copy / 查看原文' } });
+  const thoughtBody = makeNode('span', { className: 'ag-prism-thought-body', text: 'Planning the next batch...' });
+  const thoughtRawToggle = makeNode('button', { className: 'ag-prism-thought-raw-toggle', attrs: { 'aria-label': 'Copy / View original' } });
   thoughtRawToggle.appendChild(makeNode('svg', { className: 'lucide-copy', attrs: { width: '14', height: '14' } }));
-  thoughtRawToggle.appendChild(makeTextNode('原文'));
+  thoughtRawToggle.appendChild(makeTextNode('الأصل'));
   thoughtOverlay.appendChild(thoughtBody);
   thoughtOverlay.appendChild(thoughtRawToggle);
   const hiddenEngP = makeNode('p', { hidden: true, text: 'Planning incremental scheduler...' });
@@ -2871,7 +2846,7 @@ test('Prism v1.0 regression guard: Thought Translator overlay (.ag-prism-thought
   // Settings dialog for lightPreset & absorbed module switches
   const dialog = makeNode('div', { attrs: { role: 'dialog' } });
   const appPanel = makeNode('div', { className: 'p-6' });
-  appPanel.appendChild(makeNode('h2', { text: '外观' }));
+  appPanel.appendChild(makeNode('h2', { text: 'المظهر' }));
   appPanel.appendChild(makeNode('div', { className: 'space-y-2' }));
   dialog.appendChild(appPanel);
   body.appendChild(dialog);
@@ -2901,7 +2876,7 @@ test('Prism v1.0 regression guard: Thought Translator overlay (.ag-prism-thought
     innerWidth: 1000,
     innerHeight: 750,
     devicePixelRatio: 1,
-    navigator: { language: 'zh-CN' },
+    navigator: { language: 'ar' },
     location: { pathname: '/c/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' },
     localStorage: {
       _m: {
@@ -2939,7 +2914,7 @@ test('Prism v1.0 regression guard: Thought Translator overlay (.ag-prism-thought
   try {
     // Make conversation initially idle (temporarily clear streaming attr on thinkTrig) to test 0fps idle sleep first!
     thinkTrig.removeAttribute('data-op-thought-state');
-    thinkTrig.textContent = '已思考 4 秒';
+    thinkTrig.textContent = 'Thought for 4s';
 
     const res = vm.runInNewContext(injectExpr, sandbox);
     assert.equal(res.status, 'ok');
@@ -3015,7 +2990,7 @@ test('Prism v1.0 regression guard: Thought Translator overlay (.ag-prism-thought
 
     // Enter streaming state
     thinkTrig.setAttribute('data-op-thought-state', 'streaming');
-    thinkTrig.textContent = '正在思考...';
+    thinkTrig.textContent = 'Thinking...';
     const cancelBtn = makeNode('button', { attrs: { 'data-testid': 'input-cancel-button' } });
     card.appendChild(cancelBtn);
     sandbox.window.__agPrism.sync();
@@ -3045,7 +3020,7 @@ test('Prism v1.0 regression guard: Thought Translator overlay (.ag-prism-thought
       fakeNow += 80;
       const newEngSpan = makeNode('span', { text: ` English step ${step}` });
       hiddenEngP.appendChild(newEngSpan);
-      const newZhText = makeTextNode(` 中文思考增量 ${step}`);
+      const newZhText = makeTextNode(` Reasoning update ${step}`);
       thoughtBody.appendChild(newZhText);
 
       // Fire root observer with Thought mutations -> must be 100% ignored (0 sync!)
@@ -3071,7 +3046,7 @@ test('Prism v1.0 regression guard: Thought Translator overlay (.ag-prism-thought
     assert.equal(
       thoughtRawToggle._attrMutations + thoughtRawToggle._classMutations,
       rawToggleMutBefore,
-      'Thought "原文" toggle button must experience 0 attribute/class mutations (zero flicker!)'
+      'Thought "الأصل" toggle button must experience 0 attribute/class mutations (zero flicker!)'
     );
     assert.equal(
       thoughtOverlay._attrMutations + thoughtOverlay._classMutations,
@@ -3743,7 +3718,7 @@ test('Antigravity v2.33.0+ dual-layer CDP opt-in guard: shortcut lossless patch/
       imageName: 'Antigravity.exe',
       startMs: 1795046341000,
       exePath: 'C:\\Programs\\antigravity\\Antigravity.exe',
-      commandLine: '"C:\\Programs\\antigravity\\Antigravity.exe" --type=renderer --lang=zh-CN',
+      commandLine: '"C:\\Programs\\antigravity\\Antigravity.exe" --type=renderer --lang=ar',
     },
     {
       pid: 20012,

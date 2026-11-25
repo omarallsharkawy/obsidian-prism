@@ -385,7 +385,7 @@ test('2) home-studio-panel.js marks .ag-cs-home-panel-seat with all 5 attributes
       usageCore,
       isDestroyed: () => false,
       getHomeLayout: () => 'studio',
-      getLang: () => 'zh-CN',
+      getLang: () => 'en',
       uiText: () => ({}),
       getDisplayName: () => 'Dev',
       ensureHooks: () => null,
@@ -447,7 +447,7 @@ test('3) host-workbench-enhancer.js marks fold button and nav outline popover on
   const ctl = enhancerMod.createHostEnhancerController({
     doc: env.doc,
     win: env.win,
-    getLang: () => 'zh-CN',
+    getLang: () => 'en',
     isConvRunning: () => false,
   });
 
@@ -525,7 +525,7 @@ test('4) thought-client.js & thought-settings-ui.js mark owned UI roots/badges/b
       call: async ({ action }) => (action === 'get-cache' ? { ok: true, stylePreset: 'technical', entries: {} } : { ok: true }),
       translateStream: async (_opts, onPartial) => {
         if (failMode) return { ok: false, error: 'network_error' };
-        const txt = '已完成架构权衡与翻译边界核验。';
+        const txt = 'تمت مراجعة المفاضلات المعمارية والتحقق من حدود الترجمة بدقة.';
         if (onPartial) onPartial(txt);
         return { ok: true, text: txt, engine: 'machine', fallback: true };
       },
@@ -692,9 +692,9 @@ test('5) sidebar-client.js marks owned top-level roots (dock, chat-pane, chat-ho
 
     // Check source also routes toast, popover, and chat-home through markOwnedRoot
     for (const marker of [
-      "const t = markOwnedRoot(el('div', 'ag-prism-sb-toast', msg))",
-      "markOwnedRoot(pop);",
-      "const container = markOwnedRoot(el('div', 'ag-prism-chat-home'))",
+      "const t = applyDir(markOwnedRoot(el('div', 'ag-prism-sb-toast', msg)))",
+      "applyDir(markOwnedRoot(pop));",
+      "const container = applyDir(markOwnedRoot(el('div', 'ag-prism-chat-home')))",
     ]) {
       assert.ok(clientSrc.includes(marker), `sidebar-client.js must apply markOwnedRoot for ${marker}`);
     }

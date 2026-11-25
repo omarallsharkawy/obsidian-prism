@@ -38,30 +38,30 @@
   const HL_PATH_NAME = 'ag-omni-path';
   const GUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
 
-  // Compact 8-locale fallback table [zh-CN, zh-TW, en, ja, ko, es, fr, de]; primary source is `window.__agCsLocales`
-  const LANG_INDEX = { 'zh-CN': 0, 'zh-TW': 1, en: 2, ja: 3, ko: 4, es: 5, fr: 6, de: 7 };
+  // Compact bilingual fallback table [en, ar]; primary source is `window.__agCsLocales`
+  const LANG_INDEX = { en: 0, ar: 1 };
   const FALLBACK_ROWS = {
-    omniOpenBuiltin: ['在右侧面板打开', '在右側面板開啟', 'Open in Side Pane', '右パネルで開く', '오른쪽 패널에서 열기', 'Abrir en panel lateral', 'Ouvrir dans le panneau latéral', 'Im Seitenbereich öffnen'],
-    omniOpenPreview: ['在右侧检视台预览', '在右側檢視台預覽', 'Preview in Workbench', 'ワークベンチでプレビュー', '워크벤치에서 미리보기', 'Previsualizar en Workbench', 'Aperçu dans Workbench', 'In Workbench vorschauen'],
-    omniOpenExternal: ['使用系统默认程序打开', '使用系統預設程式開啟', 'Open in Default App', '既定のアプリで開く', '기본 앱으로 열기', 'Abrir en app predeterminada', 'Ouvrir avec l’app par défaut', 'In Standard-App öffnen'],
-    omniOpenBrowser: ['在系统浏览器中打开', '在系統瀏覽器中開啟', 'Open in System Browser', '標準ブラウザで開く', '시스템 브라우저에서 열기', 'Abrir en el navegador', 'Ouvrir dans le navigateur', 'Im Systembrowser öffnen'],
-    omniRevealFolder: ['在文件夹中显示', '在資料夾中顯示', 'Reveal in Folder', 'フォルダに表示', '폴더에서 보기', 'Mostrar en carpeta', 'Afficher dans le dossier', 'Im Ordner anzeigen'],
-    omniInsertMention: ['作为 @引用 填入输入框', '作為 @引用 填入輸入框', 'Insert as @Mention', '@参照として入力欄へ挿入', '@멘션으로 입력창에 삽입', 'Insertar como @mención', 'Insérer comme @mention', 'Als @Erwähnung einfügen'],
-    omniCopyLink: ['复制链接地址', '複製連結位址', 'Copy Link URL', 'リンクURLをコピー', '링크 URL 복사', 'Copiar enlace', 'Copier le lien', 'Link-URL kopieren'],
-    omniCopyAbsPath: ['复制绝对路径', '複製絕對路徑', 'Copy Absolute Path', '絶対パスをコピー', '절대 경로 복사', 'Copiar ruta absoluta', 'Copier le chemin absolu', 'Absoluten Pfad kopieren'],
-    omniCopyRelPath: ['复制相对路径', '複製相對路徑', 'Copy Relative Path', '相対パスをコピー', '상대 경로 복사', 'Copiar ruta relativa', 'Copier le chemin relatif', 'Relativen Pfad kopieren'],
-    omniCopyText: ['复制文本', '複製文字', 'Copy Text', 'テキストをコピー', '텍스트 복사', 'Copiar texto', 'Copier le texte', 'Text kopieren'],
-    omniZoomDiagram: ['放大查看图表', '放大檢視圖表', 'Zoom Diagram', '図を拡大表示', '다이어그램 확대', 'Ampliar diagrama', 'Agrandir le diagramme', 'Diagramm vergrößern'],
-    omniViewWorkbench: ['检视台视图', '檢視台檢視', 'Workbench View', 'プレビュー表示', '워크벤치 보기', 'Vista Workbench', 'Vue Workbench', 'Workbench-Ansicht'],
-    omniViewRaw: ['原始视图', '原始檢視', 'Raw View', 'ソース表示', '원본 보기', 'Vista sin formato', 'Vue brute', 'Rohansicht'],
-    omniViewPreview: ['预览', '預覽', 'Preview', 'プレビュー', '미리보기', 'Vista previa', 'Aperçu', 'Vorschau'],
-    omniViewSource: ['源码', '原始碼', 'Source', 'ソース', '소스', 'Código fuente', 'Code source', 'Quelltext'],
-    omniSandboxIsolated: ['沙盒隔离', '沙盒隔離', 'Sandbox Isolated', 'サンドボックス隔離', '샌드박스 격리', 'Aislado en sandbox', 'Isolé en sandbox', 'Sandbox-isoliert'],
-    omniCopied: ['已复制', '已複製', 'Copied', 'コピー済', '복사됨', 'Copiado', 'Copié', 'Kopiert'],
-    omniMermaidDiagram: ['Mermaid 图表', 'Mermaid 圖表', 'Mermaid Diagram', 'Mermaid 図', 'Mermaid 다이어그램', 'Diagrama Mermaid', 'Diagramme Mermaid', 'Mermaid-Diagramm'],
-    omniMermaidSvg: ['Mermaid SVG 图表', 'Mermaid SVG 圖表', 'Mermaid SVG', 'Mermaid SVG', 'Mermaid SVG', 'Mermaid SVG', 'Mermaid SVG', 'Mermaid SVG'],
-    omniHintClick: ['单击', '單擊', 'Click', 'クリック', '클릭', 'Clic', 'Clic', 'Klick'],
-    omniHintCtrlClick: ['Ctrl+单击', 'Ctrl+單擊', 'Ctrl+Click', 'Ctrl+クリック', 'Ctrl+클릭', 'Ctrl+Clic', 'Ctrl+Clic', 'Strg+Klick'],
+    omniOpenBuiltin: ['Open in Side Pane', 'فتح في اللوحة الجانبية'],
+    omniOpenPreview: ['Preview in Workbench', 'معاينة في منصة العرض'],
+    omniOpenExternal: ['Open in Default App', 'فتح بالتطبيق الافتراضي'],
+    omniOpenBrowser: ['Open in System Browser', 'فتح في متصفح النظام'],
+    omniRevealFolder: ['Reveal in Folder', 'إظهار في المجلد'],
+    omniInsertMention: ['Insert as @Mention', 'إدراج كـ @إشارة'],
+    omniCopyLink: ['Copy Link URL', 'نسخ رابط URL'],
+    omniCopyAbsPath: ['Copy Absolute Path', 'نسخ المسار المطلق'],
+    omniCopyRelPath: ['Copy Relative Path', 'نسخ المسار النسبي'],
+    omniCopyText: ['Copy Text', 'نسخ النص'],
+    omniZoomDiagram: ['Zoom Diagram', 'تكبير المخطط'],
+    omniViewWorkbench: ['Workbench View', 'عرض المنصة'],
+    omniViewRaw: ['Raw View', 'العرض الخام'],
+    omniViewPreview: ['Preview', 'معاينة'],
+    omniViewSource: ['Source', 'المصدر'],
+    omniSandboxIsolated: ['Sandbox Isolated', 'معزول في بيئة آمنة'],
+    omniCopied: ['Copied', 'تم النسخ'],
+    omniMermaidDiagram: ['Mermaid Diagram', 'مخطط Mermaid'],
+    omniMermaidSvg: ['Mermaid SVG', 'مخطط Mermaid SVG'],
+    omniHintClick: ['Click', 'نقر'],
+    omniHintCtrlClick: ['Ctrl+Click', 'Ctrl+نقر'],
   };
 
   const PREVIEW_KIND_BY_EXT = {
@@ -156,7 +156,7 @@
     'g'
   );
 
-  const TRAILING_PUNCT_RE = /[.,;:!?。，；：！？、）】》"'`]+$/;
+  const TRAILING_PUNCT_RE = /[.,;:!?،؛؟"'`]+$/;
 
   function shortStableHash(input) {
     const str = String(input || '');
@@ -171,14 +171,7 @@
   function normalizeLangCode(raw) {
     const s = String(raw || '').trim().toLowerCase().replace(/_/g, '-');
     if (!s || s === 'auto') return '';
-    if (s === 'yue' || s.startsWith('yue-') || s === 'zh-yue' || s.includes('cantonese')) return 'zh-CN';
-    if (/^zh-(tw|hk|mo|hant)/.test(s) || s === 'tw' || s === 'hant') return 'zh-TW';
-    if (/^zh\b/.test(s)) return 'zh-CN';
-    if (/^(ja|jp)\b/.test(s) || s === 'japanese') return 'ja';
-    if (/^(ko|kr)\b/.test(s) || s === 'korean') return 'ko';
-    if (/^es\b/.test(s) || s === 'spanish') return 'es';
-    if (/^fr\b/.test(s) || s === 'french') return 'fr';
-    if (/^de\b/.test(s) || s === 'german') return 'de';
+    if (/^ar\b/.test(s) || s === 'arabic') return 'ar';
     if (/^en\b/.test(s) || s === 'english') return 'en';
     return '';
   }
@@ -661,7 +654,8 @@
     '.ag-omni-menu{position:fixed;z-index:2147483640;min-width:208px;max-width:300px;padding:5px;border-radius:var(--ag-cs-r-lg,10px);background:var(--ag-cs-popover-bg,var(--card,rgba(23,24,30,.95)));color:var(--foreground,#F2F2F5);border:1px solid var(--ag-cs-border-2,var(--card-border,rgba(255,255,255,.12)));box-shadow:var(--ag-cs-surface-sh,0 14px 36px rgba(0,0,0,.38));backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:12.5px;line-height:1.35;user-select:none;outline:none}',
     '.ag-omni-menu-header{padding:4px 8px 5px;font-size:11px;color:var(--muted-foreground,rgba(148,163,184,.85));white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-bottom:1px solid var(--ag-cs-border-1,var(--border,rgba(148,163,184,.14)));margin-bottom:4px;font-family:var(--ag-cs-mono-stack,var(--font-mono,ui-monospace,SFMono-Regular,Menlo,monospace))}',
     '.ag-omni-menu-sep{height:1px;margin:4px;background:var(--ag-cs-border-1,var(--border,rgba(148,163,184,.15)))}',
-    '.ag-omni-menu-item{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:6px 9px;border:0;border-radius:var(--ag-cs-r-sm,4px);background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}',
+    '.ag-omni-menu-item{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:6px 9px;border:0;border-radius:var(--ag-cs-r-sm,4px);background:transparent;color:inherit;font:inherit;text-align:start;cursor:pointer}',
+    '.ag-omni-menu[dir="rtl"] .ag-omni-menu-item{text-align:right}',
     '.ag-omni-menu-item:hover,.ag-omni-menu-item[data-active="1"]{background:color-mix(in srgb,var(--ag-cs-accent,var(--primary,#669DF6)) 16%,transparent);color:var(--foreground,inherit)}',
     '.ag-omni-menu-kbd{font-size:10.5px;color:var(--muted-foreground,inherit);opacity:.78;font-family:var(--ag-cs-mono-stack,ui-monospace,SFMono-Regular,Menlo,monospace);flex-shrink:0}',
     '.ag-omni-btn{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 6px;border:1px solid transparent;border-radius:var(--ag-cs-r-sm,4px);background:transparent;color:inherit;font-size:12px;line-height:1;cursor:pointer;opacity:.82}',
@@ -672,7 +666,7 @@
     '[data-omni-mermaid-box]:hover>.ag-omni-mermaid-zoom-btn,.ag-omni-mermaid-zoom-btn:focus-visible{opacity:.92}',
     '.ag-omni-mermaid-zoom-btn:hover{opacity:1!important;background:color-mix(in srgb,var(--ag-cs-accent,var(--primary,#669DF6)) 18%,var(--card,#1e293b))}',
     '.ag-omni-aux-bar{display:flex;align-items:center;gap:6px;padding:4px 10px;border-bottom:1px solid var(--ag-cs-border-1,var(--border,rgba(148,163,184,.16)));background:var(--ag-cs-tonal-2,var(--card,var(--ag-cs-panel-bg,rgba(20,23,30,.9))));font-size:11.5px;flex-shrink:0}',
-    '.ag-omni-sandbox-badge{margin-left:auto;display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 7px;border-radius:999px;border:1px solid var(--ag-cs-border-1,var(--border,rgba(148,163,184,.2)));background:var(--ag-cs-tonal-1,rgba(255,255,255,.04));color:var(--muted-foreground,var(--ag-cs-muted,#94a3b8));font-size:10.5px;font-weight:500;letter-spacing:.01em;line-height:1;white-space:nowrap;user-select:none;opacity:.86}',
+    '.ag-omni-sandbox-badge{margin-inline-start:auto;display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 7px;border-radius:999px;border:1px solid var(--ag-cs-border-1,var(--border,rgba(148,163,184,.2)));background:var(--ag-cs-tonal-1,rgba(255,255,255,.04));color:var(--muted-foreground,var(--ag-cs-muted,#94a3b8));font-size:10.5px;font-weight:500;letter-spacing:.01em;line-height:1;white-space:nowrap;user-select:none;opacity:.86}',
     '.ag-omni-aux-overlay{width:100%;flex:1 1 0%;min-height:360px;border:0;display:block;background:var(--ag-cs-tonal-0,var(--background,#0B0B0E));opacity:0;transition:opacity 140ms ease}',
     '.ag-omni-aux-overlay[data-wb-ready="1"]{opacity:1}',
   ].join('');
@@ -747,10 +741,10 @@
 
     function getStrings() {
       const lang = resolveLang();
-      const idx = LANG_INDEX[lang] ?? 2;
+      const idx = LANG_INDEX[lang] ?? 0;
       const base = {};
       for (const k of Object.keys(FALLBACK_ROWS)) {
-        base[k] = FALLBACK_ROWS[k][idx] ?? FALLBACK_ROWS[k][2];
+        base[k] = FALLBACK_ROWS[k][idx] ?? FALLBACK_ROWS[k][0];
       }
       try {
         const shared = W?.__agCsLocales?.getUiStrings?.(lang);
@@ -1573,9 +1567,12 @@
       if (!D) return;
       closeContextMenu();
 
+      const lang = resolveLang();
       const menu = markNoTranslate(D.createElement('div'));
       menu.className = 'ag-omni-menu ag-prism-omni-menu';
       menu.setAttribute('role', 'menu');
+      menu.setAttribute('lang', lang);
+      menu.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
       menu.setAttribute('data-testid', 'ag-omni-context-menu');
       menu.setAttribute('data-ag-prism-omni-owned', '1');
       menu.tabIndex = -1;
@@ -2631,9 +2628,12 @@
           hostEl.style.flexDirection = 'column';
         }
 
+        const lang = resolveLang();
         const s = getStrings();
         const bar = markNoTranslate(D.createElement('div'));
         bar.className = 'ag-omni-aux-bar';
+        bar.setAttribute('lang', lang);
+        bar.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
         bar.setAttribute('data-testid', 'ag-omni-aux-switcher');
         bar.setAttribute('data-ag-prism-omni-owned', '1');
 

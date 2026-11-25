@@ -1,15 +1,15 @@
 ---
-name: Feature Request / 功能建议
-about: Propose an optical theme refinement, motion choreo, or compatibility improvement
+name: Feature Request / اقتراح ميزة
+about: Propose an optical theme refinement, motion choreography, or compatibility improvement
 title: "[Feat] "
 labels: enhancement
 ---
 
-## Problem or Use Case / 场景说明
+## Problem or Use Case / المشكلة أو حالة الاستخدام
 Describe what experience or workflow you want to improve.
 
-## Proposed Design / 建议方案
+## Proposed Design / التصميم المقترح
 Outline how the feature should look, behave, and respect host performance / 0fps idle budgets.
 
-## Compatibility Notes / 兼容性补充
-Does this interact with light/dark presets, reduced motion, or external plugins?
+## Compatibility Notes / ملاحظات التوافق
+Does this interact with light/dark presets, RTL/Arabic layout, reduced motion, or external plugins?

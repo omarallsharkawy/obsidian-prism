@@ -1,13 +1,13 @@
 <!doctype html>
 <html
-  lang="zh-CN"
+  lang="en"
   data-ag-cs-theme="dark"
   data-ag-cs-palette="obsidian"
   data-ag-cs-light-preset="crystal"
   data-ag-cs-accent="follow"
   data-ag-cs-corners="soft"
   data-ag-cs-ambient="100"
-  data-ag-cs-lang="zh-CN"
+  data-ag-cs-lang="en"
   data-demo-zoom="normal"
   data-demo-focus="hero"
 >
@@ -161,7 +161,7 @@
       overflow: hidden;
       background-color: var(--demo-bg);
       color: var(--demo-text);
-      font-family: "Plus Jakarta Sans", "Google Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif;
+      font-family: "Plus Jakarta Sans", "Google Sans", "Inter", "IBM Plex Sans Arabic", "Noto Sans Arabic", "Cairo", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
     /* Floating V12 Studio Control Bar (?clean=1 hides it) */
@@ -716,12 +716,12 @@
   <!-- Top Floating Studio Bar -->
   <nav class="demo-studio-bar" aria-label="V12 In-Flow Desk Dock Debug Bar">
     <span class="demo-studio-tag" id="demo-mini-status">V12 DOCK</span>
-    <button type="button" class="demo-btn" id="btn-open-picker">呼出/收起底坞</button>
-    <button type="button" class="demo-btn" id="btn-stage-mode" data-active="0" title="切换内嵌上推底坞 ↔ 全屏 3D 展台 (非打字态按 F)">全屏展台 (F)</button>
-    <button type="button" class="demo-btn" id="btn-mock-orchestrator" data-active="0" title="切换 #0 Orch 机械自锁双核开关 + orchestratorPlanners 白名单降暗">#0 Orch 自锁</button>
-    <button type="button" class="demo-btn" id="btn-flip-card" data-active="0" title="3D 翻转左翼卡片：2026Q4 评测榜 ↔ 512K 实时遥测">3D 翻牌卡</button>
-    <button type="button" class="demo-btn" id="btn-narrow-dock" data-active="0" title="模拟会话窄栏 (< 1100px) 触发紧凑摘要条折叠">窄栏 &lt;1100</button>
-    <button type="button" class="demo-btn" id="btn-cycle-telemetry" title="循环模拟 512K 宿主上下文水位 (27% / 54% / 84%)">512K: 27%</button>
+    <button type="button" class="demo-btn" id="btn-open-picker">Toggle Dock</button>
+    <button type="button" class="demo-btn" id="btn-stage-mode" data-active="0" title="Toggle embedded push-up dock vs fullscreen 3D stage (press F when not typing)">Fullscreen Stage (F)</button>
+    <button type="button" class="demo-btn" id="btn-mock-orchestrator" data-active="0" title="Toggle #0 Orch mechanical latch dual-core switch + orchestratorPlanners whitelist dimming">#0 Orch Latch</button>
+    <button type="button" class="demo-btn" id="btn-flip-card" data-active="0" title="3D flip left wing card: 2026Q4 Leaderboard vs 512K Live Telemetry">3D Flip Card</button>
+    <button type="button" class="demo-btn" id="btn-narrow-dock" data-active="0" title="Simulate narrow conversation column (< 1100px) to trigger compact summary collapse">Narrow &lt;1100</button>
+    <button type="button" class="demo-btn" id="btn-cycle-telemetry" title="Cycle simulated 512K host context levels (27% / 54% / 84%)">512K: 27%</button>
     <span class="demo-studio-sep"></span>
     <button type="button" class="demo-btn" id="btn-kit-obsidian" data-active="1">Obsidian</button>
     <button type="button" class="demo-btn" id="btn-kit-warm" data-active="0">Warm</button>
@@ -735,10 +735,10 @@
     <button type="button" class="demo-btn" id="btn-toggle-mono" data-active="0">Mono</button>
     <span class="demo-studio-sep"></span>
     <button type="button" class="demo-btn" id="btn-orbit-tour" data-active="0">3D Tour</button>
-    <button type="button" class="demo-btn" id="btn-reset-view">回正 (R)</button>
-    <button type="button" class="demo-btn" id="btn-flick-test" data-active="0">局部追光</button>
-    <button type="button" class="demo-btn" id="btn-toggle-macro" data-active="0">微距</button>
-    <button type="button" class="demo-btn" id="btn-mock-non-element">Opus 会话</button>
+    <button type="button" class="demo-btn" id="btn-reset-view">Reset View (R)</button>
+    <button type="button" class="demo-btn" id="btn-flick-test" data-active="0">Local Rim</button>
+    <button type="button" class="demo-btn" id="btn-toggle-macro" data-active="0">Macro</button>
+    <button type="button" class="demo-btn" id="btn-mock-non-element">Opus Session</button>
   </nav>
 
   <!-- 1:1 Simulated Antigravity IDE Workspace -->
@@ -781,22 +781,22 @@
           <div class="ag-chat-stream-inner" id="demo-chat-messages">
             <div class="ag-stream-header">
               <div class="ag-stream-title">
-                <span>V14 PRISM-118 Precision Hardware Desk Console · Google 官方模型光谱 &amp; 深浅双模全幅显示屏</span>
+                <span>V14 PRISM-118 Precision Hardware Desk Console · Google Official Model Spectrum &amp; Dual Dark/Light Display</span>
               </div>
               <span class="ag-stream-meta" id="demo-telemetry-inline">Context: 142K / 512K (27%) · KV Cache 94%</span>
             </div>
 
             <div class="ag-msg-user">
-              在锁定 V13.1 CNC 三联硬件底座的基础上升级 V14 视觉系统：对标 Google DeepMind 官方 Gemini 4 发布配图光谱（6C 皇家钴蓝虹彩晶簇、10Ne 清透珊瑚暖金莫比乌斯玻璃带、18Ar 电光靛紫同心透镜、1H 晴空冰蓝星环），内嵌 1600×480 显示屏升级为深浅双模全幅静态官方雕塑 Banner（零程序化多面体动画、浅色模式告别黑砖屏），并升级磨砂海玻璃宝石键帽与双色折射晶轴！
+              Building on the locked V13.1 CNC tri-module hardware chassis, V14 upgrades the optical system to match the official Google DeepMind Gemini 4 launch spectrum (6C royal cobalt iridescent crystal cluster, 10Ne translucent coral-gold Mobius glass ribbon, 18Ar electric-indigo concentric lens, 1H clear-sky ice-blue orbital ring), pairs the embedded 1600x480 screen with dual dark/light full-bleed static sculptural banners, and introduces frosted sea-glass gem keycaps with dual-tone refractive crystal stems.
             </div>
 
             <article class="ag-msg-agent">
               <div class="ag-thought-bar">
                 <span class="ag-thought-dot" aria-hidden="true"></span>
-                <span>Thought for 1.8s · 已挂载至 [data-testid="conversation-view"] 末尾并激活打字零干扰键盘守卫</span>
+                <span>Thought for 1.8s · Mounted at end of [data-testid="conversation-view"] with zero-interference typing keyboard guard</span>
               </div>
               <p class="ag-agent-prose">
-                V14 PRISM-118 精密硬件台已就绪：内嵌显示屏呈现全幅无缝深浅双模光学玻璃雕塑 Banner（静止态 <strong>0fps</strong> 休眠，切换时辅以 200ms 视差渐变与磨砂胶囊阻尼滑移），四枚核心元素键帽升级为半透磨砂宝石海玻璃配 Google 官方双色折射透明晶轴，<strong>AUX-06</strong> 配备品牌微槽光导与阳极双色 <strong>#0 ORCH</strong> 键帽。
+                V14 PRISM-118 precision hardware desk console is ready: the embedded screen renders seamless dark/light optical glass sculpture banners (<strong>0fps</strong> idle sleep when stationary, with 200ms parallax crossfade and damped frosted-pill transitions on switch), four core element keycaps feature translucent frosted sea-glass over dual-tone refractive crystal stems, and <strong>AUX-06</strong> integrates micro-slotted brand light pipes with an anodized dual-tone <strong>#0 ORCH</strong> keycap.
               </p>
               <div class="ag-tool-row">
                 <span class="ag-tool-chip is-live">● PRISM-118 // CNC-6063</span>
@@ -816,7 +816,7 @@
               class="demo-composer-textarea"
               data-testid="demo-chat-textarea"
               rows="2"
-              placeholder="开着下方 3D 底坞直接在此打字测试（试着输入 f、r、空格并按 Enter 发送消息，100% 零拦截）..."
+              placeholder="Type here while the 3D dock is open below (try typing f, r, space, and press Enter to send — 100% zero interception)..."
             ></textarea>
             <div class="demo-composer-bar">
               <div class="demo-trigger-group">
@@ -834,11 +834,11 @@
                   </span>
                   <span id="demo-trigger-label">Gemini 4 Carbon (High)</span>
                 </button>
-                <button type="button" class="demo-btn demo-macro-exit" id="btn-exit-macro">标准全景 (1x)</button>
+                <button type="button" class="demo-btn demo-macro-exit" id="btn-exit-macro">Standard View (1x)</button>
               </div>
               <div class="demo-composer-right">
-                <span class="demo-hint">长按 420ms 呼出 · 点微键帽快收 · Enter 发送对话</span>
-                <button type="button" class="demo-send-btn" id="demo-send-btn">发送 ↵</button>
+                <span class="demo-hint">Long-press 420ms to open · Click micro-keycap to collapse · Enter to send</span>
+                <button type="button" class="demo-send-btn" id="demo-send-btn">Send ↵</button>
               </div>
             </div>
           </footer>
@@ -849,19 +849,19 @@
       <!-- Right Live Host Sync & Orchestrator Contract Readout -->
       <aside class="ag-right-code" aria-label="Host Sync & Orchestrator Readout">
         <div class="demo-card">
-          <span class="demo-card-lbl">当前宿主激活模型 (Live Sync)</span>
+          <span class="demo-card-lbl">Active Host Model (Live Sync)</span>
           <div class="demo-stat-val" id="demo-current-model">Gemini 4 Carbon (High)</div>
-          <div class="demo-stat-sub" id="demo-sync-log">V12 内嵌底坞已停靠于输入框正下方：二次点击唯一浮空键帽可 115ms 触底回弹并 260ms 平滑收起。</div>
+          <div class="demo-stat-sub" id="demo-sync-log">V12 embedded dock is anchored below the composer: clicking the active floating keycap again rebounds in 115ms and smoothly collapses in 260ms.</div>
         </div>
         <div class="demo-card">
-          <span class="demo-card-lbl">Orchestrator 白名单与 orchestratorPick 契约</span>
-          <div class="demo-stat-orch" id="demo-orch-state">orchLatched = false (单模型直连)</div>
-          <div class="demo-stat-sub" id="demo-orch-log">白名单主核：10Ne · 6C · 18Ar · Opus 5.5（锁存 #0 时 1H / Flash / Sonnet / GPT 自动熄灯锁定）</div>
+          <span class="demo-card-lbl">Orchestrator Whitelist &amp; orchestratorPick Contract</span>
+          <div class="demo-stat-orch" id="demo-orch-state">orchLatched = false (Direct Single Model)</div>
+          <div class="demo-stat-sub" id="demo-orch-log">Whitelist planners: 10Ne · 6C · 18Ar · Opus 5.5 (1H / Flash / Sonnet / GPT dim and lock while #0 is latched)</div>
         </div>
         <div class="demo-card">
-          <span class="demo-card-lbl">套件与模型矩阵盘点</span>
-          <div class="demo-stat-sub" id="demo-kit-summary">当前套件：Obsidian Space Black</div>
-          <div class="demo-stat-sub" id="demo-matched-summary">4 颗元素键帽 + 5 颗副盘键帽已点亮</div>
+          <span class="demo-card-lbl">Suite &amp; Model Matrix Inventory</span>
+          <div class="demo-stat-sub" id="demo-kit-summary">Active Suite: Obsidian Space Black</div>
+          <div class="demo-stat-sub" id="demo-matched-summary">4 element keycaps + 5 aux keycaps illuminated</div>
         </div>
         <div class="demo-code-snippet" aria-hidden="true">
           <div><span class="tok-cm">// V12 Host Orchestrator Planner Contract</span></div>
@@ -1004,18 +1004,18 @@
       applyTelemetryProfile(0);
 
       var KIT_SPECS = {
-        obsidian: { theme: 'dark', palette: 'obsidian', lightPreset: 'crystal', label: 'Obsidian Space Black (玄黑微晶阳极)' },
-        warm: { theme: 'dark', palette: 'claude', lightPreset: 'crystal', label: 'Warm Dark (黑金曜石微倒角)' },
-        crystal: { theme: 'light', palette: 'obsidian', lightPreset: 'crystal', label: 'Crystal Light (冷雾银冰晶底板)' },
-        alabaster: { theme: 'light', palette: 'warm', lightPreset: 'alabaster', label: 'Alabaster Light (暖白玉冰晶底板)' }
+        obsidian: { theme: 'dark', palette: 'obsidian', lightPreset: 'crystal', label: 'Obsidian Space Black (Anodized Micro-Crystal)' },
+        warm: { theme: 'dark', palette: 'claude', lightPreset: 'crystal', label: 'Warm Dark (Charcoal Micro-Chamfer)' },
+        crystal: { theme: 'light', palette: 'obsidian', lightPreset: 'crystal', label: 'Crystal Light (Cool Silver Ice Plate)' },
+        alabaster: { theme: 'light', palette: 'warm', lightPreset: 'alabaster', label: 'Alabaster Light (Warm Ivory Plate)' }
       };
 
       var ACCENT_LABELS = {
-        follow: 'Follow (冷白微色散)',
-        cobalt: 'Cobalt (冰青微色散)',
-        iris: 'Iris (瑾瑜微色散)',
-        amber: 'Amber (琥珀微色散)',
-        mono: 'Mono (消色差铂银)'
+        follow: 'Follow (Cool White Dispersion)',
+        cobalt: 'Cobalt (Ice Cyan Dispersion)',
+        iris: 'Iris (Violet-Iris Dispersion)',
+        amber: 'Amber (Warm Amber Dispersion)',
+        mono: 'Mono (Achromatic Platinum)'
       };
 
       var params = new URLSearchParams(window.location.search || '');
@@ -1032,7 +1032,7 @@
       var rawAccentParam = (params.get('accent') || (params.get('mono') === '1' ? 'mono' : 'follow')).toLowerCase();
       var initAccent = ACCENT_LABELS[rawAccentParam] ? rawAccentParam : 'follow';
       var initCorners = params.get('corners') || 'soft';
-      var initLang = params.get('lang') === 'en' ? 'en' : 'zh-CN';
+      var initLang = params.get('lang') === 'ar' ? 'ar' : 'en';
       var sessionParam = (params.get('session') || (params.get('orch') === '1' ? 'orchestrator' : '')).toLowerCase();
       var autoOpen = params.get('open') !== '0';
       var isCleanShot = params.get('debug') === '0' || params.get('clean') === '1';
@@ -1277,9 +1277,11 @@
         Object.keys(accentButtons).forEach(function (ak) {
           if (accentButtons[ak]) accentButtons[ak].setAttribute('data-active', ak === currentAccent ? '1' : '0');
         });
-        kitSummaryEl.textContent = '当前套件：' + spec.label + ' · 光学边：' + ACCENT_LABELS[currentAccent];
+        kitSummaryEl.textContent = 'Active Suite: ' + spec.label + ' · Optical Rim: ' + ACCENT_LABELS[currentAccent];
       }
 
+      document.documentElement.lang = initLang;
+      document.documentElement.dir = initLang === 'ar' ? 'rtl' : 'ltr';
       document.documentElement.setAttribute('data-ag-cs-lang', initLang);
       document.documentElement.setAttribute('data-ag-cs-corners', initCorners);
       if (isCleanShot) {
@@ -1305,7 +1307,7 @@
         chatMessagesEl.appendChild(userBubble);
         chatInputEl.value = '';
         chatStreamEl.scrollTop = chatStreamEl.scrollHeight;
-        syncLogEl.textContent = '对话消息已无阻发送（底坞保持内嵌展开，打字与 Enter 零冲突）："' + text.slice(0, 36) + '"';
+        syncLogEl.textContent = 'Message sent cleanly (dock remains open with zero typing/Enter conflict): "' + text.slice(0, 36) + '"';
       }
 
       if (chatInputEl) {
@@ -1349,9 +1351,9 @@
               orchLogEl.textContent =
                 'orchestratorPick.select("' +
                 String(val) +
-                '") -> 主规划核：' +
+                '") -> Primary Planner: ' +
                 (matchedPlanner ? matchedPlanner.label : String(val)) +
-                ' + 1H 常规卸载';
+                ' + 1H Routine Offload';
             }
           }
         },
@@ -1367,7 +1369,7 @@
           }
           currentEl.textContent = label;
           triggerLbl.textContent = label;
-          syncLogEl.textContent = 'Live Sync 已同步至宿主会话 -> ' + label;
+          syncLogEl.textContent = 'Live Sync updated host session -> ' + label;
           if (picker && typeof picker.syncBadges === 'function') {
             picker.syncBadges();
           }
@@ -1418,7 +1420,7 @@
 
       var factory = window.__agPrismPeriodicPickerFactory;
       if (!factory) {
-        document.getElementById('demo-filter-badge').textContent = '未加载 periodic-picker.js';
+        document.getElementById('demo-filter-badge').textContent = 'periodic-picker.js not loaded';
         return;
       }
 
@@ -1449,7 +1451,7 @@
         }
         if (btnStageMode) {
           btnStageMode.setAttribute('data-active', isFull ? '1' : '0');
-          btnStageMode.textContent = isFull ? '内嵌底坞 (F)' : '全屏展台 (F)';
+          btnStageMode.textContent = isFull ? 'Embedded Dock (F)' : 'Fullscreen Stage (F)';
         }
         if (btnOrchToggle) {
           btnOrchToggle.setAttribute('data-active', st.orchLatched ? '1' : '0');
@@ -1464,7 +1466,7 @@
               : 'Carbon';
           orchStateEl.textContent = st.orchLatched
             ? 'orchLatched = true · ' + activePlannerLbl
-            : 'orchLatched = false (单模型直连)';
+            : 'orchLatched = false (Direct Single Model)';
         }
       }
 
@@ -1483,7 +1485,7 @@
       }
 
       document.getElementById('demo-matched-summary').textContent =
-        matched.length + ' 颗元素 (' + symbols + ') + ' + matchedAux.length + ' 颗 2×3 副盘键帽已点亮';
+        matched.length + ' elements (' + symbols + ') + ' + matchedAux.length + ' 2x3 aux keycaps illuminated';
 
       function emitSyntheticPointerMove(targetNode, cx, cy) {
         if (typeof picker.setPointerClient === 'function') {
@@ -1542,7 +1544,7 @@
           if (typeof picker.setPointerClient === 'function') {
             picker.setPointerClient(-9999, -9999, false);
           }
-          syncLogEl.textContent = '1px 局部 140px 冷白微色散光学边掠射演示已完成，鼠标移开即归于零常亮静默';
+          syncLogEl.textContent = '1px local 140px cool-white dispersion optical rim sweep complete; returns to zero idle glow on pointer leave';
           activeFlickBadgeTimer = setTimeout(function () {
             activeFlickBadgeTimer = 0;
             if (btnFlick) btnFlick.setAttribute('data-active', '0');
@@ -1623,7 +1625,7 @@
           }
           activeTourRaf = 0;
           syncLogEl.textContent =
-            '全屏 3D 展台环绕检视完成 -> 可左键自由拖拽 (0.0046 rad/px) 或按 F 无缝迁回输入框下方内嵌底坞';
+            'Fullscreen 3D orbit tour complete -> drag with left button (0.0046 rad/px) or press F to return seamlessly to the embedded dock';
           activeFlickBadgeTimer = setTimeout(function () {
             activeFlickBadgeTimer = 0;
             if (btnOrbitTour) btnOrbitTour.setAttribute('data-active', '0');
@@ -1641,7 +1643,7 @@
         if (typeof picker.resetChassisOrbit === 'function') {
           picker.resetChassisOrbit();
         }
-        syncLogEl.textContent = 'Reset View (R) 已触发 -> 黄金俯视角弹簧丝滑归正';
+        syncLogEl.textContent = 'Reset View (R) triggered -> smoothly returned to default perspective angle';
       }
 
       window.__agDemoTriggerOrbit = triggerRimSweepDemo;
@@ -1702,8 +1704,8 @@
           updateHeaderBadge();
           syncLogEl.textContent =
             picker.getStageMode() === 'fullscreen'
-              ? '已提升至 doc.body 全屏 3D 展台：左键 0.0046 rad/px 自由旋转 + 50ms 动量惯性已解锁'
-              : '已无缝迁回 [data-testid="conversation-view"] 输入框正下方内嵌底坞并自动归正视角';
+              ? 'Promoted to doc.body fullscreen 3D stage: free left-drag rotation (0.0046 rad/px) + 50ms inertia unlocked'
+              : 'Seamlessly returned to embedded dock below [data-testid="conversation-view"] composer with view reset';
         });
       }
 

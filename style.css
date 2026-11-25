@@ -904,3 +904,6 @@ html[data-ag-cs-style][data-ag-cs-theme="light"],html[data-ag-cs-style]>body:is(
 #ag-cs-settings-sec [data-ag-cs-hi-warn="ext"]{display:inline-block;margin-top:4px;padding:3px 8px;border-radius:6px;color:#B45309 !important;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.34);font-weight:500 !important;}
 html[data-ag-cs-theme="dark"] #ag-cs-settings-sec [data-ag-cs-hi-warn="1"]{color:#FBBF24 !important;}
 html[data-ag-cs-theme="dark"] #ag-cs-settings-sec [data-ag-cs-hi-warn="ext"]{color:#FCD34D !important;background:rgba(245,158,11,.14);border-color:rgba(251,191,36,.32);}
+/* Bilingual Arabic (RTL) typography & layout support for Obsidian Prism surfaces */
+html[data-ag-cs-lang="ar"] :is(#ag-cs-settings-sec,.ag-cs-home-panel,.ag-cs-ctx-menu,.ag-cs-diff-ctx-menu,.ag-prism-thought-overlay,.ag-ss-root,.ag-omni-workbench){direction:rtl;font-family:'Cairo','Tajawal','Noto Sans Arabic','Segoe UI',system-ui,-apple-system,sans-serif;}
+html[data-ag-cs-lang="ar"] :is(#ag-cs-settings-sec,.ag-cs-home-panel,.ag-prism-thought-overlay) :is(code,pre,kbd,input[type="url"],[data-ag-ltr="1"]){direction:ltr;unicode-bidi:isolate;}

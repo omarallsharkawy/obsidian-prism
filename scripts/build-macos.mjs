@@ -37,7 +37,7 @@ function generateInfoPlist(version = cdp.PLUGIN_VERSION) {
 <plist version="1.0">
 <dict>
   <key>CFBundleDevelopmentRegion</key>
-  <string>zh_CN</string>
+  <string>en</string>
   <key>CFBundleDisplayName</key>
   <string>Obsidian Prism</string>
   <key>CFBundleExecutable</key>

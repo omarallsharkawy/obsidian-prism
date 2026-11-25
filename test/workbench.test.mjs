@@ -179,8 +179,8 @@ test('workbench v1.0 rebrands to Obsidian Prism, supports Dual Light / Dark 4-th
   assert.equal(htmlSrc.includes('M21.751 22.607'), false);
   assert.equal(src.includes('antigravity-prism'), false, 'No hardcoded old folder name in workbench/app.js');
   assert.equal(serverSrc.includes('antigravity-prism'), false, 'No hardcoded old folder name in workbench/server.cjs');
-  assert.ok(htmlSrc.includes('Obsidian Prism v1.0 · 光学与性能工程台'), 'Topbar & title must upgrade to Obsidian Prism v1.0');
-  assert.ok(src.includes('Obsidian Prism · 黑曜棱镜'));
+  assert.ok(htmlSrc.includes('Obsidian Prism v1.0 · Optical &amp; Performance Workbench'), 'Topbar & title must upgrade to Obsidian Prism v1.0');
+  assert.ok(src.includes('Obsidian Prism · Optical Engine'));
   assert.ok(src.includes('renderGoogleSparkOrbitSvg'));
 
   // 2. 4-Theme Presets (Dark Obsidian / Dark Warm / Light Daylight Crystal / Light Warm Alabaster) & Quad View

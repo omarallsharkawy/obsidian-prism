@@ -519,7 +519,7 @@ test('PrismDaemon executeRepoAction uninstall enforces confirm:true, symlink che
   }
 });
 
-test('settings-panel.js inline uninstall UI works across 5 languages and purgeData clears exactly 12 Prism keys while preserving 4 upstream keys', async () => {
+test('settings-panel.js inline uninstall UI works across bilingual en/ar locales and purgeData clears exactly 12 Prism keys while preserving 4 upstream keys', async () => {
   const prevDoc = globalThis.document;
   const prevWin = globalThis.window;
   const prevStorage = globalThis.localStorage;
@@ -568,7 +568,7 @@ test('settings-panel.js inline uninstall UI works across 5 languages and purgeDa
       version: '1.0.6',
       getLang: () => state.language,
       uiText: (l) => i18nLocales.getUiStrings(l),
-      isZh: () => state.language !== 'en' && state.language !== 'ja',
+      isZh: () => false,
       i18nCore,
       formatSettingsSummary: () => 'summary',
       resolveSettingRowActiveValue: (k) => state[k],
@@ -582,7 +582,7 @@ test('settings-panel.js inline uninstall UI works across 5 languages and purgeDa
     });
 
   try {
-    for (const lang of ['zh-CN', 'zh-TW', 'yue', 'en', 'ja']) {
+    for (const lang of ['en', 'ar']) {
       state.language = lang;
       const prevSec = doc.getElementById(settingsPanel.SETTINGS_SEC_ID);
       if (prevSec) prevSec.remove();
@@ -936,7 +936,7 @@ test('remove.js and tools/install-plugin.cjs preserve addons/ on default uninsta
     fs.writeFileSync(path.join(outsideVictim, 'keep.txt'), 'keep-outside', 'utf8');
     fs.writeFileSync(path.join(evilWorkspace, 'keep.txt'), 'keep-evil', 'utf8');
 
-    // 1) tools/install-plugin.cjs 默认卸载（purgeData: false）必须保留 addons/
+    // 1) tools/install-plugin.cjs default uninstall (purgeData: false) must preserve addons/
     const unKeep = await installTool.uninstallPlugin({
       targetDir,
       hostConfigDir,
@@ -947,14 +947,14 @@ test('remove.js and tools/install-plugin.cjs preserve addons/ on default uninsta
     assert.equal(unKeep.ok, true);
     assert.equal(fs.existsSync(path.join(demoAddonDir, 'index.js')), true, 'Default uninstall must preserve addons/');
 
-    // 2) 恶意 AG_PRISM_ADDONS_DIR 与恶意 explicitAddonsDir 参数均必须被对称拒绝
+    // 2) Malicious AG_PRISM_ADDONS_DIR and malicious explicitAddonsDir must both be rejected symmetrically
     process.env.AG_PRISM_ADDONS_DIR = evilWorkspace;
     assert.equal(installTool.resolveAddonsDir(hostConfigDir), null);
     assert.equal(installTool.resolveAddonsDir(hostConfigDir, evilWorkspace), null);
     assert.equal(removeTool.resolveSafeAddonsDir(hostConfigDir, geminiDir, evilWorkspace), null);
     delete process.env.AG_PRISM_ADDONS_DIR;
 
-    // 3) tools/install-plugin.cjs --purge-data 清理 addons/
+    // 3) tools/install-plugin.cjs --purge-data cleans addons/
     fs.mkdirSync(targetDir, { recursive: true });
     const unPurge = await installTool.uninstallPlugin({
       targetDir,
@@ -967,7 +967,7 @@ test('remove.js and tools/install-plugin.cjs preserve addons/ on default uninsta
     assert.equal(fs.existsSync(addonsDir), false, '--purge-data must remove sidecar_data/obsidian-prism/addons');
     assert.equal(fs.readFileSync(path.join(evilWorkspace, 'keep.txt'), 'utf8'), 'keep-evil');
 
-    // 3b) tools/install-plugin.cjs 单独传入 purgeAddons: true 且支持合法 AG_PRISM_ADDONS_DIR 覆盖
+    // 3b) tools/install-plugin.cjs standalone purgeAddons: true supports valid AG_PRISM_ADDONS_DIR override
     const customAddonsDir = path.join(rootTmp, 'obsidian-prism', 'addons');
     fs.mkdirSync(path.join(customAddonsDir, 'ext-a'), { recursive: true });
     fs.writeFileSync(path.join(customAddonsDir, 'ext-a', 'a.js'), '1', 'utf8');
@@ -986,14 +986,14 @@ test('remove.js and tools/install-plugin.cjs preserve addons/ on default uninsta
     assert.equal(fs.existsSync(customAddonsDir), false, 'purgeAddons: true must clean valid AG_PRISM_ADDONS_DIR');
     delete process.env.AG_PRISM_ADDONS_DIR;
 
-    // 4) remove.js purgeUserPluginData 清理 addons/
+    // 4) remove.js purgeUserPluginData cleans addons/
     fs.mkdirSync(demoAddonDir, { recursive: true });
     fs.writeFileSync(path.join(demoAddonDir, 'index.js'), 'export const b = 2;\n', 'utf8');
     const purgedByRemove = removeTool.purgeUserPluginData({ hostConfigDir });
     assert.equal(fs.existsSync(addonsDir), false, 'remove.js --purge-data must remove addons/');
     assert.ok(purgedByRemove.some((p) => path.resolve(p) === path.resolve(addonsDir)));
 
-    // 5) symlink / junction addons/ 必须被 remove.js 和 tools/install-plugin.cjs 双向拒绝删除，且绝不破坏外部目标
+    // 5) symlink / junction addons/ must be refused by both remove.js and tools/install-plugin.cjs without harming external target
     const linkType = process.platform === 'win32' ? 'junction' : 'dir';
     fs.symlinkSync(outsideVictim, addonsDir, linkType);
 

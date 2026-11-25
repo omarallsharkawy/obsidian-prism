@@ -1,19 +1,19 @@
 /**
  * Obsidian Prism — V14 Google DeepMind Official Spectrum · Full-Bleed Dark & Light Key Art Display (1600x480)
  *
- * V14 核心光学架构（对标 Google 官方模型发布视觉 · 静态主视觉优先 · 克制微动效辅助）：
- *   1. 1600x480 满幅贯通式 Google DeepMind 官方海报横幅（0 简陋代码多面体、0 中间劈半竖线）：
- *      - 左至中区（~42%）：满幅高精烘焙折光光学玻璃雕塑（1H 天青球环 / 6C 官方皇家钴蓝虹彩水晶簇 /
- *        10Ne 珊瑚红橙→暖金莫比乌斯玻璃环 / 18Ar 电光靛紫同心光学透镜 / Claude 陶土暖珀拱门 /
- *        Flash 电光青双棱羽翼 / GPT 银青冰晶六角结 / Orch 星云紫金陀螺双环）+ 半透明大号元素符号水印，
- *        无缝向右流淌过渡至纯净社论排版留白区。
- *   2. 真·暗夜（Dark）与白昼（Light）双套独立海报底图适配：
- *      - 暗色主题（obsidian-dark / warm-dark）：深邃星云天鹅绒夜底 + 自发光折光玻璃雕塑 + 纯白锐字 + 烟熏毛玻璃胶囊；
- *      - 浅色主题（crystal-light / alabaster-light）：明亮白昼瓷白冰雾渐变底 + 日光通透彩色玻璃雕塑 + 深炭墨高对比锐字 + 白冰毛玻璃胶囊（彻底消灭浅色黑砖屏！）。
- *   3. 静态艺术为主，微动效仅作克制点睛（严格 0fps 静止休眠）：
- *      - 静止态 100% 零耗电（isAnimating() === false）；
- *      - 仅在切模型/切深浅主题（200ms 柔滑叠化 + 微妙水平视差滑移）、切档位（220ms 毛玻璃胶囊阻尼滑移 + ~8% 柔光微涌）、
- *        以及指针掠过/旋转视角（斜向清透玻璃镜面掠光）时响应，随后立即回归 0fps。
+ * V14 Core Optical Architecture (Google DeepMind Launch Key Art · Static-First · Subtle Micro-Motion):
+ *   1. 1600x480 full-bleed Google DeepMind editorial banner (zero low-poly code geometry, zero harsh center seam):
+ *      - Left-to-center zone (~42%): pre-baked refractive glass sculptures (1H azure torus / 6C royal cobalt iridescent crystal cluster /
+ *        10Ne coral-to-gold Mobius ring / 18Ar electric indigo concentric lens / Claude terracotta amber arch /
+ *        Flash electric cyan twin prisms / GPT ice-cyan hex knot / Orch nebula violet-gold gyro rings) + subtle large symbol watermark,
+ *        flowing seamlessly into the right editorial typography zone.
+ *   2. Dedicated Dark & Light key art substrates:
+ *      - Dark themes (obsidian-dark / warm-dark): deep velvet nebula canvas + luminous glass sculpture + crisp white type + smoked frosted capsule;
+ *      - Light themes (crystal-light / alabaster-light): bright porcelain ice-mist gradient + translucent daylight glass + deep charcoal type + frosted ice capsule.
+ *   3. Static-first art with restrained micro-motion (strict 0fps idle sleep):
+ *      - Zero idle draw cost (isAnimating() === false);
+ *      - Animates only on model/theme transitions (200ms crossfade + subtle horizontal parallax), effort switches (220ms damped frosted pill slide + ~8% swell),
+ *        and pointer/orbit glass sheen sweeps before returning immediately to 0fps.
  *
  * Contract:
  *   globalThis.__agPrismOledScreen = { createOledScreenPainter }
@@ -46,7 +46,7 @@
     var ANIM_STALE_GUARD_MS = 650;
     var MAX_WALLPAPER_CACHE = 24;
 
-    /* 满幅海报构图视觉锚点：左移玻璃雕塑视口 (-46px / 浅色10Ne -64px) + 雕塑右翼纯净分离大水印 (~x:500..664) + 右侧社论排版区 (x:682..1548) */
+    /* Full-bleed banner anchors: shifted sculpture viewport (-46px / light 10Ne -64px) + clean right-flank watermark (~x:500..664) + right editorial zone (x:682..1548) */
     var SCULPT_SHIFT_X = -46;
     var SCULPT_SHIFT_LIGHT_NEON = -64;
     var SCULPT_AURA_CX = 236;
@@ -61,19 +61,19 @@
     var RIGHT_ZONE_END = 1548;
     var RIGHT_ZONE_W = RIGHT_ZONE_END - RIGHT_ZONE_X; /* 866 */
 
-    /* 思考档位毛玻璃胶囊严格锁定在 [682, 1504] x [296, 388]，100% 保持 getEffortUvRects() 零死区热区几何契约 */
+    /* Frosted effort pill locked to [682, 1504] x [296, 388], preserving the zero-deadzone getEffortUvRects() hit-area contract */
     var WELL_X = 682;
     var WELL_RIGHT = 1504;
     var WELL_W = WELL_RIGHT - WELL_X; /* 822 */
     var WELL_Y = 296;
     var WELL_H = 92;
 
-    var SANS_STACK = '"Google Sans", "Plus Jakarta Sans", "Inter", "SF Pro Display", "Helvetica Neue", "PingFang SC", "Segoe UI", system-ui, sans-serif';
+    var SANS_STACK = '"Google Sans", "Plus Jakarta Sans", "Inter", "SF Pro Display", "Helvetica Neue", "Noto Sans Arabic", "IBM Plex Sans Arabic", "Segoe UI", system-ui, sans-serif';
     var MONO_STACK = '"JetBrains Mono", "SF Mono", "Cascadia Code", Consolas, monospace';
 
     var ALL_WALLPAPER_KEYS = ['1', '6', '10', '18', 'claude', 'flash', 'gpt', 'orchestrator', 'standby'];
 
-    /* V14 Google DeepMind 官方四大元素模型光谱（彻底告别苍白死灰 6C 与泥棕 10Ne） */
+    /* V14 Google DeepMind official four-element model spectrum */
     var ELEMENT_OPTIC_THEMES = {
       1: {
         sculptKey: '1',
@@ -161,7 +161,7 @@
       },
     };
 
-    /* V14 右侧 2x3 AUX-06 副盘品牌专属光谱与高精玻璃底图映射（全员 0 几何多边形回退） */
+    /* V14 right-side 2x3 AUX-06 macro pad brand spectrum & glass wallpaper mapping (zero polygon fallbacks) */
     var AUX_OPTIC_THEMES = {
       orchestrator: {
         sculptKey: 'orchestrator',
@@ -280,7 +280,7 @@
       },
     };
 
-    /* V14.1 114 颗未解锁盲键与预留槽专属「未雕琢哑光原石晶坯」中性石板光谱（零盗用 6C 蓝晶！） */
+    /* V14.1 neutral raw matte crystal slate spectrum for 114 locked blind keys and reserved slots (never borrows 6C blue crystal) */
     var STANDBY_OPTIC_THEME = {
       sculptKey: 'standby',
       watermark: 'Au',
@@ -330,34 +330,21 @@
 
     var ORCH_VIOLET_HEX = '#8B5CF6';
     var ORCH_GOLD_HEX = '#F5B942';
-    var ORCH_NON_PLANNER_LABEL_ZH = 'NON-PLANNER · 编排态不可选';
+    var ORCH_NON_PLANNER_LABEL_AR = 'خارج التخطيط · مقفل في التنسيق';
     var ORCH_NON_PLANNER_LABEL_EN = 'NON-PLANNER · LOCKED IN ORCH';
-    var SYNC_BADGE_DEFAULT_ZH = '已同步会话';
+    var SYNC_BADGE_DEFAULT_AR = 'متزامن';
     var SYNC_BADGE_DEFAULT_EN = 'SYNCED';
     var SYNC_BADGE_DEFAULT_DURATION_MS = 1200;
 
     var OLED_I18N = {
-      'zh-CN': { nonPlanner: ORCH_NON_PLANNER_LABEL_ZH, standbyAux: 'STANDBY · 未开放副盘槽位', synced: SYNC_BADGE_DEFAULT_ZH },
-      'zh-TW': { nonPlanner: 'NON-PLANNER · 編排態不可選', standbyAux: 'STANDBY · 未開放副盤槽位', synced: '已同步工作階段' },
       en: { nonPlanner: ORCH_NON_PLANNER_LABEL_EN, standbyAux: 'STANDBY · RESERVED MACRO SLOT', synced: SYNC_BADGE_DEFAULT_EN },
-      ja: { nonPlanner: 'NON-PLANNER · オーケストラ固定', standbyAux: 'STANDBY · 予約済みマクロ枠', synced: '同期済' },
-      ko: { nonPlanner: 'NON-PLANNER · 오케스트레이션 잠금', standbyAux: 'STANDBY · 예약된 매크로 슬롯', synced: '동기화됨' },
-      es: { nonPlanner: 'NON-PLANNER · BLOQUEADO EN ORCH', standbyAux: 'STANDBY · RANURA RESERVADA', synced: 'SINCRONIZADO' },
-      fr: { nonPlanner: 'NON-PLANNER · VERROUILLÉ ORCH', standbyAux: 'STANDBY · EMPLACEMENT RÉSERVÉ', synced: 'SYNCHRONISÉ' },
-      de: { nonPlanner: 'NON-PLANNER · IN ORCH GESPERRT', standbyAux: 'STANDBY · RESERVIERTER SLOT', synced: 'SYNCHRONISIERT' },
+      ar: { nonPlanner: ORCH_NON_PLANNER_LABEL_AR, standbyAux: 'استعداد · خانة ماكرو محجوزة', synced: SYNC_BADGE_DEFAULT_AR },
     };
 
     function normalizeOledLang(raw) {
       var s = String(raw || '').trim().toLowerCase().replace(/_/g, '-');
       if (!s || s === 'auto') return '';
-      if (s === 'yue' || s.indexOf('yue-') === 0 || s === 'zh-yue' || s.indexOf('cantonese') !== -1) return 'zh-CN';
-      if (/^zh-(tw|hant|hk|mo)/.test(s) || s === 'tw' || s === 'hant') return 'zh-TW';
-      if (/^zh(?:$|-)/.test(s)) return 'zh-CN';
-      if (/^(ja|jp)(?:$|-)/.test(s) || s === 'japanese') return 'ja';
-      if (/^(ko|kr)(?:$|-)/.test(s) || s === 'korean') return 'ko';
-      if (/^es(?:$|-)/.test(s) || s === 'spanish') return 'es';
-      if (/^fr(?:$|-)/.test(s) || s === 'french') return 'fr';
-      if (/^de(?:$|-)/.test(s) || s === 'german') return 'de';
+      if (/^ar(?:$|-)/.test(s) || s === 'arabic' || s === 'العربية') return 'ar';
       if (/^en(?:$|-)/.test(s) || s === 'english') return 'en';
       return '';
     }
@@ -407,7 +394,7 @@
       return false;
     }
 
-    function resolveOledLocale(explicitLang, explicitZh, info, tp, bs, doc, rt) {
+    function resolveOledLocale(explicitLang, explicitAr, info, tp, bs, doc, rt) {
       var cands = [
         bs && bs.lang,
         info && info.lang,
@@ -425,10 +412,10 @@
           if (docLang) return docLang;
         }
       } catch (_langErr) {}
-      if (bs && typeof bs.zh === 'boolean') return bs.zh ? 'zh-CN' : 'en';
-      if (info && typeof info.zh === 'boolean') return info.zh ? 'zh-CN' : 'en';
-      if (tp && typeof tp.zh === 'boolean') return tp.zh ? 'zh-CN' : 'en';
-      if (typeof explicitZh === 'boolean') return explicitZh ? 'zh-CN' : 'en';
+      if (bs && typeof bs.ar === 'boolean') return bs.ar ? 'ar' : 'en';
+      if (info && typeof info.ar === 'boolean') return info.ar ? 'ar' : 'en';
+      if (tp && typeof tp.ar === 'boolean') return tp.ar ? 'ar' : 'en';
+      if (typeof explicitAr === 'boolean') return explicitAr ? 'ar' : 'en';
       try {
         var navLang = normalizeOledLang(rt && rt.navigator && rt.navigator.language);
         if (navLang) return navLang;
@@ -437,7 +424,7 @@
     }
 
     /* ============================================================================
-     * 1. 基础数学、弹簧曲线与色彩工具
+     * 1. Core Math, Spring Curves & Color Utilities
      * ============================================================================ */
     function clamp(v, lo, hi) {
       return v < lo ? lo : v > hi ? hi : v;
@@ -579,8 +566,8 @@
       return clamp(e0 + (e1 - e0) * frac, 0.28, 1.0);
     }
 
-    function hasCjkText(str) {
-      return /[\u4e00-\u9fff]/.test(String(str || ''));
+    function hasArabicText(str) {
+      return /[\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff\ufb50-\ufdff\ufe70-\ufeff]/.test(String(str || ''));
     }
 
     function extractElementUpperName(info) {
@@ -842,7 +829,7 @@
     }
 
     /* ============================================================================
-     * 2. 安全 Canvas 2D 原语（100% 兼容真实浏览器与单测 Mock 2D Context）
+     * 2. Safe Canvas 2D Primitives (Compatible with Real Browsers and Unit-Test Mock Contexts)
      * ============================================================================ */
     function createOffscreenSurface(doc, externalCanvas, w, h) {
       var c = externalCanvas || null;
@@ -1007,7 +994,7 @@
     }
 
     /* ============================================================================
-     * 3. 思考档位毛玻璃胶囊热区几何计算器（x: 656..1504, y: 296..388 零死区契约）
+     * 3. Frosted Effort Capsule Hit-Area Geometry Calculator (x: 656..1504, y: 296..388 Zero-Deadzone Contract)
      * ============================================================================ */
     function computeQuartzFaderWellLayout(width, height, rawLevels, deckInfo, blendState) {
       var W = width > 0 ? width : DEFAULT_WIDTH;
@@ -1024,7 +1011,7 @@
       var wellX = WELL_X;
       var wellY = WELL_Y;
       var wellH = WELL_H;
-      var wellR = 46; /* 圆润毛玻璃胶囊端头 */
+      var wellR = 46; /* Rounded frosted capsule endcaps */
       var insetPad = 6;
       var blockH = wellH - insetPad * 2;
       var blockR = 40;
@@ -1131,7 +1118,7 @@
     }
 
     /* ============================================================================
-     * 4. 矢量星芒徽标、锁扣图标与 #0 Orch 星云紫金双环光学柔晕
+     * 4. Vector Sparkle Emblem, Padlock Glyph & #0 Orch Nebula Violet-Gold Dual-Ring Glow
      * ============================================================================ */
     function drawGeminiSparkleGlyph(ctx, cx, cy, r, fillStyle) {
       ctx.save();
@@ -1186,7 +1173,7 @@
       ctx.restore();
     }
 
-    /* #0 Orch 双核锁存态：柔和叠印在规划主核官方玻璃海报外围的 Gemini 星云紫金光学双环（isMono 下严格退回零色度银灰单色环） */
+    /* #0 Orch dual-core latched state: soft Gemini nebula violet-gold optical dual ring around the planner key art (falls back to silver-gray under isMono) */
     function drawSubtleOrchDualRingAura(ctx, cx, cy, tokens, alpha) {
       if (alpha <= 0.01) return;
       var isLight = tokens.isLight;
@@ -1261,7 +1248,7 @@
     }
 
     /* ============================================================================
-     * 5. 满幅深浅官方海报背景绘制器（支持 200ms 叠化 + 微妙视差平移 + ~8% 切档辉度微涌 + V14.1 原石晶坯 & 重度冰封雾化）
+     * 5. Full-Bleed Dark/Light Key Art Background Renderer (200ms Crossfade + Subtle Parallax + ~8% Effort Swell + V14.1 Raw Crystal & Frosted Lock Veil)
      * ============================================================================ */
     function buildFrostedDownsampleCanvas(doc, wpEntry, isLight, isMono) {
       if (!doc || typeof doc.createElement !== 'function' || !wpEntry || !wpEntry.img) return null;
@@ -1281,7 +1268,7 @@
         var g2 = c2.getContext('2d');
         if (!g1 || !g2) return null;
 
-        /* 离屏降采预烘焙冰封磨砂底图：零 getImageData/putImageData 同步回读，仅在首次命中该壁纸时烘焙并缓存复用 */
+        /* Offscreen downsampled pre-baked frosted background: zero synchronous getImageData/putImageData readbacks, baked once on first hit and cached */
         g1.imageSmoothingEnabled = true;
         g1.imageSmoothingQuality = 'high';
         var filterDone = false;
@@ -1301,7 +1288,7 @@
           } catch (_e1r) {}
         }
 
-        /* 纯 Canvas2D 合成冷石板灰雾面纱（替代逐像素 getImageData CPU 读回，零 GPU→CPU 同步栅栏） */
+        /* Pure Canvas 2D cool slate-gray frosted veil (replaces per-pixel getImageData CPU readback with zero GPU-to-CPU sync stalls) */
         if (!filterDone) {
           g1.save();
           setCompositeSafe(g1, 'saturation');
@@ -1349,7 +1336,7 @@
       ctx.save();
       ctx.globalAlpha = clamp(alpha, 0, 1);
 
-      /* 1) 满幅流体大气渐变底色（确保即使异步贴图未就绪也 100% 呈现深/浅官方色韵，零黑砖！） */
+      /* 1) Full-bleed atmospheric gradient base (guarantees official dark/light tone even before async textures decode) */
       ctx.fillStyle = makeLinearGrad(
         ctx, 0, 0, W, H * 0.9,
         [
@@ -1361,7 +1348,7 @@
       );
       ctx.fillRect(0, 0, W, H);
 
-      /* 2) 绘制预烘焙 960x288 (10:3) 满幅雕塑或未雕琢原石晶坯 WebP（盲键固定走 standby，严格零 '6' 盗用回退！） */
+      /* 2) Draw pre-baked 960x288 (10:3) full-bleed sculpture or raw crystal WebP (blind keys always use standby, never borrowing key 6) */
       var modeTag = tokens.isLight ? 'light' : 'dark';
       var wpDict = tokens.isLight
         ? (grainPkg && grainPkg.OLED_WALLPAPERS_LIGHT ? grainPkg.OLED_WALLPAPERS_LIGHT : (grainPkg && grainPkg.OLED_WALLPAPERS))
@@ -1389,7 +1376,7 @@
 
         if (tokens.isMono || isOrchUnsupported) {
           var filterApplied = false;
-          /* 已命中离屏预烘焙冰封缓存时，直接零滤镜贴图，彻底避免热路径大画布 ctx.filter='blur(...)' */
+          /* On offscreen frosted cache hit, blit directly with zero filter to avoid hot-path full-canvas ctx.filter='blur(...)' */
           if (!usingOffscreenFrosted && supportsFilterProp) {
             try {
               if (tokens.isMono && isOrchUnsupported) {
@@ -1417,7 +1404,7 @@
           }
         }
 
-        /* 雕塑视口左移 (-46px / 浅色10Ne -64px)，右侧等量延展铺满至 W；冰封模糊强制开启四边 overscan 防漏底边 */
+        /* Shift sculpture viewport left (-46px / light 10Ne -64px) and extend right edge to W; enable 4-side overscan during frosted blur to prevent edge bleed */
         var isLightNeonSculpt = Boolean(tokens.isLight && String(lookupKey) === '10');
         var baseShiftX = isLightNeonSculpt ? SCULPT_SHIFT_LIGHT_NEON : SCULPT_SHIFT_X;
         var baseDrawW = W - baseShiftX;
@@ -1446,7 +1433,7 @@
         }
         ctx.restore();
 
-        /* 2b) V14.1 NON-PLANNER 重度冰封磨砂毛玻璃结霜面纱（向右平滑无痕消融至 0 alpha，零中部竖缝、左区零圆形锁贴纸） */
+        /* 2b) V14.1 NON-PLANNER heavy frosted-glass veil (dissolves smoothly to 0 alpha rightward with zero center seam or circular badge) */
         if (isOrchUnsupported) {
           ctx.save();
           ctx.globalAlpha = clamp(alpha, 0, 1);
@@ -1490,7 +1477,7 @@
         }
       }
 
-      /* 3) 雕塑右翼干净分离的半透明元素符号水印（对标概念图 C：H / C / Ne / Ar / Op / Au，双字符饱满清晰，三字符防越界） */
+      /* 3) Clean translucent element symbol watermark on right flank of sculpture (H / C / Ne / Ar / Op / Au) */
       var wmText = String(bgState.watermark || tokens.watermark || 'C');
       if (wmText) {
         ctx.save();
@@ -1527,7 +1514,7 @@
         ctx.restore();
       }
 
-      /* 4) 切档位瞬间克制辅助动效：雕塑区柔和 ~8% 环境亮度微涌（静止时 effortSwell === 0） */
+      /* 4) Subtle effort-switch micro-motion: ~8% ambient luminance swell on sculpture zone (effortSwell === 0 at rest) */
       if (effortSwell > 0.002 && isAvail) {
         ctx.save();
         setCompositeSafe(ctx, tokens.isLight ? 'source-over' : 'screen');
@@ -1547,7 +1534,7 @@
         ctx.restore();
       }
 
-      /* 5) #0 Orch 锁存叠合态：不替换主核玻璃雕塑，仅在雕塑周围柔和叠印星云紫金双环光晕 */
+      /* 5) #0 Orch latched overlay: keeps planner glass sculpture intact while overlaying subtle nebula violet-gold dual rings */
       if (isOrchActive && bgState.auxKind !== 'orchestrator') {
         drawSubtleOrchDualRingAura(ctx, SCULPT_AURA_CX + parX * 0.7, SCULPT_AURA_CY + parY * 0.7, tokens, 1.0);
       }
@@ -1556,7 +1543,7 @@
     }
 
     /* ============================================================================
-     * 6. 右侧 ~58% Google DeepMind 纯净社论级标题栏（x: 656..1548）
+     * 6. Right ~58% Google DeepMind Clean Editorial Header (x: 656..1548)
      * ============================================================================ */
     function drawEditorialHeroHeader(ctx, info, optic, tokens, upperEnName) {
       var kickerText = resolveEditorialKickerText(info, optic, upperEnName);
@@ -1569,7 +1556,7 @@
 
       ctx.save();
 
-      /* Row 1 左侧：✦ 星芒微标 + Google DeepMind 无边框高雅大写微题头 */
+      /* Row 1 left: sparkle emblem + Google DeepMind borderless uppercase kicker */
       var kickerY = 82;
       var starCx = RIGHT_ZONE_X + 13;
       var starGrad = isOrchActive && !tokens.isMono
@@ -1589,7 +1576,7 @@
       ctx.fillText(drawnKicker, RIGHT_ZONE_X + 36, kickerY + 1);
       setLetterSpacingSafe(ctx, '0px');
 
-      /* Row 1 右上角：轻透精致状态胶囊（保留 DUAL-CORE · +1H / STANDBY 等语义，宽容上限确保零省略号截断） */
+      /* Row 1 top-right: translucent status pill (preserves DUAL-CORE · +1H / STANDBY labels without ellipsis clipping) */
       ctx.font = '700 21px ' + MONO_STACK;
       setLetterSpacingSafe(ctx, '0.045em');
       var fitRole = truncateText(ctx, roleTag, 320);
@@ -1625,7 +1612,7 @@
       ctx.fillText(fitRole, pillX + 31, kickerY + 1);
       setLetterSpacingSafe(ctx, '0px');
 
-      /* Row 2 主视觉：高对比大号无衬线标题（Dark 纯白 / Light 深炭墨，零泛灰零截断） */
+      /* Row 2 hero title: high-contrast display sans (pure white on dark / deep charcoal on light) */
       setLetterSpacingSafe(ctx, '-0.025em');
       var maxHeroPx = isOrchActive ? 82 : 84;
       var titlePx = fitSingleLineFontSize(ctx, heroTitle, '700', SANS_STACK, maxHeroPx, 64, RIGHT_ZONE_W);
@@ -1637,7 +1624,7 @@
 
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
-      /* 消除高开销 Canvas2D shadowBlur：高对比暗色底板已确保标题极度锐利，无多余离屏模糊图层分配 */
+      /* Avoid expensive Canvas 2D shadowBlur: high-contrast substrate keeps title razor-sharp without extra offscreen blur layers */
       ctx.fillStyle = isOrchUnsupported
         ? tokens.lockedTitleHex
         : (isAvail ? tokens.titleHex : (tokens.standbyTitleHex || tokens.titleHex));
@@ -1648,7 +1635,7 @@
     }
 
     /* ============================================================================
-     * 7. 通透磨砂毛玻璃胶囊档位条 `[ Low | Medium | High | Extra ]`（y: 296..388）
+     * 7. Translucent Frosted Effort Capsule Bar `[ Low | Medium | High | Extra ]` (y: 296..388)
      * ============================================================================ */
     function drawFrostedEffortCapsuleBar(ctx, wellLayout, info, tokens, sliderPos) {
       var wl = wellLayout.well;
@@ -1660,7 +1647,7 @@
       var wellY = wl.ly; /* 296 */
       var wellW = wl.lw; /* 848 -> 1504 */
       var wellH = wl.lh; /* 92 -> 388 */
-      var wellR = wl.lr; /* 46 胶囊圆角 */
+      var wellR = wl.lr; /* 46px capsule radius */
       var wellCy = wl.cy;
       var innerX = wl.innerX;
       var innerY = wl.innerY;
@@ -1680,7 +1667,7 @@
 
       ctx.save();
 
-      /* 1) 通透磨砂毛玻璃外胶囊底座（以轻量偏移暗底圆角替代高耗 shadowBlur，零离屏高斯模糊分配） */
+      /* 1) Translucent frosted outer capsule well (uses lightweight offset shadow rect instead of costly shadowBlur) */
       drawRoundRectPath(ctx, wellX, wellY + 3, wellW, wellH, wellR);
       ctx.fillStyle = isLight ? 'rgba(15, 23, 42, 0.055)' : 'rgba(0, 0, 0, 0.22)';
       ctx.fill();
@@ -1702,7 +1689,7 @@
         : tokens.wellOutlineCss;
       ctx.stroke();
 
-      /* 2) 相邻槽位柔和分隔细竖线 `|` 与未激活档位文字 */
+      /* 2) Soft vertical slot dividers and inactive effort tier labels */
       for (var di = 1; di < n; di++) {
         var divX = innerX + di * slotW;
         var touchingActive = divX >= curBlockBaseX - 8 && divX <= curBlockRightX + 8;
@@ -1739,7 +1726,7 @@
         ctx.restore();
       }
 
-      /* 3) 激活档位官方双色渐变水晶毛玻璃滑块胶囊 */
+      /* 3) Active tier dual-tone gradient crystal frosted slider capsule */
       var actPrs = activeItem ? activeItem.press : 0;
       var pressInset = actPrs * 1.4;
       var bx = curBlockBaseX + pressInset;
@@ -1751,7 +1738,7 @@
       var blockCy = by + bh * 0.5;
 
       ctx.save();
-      /* 以轻量外扩辉光描边/底晕替代高开销 shadowBlur=16，零离屏阴影图层分配 */
+      /* Lightweight outer glow stroke/halo replaces expensive shadowBlur=16 with zero offscreen blur allocation */
       ctx.save();
       ctx.globalAlpha = 0.28;
       drawRoundRectPath(ctx, bx - 3, by - 1, bw + 6, bh + 4, br + 2);
@@ -1769,7 +1756,7 @@
       );
       ctx.fill();
 
-      /* 顶部玻璃高光微折射层 */
+      /* Top glass specular refraction highlight */
       drawRoundRectPath(ctx, bx, by, bw, bh, br);
       ctx.clip();
       ctx.fillStyle = makeLinearGrad(
@@ -1813,9 +1800,9 @@
       ctx.restore();
     }
 
-    /* 单档位、盲键 1s 化学快闪（含原子质量 STANDBY）或 Orchestrator 非编排主核锁定（NON-PLANNER）胶囊 —— 深浅双模通透适配 */
+    /* Single-tier, blind-key 1s chemistry flash (atomic mass + STANDBY), or Orchestrator NON-PLANNER locked status capsule (dark & light adaptive) */
     function drawSingleModeStatusCapsule(ctx, info, tokens, upperEnName, oledPack) {
-      var pack = (typeof oledPack === 'object' && oledPack) ? oledPack : (oledPack ? OLED_I18N['zh-CN'] : OLED_I18N.en);
+      var pack = (typeof oledPack === 'object' && oledPack) ? oledPack : (oledPack ? OLED_I18N.ar : OLED_I18N.en);
       var capX = WELL_X;
       var capY = WELL_Y;
       var capW = WELL_W;
@@ -1886,11 +1873,13 @@
         ctx.fill();
       }
 
+      var isArCapsule = hasArabicText(badgeLabel);
       var maxCapTxtW = capW - 108;
-      var fontFam = isChemCapsule ? MONO_STACK : SANS_STACK;
+      var fontFam = (isChemCapsule && !isArCapsule) ? MONO_STACK : SANS_STACK;
       var capFontPx = fitSingleLineFontSize(ctx, badgeLabel, '700', fontFam, isChemCapsule ? 31 : 34, 26, maxCapTxtW);
       ctx.font = '700 ' + capFontPx + 'px ' + fontFam;
-      setLetterSpacingSafe(ctx, '0.025em');
+      setLetterSpacingSafe(ctx, isArCapsule ? '0px' : '0.025em');
+      try { if (isArCapsule && 'direction' in ctx) ctx.direction = 'rtl'; } catch (_dirErr) {}
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
       ctx.fillStyle = isOrchUnsupported
@@ -1901,7 +1890,7 @@
       ctx.restore();
     }
 
-    /* 细腻光学玻璃表面微掠光（静止态 0 白雾污染防止浅色屏竖切泛白；gpuSheenHandled=true 时由 GPU SCREEN_FS 零成本接管动态掠光） */
+    /* Subtle optical glass sheen overlay (zero static haze; when gpuSheenHandled=true, GPU SCREEN_FS renders dynamic sheen at zero cost) */
     function drawEditorialGlassSheenOverlay(ctx, W, H, isLight, orbitYaw, orbitPitch, pointerSweepX, gpuSheenHandled) {
       ctx.save();
       var hasExplicitSweep = typeof pointerSweepX === 'number' && isFinite(pointerSweepX);
@@ -1932,19 +1921,20 @@
       ctx.restore();
     }
 
-    /* 1.2s 轻盈克制「已同步会话 / SYNCED」左上角胶囊微标（结束自动收敛回 0fps） */
+    /* 1.2s subtle top-left session-synced corner pill (auto-settles back to 0fps) */
     function drawSessionSyncedBadgeOverlay(ctx, labelText, alpha, slideY, tokens) {
       if (!labelText || alpha <= 0.005) return;
       var isLight = Boolean(tokens && tokens.isLight);
       var isMono = Boolean(tokens && tokens.isMono);
-      var isCjk = hasCjkText(labelText);
+      var isArText = hasArabicText(labelText);
 
       ctx.save();
       ctx.globalAlpha = clamp(alpha, 0, 1);
 
-      var fontPx = isCjk ? 22 : 20;
-      ctx.font = '600 ' + fontPx + 'px ' + (isCjk ? SANS_STACK : MONO_STACK);
-      setLetterSpacingSafe(ctx, isCjk ? '0.02em' : '0.06em');
+      var fontPx = isArText ? 22 : 20;
+      ctx.font = '600 ' + fontPx + 'px ' + (isArText ? SANS_STACK : MONO_STACK);
+      setLetterSpacingSafe(ctx, isArText ? '0px' : '0.06em');
+      try { if (isArText && 'direction' in ctx) ctx.direction = 'rtl'; } catch (_dirErr2) {}
       var fitLabel = truncateText(ctx, labelText, 240);
       var txtW = measureTextSafe(ctx, fitLabel);
 
@@ -1985,7 +1975,7 @@
     }
 
     /* ============================================================================
-     * 8. V14.1 按需共享海报解码池（支持 120ms 长按静默预热 + 90s 空闲自动瘦身回收 + 0 冷启动解码）
+     * 8. V14.1 On-Demand Shared Wallpaper Decode Pool (120ms Hold Prewarm + 90s Idle Trim + Zero Cold-Start Decode)
      * ============================================================================ */
     var sharedPoolsByRoot = typeof WeakMap === 'function' ? new WeakMap() : null;
     var fallbackSharedPool = null;
@@ -2145,7 +2135,7 @@
     }
 
     /* ============================================================================
-     * 9. 主工厂函数 createOledScreenPainter
+     * 9. Main Factory Function createOledScreenPainter
      * ============================================================================ */
     function createOledScreenPainter(options) {
       var opts = options || {};
@@ -2155,7 +2145,7 @@
       var doc = opts.doc || (root && root.document) || (typeof document !== 'undefined' ? document : null);
       var onAsyncAssetReady = typeof opts.onAsyncAssetReady === 'function' ? opts.onAsyncAssetReady : null;
       var useLazySharedPool = Boolean(opts.lazyWallpapers === true);
-      /* 降采热路径（如 800x240 WebGL 纹理）默认启用离屏预烘焙模糊缓存，彻底消除热路径大画布 ctx.filter='blur(16px)' */
+      /* Downsampled hot paths (e.g. 800x240 WebGL texture) enable offscreen pre-baked blur cache by default to eliminate hot-path ctx.filter='blur(16px)' */
       var defaultPreferOffscreenBlur = opts.preferOffscreenBlur !== undefined
         ? Boolean(opts.preferOffscreenBlur)
         : (width < DEFAULT_WIDTH);
@@ -2168,7 +2158,7 @@
       var explicitTargetFps = opts.targetFps !== undefined ? normalizeOledTargetFps(opts.targetFps) : null;
       var explicitMotionLevel = opts.motionLevel !== undefined ? normalizeOledMotionLevel(opts.motionLevel) : null;
       var explicitLang = typeof opts.lang === 'string' && opts.lang.trim() ? opts.lang.trim() : '';
-      var explicitZh = typeof opts.zh === 'boolean' ? opts.zh : null;
+      var explicitAr = typeof opts.ar === 'boolean' ? opts.ar : null;
 
       var sharedPool = useLazySharedPool ? getSharedPoolForRoot(root) : null;
       var wallpaperCache = new Map();
@@ -2184,14 +2174,14 @@
         sharedPool.listeners.add(sharedListener);
       }
 
-      /* 200ms 跨模型 / 跨深浅主题柔焦视差叠化状态机 */
+      /* 200ms cross-model / cross-theme soft parallax crossfade state machine */
       var currentBgState = null;
       var fromBgState = null;
       var fadeStartMs = 0;
       var fadeUsesCustomClock = false;
       var crossFadeActive = false;
 
-      /* 220ms 毛玻璃胶囊滑块阻尼平移 + ~8% 环境亮度微涌状态机 */
+      /* 220ms frosted effort capsule damped slide + ~8% ambient luminance swell state machine */
       var sliderTrackIdentity = '';
       var sliderCurrentPos = 0;
       var sliderFromPos = 0;
@@ -2201,7 +2191,7 @@
       var sliderAnimActive = false;
       var wasDraggingSlider = false;
 
-      /* 1.2s 轻盈「已同步会话 / SYNCED」角落胶囊微标状态机 */
+      /* 1.2s subtle SYNCED corner badge state machine */
       var syncBadgeActive = false;
       var syncBadgeCustomLabel = '';
       var syncBadgeDurationMs = SYNC_BADGE_DEFAULT_DURATION_MS;
@@ -2564,7 +2554,7 @@
           hoveredEffort: d.hoveredEffort ? String(d.hoveredEffort) : '',
           pressedEffort: d.pressedEffort ? String(d.pressedEffort) : '',
           dragEffortProgress: typeof d.dragEffortProgress === 'number' ? d.dragEffortProgress : undefined,
-          zh: typeof d.zh === 'boolean' ? d.zh : undefined,
+          ar: typeof d.ar === 'boolean' ? d.ar : undefined,
           lang: typeof d.lang === 'string' ? d.lang : '',
         };
       }
@@ -2636,7 +2626,7 @@
         var effTargetFps = resolveEffectiveTargetFps(bs);
         var minFrameGapMs = resolveOledMinFrameGapMs(effTargetFps);
         var effPaused = isEffectivelyPaused(bs);
-        var langCode = resolveOledLocale(explicitLang, explicitZh, info, tp, bs, doc, root);
+        var langCode = resolveOledLocale(explicitLang, explicitAr, info, tp, bs, doc, root);
         var oledPack = OLED_I18N[langCode] || OLED_I18N.en;
 
         lastDeckInfo = info;
@@ -2679,7 +2669,7 @@
           ? ('aux:' + info.auxKind + ':' + (info.auxId || info.badgeText || info.title))
           : ('elem:' + info.z);
 
-        /* 1) 220ms 毛玻璃滑块弹簧与 ~8% 切档辉度微涌包络 */
+        /* 1) 220ms frosted slider spring and ~8% effort-switch luminance swell envelope */
         var effortSwell = 0;
         if (nLevels > 0) {
           var nextTrackId = modelIdentity + ':' + nLevels;
@@ -2756,7 +2746,7 @@
 
         computeContinuousEffortEnergy(info.levels, sliderCurrentPos, bs.effortEnergy);
 
-        /* 2) 200ms 跨模型 / 跨深浅主题柔焦视差叠化状态机 */
+        /* 2) 200ms cross-model / cross-theme parallax crossfade state machine */
         var stateModeTag = info.orchUnsupported
           ? ('orch-locked:' + modelIdentity)
           : (info.isAvailable
@@ -2841,7 +2831,7 @@
           }
         }
 
-        /* 3) 1.2s 轻盈「已同步会话 / SYNCED」角落胶囊微标包络 */
+        /* 3) 1.2s subtle SYNCED corner badge envelope */
         var syncBadgeAlpha = 0;
         var syncBadgeSlideY = 0;
         var syncBadgeDrawLabel = '';
@@ -2878,7 +2868,7 @@
           return null;
         }
 
-        /* 动态高刷限帧：仅对同状态连续动画推进帧限流，内容变化帧即时绘制；gpuSheenHandled 时忽略视角/扫键微光以杜绝无意义重绘 */
+        /* Dynamic high-refresh frame cap: throttle only continuous same-state animation frames; draw state changes immediately; skip orbit/hover sheen redraws when gpuSheenHandled */
         var staticRenderKey = [
           nextBgKey,
           info.title,
@@ -2935,7 +2925,7 @@
         setCompositeSafe(ctx, 'source-over');
         ctx.globalAlpha = 1.0;
 
-        /* Layer 1: 满幅深浅官方海报底图（gpuSheenHandled 下视差交由 GPU 透视自然表现，避免纯旋转触发整幅 Canvas2D 重绘） */
+        /* Layer 1: Full-bleed dark/light key art background (under gpuSheenHandled, GPU perspective handles parallax without full Canvas 2D redraws) */
         var drawParYaw = gpuSheenHandled ? 0 : orbitYaw;
         var drawParPitch = gpuSheenHandled ? 0 : orbitPitch;
         if (crossFadeActive && fromBgState && fadeAlpha < 0.999) {
@@ -2947,7 +2937,7 @@
 
         var upperEnName = extractElementUpperName(info);
 
-        /* Layer 2: 右侧社论级微标 + 主标题 + 毛玻璃胶囊档位条 / 状态胶囊（左区玻璃雕塑 100% 净空无圆形锁贴纸） */
+        /* Layer 2: Right editorial header + hero title + frosted effort bar / status capsule (left glass sculpture stays unobstructed) */
         drawEditorialHeroHeader(ctx, info, optic, tokens, upperEnName);
 
         if (info.blindFlash) {
@@ -2958,12 +2948,12 @@
           drawSingleModeStatusCapsule(ctx, info, tokens, upperEnName, oledPack);
         }
 
-        /* Layer 3: 1.2s 轻盈「已同步会话 / SYNCED」角落胶囊微标 */
+        /* Layer 3: 1.2s subtle SYNCED corner badge */
         if (syncBadgeAlpha > 0.005 && syncBadgeDrawLabel) {
           drawSessionSyncedBadgeOverlay(ctx, syncBadgeDrawLabel, syncBadgeAlpha, syncBadgeSlideY, tokens);
         }
 
-        /* Layer 4: 清透斜向玻璃镜面微掠光（零黑色扫描网；3D 模式下动态掠光由 GPU SCREEN_FS 零成本渲染） */
+        /* Layer 4: Clean diagonal glass specular sheen (zero dark scanlines; dynamic sheen handled by GPU SCREEN_FS in 3D mode) */
         drawEditorialGlassSheenOverlay(ctx, LW, LH, tokens.isLight, orbitYaw, orbitPitch, pointerSweepX, gpuSheenHandled);
 
         ctx.restore();

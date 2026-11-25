@@ -45,13 +45,13 @@
     };
 
     var MODEL_TRIGGER_TEXT_RE =
-      /(?:gemini|hydrogen|carbon|neon|argon|flash|claude|sonnet|opus|haiku|gpt|openai|o1|o3|o4|codex|orchestrator|编排|调度器)/i;
+      /(?:gemini|hydrogen|carbon|neon|argon|flash|claude|sonnet|opus|haiku|gpt|openai|o1|o3|o4|codex|orchestrator|المنسق|المجدول)/i;
 
     var EXCLUDED_FAMILY_RE =
-      /\b(?:orchestrator|claude|anthropic|sonnet|opus|haiku|gpt|openai|codex|deepseek|llama|mistral|qwen)\b|\bo[134](?:-[a-z0-9]+)?\b|编排|调度器/i;
+      /\b(?:orchestrator|claude|anthropic|sonnet|opus|haiku|gpt|openai|codex|deepseek|llama|mistral|qwen)\b|\bo[134](?:-[a-z0-9]+)?\b|المنسق|المجدول/i;
 
-    var ZH_EFFORT_PAREN_RE =
-      /\s*[（(]\s*(超高|极高|超深|高思考|中思考|低思考|极低|最低|深度思考|思考中?|中等|高|中|低|自动|关闭)\s*[)）]\s*$/;
+    var AR_EFFORT_PAREN_RE =
+      /\s*\(\s*(أقصى|فائق|عالي جدا|عالي جداً|عميق|عالي|متوسط|منخفض|أدنى|تلقائي|إيقاف|مغلق)\s*\)\s*$/;
 
     var EN_EFFORT_PAREN_RE =
       /\s*\(\s*(off|minimal|low|medium|med|high|xhigh|extra(?:\s+high)?|max|auto)(?:\s+thinking)?\s*\)\s*$/i;
@@ -80,11 +80,12 @@
       var w = String(raw || '').trim().toLowerCase();
       if (w === 'extra' || w === 'extrahigh' || w === 'extra high') return 'xhigh';
       if (w === 'med') return 'medium';
-      if (w === '超高' || w === '极高' || w === '超深') return 'xhigh';
-      if (w === '中' || w === '中等' || w === '中思考') return 'medium';
-      if (w === '低' || w === '低思考' || w === '极低' || w === '最低') return 'low';
-      if (w === '关闭') return 'off';
-      if (w === '高' || w === '高思考' || w === '深度思考' || w === '思考中' || w === '思考') return 'high';
+      if (w === 'فائق' || w === 'عالي جدا' || w === 'عالي جداً') return 'xhigh';
+      if (w === 'أقصى') return 'max';
+      if (w === 'متوسط') return 'medium';
+      if (w === 'منخفض' || w === 'أدنى') return 'low';
+      if (w === 'إيقاف' || w === 'مغلق') return 'off';
+      if (w === 'عالي' || w === 'عميق') return 'high';
       return EFFORT_VALID_MAP[w] ? w : '';
     }
 
@@ -97,9 +98,9 @@
           clean = res.baseName.trim();
         }
       }
-      var zm = ZH_EFFORT_PAREN_RE.exec(clean);
-      if (zm) {
-        clean = clean.slice(0, zm.index).trim();
+      var am = AR_EFFORT_PAREN_RE.exec(clean);
+      if (am) {
+        clean = clean.slice(0, am.index).trim();
       } else {
         var em = EN_EFFORT_PAREN_RE.exec(clean);
         if (em) {
@@ -1196,7 +1197,7 @@
             var dd = btn.getAttribute('data-disabled');
             if (dd !== null && dd !== undefined && dd !== 'false') return true;
             var al = btn.getAttribute('aria-label') || '';
-            if (/cannot be changed while.*running|运行中.*无法切换/i.test(al)) return true;
+            if (/cannot be changed while.*running|لا يمكن تغييره أثناء التشغيل/i.test(al)) return true;
           }
           var cls = typeof btn.className === 'string' ? btn.className : '';
           if (cls && cls.indexOf('cursor-not-allowed') !== -1) return true;
@@ -1489,7 +1490,7 @@
       if (activeHostCtx && Array.isArray(activeHostCtx.modelOptions)) {
         for (var j = 0; j < activeHostCtx.modelOptions.length; j += 1) {
           var mo = activeHostCtx.modelOptions[j];
-          if (mo && typeof mo.label === 'string' && /orchestrator|编排|调度器/i.test(mo.label)) {
+          if (mo && typeof mo.label === 'string' && /orchestrator|المنسق|المجدول/i.test(mo.label)) {
             return mo;
           }
         }

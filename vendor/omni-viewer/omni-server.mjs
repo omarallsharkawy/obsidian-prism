@@ -1,5 +1,5 @@
 // Obsidian Prism — Omni Local Streaming Gateway, Scoped Sandbox Server & Native File RPC Engine
-// 仅监听 127.0.0.1 随机空闲端口，每次启动生成 64 位 hex 主鉴权令牌 + 独立 HMAC 单目录沙盒子令牌，提供 HTTP 206 Range 流、HTML 沙盒与安全文件 RPC。
+// Listens strictly on 127.0.0.1 with an ephemeral port; generates a 64-char hex master auth token + per-directory HMAC sandbox sub-token per launch, serving HTTP 206 Range streams, HTML sandboxes, and secure file RPC.
 
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -30,7 +30,7 @@ const VIEWER_CSP = [
 ].join('; ');
 
 export const SANDBOX_HTML_CSP = "sandbox allow-scripts; connect-src 'none'; form-action 'none'; navigate-to 'none'";
-const SUPPORTED_VIEWER_LANGS = Object.freeze(['zh-CN', 'zh-TW', 'yue', 'en', 'ja', 'ko', 'es', 'fr', 'de']);
+const SUPPORTED_VIEWER_LANGS = Object.freeze(['en', 'ar']);
 
 const MIME_BY_EXT = Object.freeze({
   '.mp4': 'video/mp4',
@@ -161,7 +161,7 @@ const SENSITIVE_EXTS = new Set([
 
 const SENSITIVE_DIR_SEGMENTS = new Set(['.ssh', '.aws', '.gnupg', '.kube']);
 
-// 拦截远程 Windows UNC / SMB 路径（防 NetNTLMv2 哈希泄露，仅放行本地盘符或 WSL 回路）
+// Block remote Windows UNC / SMB paths to prevent NetNTLMv2 hash leakage (allow local drives and WSL loopback only)
 export function isBlockedUncPath(rawInput) {
   if (!rawInput || typeof rawInput !== 'string') return false;
   let s = rawInput.trim();
@@ -204,7 +204,7 @@ export function isBlockedUncPath(rawInput) {
         const uncHost = uncMatch[1].split(/[\\/]/)[0].toLowerCase();
         return uncHost !== 'localhost' && uncHost !== '127.0.0.1' && uncHost !== 'wsl.localhost' && uncHost !== 'wsl$';
       }
-      // 除本地盘符与本地回环 UNC 白名单外，拦截全部 NT 设备路径（如 GLOBALROOT\Device\LanmanRedirector / WebDavRedirector / Mup 等）
+      // Block all NT device paths outside the local drive and loopback UNC allowlist (e.g. GLOBALROOT\Device\LanmanRedirector / WebDavRedirector / Mup)
       return true;
     }
     const host = rest.split(/[\\/]/)[0].toLowerCase();
@@ -216,7 +216,7 @@ export function isBlockedUncPath(rawInput) {
   return false;
 }
 
-// 敏感凭据文件统一黑名单校验
+// Unified denylist check for sensitive credential files
 export function isSensitiveFilePath(filePath) {
   if (!filePath || typeof filePath !== 'string') return false;
   const normalized = filePath.replace(/\\/g, '/').replace(/\/+$/, '');
@@ -256,7 +256,7 @@ export function lookupMimeType(filePath, isBinary = false) {
   return isBinary ? 'application/octet-stream' : 'text/plain; charset=utf-8';
 }
 
-// 解析本地路径、file:// URI 以及 #L10-L20 / :10:5 / (10,5) 行号定位
+// Parse local paths, file:// URIs, and line/column locators (#L10-L20 / :10:5 / (10,5))
 export function parseRawPathInput(rawInput, workspaceHint = '') {
   let raw = String(rawInput || '').trim();
   if (!raw || raw.includes('\0')) {
@@ -367,7 +367,7 @@ function constantTimeTokenMatch(expectedHex, providedStr) {
   return crypto.timingSafeEqual(a, b);
 }
 
-// 回退切片尾部未闭合的 UTF-8 多字节序列（1~3 字节），避免跨分片拼接出现 \uFFFD 乱码
+// Trim incomplete trailing UTF-8 multi-byte sequences (1..3 bytes) so chunk boundaries never produce \uFFFD mojibake
 function trimIncompleteUtf8Tail(buf) {
   const len = buf.length;
   if (len < 4) return len;
@@ -380,7 +380,7 @@ function trimIncompleteUtf8Tail(buf) {
   if (idx < 0) return len;
   const lead = buf[idx];
   if (lead < 0x80) {
-    // 若最后几个是孤立延续字节，保留原长；正常 ASCII 结尾无需截断
+    // Keep original length for orphaned continuation bytes; normal ASCII endings need no truncation
     return len;
   }
   let expectedTotal = 0;
@@ -533,7 +533,9 @@ function buildFallbackViewerHtml(ctx) {
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
-  return `<!doctype html><html lang="${esc(ctx.lang || 'zh-CN')}" data-theme="${esc(ctx.theme || 'dark')}" data-ag-cs-corners="${esc(ctx.corners || 'balanced')}"><head><meta charset="utf-8"><title>${esc(ctx.name || 'Omni Workbench')}</title></head><body><main data-kind="${esc(ctx.kind)}" data-stream="${esc(ctx.streamUrl || '')}">${esc(ctx.name || ctx.kind)}</main></body></html>`;
+  const lang = String(ctx.lang || 'en').toLowerCase().startsWith('ar') ? 'ar' : 'en';
+  const dir = lang === 'ar' ? 'rtl' : 'ltr';
+  return `<!doctype html><html lang="${esc(lang)}" dir="${dir}" data-theme="${esc(ctx.theme || 'dark')}" data-ag-cs-corners="${esc(ctx.corners || 'balanced')}"><head><meta charset="utf-8"><title>${esc(ctx.name || 'Omni Workbench')}</title></head><body><main data-kind="${esc(ctx.kind)}" data-stream="${esc(ctx.streamUrl || '')}">${esc(ctx.name || ctx.kind)}</main></body></html>`;
 }
 
 export class OmniServer {
@@ -712,7 +714,7 @@ export class OmniServer {
     if (fetchSite === 'cross-site' && !isSandbox) {
       const fetchDest = typeof req.headers['sec-fetch-dest'] === 'string' ? req.headers['sec-fetch-dest'].trim().toLowerCase() : '';
       const fetchMode = typeof req.headers['sec-fetch-mode'] === 'string' ? req.headers['sec-fetch-mode'].trim().toLowerCase() : '';
-      // 允许本地桌面宿主 (vscode-file:// / https://127.0.0.1) 通过 iframe/video/audio 嵌入 /viewer 与 /stream，拒绝跨站 API 探测
+      // Allow local desktop hosts (vscode-file:// / https://127.0.0.1) to embed /viewer and /stream via iframe/video/audio; reject cross-site API probing
       if (isViewerOrStream && (trustedLocalOrigin || fetchMode === 'navigate' || fetchDest === 'iframe' || fetchDest === 'video' || fetchDest === 'audio' || fetchDest === 'font' || fetchDest === 'image')) {
         return true;
       }
@@ -875,7 +877,7 @@ export class OmniServer {
         return this._sendJson(res, 405, { ok: false, error: 'Method not allowed' });
       }
 
-      // 1. 单目录只读子令牌沙盒路由: /sandbox/<sandboxTok>/<mountId>/<relPath...>
+      // 1. Single-directory read-only sub-token sandbox route: /sandbox/<sandboxTok>/<mountId>/<relPath...>
       if (isSandboxRoute) {
         const rawSegs = rawPathname.slice('/sandbox/'.length).split('/');
         if (rawSegs.length < 3) {
@@ -933,7 +935,7 @@ export class OmniServer {
         return await this._serveFileStream(req, res, realTarget, { isSandbox: true });
       }
 
-      // 2. 主鉴权令牌常量时间校验（沙盒子令牌在此 100% 拒绝）
+      // 2. Constant-time master auth token verification (sandbox sub-tokens are strictly rejected here)
       const headerTok = typeof req.headers['x-prism-token'] === 'string' ? req.headers['x-prism-token'].trim() : '';
       const queryTok = u.searchParams.get('token') || '';
       const providedTok = headerTok || queryTok;
@@ -1086,8 +1088,9 @@ export class OmniServer {
         const accent = ['follow', 'cobalt', 'iris', 'amber', 'mono'].includes(rawAccent) ? rawAccent : 'follow';
         const rawCorners = u.searchParams.get('corners') || 'balanced';
         const corners = ['sharp', 'balanced', 'soft'].includes(rawCorners) ? rawCorners : 'balanced';
-        const rawLang = u.searchParams.get('lang') || 'zh-CN';
-        const lang = SUPPORTED_VIEWER_LANGS.includes(rawLang) ? rawLang : 'zh-CN';
+        const rawLang = String(u.searchParams.get('lang') || 'en').trim().toLowerCase();
+        const normLang = rawLang === 'ar' || rawLang.startsWith('ar-') || rawLang.startsWith('ar_') ? 'ar' : 'en';
+        const lang = SUPPORTED_VIEWER_LANGS.includes(normLang) ? normLang : 'en';
 
         const ctx = {
           baseUrl: this.baseUrl,
@@ -1284,7 +1287,7 @@ export class OmniServer {
         return { ok: false, blocked: true, error: 'Blocked remote UNC path' };
       }
 
-      // 分支 A: 网页或邮件协议白名单 (http / https / mailto)
+      // Branch A: Web or mail protocol allowlist (http / https / mailto)
       if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(rawTarget) && !/^[A-Za-z]:[\\/]/.test(rawTarget) && !/^file:\/\//i.test(rawTarget)) {
         let parsedUrl;
         try {
@@ -1321,7 +1324,7 @@ export class OmniServer {
         return { ok: true, target: safeHref, kind: 'url' };
       }
 
-      // 分支 B: 已存在且非敏感、非可执行脚本/快捷方式的本地文件（经 realpath 双重校验）
+      // Branch B: Existing non-sensitive, non-executable local file (double-verified via realpath)
       const parsed = parseRawPathInput(rawTarget, rawParams.workspaceHint || '');
       if (parsed.blockedUnc) return { ok: false, blocked: true, error: 'Blocked remote UNC path' };
       if (!parsed.cleanPath) return { ok: false, error: 'Invalid file path' };

@@ -11,9 +11,9 @@
   const SIDEBAR_RUN_HOLD_MS = 450;
   const STOP_TID_RE = /(?:^|[^a-z])(?:stop|cancel|abort)(?:[^a-z]|$)/i;
   const STOP_CAMEL_RE = /(?:^|[^a-zA-Z])(?:stop|cancel|abort)(?=[A-Z])|(?:Stop|Cancel|Abort)(?:[A-Z0-9_-]|$)/;
-  const STOP_LABEL_RE = /(?:^|\b)(?:stop|cancel|abort)(?:\b|$)|停止|取消|中止/i;
+  const STOP_LABEL_RE = /(?:^|\b)(?:stop|cancel|abort)(?:\b|$)|إيقاف|إلغاء/i;
   const NON_STOP_RE =
-    /取消置顶|取消固定|取消收藏|unpin|\b(?:pin|menu|more|options|delete|trash|archive|rename|close|dismiss)\b|置顶|固定|更多|菜单|选项|删除|归档|重命名/i;
+    /unpin|\b(?:pin|menu|more|options|delete|trash|archive|rename|close|dismiss)\b|إلغاء التثبيت|تثبيت|القائمة|المزيد|خيارات|حذف|أرشفة|إعادة التسمية|إغلاق/i;
   const HIGHLIGHT_NAMES = [0, 1, 2, 3, 4].map((i) => 'ag-stream-f' + i);
   const TABLE_TAGS = new Set('TABLE|THEAD|TBODY|TFOOT|TR|TH|TD'.split('|'));
   const INLINE_TAGS = new Set('SPAN|STRONG|EM|B|I|A|CODE|MARK|DEL|SUB|SUP'.split('|'));
@@ -441,7 +441,7 @@
       if (!isDestroyed() && !hydrateRaf) hydrateRaf = rAF(stepHydration);
     };
 
-    const STREAM_THOUGHT_RE = /(?:\.\.\.|…)\s*$|正在思考|思考中/i;
+    const STREAM_THOUGHT_RE = /(?:\.\.\.|…)\s*$|جاري التفكير|يفكر/i;
     const isStreamingThoughtTrigger = (trig, isLast) => {
       if (ga(trig, 'data-op-thought-state') === 'streaming') return true;
       if (!isLast) return false;
@@ -598,7 +598,7 @@
         }
         return;
       }
-      // 优先同步展开最新的 2 个工具组，其余历史组按帧每帧展开 2 个，避免切换长会话同步连环点击阻塞主线程
+      // Synchronously unfold the latest 2 tool groups first, then unfold 2 historical groups per frame to avoid blocking the main thread on long sessions
       for (let k = 0; k < 2 && pendingClicks.length > 0; k++) {
         const cb = pendingClicks.pop();
         if (isConn(cb) && ga(cb, 'aria-expanded') === 'false') {
@@ -975,7 +975,7 @@
         sbRunning = targetRun;
         return;
       }
-      // 虚拟滚动增删上下行会让同一会话的 DOM 下标 selIdx 漂移；仅在真实切换会话 ID 时触发滑条与主区转场，消除滚动闪烁
+      // Virtual scroll row insertion/removal shifts DOM index selIdx for the same session; only trigger indicator/main transition on real session ID changes to prevent scroll flicker
       const sessionChanged = curCid && sbCid ? curCid !== sbCid : selIdx !== sbIndex;
       if (sbIndex >= 0 && selIdx >= 0 && sessionChanged && sbRect && curSnap && !(suppressEntryMotionUntil > nowOf())) {
         const fromRect = listRect
@@ -1633,7 +1633,7 @@
         if (!ha(ov, 'data-hover-card-popup') && !seenOverlays.has(ov)) freshNew.push(ov);
       }
       if (freshNew.length === 0) return [];
-      // 仅在真有新浮层弹出时才懒测距点击源，消除普通正文点击时的同步回流
+      // Only lazily measure click origin when a new popover actually appears, eliminating synchronous reflow on normal body clicks
       const trig = resolveTriggerOriginCoords(heroState.lastTriggerOrigin);
       const out = [];
       for (const ov of freshNew) {

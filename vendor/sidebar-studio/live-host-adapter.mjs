@@ -1,8 +1,8 @@
-// Obsidian Prism v1.0.2 — 真机 Antigravity 宿主 CDP 适配层（Sidebar Studio v2）
-// - 严格遵守「零全局权限写入」铁律（globalPermissionWrites 恒为 0）
-// - 仅通过受控 evaluateInHost 调用渲染层 window.__agPrismSidebarHostOps.psp 项目级 4 Setter
-// - 支持 Win32 大小写/尾斜杠规范化 + WSL /mnt/<drive>/... 跨环境共享目录识别
-// - 任何宿主离线/超时/异常均保守返回失败或 ambiguous，绝不编造成功回执或盲写权限
+// Obsidian Prism v1.0.2 - Live Antigravity Host CDP Adapter (Sidebar Studio v2)
+// - Strictly enforces the zero global permission writes rule (globalPermissionWrites is always 0)
+// - Only invokes the 4 project-level setters on renderer window.__agPrismSidebarHostOps.psp via controlled evaluateInHost
+// - Supports Win32 case/trailing-slash normalization + WSL /mnt/<drive>/... cross-environment shared directory detection
+// - Any host offline/timeout/error conservatively returns failure or ambiguous; never fabricates success or writes blindly
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -24,10 +24,10 @@ function serializeJsonForEval(val) {
 }
 
 /**
- * 规范化本地目录路径，用于与活跃 Code 工作区比对：
- * - 统一扩展 UNC（`\\?\UNC\server\share\...`）与标准 UNC（`\\server\share\...`）为 `//server/share/...`
- * - 支持将 WSL 挂载路径 `/mnt/c/foo/bar` 归一为 `c:/foo/bar`（与 Win32 `C:\foo\bar` 跨环境一致比对）
- * - 统一正斜杠、去除末尾多余斜杠；在 Windows、UNC 与 WSL 盘符路径上统一小写比对
+ * Normalize a local directory path for comparison with active Code workspaces:
+ * - Unify extended UNC (`\\?\UNC\server\share\...`) and standard UNC (`\\server\share\...`) to `//server/share/...`
+ * - Normalize WSL mount paths `/mnt/c/foo/bar` to `c:/foo/bar` for cross-environment comparison with Win32 `C:\foo\bar`
+ * - Unify forward slashes and strip trailing slashes; lowercase for Windows, UNC, and WSL drive paths
  */
 export function normalizeHostPathKey(rawPath) {
   if (typeof rawPath !== 'string') return '';
@@ -125,7 +125,7 @@ function sanitizeCatalogItem(raw) {
 }
 
 /**
- * 构建用于 Antigravity 真机守护进程（daemon / inject）的实时 CDP Host Adapter。
+ * Build the live CDP Host Adapter for the Antigravity daemon / inject runtime.
  * @param {object} options
  * @param {(expression: string, timeoutMs?: number) => Promise<any>} options.evaluateInHost
  * @param {(msg: string) => void} [options.logger]
@@ -170,14 +170,14 @@ export function createLiveHostAdapter(options = {}) {
     ) {
       return true;
     }
-    // 分段边界祖先/后代关系比对（覆盖目录树级递归项目权限场景）
+    // Segment-boundary ancestor/descendant comparison (covers recursive directory-tree project permissions)
     for (const existingKey of codeDirKeys) {
       if (!existingKey || existingKey.startsWith('id:')) continue;
       if (isSameOrNestedPathKey(realKey, existingKey) || isSameOrNestedPathKey(normKey, existingKey)) {
         return true;
       }
     }
-    // 同步比对当前目录列表中已知 Code 会话的 workspacePath（含物理 File ID 与祖先/后代目录树）
+    // Also compare against known Code session workspacePath entries (including physical File ID and ancestor/descendant trees)
     for (const it of catalog.items) {
       if (!it || !it.workspacePath) continue;
       const wk = resolveRealPathKey(it.workspacePath);
@@ -234,7 +234,7 @@ export function createLiveHostAdapter(options = {}) {
     ) {
       return { ok: false, error: 'invalid-host-op' };
     }
-    // 以 JSON 字符串字面量传入后在宿主内用 JSON.parse 构造，彻底杜绝 __proto__ 对象字面量原型改写
+    // Pass as a JSON string literal and construct via JSON.parse inside the host to eliminate __proto__ object literal prototype pollution
     const argStrLiteral = serializeJsonForEval(JSON.stringify(argObj === undefined ? null : argObj));
     const expr = `(async () => {
       try {
@@ -368,7 +368,7 @@ export function createLiveHostAdapter(options = {}) {
           prevById[item.cascadeId] = item;
           recentlyDelivered.delete(item.cascadeId);
         }
-        // 在宿主 Redux trajectorySummaries 异步流推送到达前，短窗口保留刚送达的 Chat 会话，防止误判为已删除回退 `/`
+        // Before host Redux trajectorySummaries async push arrives, retain newly delivered Chat sessions briefly to avoid falsely falling back to `/`
         for (const [cid, entry] of recentlyDelivered.entries()) {
           if (!entry || now - entry.ts > OPTIMISTIC_DELIVERY_TTL_MS || deletedTombstones.has(cid) || FORBIDDEN_OBJECT_KEYS.has(cid)) {
             recentlyDelivered.delete(cid);
@@ -380,7 +380,7 @@ export function createLiveHostAdapter(options = {}) {
             prevById[cid] = entry.item;
           }
         }
-        // 上界保护：lastKnownById 严格不超过 2000 条（优先保留当前可见 seen 按 updatedAt 最新，再补最新历史）
+        // Upper-bound guard: keep lastKnownById strictly <= 2000 entries (prioritize currently visible seen items by updatedAt, then recent history)
         const MAX_LAST_KNOWN_CATALOG = 2000;
         const prevKeys = Object.keys(prevById);
         let boundedById = prevById;
@@ -478,7 +478,7 @@ export function createLiveHostAdapter(options = {}) {
         if (candidatePath) {
           if (checkPathSharedWithCode(candidatePath)) return false;
         } else if (!scopeMeta || typeof scopeMeta.sharedWithCode !== 'boolean') {
-          // 既未显式提供 sharedWithCode 结论又缺少已注册路径，保守拒绝盲判已隔离
+          // Neither explicit sharedWithCode result nor registered path available; conservatively refuse to assume isolation
           return false;
         }
       }
@@ -608,7 +608,7 @@ export function createLiveHostAdapter(options = {}) {
       if (!res || res.ok !== true) {
         return { ok: false, error: res?.error || 'host-annotations-failed' };
       }
-      // 乐观更新本地缓存的 catalog 项（标题/置顶/归档），避免等待下一帧 Redux 推送
+      // Optimistically update locally cached catalog item (title/pinned/archived) without waiting for the next Redux push
       const items = Array.isArray(catalog.items) ? catalog.items.slice() : [];
       const idx = items.findIndex((x) => x && x.cascadeId === cascadeId);
       if (idx >= 0 && isPlainObject(annotations) && !FORBIDDEN_OBJECT_KEYS.has(cascadeId)) {
@@ -649,7 +649,7 @@ export function createLiveHostAdapter(options = {}) {
       }
       const delivered = Boolean(res.delivered);
       const confirmedNotReceived = Boolean(res.confirmedNotReceived);
-      // 矛盾终态（同时声称已送达与未收到）一律按不确定处理，严禁盲目重发
+      // Contradictory terminal states (claiming both delivered and not-received) are always treated as ambiguous; never resend blindly
       if (delivered && confirmedNotReceived) {
         return { delivered: false, confirmedNotReceived: false, cascadeId };
       }

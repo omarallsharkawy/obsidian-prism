@@ -177,40 +177,6 @@
     }
 
     var PP_I18N = {
-      'zh-CN': {
-        tierOrch: '常规步骤卸载至 1H (~168 tok/s)', tierLocked: '暗刻阳极盲键 · 0.00U 锁定态', tierAuxSingle: '0.76U 反重力悬浮 + 自适应推理',
-        tierXHigh: 'Extra · 1.06U 满功率三环全息场', tierHigh: 'High · 0.88U 折光微晶光柱悬浮', tierMed: 'Medium · 0.64U 双磁通环均衡悬浮', tierLow: 'Low · 0.40U 轻盈疾速低延迟微浮',
-        sessPre: '当前会话：', sessSuf: ' · 点选已点亮键帽即可切换',
-        nonPlanner: '编排态不可选', reserved: '预留槽位', clickOrch: '点击锁存双核编排', compare: '悬停对比', active: '当前激活', orchLatched: '编排锁存 · 点 #0 解锁', standby: '待机盲键',
-        effDefault: '默认', notInOrch: '该模型不在编排主核白名单内 · 解锁 #0 Orch 后可单独调用',
-        orch1HTagline: '编排态下 1H 自动作为后台高速执行核 (~168 tok/s)，不可设为主规划核',
-        orchLockedTags: ['编排态锁定', '1H 后台执行', '解锁可直连'],
-        tierNonPlanner: 'NON-PLANNER · 编排态锁定', tierOrchSwitch: '#0 机械自锁开关 · 主核 + 1H 并发',
-        unrelNonPlanner: 'NON-PLANNER · 编排态不可选', unrelAuxBlind: '未开放 · 副盘暗刻盲键',
-        unrelNoModels: '当前宿主未返回可用元素模型', unrelStandby: '未发布 · 待机盲键',
-        thinkDepth: '思考深度', thinkMode: '思考深度', plannerStatus: '编排状态', elemStatus: '元素状态',
-        grpPre: '第 ', grpSuf: ' 族', elemSeriesSuf: 'Google 元素直连模型', blindDescSuf: '尚未开放的化学元素键位', blindSubSuf: '物理待机盲键',
-        synced: '已同步会话', pickerAria: 'Google 元素周期表 3D 模型选择器', hudAria: '三维视角复位与无障碍快切栏',
-        resetTitle: '复位三维视角 (R)', resetLbl: '回正',
-        muteOn: '已静音（点击开启机械轴音效）', muteOff: '切换机械键盘音效', muteInit: '切换机械键盘音效', closeLbl: '确认并关闭',
-      },
-      'zh-TW': {
-        tierOrch: '常規步驟卸載至 1H (~168 tok/s)', tierLocked: '暗刻陽極盲鍵 · 0.00U 鎖定態', tierAuxSingle: '0.76U 反重力懸浮 + 自適應推理',
-        tierXHigh: 'Extra · 1.06U 滿功率三環全像場', tierHigh: 'High · 0.88U 折光微晶光柱懸浮', tierMed: 'Medium · 0.64U 雙磁通環均衡懸浮', tierLow: 'Low · 0.40U 輕盈疾速低延遲微浮',
-        sessPre: '目前工作階段：', sessSuf: ' · 點選已點亮鍵帽即可切換',
-        nonPlanner: '編排態不可選', reserved: '預留槽位', clickOrch: '點擊鎖存雙核編排', compare: '懸停對比', active: '目前啟用', orchLatched: '編排鎖存 · 點 #0 解鎖', standby: '待機盲鍵',
-        effDefault: '預設', notInOrch: '此模型不在編排主核白名單內 · 解鎖 #0 Orch 後可單獨呼叫',
-        orch1HTagline: '編排態下 1H 自動作為背景高速執行核 (~168 tok/s)，不可設為主規劃核',
-        orchLockedTags: ['編排態鎖定', '1H 背景執行', '解鎖可直連'],
-        tierNonPlanner: 'NON-PLANNER · 編排態鎖定', tierOrchSwitch: '#0 機械自鎖開關 · 主核 + 1H 並發',
-        unrelNonPlanner: 'NON-PLANNER · 編排態不可選', unrelAuxBlind: '未開放 · 副盤暗刻盲鍵',
-        unrelNoModels: '目前宿主未回傳可用元素模型', unrelStandby: '未發布 · 待機盲鍵',
-        thinkDepth: '思考深度', thinkMode: '思考深度', plannerStatus: '編排狀態', elemStatus: '元素狀態',
-        grpPre: '第 ', grpSuf: ' 族', elemSeriesSuf: 'Google 元素直連模型', blindDescSuf: '尚未開放的化學元素鍵位', blindSubSuf: '實體待機盲鍵',
-        synced: '已同步工作階段', pickerAria: 'Google 元素週期表 3D 模型選擇器', hudAria: '三維視角重設與無障礙快切列',
-        resetTitle: '重設三維視角 (R)', resetLbl: '重設',
-        muteOn: '已靜音（點擊開啟機械軸音效）', muteOff: '切換機械鍵盤音效', muteInit: '切換機械鍵盤音效', closeLbl: '確認並關閉',
-      },
       en: {
         tierOrch: 'Routine steps offloaded to 1H (~168 tok/s)', tierLocked: 'Anodized Blind Key · 0.00U Locked', tierAuxSingle: '0.76U Levitation + Adaptive Mode',
         tierXHigh: 'Extra · 1.06U 3-Ring Holographic Field', tierHigh: 'High · 0.88U Crystal Pillar Lift', tierMed: 'Medium · 0.64U Dual-Flux Balanced Lift', tierLow: 'Low · 0.40U Agile Low-Latency Float',
@@ -228,99 +194,35 @@
         resetTitle: 'Reset 3D View (R)', resetLbl: 'Reset',
         muteOn: 'Audio muted (Click to unmute)', muteOff: 'Toggle Mechanical Keycap Audio', muteInit: 'Toggle Mechanical Keycap Audio', closeLbl: 'Confirm and close',
       },
-      ja: {
-        tierOrch: '通常処理は 1H (~168 tok/s) へ自動オフロード', tierLocked: '陽極酸化ブラインドキー · 0.00U ロック', tierAuxSingle: '0.76U 浮揚 + アダプティブ推論',
-        tierXHigh: 'Extra · 1.06U フル出力3連ホログラム場', tierHigh: 'High · 0.88U 屈折クリスタル浮揚', tierMed: 'Medium · 0.64U デュアル磁束バランス', tierLow: 'Low · 0.40U 軽量・低遅延フロート',
-        sessPre: '現在のセッション：', sessSuf: ' · 点灯キーをクリックして切替',
-        nonPlanner: 'オーケストラ非対象', reserved: '予約枠', clickOrch: 'クリックで二重コア固定', compare: 'ホバー比較', active: '現在選択中', orchLatched: 'ORCH 固定中', standby: '待機キー',
-        effDefault: '既定', notInOrch: '計画コア対象外 · #0 Orch 解除で単独利用可能',
-        orch1HTagline: 'オーケストラ時は 1H が高速実行コア (~168 tok/s) として動作',
-        orchLockedTags: ['ORCH 固定', '1H 実行コア', '単独呼出可'],
-        tierNonPlanner: 'NON-PLANNER · オーケストラ固定', tierOrchSwitch: '#0 ラッチスイッチ · 計画 + 1H 並列',
-        unrelNonPlanner: 'NON-PLANNER · オーケストラ固定', unrelAuxBlind: '未開放 · サブキー盲鍵',
-        unrelNoModels: '利用可能な元素モデルがありません', unrelStandby: '未公開 · 待機 PBT キー',
-        thinkDepth: '推論レベル', thinkMode: '推論モード', plannerStatus: '計画コア状態', elemStatus: '元素ステータス',
-        grpPre: '第 ', grpSuf: ' 族', elemSeriesSuf: 'Google 元素モデル', blindDescSuf: '未公開の元素キーキャップ', blindSubSuf: '待機キーキャップ',
-        synced: '同期済', pickerAria: '周期表 3D モデルピッカー', hudAria: '3D 視点リセット・操作バー',
-        resetTitle: '3D 視点をリセット (R)', resetLbl: 'リセット',
-        muteOn: '消音中（クリックでサウンド有効）', muteOff: 'メカニカルキー音を切替', muteInit: 'メカニカルキー音を切替', closeLbl: '確定して閉じる',
-      },
-      ko: {
-        tierOrch: '일반 단계는 1H (~168 tok/s)로 오프로드', tierLocked: '아노다이징 블라인드 키 · 0.00U 잠금', tierAuxSingle: '0.76U 부양 + 적응형 추론',
-        tierXHigh: 'Extra · 1.06U 풀파워 3링 홀로그램', tierHigh: 'High · 0.88U 크리스탈 필러 리프트', tierMed: 'Medium · 0.64U 듀얼 플럭스 균형', tierLow: 'Low · 0.40U 저지연 경량 플로트',
-        sessPre: '현재 세션: ', sessSuf: ' · 켜진 키캡을 눌러 전환',
-        nonPlanner: '플래너 제외', reserved: '예약 슬롯', clickOrch: '클릭하여 ORCH 잠금', compare: '비교 미리보기', active: '활성화됨', orchLatched: 'ORCH 잠금', standby: '대기 키',
-        effDefault: '기본값', notInOrch: 'Orchestrator 플래너 허용 목록 외 · #0 Orch 해제 시 단독 사용',
-        orch1HTagline: '오케스트레이션 모드에서 1H는 고속 실행 코어(~168 tok/s)로 작동',
-        orchLockedTags: ['Orch 잠금', '1H 러너', '단독 사용'],
-        tierNonPlanner: 'NON-PLANNER · 오케스트레이션 잠금', tierOrchSwitch: '#0 래치 스위치 · 플래너 + 1H',
-        unrelNonPlanner: 'NON-PLANNER · 오케스트레이션 잠금', unrelAuxBlind: '예약됨 · 블라인드 매크로 키',
-        unrelNoModels: '사용 가능한 원소 모델 없음', unrelStandby: '대기 · 매트 PBT 키캡',
-        thinkDepth: '사고 수준', thinkMode: '사고 모드', plannerStatus: '플래너 상태', elemStatus: '원소 상태',
-        grpPre: '', grpSuf: '족', elemSeriesSuf: 'Google 원소 시리즈', blindDescSuf: '미공개 원소 키캡', blindSubSuf: '대기 키캡',
-        synced: '동기화됨', pickerAria: '주기율표 3D 모델 선택기', hudAria: '3D 뷰 초기화 및 접근성 도구',
-        resetTitle: '3D 뷰 초기화 (R)', resetLbl: '초기화',
-        muteOn: '음소거됨 (클릭하여 소리 켜기)', muteOff: '기계식 키캡 사운드 전환', muteInit: '기계식 키캡 사운드 전환', closeLbl: '확인 및 닫기',
-      },
-      es: {
-        tierOrch: 'Pasos rutinarios delegados a 1H (~168 tok/s)', tierLocked: 'Tecla ciega anodizada · 0.00U', tierAuxSingle: '0.76U Levitación + Modo adaptable',
-        tierXHigh: 'Extra · 1.06U Campo holográfico triple', tierHigh: 'High · 0.88U Elevación cristalina', tierMed: 'Medium · 0.64U Flujo dual equilibrado', tierLow: 'Low · 0.40U Flotación ágil baja latencia',
-        sessPre: 'Sesión actual: ', sessSuf: ' · Haz clic en una tecla activa para cambiar',
-        nonPlanner: 'NO PLANIF.', reserved: 'RESERVADO', clickOrch: 'CLIC PARA ANCLAR ORCH', compare: 'COMPARAR', active: 'ACTIVO', orchLatched: 'ORCH ANCLADO', standby: 'ESPERA',
-        effDefault: 'Predet.', notInOrch: 'Fuera de la lista de planificadores de Orchestrator · Desancla #0 Orch para usar solo',
-        orch1HTagline: 'En modo Orch, 1H actúa como ejecutor rápido (~168 tok/s)',
-        orchLockedTags: ['Bloqueado Orch', 'Ejecutor 1H', 'Independiente'],
-        tierNonPlanner: 'NON-PLANNER · Bloqueado en Orch', tierOrchSwitch: 'Interruptor #0 · Planificador + 1H',
-        unrelNonPlanner: 'NON-PLANNER · Bloqueado en Orch', unrelAuxBlind: 'Reservada · Tecla macro ciega',
-        unrelNoModels: 'No se detectaron modelos activos', unrelStandby: 'En espera · Tecla PBT mate',
-        thinkDepth: 'Nivel de pensamiento', thinkMode: 'Modo de pensamiento', plannerStatus: 'Estado del planificador', elemStatus: 'Estado del elemento',
-        grpPre: 'Grupo ', grpSuf: '', elemSeriesSuf: 'Serie Elemento Google', blindDescSuf: 'Tecla de elemento no lanzada', blindSubSuf: 'Tecla en espera',
-        synced: 'SINCRONIZADO', pickerAria: 'Selector 3D Tabla Periódica', hudAria: 'Controles de vista 3D y accesibilidad',
-        resetTitle: 'Restablecer vista 3D (R)', resetLbl: 'Restablecer',
-        muteOn: 'Silenciado (clic para activar sonido)', muteOff: 'Alternar sonido mecánico', muteInit: 'Alternar sonido mecánico', closeLbl: 'Confirmar y cerrar',
-      },
-      fr: {
-        tierOrch: 'Étapes courantes déchargées sur 1H (~168 tok/s)', tierLocked: 'Touche aveugle anodisée · 0.00U', tierAuxSingle: '0.76U Lévitation + Mode adaptatif',
-        tierXHigh: 'Extra · 1.06U Champ holographique 3 anneaux', tierHigh: 'High · 0.88U Pilier cristal', tierMed: 'Medium · 0.64U Double flux équilibré', tierLow: 'Low · 0.40U Flottement rapide',
-        sessPre: 'Session en cours : ', sessSuf: ' · Cliquez sur une touche allumée pour changer',
-        nonPlanner: 'HORS PLANIF.', reserved: 'RÉSERVÉ', clickOrch: 'CLIQUER POUR VERROUILLER ORCH', compare: 'COMPARER', active: 'ACTIF', orchLatched: 'ORCH VERROUILLÉ', standby: 'VEILLE',
-        effDefault: 'Défaut', notInOrch: 'Hors liste des planificateurs Orchestrator · Déverrouillez #0 Orch',
-        orch1HTagline: 'En mode Orch, 1H s’exécute en arrière-plan rapide (~168 tok/s)',
-        orchLockedTags: ['Verrouillé Orch', 'Exécuteur 1H', 'Autonome'],
-        tierNonPlanner: 'NON-PLANNER · Verrouillé Orch', tierOrchSwitch: 'Interrupteur #0 · Planif. + 1H',
-        unrelNonPlanner: 'NON-PLANNER · Verrouillé Orch', unrelAuxBlind: 'Réservé · Touche macro aveugle',
-        unrelNoModels: 'Aucun modèle élément actif détecté', unrelStandby: 'En veille · Touche PBT mat',
-        thinkDepth: 'Niveau de réflexion', thinkMode: 'Mode de réflexion', plannerStatus: 'Statut planificateur', elemStatus: 'Statut élément',
-        grpPre: 'Groupe ', grpSuf: '', elemSeriesSuf: 'Série Élément Google', blindDescSuf: 'Touche élément non publiée', blindSubSuf: 'Touche en veille',
-        synced: 'SYNCHRONISÉ', pickerAria: 'Sélecteur 3D Tableau Périodique', hudAria: 'Réinitialisation vue 3D et accessibilité',
-        resetTitle: 'Réinitialiser la vue 3D (R)', resetLbl: 'Réinit.',
-        muteOn: 'Son coupé (cliquer pour réactiver)', muteOff: 'Basculer le son mécanique', muteInit: 'Basculer le son mécanique', closeLbl: 'Confirmer et fermer',
-      },
-      de: {
-        tierOrch: 'Routinen auf 1H ausgelagert (~168 tok/s)', tierLocked: 'Eloxierte Blindtaste · 0.00U', tierAuxSingle: '0.76U Levitation + Adaptivmodus',
-        tierXHigh: 'Extra · 1.06U 3-Ring-Hologrammfeld', tierHigh: 'High · 0.88U Kristallsäulen-Hub', tierMed: 'Medium · 0.64U Dual-Flux-Balance', tierLow: 'Low · 0.40U Flinker Low-Latency-Hub',
-        sessPre: 'Aktuelle Sitzung: ', sessSuf: ' · Beleuchtete Taste zum Wechseln klicken',
-        nonPlanner: 'KEIN PLANER', reserved: 'RESERVIERT', clickOrch: 'KLICKEN FÜR ORCH-MODUS', compare: 'VERGLEICH', active: 'AKTIV', orchLatched: 'ORCH AKTIV', standby: 'BEREIT',
-        effDefault: 'Standard', notInOrch: 'Nicht in der Orchestrator-Planerliste · #0 Orch lösen für Einzelbetrieb',
-        orch1HTagline: 'Im Orch-Modus läuft 1H als schneller Hintergrund-Runner (~168 tok/s)',
-        orchLockedTags: ['Orch-gesperrt', '1H-Runner', 'Eigenständig'],
-        tierNonPlanner: 'NON-PLANNER · In Orch gesperrt', tierOrchSwitch: '#0 Rastschalter · Planer + 1H',
-        unrelNonPlanner: 'NON-PLANNER · In Orch gesperrt', unrelAuxBlind: 'Reserviert · Blinde Makrotaste',
-        unrelNoModels: 'Keine aktiven Elementmodelle erkannt', unrelStandby: 'Standby · Matte PBT-Taste',
-        thinkDepth: 'Denktiefe', thinkMode: 'Denkmodus', plannerStatus: 'Planer-Status', elemStatus: 'Element-Status',
-        grpPre: 'Gruppe ', grpSuf: '', elemSeriesSuf: 'Google-Elementserie', blindDescSuf: 'Unveröffentlichte Elementtaste', blindSubSuf: 'Standby-Taste',
-        synced: 'SYNCHRONISIERT', pickerAria: 'Periodensystem 3D-Modellauswahl', hudAria: '3D-Ansicht zurücksetzen & Bedienung',
-        resetTitle: '3D-Ansicht zurücksetzen (R)', resetLbl: 'Reset',
-        muteOn: 'Stummgeschaltet (klicken für Ton)', muteOff: 'Mechanisches Tastenklicken umschalten', muteInit: 'Mechanisches Tastenklicken umschalten', closeLbl: 'Bestätigen und schließen',
+      ar: {
+        tierOrch: 'تُفرَّغ الخطوات الروتينية إلى 1H (~168 tok/s)', tierLocked: 'مفتاح مؤكسد خامل · 0.00U مقفل', tierAuxSingle: 'رفع 0.76U + وضع تكيّفي',
+        tierXHigh: 'فائق · حقل ثلاثي الحلقات 1.06U', tierHigh: 'عالي · رفع عمود بلوري 0.88U', tierMed: 'متوسط · رفع ثنائي متوازن 0.64U', tierLow: 'منخفض · طفو سريع منخفض الكمون 0.40U',
+        sessPre: 'الجلسة الحالية: ', sessSuf: ' · انقر مفتاحاً مضيئاً للتبديل',
+        nonPlanner: 'خارج التخطيط', reserved: 'محجوز', clickOrch: 'انقر لقفل التنسيق المزدوج', compare: 'مقارنة', active: 'نشط', orchLatched: 'التنسيق مقفل · انقر #0 للفك', standby: 'استعداد',
+        effDefault: 'افتراضي', notInOrch: 'خارج قائمة مخطّطي المنسّق · فك قفل #0 Orch للاستخدام المنفرد',
+        orch1HTagline: 'في وضع التنسيق يعمل 1H كمنفّذ خلفي سريع (~168 tok/s) · فك قفل #0 Orch للاستخدام المنفرد',
+        orchLockedTags: ['مقفل بالتنسيق', 'منفّذ 1H', 'استخدام منفرد'],
+        tierNonPlanner: 'خارج التخطيط · مقفل في التنسيق', tierOrchSwitch: 'مفتاح القفل #0 · المخطّط + 1H',
+        unrelNonPlanner: 'خارج التخطيط · مقفل في التنسيق', unrelAuxBlind: 'محجوز · مفتاح ماكرو خامل',
+        unrelNoModels: 'لم يتم اكتشاف نماذج عناصر حيّة', unrelStandby: 'استعداد · غطاء PBT مطفي',
+        thinkDepth: 'عمق التفكير', thinkMode: 'وضع التفكير', plannerStatus: 'حالة المخطّط', elemStatus: 'حالة العنصر',
+        grpPre: 'المجموعة ', grpSuf: '', elemSeriesSuf: 'سلسلة عناصر Google', blindDescSuf: 'عنصر كيميائي غير مُطلق بعد', blindSubSuf: 'مفتاح استعداد خامل',
+        synced: 'متزامن', pickerAria: 'منتقي نماذج الجدول الدوري ثلاثي الأبعاد', hudAria: 'إعادة ضبط المنظور ثلاثي الأبعاد وإمكانية الوصول',
+        resetTitle: 'إعادة ضبط المنظور ثلاثي الأبعاد (R)', resetLbl: 'إعادة ضبط',
+        muteOn: 'الصوت مكتوم (انقر لتشغيل صوت المفاتيح)', muteOff: 'تبديل صوت المفاتيح الميكانيكية', muteInit: 'تبديل صوت المفاتيح الميكانيكية', closeLbl: 'تأكيد وإغلاق',
       },
     };
-    function getPpI18nPack(langOrZh) {
-      if (typeof langOrZh === 'string') return PP_I18N[langOrZh] || PP_I18N.en;
-      return langOrZh ? PP_I18N['zh-CN'] : PP_I18N.en;
+    function getPpI18nPack(langOrFlag) {
+      if (typeof langOrFlag === 'string') {
+        var norm = String(langOrFlag || '').trim().toLowerCase().replace(/_/g, '-');
+        if (norm === 'ar' || norm.indexOf('ar-') === 0 || norm === 'arabic') return PP_I18N.ar;
+        return PP_I18N.en;
+      }
+      return PP_I18N.en;
     }
 
-    function formatAntigravTierNote(activeEffortCode, isAvailable, isAuxSingle, langOrZh, isOrchActive) {
-      var pk = getPpI18nPack(langOrZh);
+    function formatAntigravTierNote(activeEffortCode, isAvailable, isAuxSingle, langOrFlag, isOrchActive) {
+      var pk = getPpI18nPack(langOrFlag);
       if (isOrchActive && isAvailable) return pk.tierOrch;
       if (!isAvailable) return pk.tierLocked;
       if (isAuxSingle) return pk.tierAuxSingle;
@@ -619,7 +521,7 @@
       var swatchesWrapEl = null;
       var activeRenderer = null;
       var dockResizeObserver = null;
-      /* 离屏 DOM 壳与遥测缓存（正常 close 保留以便热开 <16ms，hidden/destroy/releaseHeavyCaches 立即释放） */
+      /* Detached DOM shell & telemetry cache (kept on normal close for <16ms warm open; freed immediately on hidden/destroy/releaseHeavyCaches) */
       var cachedShell = null;
       var cachedHostTelemetry = null;
       var activeHudElementsKey = '';
@@ -1022,7 +924,7 @@
         var hay = (txt + ' ' + mid).toLowerCase();
         if (!hay.trim()) return null;
 
-        if (/orchestrator|编排|调度器/.test(hay)) {
+        if (/orchestrator|المنسق|المجدول/.test(hay)) {
           return {
             kind: 'aux',
             auxId: 'orchestrator',
@@ -1932,7 +1834,7 @@
         return 6;
       }
 
-      function resolveCommittedCompareBaseline(zh) {
+      function resolveCommittedCompareBaseline(langOrAr) {
         if (
           selectedGlobalAuxIndex !== null &&
           effectiveAuxAll[selectedGlobalAuxIndex] &&
@@ -1942,7 +1844,7 @@
           if (isGlobalOrchToggleSlot(selectedGlobalAuxIndex, sAux)) return null;
           var sAuxLvl = resolveLevelForAuxWithMemory(sAux, selectedGlobalAuxIndex, '');
           var sAuxEff = sAuxLvl ? sAuxLvl.effort : 'high';
-          var auxBench = catalog.resolveBenchmarkMetrics(sAux.id, sAuxEff, zh, true);
+          var auxBench = catalog.resolveBenchmarkMetrics(sAux.id, sAuxEff, langOrAr, true);
           if (!auxBench || !auxBench.isKnownBenchmark) return null;
           return {
             kind: 'aux',
@@ -1959,7 +1861,7 @@
             var sDef = resolveLevelForElementWithMemory(sEntry, '');
             sEff = sDef ? sDef.effort : 'high';
           }
-          var elBench = catalog.resolveBenchmarkMetrics(selectedZ, sEff, zh, true);
+          var elBench = catalog.resolveBenchmarkMetrics(selectedZ, sEff, langOrAr, true);
           if (!elBench || !elBench.isKnownBenchmark) return null;
           return {
             kind: 'element',
@@ -1971,7 +1873,8 @@
         return null;
       }
 
-      function resolveCommittedTelemetrySpec(zh) {
+      function resolveCommittedTelemetrySpec(langOrAr) {
+        var isAr = langOrAr === true || langOrAr === 'ar';
         if (
           selectedGlobalAuxIndex !== null &&
           effectiveAuxAll[selectedGlobalAuxIndex] &&
@@ -2022,7 +1925,7 @@
           compactPillLabel: isOrchMain ? 'ORCH · ' + cTag + ' + 1H' : cTag + ' · ' + cEffLabel,
           switchSpec: formatSwitchSpecText(
             cEff || 'high',
-            zh ? cProf.switchSpecZh : cProf.switchSpecEn,
+            isAr ? (cProf.switchSpecAr || cProf.switchSpecEn) : cProf.switchSpecEn,
             Boolean(cEntry),
             cEntry && cEntry.levels ? cEntry.levels.length <= 1 : false
           ),
@@ -2045,12 +1948,15 @@
 
       function resolveCurrentLang() {
         if (typeof bentoUi.resolveLocale === 'function') return bentoUi.resolveLocale(doc, root);
-        return bentoUi.isZhLocale(doc, root) ? 'zh-CN' : 'en';
+        if (typeof bentoUi.isArLocale === 'function') return bentoUi.isArLocale(doc, root) ? 'ar' : 'en';
+        return 'en';
       }
 
-      function buildCurrentDeckPayload(langOrZh) {
-        var langCode = typeof langOrZh === 'string' ? langOrZh : (langOrZh ? 'zh-CN' : 'en');
-        var zh = langCode === 'zh-CN' || langCode === 'zh-TW';
+      function buildCurrentDeckPayload(langOrAr) {
+        var langCode = typeof langOrAr === 'string'
+          ? (langOrAr === 'ar' ? 'ar' : 'en')
+          : (langOrAr === true ? 'ar' : 'en');
+        var isAr = langCode === 'ar';
         var pk = getPpI18nPack(langCode);
         var currentSessionOpt = activeHostCtx && activeHostCtx.selectedModel;
         var currentParsed = catalog.parseElementModelLabel(currentSessionOpt);
@@ -2060,7 +1966,7 @@
           sessionBanner = pk.sessPre + rawName + pk.sessSuf;
         }
 
-        var runnerBench1H = orchLatched ? catalog.resolveBenchmarkMetrics(1, 'high', zh, true) : null;
+        var runnerBench1H = orchLatched ? catalog.resolveBenchmarkMetrics(1, 'high', langCode, true) : null;
         var activePlannerTopo = resolveActivePlannerTopologyLabel();
 
         var blindFlashSlot = blindFlashZ !== null ? SLOT_BY_Z.get(blindFlashZ) || null : null;
@@ -2101,7 +2007,7 @@
           isHoverPreview = false;
         }
 
-        var baseline = !orchLatched && isHoverPreview ? resolveCommittedCompareBaseline(zh) : null;
+        var baseline = !orchLatched && isHoverPreview ? resolveCommittedCompareBaseline(langCode) : null;
 
         if (inspectAuxSlot) {
           var fullOrigAux =
@@ -2137,7 +2043,7 @@
           var isOrchAuxPlanner = Boolean(orchLatched && !isOrchTogglePreview && inspectAuxSlot.available);
           var auxBenchKey = isOrchTogglePreview ? 6 : inspectAuxSlot.id;
           var auxBenchKnown = Boolean(inspectAuxSlot.available || isNonPlannerAuxLocked);
-          var auxBench = catalog.resolveBenchmarkMetrics(auxBenchKey, activeAuxEff || 'high', zh, auxBenchKnown);
+          var auxBench = catalog.resolveBenchmarkMetrics(auxBenchKey, activeAuxEff || 'high', langCode, auxBenchKnown);
           var auxHasBench = Boolean(auxBench && auxBench.isKnownBenchmark);
           var useAuxCompare = Boolean(
             auxHasBench &&
@@ -2168,7 +2074,7 @@
             : pk.active;
 
           var auxSingle = auxLevelsOut.length <= 1;
-          var auxMicroTags = zh ? inspectAuxSlot.scenesZh : inspectAuxSlot.scenesEn;
+          var auxMicroTags = isAr ? (inspectAuxSlot.scenesAr || inspectAuxSlot.scenesEn) : inspectAuxSlot.scenesEn;
           var auxOptRef = inspectAuxSlot.defaultOption || null;
           for (var aoi = 0; aoi < auxLevelsOut.length; aoi += 1) {
             if (auxLevelsOut[aoi] && auxLevelsOut[aoi].active && auxLevelsOut[aoi].option) {
@@ -2197,7 +2103,7 @@
               microTags: Array.isArray(auxMicroTags) ? auxMicroTags.slice(0, 3) : [],
               tagline: isNonPlannerAuxLocked
                 ? pk.notInOrch
-                : (zh ? inspectAuxSlot.taglineZh : inspectAuxSlot.taglineEn),
+                : (isAr ? (inspectAuxSlot.taglineAr || inspectAuxSlot.taglineEn) : inspectAuxSlot.taglineEn),
               scores: auxHasBench ? auxBench.ratios : null,
               benchRows: auxRowsWithDelta,
               compactText: auxBench ? auxBench.compactText : '',
@@ -2243,7 +2149,7 @@
               mass: '512K',
               title: auxDisplayTitle,
               chemLabel: inspectAuxSlot.badgeCode + ' · ' + inspectAuxSlot.title,
-              subtitle: zh ? inspectAuxSlot.taglineZh : inspectAuxSlot.taglineEn,
+              subtitle: isAr ? (inspectAuxSlot.taglineAr || inspectAuxSlot.taglineEn) : inspectAuxSlot.taglineEn,
               sessionBanner: sessionBanner,
               blindFlash: Boolean(blindFlashBannerText && !isHoverPreview),
               blindFlashBanner: !isHoverPreview ? blindFlashBannerText : '',
@@ -2266,14 +2172,14 @@
         var slot = SLOT_BY_Z.get(inspectZ) || ELEMENTS_90[5];
         var availEntry = availableByZ.get(inspectZ) || null;
         var fullElemEntry = fullAvailableByZ.get(inspectZ) || null;
-        var groupInfo = GROUP_META[slot.group] || GROUP_META.transition || { zh: '', en: '' };
+        var groupInfo = GROUP_META[slot.group] || GROUP_META.transition || { ar: '', en: '' };
         var elProf = ELEMENT_SPEC_PROFILES[slot.z] || ELEMENT_SPEC_PROFILES.fallback;
 
         if (availEntry) {
           var lore = ELEMENT_LORE[slot.z];
           var subtitle = lore
-            ? (zh ? lore.zh : lore.en)
-            : pk.grpPre + slot.col + pk.grpSuf + ' · ' + (zh ? groupInfo.zh : groupInfo.en) + ' · ' + pk.elemSeriesSuf;
+            ? (isAr ? (lore.ar || lore.en) : lore.en)
+            : pk.grpPre + slot.col + pk.grpSuf + ' · ' + (isAr ? (groupInfo.ar || groupInfo.en) : groupInfo.en) + ' · ' + pk.elemSeriesSuf;
 
           var activeEff = selectedZ === slot.z ? activeEffortByZ.get(slot.z) || '' : '';
           if (!activeEff) {
@@ -2293,7 +2199,7 @@
             });
           }
 
-          var elBench = catalog.resolveBenchmarkMetrics(slot.z, activeEff, zh, true);
+          var elBench = catalog.resolveBenchmarkMetrics(slot.z, activeEff, langCode, true);
           var elHasBench = Boolean(elBench && elBench.isKnownBenchmark);
           var isOrchElemPlanner = Boolean(orchLatched);
           var useElemCompare = Boolean(elHasBench && baseline && !(baseline.kind === 'element' && baseline.key === slot.z));
@@ -2305,7 +2211,7 @@
           var elemCardBadge = isOrchElemPlanner
             ? 'ORCH · ' + slot.numLabel + ' ' + slot.symbol + ' · +1H'
             : slot.numLabel + ' ' + slot.symbol + ' · ' + elProf.roleTag;
-          var elMicroTags = zh ? elProf.scenesZh : elProf.scenesEn;
+          var elMicroTags = isAr ? (elProf.scenesAr || elProf.scenesEn) : elProf.scenesEn;
 
           return {
             inspectKind: 'element',
@@ -2329,7 +2235,7 @@
               title: elemDisplayTitle,
               shortTag: slot.numLabel + slot.symbol,
               microTags: Array.isArray(elMicroTags) ? elMicroTags.slice(0, 3) : [],
-              tagline: zh ? elProf.taglineZh : elProf.taglineEn,
+              tagline: isAr ? (elProf.taglineAr || elProf.taglineEn) : elProf.taglineEn,
               scores: elHasBench ? elBench.ratios : null,
               benchRows: elemRowsWithDelta,
               compactText: elBench ? elBench.compactText : '',
@@ -2346,7 +2252,7 @@
               activeEffort: activeEff,
               activeEffortLabel: EFFORT_LABELS[activeEff] || activeEff || pk.effDefault,
               tierNote: formatAntigravTierNote(activeEff, true, levelsOut.length <= 1, langCode, isOrchElemPlanner),
-              switchSpec: formatSwitchSpecText(activeEff, zh ? elProf.switchSpecZh : elProf.switchSpecEn, true, levelsOut.length <= 1),
+              switchSpec: formatSwitchSpecText(activeEff, isAr ? (elProf.switchSpecAr || elProf.switchSpecEn) : elProf.switchSpecEn, true, levelsOut.length <= 1),
               litDots: resolveEffortLitDots(activeEff, true),
               plannerTopoLabel: activePlannerTopo,
               telemetrySeed: slot.z,
@@ -2365,7 +2271,7 @@
               elementEn: availEntry.name || slot.name,
               mass: slot.mass,
               title: elemDisplayTitle,
-              chemLabel: slot.numLabel + ' ' + slot.symbol + ' · ' + availEntry.name + (zh ? ' (' + slot.zh + ')' : ''),
+              chemLabel: slot.numLabel + ' ' + slot.symbol + ' · ' + availEntry.name + (isAr && slot.ar ? ' (' + slot.ar + ')' : ''),
               subtitle: subtitle,
               sessionBanner: sessionBanner,
               blindFlash: Boolean(blindFlashBannerText && !isHoverPreview),
@@ -2382,7 +2288,7 @@
         }
 
         if (orchLatched && fullElemEntry) {
-          var lockedElBench = catalog.resolveBenchmarkMetrics(slot.z, 'high', zh, true);
+          var lockedElBench = catalog.resolveBenchmarkMetrics(slot.z, 'high', langCode, true);
           var lockedHasBench = Boolean(lockedElBench && lockedElBench.isKnownBenchmark);
           return {
             inspectKind: 'blind-element',
@@ -2433,7 +2339,7 @@
               mass: slot.mass,
               title: fullElemEntry.baseName,
               chemLabel: slot.numLabel + ' ' + slot.symbol + ' · ' + (fullElemEntry.name || slot.name),
-              subtitle: zh ? elProf.taglineZh : elProf.taglineEn,
+              subtitle: isAr ? (elProf.taglineAr || elProf.taglineEn) : elProf.taglineEn,
               sessionBanner: sessionBanner,
               blindFlash: false,
               blindFlashBanner: '',
@@ -2454,7 +2360,7 @@
           : fullAvailableEntries.length === 0
           ? pk.unrelNoModels
           : pk.unrelStandby;
-        var blindBench = catalog.resolveBenchmarkMetrics(slot.z, '', zh, false);
+        var blindBench = catalog.resolveBenchmarkMetrics(slot.z, '', langCode, false);
 
         return {
           inspectKind: 'blind-element',
@@ -2472,7 +2378,7 @@
             title: slot.numLabel + ' ' + slot.symbol + ' · ' + slot.name,
             shortTag: slot.numLabel + slot.symbol,
             microTags: [pk.grpPre + slot.col + pk.grpSuf, slot.mass + ' u', 'STANDBY'],
-            tagline: pk.grpPre + slot.col + pk.grpSuf + ' · ' + (zh ? groupInfo.zh : groupInfo.en) + ' · ' + pk.blindDescSuf,
+            tagline: pk.grpPre + slot.col + pk.grpSuf + ' · ' + (isAr ? (groupInfo.ar || groupInfo.en) : groupInfo.en) + ' · ' + pk.blindDescSuf,
             scores: null,
             benchRows: [],
             compactText: blindBench ? blindBench.compactText : '',
@@ -2507,8 +2413,8 @@
             title: isBlindFlashNow
               ? slot.numLabel + ' ' + slot.symbol + ' · ' + slot.name
               : slot.numLabel + ' ' + slot.symbol + ' · ' + slot.name + ' — Standby',
-            chemLabel: zh ? slot.zh : slot.name,
-            subtitle: pk.grpPre + slot.col + pk.grpSuf + ' · ' + (zh ? groupInfo.zh : groupInfo.en) + ' · ' + slot.mass + ' u · ' + pk.blindSubSuf,
+            chemLabel: isAr ? (slot.ar || slot.name) : slot.name,
+            subtitle: pk.grpPre + slot.col + pk.grpSuf + ' · ' + (isAr ? (groupInfo.ar || groupInfo.en) : groupInfo.en) + ' · ' + slot.mass + ' u · ' + pk.blindSubSuf,
             sessionBanner: sessionBanner,
             isAvailable: false,
             unreleasedText: unrelText,
@@ -2740,7 +2646,7 @@
           rimGlowWasActive = true;
           overlayEl.setAttribute('data-pointer-near', '1');
         }
-        // 仅写入各自独立的零子节点光环层，禁止向 #ag-prism-periodic-picker-root 写入高频 CSS 变量
+        // Write only to standalone zero-child rim layers; never write high-frequency CSS variables onto #ag-prism-periodic-picker-root
         if (dockTopRimEl) {
           if (dockNear) {
             rimDockWasActive = true;
@@ -3282,7 +3188,7 @@
         var hoverOnly = Boolean(optsObj && optsObj.hoverOnly);
         var deferRender = Boolean(optsObj && optsObj.deferRender);
         var langCode = resolveCurrentLang();
-        var zh = langCode === 'zh-CN' || langCode === 'zh-TW';
+        var isAr = langCode === 'ar';
         var pk = getPpI18nPack(langCode);
         var profile = bentoUi.resolvePrismThemeProfile(doc, root);
 
@@ -3295,6 +3201,7 @@
           '|' + stageMode +
           '|' + (cardFlipped ? '1' : '0') +
           '|' + (orchLatched ? '1' : '0') +
+          '|' + langCode +
           '|' + profile.ambientMul;
 
         if (!hoverOnly || chromeSig !== lastDomChromeSig) {
@@ -3308,6 +3215,8 @@
             overlayEl.setAttribute('data-stage-mode', stageMode);
             overlayEl.setAttribute('data-card-flipped', cardFlipped ? '1' : '0');
             overlayEl.setAttribute('data-orch-latched', orchLatched ? '1' : '0');
+            overlayEl.setAttribute('data-lang', langCode);
+            if (uiRefs && uiRefs.banner) uiRefs.banner.setAttribute('dir', isAr ? 'rtl' : 'ltr');
             var ambOpacity = profile.ambientMul <= 0 ? 0.22 : Math.max(0.35, Math.min(1, profile.ambientMul));
             setStyleVar(overlayEl, '--pp-ambient-mul', ambOpacity.toFixed(3));
             if (deskmatEl && typeof bentoUi.mountDeskmatTopoSvgIfAvailable === 'function') {
@@ -3404,8 +3313,8 @@
 
         var payload = buildCurrentDeckPayload(langCode);
         var dInfo = payload.deckInfo;
-        var committed = resolveCommittedTelemetrySpec(zh);
-        // 纯悬停扫键禁止同步读取宿主 DOM 遥测，直接复用缓存；首帧开放可选跳过 DOM 扫描
+        var committed = resolveCommittedTelemetrySpec(langCode);
+        // Pure hover scanning must not synchronously query host DOM telemetry; reuse cache and allow skipping DOM scan on first frame
         var telemetry;
         if (hoverOnly) {
           telemetry = cachedHostTelemetry || { available: false, reason: 'offline' };
@@ -3425,7 +3334,7 @@
           committed: committed,
           telemetry: telemetry,
           lang: langCode,
-          zh: zh,
+          ar: isAr,
           profile: profile,
           stageMode: stageMode,
           muted: muted,
@@ -4210,11 +4119,12 @@
           ? catalog.matchGoogleElementModels(hostCtxObj.modelOptions, hostCtxObj.effortIndex)
           : [];
         fullAvailableByZ = fullAvailableEntries.byZ || new Map();
+        var curLang = resolveCurrentLang();
         fullAuxSlots = catalog.matchHostAuxModels(
           hostCtxObj ? hostCtxObj.modelOptions : null,
           hostCtxObj ? hostCtxObj.effortIndex : null,
           hostCtxObj ? hostCtxObj.orchestratorPlanners : null,
-          { zh: bentoUi.isZhLocale(doc, root) }
+          { lang: curLang, ar: curLang === 'ar' }
         );
         orchRegistry = buildOrchestratorRegistry(hostCtxObj);
 
@@ -4966,7 +4876,7 @@
         lastSessionSig = computeSessionContextSignature(activeHostCtx, activeAnchorBtn);
 
         var langCode = resolveCurrentLang();
-        var zh = langCode === 'zh-CN' || langCode === 'zh-TW';
+        var isAr = langCode === 'ar';
         var pk = getPpI18nPack(langCode);
         var profile = bentoUi.resolvePrismThemeProfile(doc, root);
         var hudElements = bentoUi.selectHudIslandElements(fullAvailableEntries, fullAvailableByZ);
@@ -4975,7 +4885,7 @@
 
         var reusedShell = Boolean(cachedShell && cachedShell.doc === doc && cachedShell.overlayEl);
         if (reusedShell) {
-          // 复用离屏 501 节点 DOM 壳（仅替换 1 个全新 WebGL <canvas>），大幅削减热开同步开销
+          // Reuse detached 501-node DOM shell (replacing only 1 fresh WebGL <canvas>) to minimize warm-open sync cost
           var shell = cachedShell;
           cachedShell = null;
           overlayEl = shell.overlayEl;
@@ -5021,11 +4931,12 @@
           overlayEl.setAttribute('data-mono', profile.isMono ? '1' : '0');
           overlayEl.setAttribute('data-card-flipped', '0');
           overlayEl.setAttribute('data-orch-latched', orchLatched ? '1' : '0');
+          overlayEl.setAttribute('data-lang', langCode);
           overlayEl.setAttribute('data-pointer-near', '0');
           overlayEl.setAttribute('data-open', '0');
           if (hudPillEl) hudPillEl.setAttribute('aria-label', pk.hudAria);
 
-          // 重置局部光环、地板投影与 Bento 差分缓存
+          // Reset local rim glow, floor shadow, and Bento diff caches
           if (dockTopRimEl) {
             setStyleVar(dockTopRimEl, '--ag-pp-dock-rim-alpha', '0');
             setStyleVar(dockTopRimEl, '--ag-pp-px', '-999px');
@@ -5058,7 +4969,7 @@
             if (uiRefs.resetBtn) uiRefs.resetBtn.setAttribute('data-rotated', '0');
           }
 
-          // 增量同步 90 颗主键盘键帽与 6 颗副盘键帽的可用状态（避免跨打开周期宿主模型变化后状态过期）
+          // Incrementally sync availability across 90 main keycaps and 6 aux pad keycaps (avoid stale state when host models change across opens)
           for (var rIdx = 0; rIdx < ELEMENTS_90.length; rIdx += 1) {
             var rSlot = ELEMENTS_90[rIdx];
             var rBtn = keyNodesByZ.get(rSlot.z);
@@ -5122,7 +5033,7 @@
             rebuildHudSwatches(swatchesWrapEl, hudElements, profile);
           }
 
-          // 替换全新 <canvas>（避免上次 dispose() 调用 WEBGL_lose_context 导致上下文永久失效）
+          // Swap in a fresh <canvas> (previous dispose() invokes WEBGL_lose_context, permanently invalidating the old context)
           var freshCanvas = mkEl(doc, 'canvas', 'ag-pp-gl-canvas');
           freshCanvas.setAttribute('aria-hidden', 'true');
           if (stageEl && hitLayerEl && typeof stageEl.insertBefore === 'function') {
@@ -5149,6 +5060,7 @@
           overlayEl.setAttribute('data-mono', profile.isMono ? '1' : '0');
           overlayEl.setAttribute('data-card-flipped', '0');
           overlayEl.setAttribute('data-orch-latched', orchLatched ? '1' : '0');
+          overlayEl.setAttribute('data-lang', langCode);
           overlayEl.setAttribute('data-pointer-near', '0');
           overlayEl.setAttribute('data-open', '0');
 
@@ -5176,7 +5088,7 @@
               onAuxEffortSelect: handleAuxEffortSelect,
               onAuxPageChange: setAuxPageAction,
             },
-            { lang: langCode, zh: zh, root: root }
+            { lang: langCode, ar: isAr, root: root }
           );
 
           stageEl = mkEl(doc, 'div', 'ag-pp-stage ag-pp-modal');
@@ -5426,7 +5338,7 @@
           }
         }
 
-        // 3D/Canvas 舞台启用拾取时，屏蔽命中层 100+ 透明按钮的鼠标命中测试，杜绝跨按钮 pointerover/pointerenter 风暴
+        // Disable pointer hit-testing on 100+ transparent hit buttons when 3D/Canvas stage picking is active to avoid pointerover/pointerenter storms
         var useGlStagePick = Boolean(activeRenderer && typeof activeRenderer.pick === 'function');
         overlayEl.setAttribute('data-gl-stage', useGlStagePick ? '1' : '0');
 
@@ -5451,7 +5363,7 @@
         attachOpenSessionSyncWatchers();
 
         if (!reusedShell) {
-          /* 阻止容器内指针/悬停事件冒泡泄漏至宿主 document/window（规避宿主 main.js 全页 UpdateLayoutTree 与底层光环误触发） */
+          /* Stop pointer/hover bubbling from leaking to host document/window (prevents host full-page UpdateLayoutTree and background halo misfires) */
           var stopHoverBubbleToHost = function (ev) {
             if (!ev) return;
             if (ev.type === 'mouseout' && !ev.relatedTarget && !ev.toElement) return;
@@ -5920,7 +5832,7 @@
               var rafTierChanged = syncDockCompactState();
               resizeCanvasToStage(!rafTierChanged);
               syncHitLayerRects(true);
-              // 首帧后异步补齐宿主 DOM 遥测扫描，避免阻塞 open() 首帧绘制
+              // Backfill host DOM telemetry scan asynchronously after the first frame to avoid blocking open() first-frame paint
               if (cachedHostTelemetry && cachedHostTelemetry.domScanDeferred) {
                 var fullTele = hostBridge.readHostContextTelemetry(doc, root, { anchorBtn: activeAnchorBtn });
                 cachedHostTelemetry = fullTele;
@@ -6032,7 +5944,7 @@
         if (hadOverlay) {
           var toRemove = overlayEl;
           if (!co.releaseHeavyCaches && !isDestroyed && currentMode !== 'off') {
-            // 正常关闭保留离屏 DOM 壳，仍立即卸载出 document 确保关闭态零残留节点
+            // Keep detached DOM shell on normal close while immediately unmounting from document so zero residual nodes remain
             cachedShell = {
               doc: doc,
               overlayEl: overlayEl,
@@ -6843,7 +6755,9 @@
       EFFORT_ORDER: defaultCatalog.EFFORT_ORDER,
       EFFORT_NORM_MAP: defaultCatalog.EFFORT_NORM_MAP,
       EFFORT_LABELS: defaultCatalog.EFFORT_LABELS,
+      EFFORT_LABELS_AR: defaultCatalog.EFFORT_LABELS_AR,
       EFFORT_LABELS_ZH: defaultCatalog.EFFORT_LABELS_ZH,
+      normalizeArEffortWord: defaultCatalog.normalizeArEffortWord,
       normalizeZhEffortWord: defaultCatalog.normalizeZhEffortWord,
       normalizeEnEffortWord: defaultCatalog.normalizeEnEffortWord,
       stripEffortSuffixFromLabel: defaultCatalog.stripEffortSuffixFromLabel,
@@ -6891,6 +6805,9 @@
       ensureStyles: defaultBentoUi.ensureStyles,
       cleanupUiResiduals: defaultBentoUi.cleanupUiResiduals,
       markPeriodicOwnedRoot: defaultBentoUi.markPeriodicOwnedRoot,
+      normalizePeriodicLang: defaultBentoUi.normalizePeriodicLang,
+      resolveLocale: defaultBentoUi.resolveLocale,
+      isArLocale: defaultBentoUi.isArLocale,
       isZhLocale: defaultBentoUi.isZhLocale,
       isReducedMotion: defaultBentoUi.isReducedMotion,
       resolvePrismThemeProfile: defaultBentoUi.resolvePrismThemeProfile,

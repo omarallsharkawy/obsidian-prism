@@ -4,9 +4,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), '..');
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 const cdp = require(path.join(ROOT, 'cdp.js'));
 
@@ -478,8 +479,8 @@ test('Channel 10 hot-reload: updating window.__agDualMascotRig and calling sync(
   assert.equal(disposedV2, 1, 'destroy() must dispose active rigV2');
 });
 
-test('Gate checks: Channel 1 stays < 549,500 B across all 9 languages and edited files have 0 BOM / 0 CRLF / 0 :has() / 0 non-ASCII CSS', () => {
-  for (const lang of ['auto', 'zh-CN', 'zh-TW', 'en', 'ja', 'ko', 'es', 'fr', 'de']) {
+test('Gate checks: Channel 1 stays < 549,500 B across all 3 language modes and edited files have 0 BOM / 0 CRLF / 0 :has() / 0 non-ASCII CSS', () => {
+  for (const lang of ['auto', 'en', 'ar']) {
     const bytes = Buffer.byteLength(
       cdp.buildInjectExpression({ ...cdp.DEFAULT_CONFIG, language: lang }, { bundleCachePath: '' }),
       'utf8'

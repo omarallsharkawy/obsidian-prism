@@ -112,7 +112,7 @@ export class DelegatedUsage {
         const summaries=this.client.reader?.summaries||{};
         const summary=summaries[id]||Object.entries(summaries).find(([key])=>key.toLowerCase()===id)?.[1]||{};
         const curStamp=delegatedSummaryStamp(summary);
-        // 已拉取且确认结束的子代理：仅当未重新激活且 summary stamp 未变时跳过，绝不反复唤醒沉睡 .db
+        // Already-fetched settled subagents: skip if not reopened and summary stamp is unchanged, never waking sleeping .db files.
         if(!force&&task.sources.has(id)&&task.settledChildren.has(id)){
           const summaryReopened=summary.status!==undefined&&summary.status!==''&&!isSettledDelegatedStatus(summary.status);
           const prevStamp=task.childStamps.get(id)||'';

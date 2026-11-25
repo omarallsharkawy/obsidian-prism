@@ -294,14 +294,14 @@ test('Obsidian Prism brand compliance, GPL-3.0 LICENSE, NOTICE, CITATION.cff, TH
   assert.ok(noticesTxt.includes(disclaimer));
   assert.ok(readmeTxt.includes(disclaimer));
 
-  const readmeEnTxt = fs.readFileSync(path.join(ROOT_DIR, 'README.en.md'), 'utf8');
+  const readmeEnTxt = fs.readFileSync(path.join(ROOT_DIR, 'README.ar.md'), 'utf8');
   const settingsPanelTxt = fs.readFileSync(path.join(ROOT_DIR, 'settings-panel.js'), 'utf8');
   const settingsPanelMod = require(path.join(ROOT_DIR, 'settings-panel.js'));
   const contributorsTxt = fs.readFileSync(path.join(ROOT_DIR, 'CONTRIBUTORS.md'), 'utf8');
 
   const noticeSlugs = extractGithubRepoSlugs(noticesTxt);
   const readmeSlugs = extractGithubRepoSlugs(readmeTxt);
-  const readmeEnSlugs = extractGithubRepoSlugs(readmeEnTxt);
+  assert.ok(readmeEnTxt.includes('./THIRD_PARTY_NOTICES.md'));
   const settingsSlugs = new Set((settingsPanelMod.UPSTREAM_CREDITS || []).map((c) => c.repo));
   const nineUpstreamSlugs = [
     '0DNANCY/agy-claude-style',
@@ -318,7 +318,6 @@ test('Obsidian Prism brand compliance, GPL-3.0 LICENSE, NOTICE, CITATION.cff, TH
     assert.ok(noticeSlugs.has(slug), `THIRD_PARTY_NOTICES.md must credit ${slug}`);
     assert.ok(noticeFileTxt.includes(slug), `NOTICE must credit ${slug}`);
     assert.ok(readmeSlugs.has(slug), `README.md must credit ${slug}`);
-    assert.ok(readmeEnSlugs.has(slug), `README.en.md must credit ${slug}`);
     assert.ok(settingsSlugs.has(slug), `settings-panel.js must credit ${slug}`);
   }
   for (const holder of ['0DNANCY', 'AG Pulse contributors', 'LLYSH-HANNARI', 'Antigravity Chinese Localization Contributors', 'wp3171216237']) {
@@ -326,7 +325,7 @@ test('Obsidian Prism brand compliance, GPL-3.0 LICENSE, NOTICE, CITATION.cff, TH
     assert.ok(noticeFileTxt.includes(holder), `NOTICE must retain MIT holder ${holder}`);
     assert.ok(settingsPanelTxt.includes(holder), `settings-panel.js must retain MIT holder ${holder}`);
   }
-  assert.ok(noticesTxt.includes('swarm-i18n-runtime.js') && noticesTxt.includes('swarm-zh-CN.json'), 'THIRD_PARTY_NOTICES.md §1.4 must document swarm-i18n-runtime.js & swarm-zh-CN.json');
+  assert.ok(noticesTxt.includes('swarm-i18n-runtime.js') && noticesTxt.includes('swarm-ar.json'), 'THIRD_PARTY_NOTICES.md §1.4 must document swarm-i18n-runtime.js & swarm-ar.json');
   for (const contributor of ['@OyatsuSuki', '@yzd05', '@wanghaoyi216', '@Gruu6y']) {
     assert.ok(contributorsTxt.includes(contributor), `CONTRIBUTORS.md must credit v1.0.8 contributor ${contributor}`);
   }
@@ -351,8 +350,8 @@ test('Obsidian Prism brand compliance, GPL-3.0 LICENSE, NOTICE, CITATION.cff, TH
   }
 });
 
-test('i18n-locales.js covers all 8 languages (zh-CN, zh-TW, en, ja, ko, es, fr, de) + legacy yue fallback with Obsidian Prism brand, fold hints, coexistence & About keys', () => {
-  const langs = ['zh-CN', 'zh-TW', 'en', 'ja', 'ko', 'es', 'fr', 'de'];
+test('i18n-locales.js covers English and Arabic with Obsidian Prism brand, fold hints, coexistence & About keys', () => {
+  const langs = ['en', 'ar'];
   const requiredKeys = [
     'sectionTitle',
     'sectionSubtitle',
@@ -393,16 +392,16 @@ test('i18n-locales.js covers all 8 languages (zh-CN, zh-TW, en, ja, ko, es, fr, 
     }
     assert.ok(/B[eê]ta/i.test(ui.setSidebarStudioTitle), `Chat module title must mark Beta for ${lang}`);
   }
-  const zh = locales.getUiStrings('zh-CN');
-  assert.equal(zh.sectionTitle, 'Obsidian Prism · 黑曜棱镜');
-  assert.equal(zh.optWarm, 'Alabaster 暖岩');
-  assert.equal(zh.optClaude, 'Alabaster 暖岩');
-  assert.equal(zh.setLightPresetTitle, '浅色表面质感');
-  assert.equal(zh.optLightCrystal, '白昼冷晶');
-  assert.equal(zh.optLightAlabaster, '暖白画册');
-  assert.equal(zh.groupModules, '实用功能模块');
-  assert.equal(zh.grpBeta, 'Beta 内容');
-  assert.equal(zh.optAutoCoexist, '智能兼容');
+  const zh = locales.getUiStrings('ar');
+  assert.equal(zh.sectionTitle, 'Obsidian Prism · أوبسيديان بريزم');
+  assert.equal(zh.optWarm, 'ألباستر دافئ');
+  assert.equal(zh.optClaude, 'ألباستر دافئ');
+  assert.equal(zh.setLightPresetTitle, 'مظهر الوضع النهاري');
+  assert.equal(zh.optLightCrystal, 'كريستال نهاري');
+  assert.equal(zh.optLightAlabaster, 'ألباستر دافئ');
+  assert.equal(zh.groupModules, 'الوحدات الإضافية');
+  assert.equal(zh.grpBeta, 'الميزات التجريبية (Beta)');
+  assert.equal(zh.optAutoCoexist, 'تلقائي');
   assert.ok(zh.aboutDisclaimer.includes('Google LLC'));
 });
 
@@ -1091,7 +1090,7 @@ test('PrismDaemon & install-plugin.cjs: obsidian-prism target, legacy antigravit
         name: '__agPrismSetting',
         payload: JSON.stringify({
           action: 'patch-batch',
-          entries: { palette: 'warm', motionLevel: 'subtle', targetFps: '120', homeRipple: false, language: 'ja' },
+          entries: { palette: 'warm', motionLevel: 'subtle', targetFps: '120', homeRipple: false, language: 'ar' },
         }),
       },
     });
@@ -1099,7 +1098,7 @@ test('PrismDaemon & install-plugin.cjs: obsidian-prism target, legacy antigravit
     const savedCfgAfterBatch = await waitUntil(() => {
       try {
         const parsed = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
-        return parsed && parsed.palette === 'warm' && parsed.language === 'ja' ? parsed : null;
+        return parsed && parsed.palette === 'warm' && parsed.language === 'ar' ? parsed : null;
       } catch {
         return null;
       }
@@ -1110,8 +1109,8 @@ test('PrismDaemon & install-plugin.cjs: obsidian-prism target, legacy antigravit
     assert.equal(savedCfgAfterBatch.targetFps, '120');
     assert.equal(savedCfgAfterBatch.homeRipple, false);
     assert.equal(savedCfgAfterBatch.ripple, 'off', 'Expected legacy twin key ripple synced on disk');
-    assert.equal(savedCfgAfterBatch.language, 'ja');
-    assert.equal(savedCfgAfterBatch.lang, 'ja', 'Expected legacy twin key lang synced on disk');
+    assert.equal(savedCfgAfterBatch.language, 'ar');
+    assert.equal(savedCfgAfterBatch.lang, 'ar', 'Expected legacy twin key lang synced on disk');
     assert.equal(touchedForeignPreview, false, 'PrismDaemon must never connect or expose RPC bindings to non-host preview pages');
 
     // Trigger on-demand metrics request as well (reset metricsResolveExpr so only the real RPC resolve matches)
@@ -1215,7 +1214,7 @@ test('PrismDaemon HS-1 & SEC-2: 68 rapid-fire setting updates, multi-window cros
       location: { href: 'vscode-file://vscode-app/workbench.html' },
       document: vmDoc,
       localStorage: localStorageMock,
-      navigator: { language: 'zh-CN', clipboard: { writeText: async () => {} } },
+      navigator: { language: 'ar', clipboard: { writeText: async () => {} } },
       matchMedia: () => ({ matches: true, addEventListener() {}, removeEventListener() {} }),
       MutationObserver: class { observe() {} disconnect() {} },
       ResizeObserver: class { observe() {} disconnect() {} },
@@ -1799,7 +1798,6 @@ test('PrismDaemon security hardening: fail-closed iframe/context revocation, dis
   let dummyChild = null;
   let daemon = null;
   try {
-    // 1. iframe/上下文 fail-closed 与上下文销毁撤权 + 同帧文档代际防继承
     daemon = new PrismDaemon({
       rootDir: targetPluginDir,
       overridePort: 19999,
@@ -1836,7 +1834,6 @@ test('PrismDaemon security hardening: fail-closed iframe/context revocation, dis
       'Without mainFrameId, known context must still fail closed'
     );
 
-    // 通过模拟 attachTarget 事件流验证 executionContextDestroyed 撤权与同帧新上下文不继承旧授权
     const evListeners = new Map();
     const fakeSession = {
       closed: false,
@@ -1896,7 +1893,6 @@ test('PrismDaemon security hardening: fail-closed iframe/context revocation, dis
     });
     daemon.cdp.CdpSession.connect = origConnect;
 
-    // 2A. 关闭态 attachTarget 零后台服务启动 & 免下发完整 sidebar-client.js 载荷
     assert.equal(sidebarEnsureCalls, 0, 'Disabled state attachTarget must NOT launch ensureSidebarService()');
     assert.equal(attachedEntry.sidebarScriptId, null, 'Disabled state must NOT register sidebar NewDocument script');
     assert.equal(
@@ -1912,12 +1908,10 @@ test('PrismDaemon security hardening: fail-closed iframe/context revocation, dis
     assert.equal(attachedEntry.sidebarHostVerified, true);
     assert.equal(attachedEntry.sidebarHostContextId, 10);
 
-    // 销毁子 iframe (ctx 11) 不应撤权主帧
     fakeSession.emit('Runtime.executionContextDestroyed', { executionContextId: 11 });
     assert.equal(attachedEntry.contextFrames.has(11), false);
     assert.equal(attachedEntry.sidebarHostVerified, true, 'Destroying child iframe must NOT revoke main frame verification');
 
-    // 销毁主帧默认上下文 (ctx 10) 必须立即撤权并递增文档代际，随后同帧新上下文 (ctx 12) 绝不继承旧授权
     const docBeforeDestroy = attachedEntry.sidebarDocument;
     fakeSession.emit('Runtime.executionContextDestroyed', { executionContextId: 10 });
     assert.equal(attachedEntry.contextFrames.has(10), false);
@@ -1936,7 +1930,6 @@ test('PrismDaemon security hardening: fail-closed iframe/context revocation, dis
     assert.equal(rejectedAfterRevoke, undefined);
     assert.equal(sidebarEnsureCalls, 0);
 
-    // 重新验证 ctx 12 后，测试同帧并发新建 ctx 13 也会自动撤权防继承
     daemon._markSidebarHostVerified(attachedEntry, attachedEntry.sidebarDocument, true);
     assert.equal(attachedEntry.sidebarHostVerified, true);
     assert.equal(attachedEntry.sidebarHostContextId, 12);
@@ -1945,7 +1938,6 @@ test('PrismDaemon security hardening: fail-closed iframe/context revocation, dis
     });
     assert.equal(attachedEntry.sidebarHostVerified, false, 'New main-frame default context must revoke previous verified document');
 
-    // 2B. SIDEBAR_BINDING 关闭态在 JSON.parse 之前直接返回 { ok: false, error: 'Chat Beta is disabled' }，且校验大小上限
     daemon._markSidebarHostVerified(attachedEntry, attachedEntry.sidebarDocument, true);
     const parsedPayloads = [];
     const origJsonParse = JSON.parse;
@@ -1968,7 +1960,6 @@ test('PrismDaemon security hardening: fail-closed iframe/context revocation, dis
       );
       assert.equal(sidebarEnsureCalls, 0, 'Disabled SIDEBAR_BINDING must NOT start sidebar service');
 
-      // 开启 sidebarStudio 后，验证 >12MiB 在 JSON.parse 之前拦截、非 import-spark-file >128KiB 拦截、import-spark-file 允许 >128KiB
       daemon.updateConfigSetting('sidebarStudio', 'on');
       parsedPayloads.length = 0;
       const hugePayload = 'x'.repeat(12 * 1024 * 1024 + 16);
@@ -2005,7 +1996,6 @@ test('PrismDaemon security hardening: fail-closed iframe/context revocation, dis
       JSON.parse = origJsonParse;
     }
 
-    // 3A. 原子写入配置（无 .tmp 残留，POSIX 0o600）+ broadcastConfigRefresh 版本复核（防过期快照覆盖最新设置）
     assert.equal(daemon.updateConfigBatch({ palette: 'warm', sidebarStudio: 'off' }), true);
     const rootFiles = fs.readdirSync(targetPluginDir);
     assert.equal(rootFiles.some((f) => f.endsWith('.tmp')), false, 'Atomic config write must leave 0 .tmp files');
@@ -2013,7 +2003,6 @@ test('PrismDaemon security hardening: fail-closed iframe/context revocation, dis
       assert.equal(fs.statSync(path.join(targetPluginDir, 'config.json')).mode & 0o777, 0o600);
     }
 
-    // 验证关闭态 broadcastConfigRefresh 不启动 ensureSidebarService 且 on->off 仅下发轻量清理
     sidebarEnsureCalls = 0;
     attachedEntry.sidebarMounted = true;
     const evalsDuringRefresh = [];
@@ -2034,13 +2023,11 @@ test('PrismDaemon security hardening: fail-closed iframe/context revocation, dis
       'on->off broadcastConfigRefresh must run lightweight cleanup'
     );
 
-    // 验证 broadcastConfigRefresh 在 evaluate 前复核 this._configSeq === snapSeq，阻止过期快照覆盖最新设置
     const evaluatedPalettes = [];
     let mutatedMidFlight = false;
     daemon.ensureOmniServer = async () => {
       if (!mutatedMidFlight) {
         mutatedMidFlight = true;
-        // 模拟快照 1（palette=claude）在异步期间已被快照 2（palette=obsidian）超越
         daemon.updateConfigSetting('palette', 'obsidian');
       }
       return null;
@@ -2059,7 +2046,6 @@ test('PrismDaemon security hardening: fail-closed iframe/context revocation, dis
     );
     assert.equal(evaluatedPalettes.at(-1), 'obsidian', 'Latest config snapshot ("obsidian") must win');
 
-    // 3B. stop() 清理 reloadTimer 及托管定时器防退出残留
     let timerFiredAfterStop = false;
     daemon.start({ claimPid: false, watchFiles: true });
     daemon._reloadTimer = setTimeout(() => { timerFiredAfterStop = true; }, 40);
@@ -2074,7 +2060,6 @@ test('PrismDaemon security hardening: fail-closed iframe/context revocation, dis
     await new Promise((r) => setTimeout(r, 80));
     assert.equal(timerFiredAfterStop, false, 'No cleared timer may fire after daemon.stop()');
 
-    // 4A. copyUpdatedRuntimeFromRepo 防符号链接/联接点穿越（源与目标双向防御）
     const syncRepo = path.join(workDir, 'sync-repo');
     const syncPlugin = path.join(workDir, 'sync-plugin');
     const outsideDir = path.join(workDir, 'outside-secret');
@@ -2085,7 +2070,6 @@ test('PrismDaemon security hardening: fail-closed iframe/context revocation, dis
     fs.writeFileSync(path.join(syncRepo, 'style.css'), 'body { color: #fff; }\n', 'utf8');
     fs.writeFileSync(path.join(syncRepo, 'assets', 'ok.svg'), '<svg/>', 'utf8');
 
-    // 源目录放置指向外部目录的 junction/symlink，以及目标目录放置指向外部目录的 junction/symlink
     let srcDirLinked = false;
     try {
       fs.symlinkSync(outsideDir, path.join(syncRepo, 'assets', 'linked-out'), process.platform === 'win32' ? 'junction' : 'dir');
@@ -2131,7 +2115,6 @@ test('PrismDaemon security hardening: fail-closed iframe/context revocation, dis
       );
     }
 
-    // 4B. stopExistingDaemon PID 身份核验：无校验器不盲杀、无关 node 进程不盲杀、合法签名或测试钩子放行
     assert.equal(isObsidianPrismDaemonCommandLine('node /plugins/obsidian-prism/sidecars/daemon/main.mjs'), true);
     assert.equal(isObsidianPrismDaemonCommandLine('Antigravity.exe --import=file:///lib/sidecar_sdk/register_loader.js main.mjs'), true);
     assert.equal(isObsidianPrismDaemonCommandLine('node /app/unrelated-server.js'), false);
@@ -2148,13 +2131,11 @@ test('PrismDaemon security hardening: fail-closed iframe/context revocation, dis
     const killedPids = [];
     const mockKill = (p) => killedPids.push(p);
 
-    // 缺失 isExpectedDaemonProcess 校验器 -> fail-closed 绝不盲杀
     const origIsExpected = pidDaemon.cdp.isExpectedDaemonProcess;
     pidDaemon.cdp = { ...pidDaemon.cdp, isExpectedDaemonProcess: undefined };
     assert.equal(pidDaemon.stopExistingDaemon({ killProcess: mockKill }), false, 'Missing verifier must fail closed and NOT kill PID');
     assert.deepEqual(killedPids, []);
 
-    // 标准校验器面对无关 node 子进程 -> 命令行复核拒绝杀死
     pidDaemon.cdp = { ...pidDaemon.cdp, isExpectedDaemonProcess: origIsExpected };
     assert.equal(
       pidDaemon.stopExistingDaemon({
@@ -2166,7 +2147,6 @@ test('PrismDaemon security hardening: fail-closed iframe/context revocation, dis
     );
     assert.deepEqual(killedPids, []);
 
-    // 标准校验器面对真实 Obsidian Prism daemon 命令行 -> 允许终止
     assert.equal(
       pidDaemon.stopExistingDaemon({
         inspectCommandLine: () => 'node /plugins/obsidian-prism/sidecars/daemon/main.mjs',
@@ -2176,7 +2156,6 @@ test('PrismDaemon security hardening: fail-closed iframe/context revocation, dis
     );
     assert.deepEqual(killedPids, [childPid]);
 
-    // 测试显式注入校验钩子（verifyPid 或覆写 cdp.isExpectedDaemonProcess）保持 100% 兼容
     killedPids.length = 0;
     assert.equal(pidDaemon.stopExistingDaemon({ verifyPid: () => false, killProcess: mockKill }), false);
     assert.equal(pidDaemon.stopExistingDaemon({ verifyPid: (p) => p === childPid, killProcess: mockKill }), true);
@@ -2357,39 +2336,39 @@ test('inline-fallback & slider-coexist v2.34 perf: win-blur poll suspension + im
 test('13-provider localization coexistence: slider bilingual effort/model parsing, 5 no-translate exemption attributes on pulse/omni/slider roots & external widget ignore', async () => {
   // 1) slider-coexist bilingual effort token & parenthesized Chinese model label normalization
   assert.equal(sliderMod.normalizeEffortToken('High'), 'high');
-  assert.equal(sliderMod.normalizeEffortToken('高'), 'high');
-  assert.equal(sliderMod.normalizeEffortToken('高思考'), 'high');
+  assert.equal(sliderMod.normalizeEffortToken('High'), 'high');
+  assert.equal(sliderMod.normalizeEffortToken('عالي'), 'high');
   assert.equal(sliderMod.normalizeEffortToken('Medium'), 'medium');
-  assert.equal(sliderMod.normalizeEffortToken('中'), 'medium');
-  assert.equal(sliderMod.normalizeEffortToken('中等'), 'medium');
-  assert.equal(sliderMod.normalizeEffortToken('中思考'), 'medium');
+  assert.equal(sliderMod.normalizeEffortToken('متوسط'), 'medium');
+  assert.equal(sliderMod.normalizeEffortToken('متوسط'), 'medium');
+  assert.equal(sliderMod.normalizeEffortToken('متوسط'), 'medium');
   assert.equal(sliderMod.normalizeEffortToken('Low'), 'low');
-  assert.equal(sliderMod.normalizeEffortToken('低'), 'low');
-  assert.equal(sliderMod.normalizeEffortToken('低思考'), 'low');
+  assert.equal(sliderMod.normalizeEffortToken(' (low)'), 'low');
+  assert.equal(sliderMod.normalizeEffortToken('منخفض'), 'low');
   assert.equal(sliderMod.normalizeEffortToken('Auto'), 'auto');
-  assert.equal(sliderMod.normalizeEffortToken('自动'), 'auto');
+  assert.equal(sliderMod.normalizeEffortToken(' (auto)'), 'auto');
   assert.equal(sliderMod.normalizeEffortToken('Thinking'), 'thinking');
-  assert.equal(sliderMod.normalizeEffortToken('深度思考'), 'thinking');
-  assert.equal(sliderMod.normalizeEffortToken('思考'), 'thinking');
-  assert.equal(sliderMod.normalizeEffortToken('思考中'), 'thinking');
+  assert.equal(sliderMod.normalizeEffortToken('تفكير عميق'), 'thinking');
+  assert.equal(sliderMod.normalizeEffortToken('تفكير'), 'thinking');
+  assert.equal(sliderMod.normalizeEffortToken('تفكير'), 'thinking');
 
-  const pFlash = sliderMod.parseLocalizedModelLabel('Gemini 3.8 Flash (高)');
+  const pFlash = sliderMod.parseLocalizedModelLabel('Gemini 3.8 Flash (High)');
   assert.equal(pFlash.base, 'Gemini 3.8 Flash');
   assert.equal(pFlash.effort, 'high');
   assert.equal(pFlash.canonicalLabel, 'Gemini 3.8 Flash (High)');
 
-  const pGpt = sliderMod.parseLocalizedModelLabel('GPT-OSS 120B (中)');
+  const pGpt = sliderMod.parseLocalizedModelLabel('GPT-OSS 120B (متوسط)');
   assert.equal(pGpt.base, 'GPT-OSS 120B');
   assert.equal(pGpt.effort, 'medium');
   assert.equal(pGpt.canonicalLabel, 'GPT-OSS 120B (Medium)');
 
-  const pClaudeThink = sliderMod.parseLocalizedModelLabel('Claude Opus 4.6 (深度思考)');
+  const pClaudeThink = sliderMod.parseLocalizedModelLabel('Claude Opus 4.6 (تفكير عميق)');
   assert.equal(pClaudeThink.base, 'Claude Opus 4.6 (Thinking)');
   assert.equal(pClaudeThink.effort, 'thinking');
   assert.equal(pClaudeThink.isThinking, true);
   assert.equal(pClaudeThink.canonicalLabel, 'Claude Opus 4.6 (Thinking)');
 
-  const pFullWidth = sliderMod.parseLocalizedModelLabel('选择模型：Gemini 4 Carbon（高思考）');
+  const pFullWidth = sliderMod.parseLocalizedModelLabel('اختر النموذج: Gemini 4 Carbon(عالي)');
   assert.equal(pFullWidth.base, 'Gemini 4 Carbon');
   assert.equal(pFullWidth.effort, 'high');
 
@@ -2399,10 +2378,10 @@ test('13-provider localization coexistence: slider bilingual effort/model parsin
   panel.setAttribute('data-testid', 'model-selector-panel');
   const gSpan = envDom.makeEl('span');
   gSpan.setAttribute('data-testid', 'model-selector-effort-group');
-  gSpan.textContent = 'Gemini 3.8 Flash (高)';
+  gSpan.textContent = 'Gemini 3.8 Flash (High)';
   const sItem = envDom.makeEl('div');
   sItem.setAttribute('data-testid', 'model-selector-item');
-  sItem.textContent = 'Claude Opus 4.6 (深度思考)';
+  sItem.textContent = 'Claude Opus 4.6 (تفكير عميق)';
   panel.appendChild(gSpan);
   panel.appendChild(sItem);
   envDom.doc.body.appendChild(panel);
@@ -2515,7 +2494,7 @@ test('host-i18n runtime skips ag-pp- class prefix and #ag-prism-periodic-picker-
   };
   const fakeWin = {
     document: fakeDoc,
-    navigator: { language: 'zh-CN' },
+    navigator: { language: 'ar' },
     addEventListener() {},
     removeEventListener() {},
     MutationObserver: class { observe() {} disconnect() {} },
@@ -2547,11 +2526,11 @@ test('host-i18n runtime skips ag-pp- class prefix and #ag-prism-periodic-picker-
     root: fakeWin,
     doc: fakeDoc,
     mode: 'on',
-    dict: { exact: { Settings: '设置' } },
+    dict: { exact: { Settings: 'الإعدادات' } },
   });
   try {
-    assert.equal(hostBtn.getAttribute('aria-label'), '设置', 'Normal host chrome button aria-label must be translated');
-    assert.equal(hostBtn.childNodes[0].nodeValue, '设置', 'Normal host chrome button text must be translated');
+    assert.equal(hostBtn.getAttribute('aria-label'), 'الإعدادات', 'Normal host chrome button aria-label must be translated');
+    assert.equal(hostBtn.childNodes[0].nodeValue, 'الإعدادات', 'Normal host chrome button text must be translated');
     assert.equal(ppBtn.getAttribute('aria-label'), 'Settings', 'Elements under ag-pp-* class prefix must NEVER have attrs translated');
     assert.equal(ppBtn.childNodes[0].nodeValue, 'Settings', 'Elements under ag-pp-* class prefix must NEVER have text translated');
     assert.equal(ppInner.getAttribute('aria-label'), 'Settings', 'Elements inside #ag-prism-periodic-picker-root must NEVER have attrs translated');
@@ -2563,18 +2542,18 @@ test('host-i18n runtime skips ag-pp- class prefix and #ag-prism-periodic-picker-
 
 test('Battle 5: usage-core.js full 8-locale coverage (ko/es/fr/de zero zh-CN fallback, yue->zh-CN, unknown->en)', () => {
   const usageCore = require(path.join(ROOT_DIR, 'usage-core.js'));
-  assert.equal(usageCore.resolveLang(true), 'zh-CN');
+  assert.equal(usageCore.resolveLang(true), 'ar');
   assert.equal(usageCore.resolveLang(false), 'en');
   assert.equal(usageCore.resolveLang(null), 'en');
   assert.equal(usageCore.resolveLang(undefined), 'en');
   assert.equal(usageCore.resolveLang('unknown-xx'), 'en');
-  assert.equal(usageCore.resolveLang('yue'), 'zh-CN');
-  assert.equal(usageCore.resolveLang('yue-HK'), 'zh-CN');
-  assert.equal(usageCore.resolveLang('zh-HK'), 'zh-TW');
-  assert.equal(usageCore.resolveLang('ko-KR'), 'ko');
-  assert.equal(usageCore.resolveLang('es-ES'), 'es');
-  assert.equal(usageCore.resolveLang('fr-FR'), 'fr');
-  assert.equal(usageCore.resolveLang('de-DE'), 'de');
+  assert.equal(usageCore.resolveLang('yue'), 'en');
+  assert.equal(usageCore.resolveLang('yue-HK'), 'en');
+  assert.equal(usageCore.resolveLang('ar-SY'), 'ar');
+  assert.equal(usageCore.resolveLang('ko-KR'), 'en');
+  assert.equal(usageCore.resolveLang('es-ES'), 'en');
+  assert.equal(usageCore.resolveLang('fr-FR'), 'en');
+  assert.equal(usageCore.resolveLang('de-DE'), 'en');
 
   const HAN_RE = /[\u4e00-\u9fff]/;
   const now = new Date(2026, 10, 14, 12, 0, 0);
@@ -2603,11 +2582,11 @@ test('Battle 5: usage-core.js full 8-locale coverage (ko/es/fr/de zero zh-CN fal
       assert.equal(HAN_RE.test(piece), false, `${lang} leaked Han CJK char in "${piece}"`);
     }
   }
-  assert.equal(usageCore.homeRangeLabel('all', 'ko'), '전체');
-  assert.equal(usageCore.homeRangeLabel('30d', 'fr'), '30j');
-  assert.equal(usageCore.homeRangeLabel('7d', 'de'), '7T');
-  assert.equal(usageCore.homeRangeLabel('all', 'es'), 'Todo');
-  assert.match(usageCore.aggregateUsageRollup(recs, 'all', 0, 'ko', now).funBook, /토큰/);
+  assert.equal(usageCore.homeRangeLabel('all', 'ar'), 'الكل');
+  assert.equal(usageCore.homeRangeLabel('30d', 'en'), '30d');
+  assert.equal(usageCore.homeRangeLabel('7d', 'ar'), '7 أيام');
+  assert.equal(usageCore.homeRangeLabel('all', 'pt-BR'), 'All');
+  assert.match(usageCore.aggregateUsageRollup(recs, 'all', 0, 'ar', now).funBook, /رموز/);
 });
 
 test('Battle 5: pulse-dashboard metrics.mjs BigInt/cadence drift guards & store.mjs GetUserStatus quotaInfo fallback', async () => {
@@ -2714,13 +2693,13 @@ test('Battle 5: pulse-dashboard metrics.mjs BigInt/cadence drift guards & store.
 
 test('Battle 5: slider-coexist Traditional Chinese EFF_MAP / Current: prefix & full 5+1 anti-translation attributes across all owned modules', () => {
   // 1) Traditional Chinese EFF_MAP & parseLocalizedModelLabel
-  assert.equal(sliderMod.normalizeEffortToken('極高'), 'xhigh');
-  assert.equal(sliderMod.normalizeEffortToken('極低'), 'minimal');
-  assert.equal(sliderMod.normalizeEffortToken('極簡'), 'minimal');
-  assert.equal(sliderMod.normalizeEffortToken('關閉'), 'off');
-  assert.equal(sliderMod.normalizeEffortToken('關'), 'off');
-  assert.equal(sliderMod.normalizeEffortToken('無'), 'off');
-  const pTw = sliderMod.parseLocalizedModelLabel('選擇模型：Claude Opus 4.6（極高）');
+  assert.equal(sliderMod.normalizeEffortToken('فائق'), 'xhigh');
+  assert.equal(sliderMod.normalizeEffortToken('أدنى'), 'minimal');
+  assert.equal(sliderMod.normalizeEffortToken('الحد الأدنى'), 'minimal');
+  assert.equal(sliderMod.normalizeEffortToken('إيقاف'), 'off');
+  assert.equal(sliderMod.normalizeEffortToken('متوقف'), 'off');
+  assert.equal(sliderMod.normalizeEffortToken('بلا'), 'off');
+  const pTw = sliderMod.parseLocalizedModelLabel('اختر النموذج: Claude Opus 4.6(فائق)');
   assert.equal(pTw.rawBase, 'Claude Opus 4.6');
   assert.equal(pTw.effort, 'xhigh');
   assert.equal(pTw.canonicalLabel, 'Claude Opus 4.6 (Extra)');
@@ -2770,7 +2749,7 @@ test('Smoked Obsidian Wave 1: style.css hygiene (0 :has, ASCII, LF, no BOM, home
   assert.ok(css.includes('.ag-cs-home-chart-svg{') && css.includes('.ag-cs-home-chart-peak{'));
   assert.ok(css.includes('--ag-cs-menu-bg:rgba(13,14,18,.94);') && css.includes('--ag-cs-menu-bg-l:rgba(252,253,254,.96);'));
 
-  for (const lang of ['auto', 'zh-CN', 'zh-TW', 'en', 'ja', 'ko', 'es', 'fr', 'de']) {
+  for (const lang of ['auto', 'ar', 'zh-TW', 'en', 'ja', 'ko', 'es', 'fr', 'de']) {
     const expr = cdp.buildInjectExpression({ ...cdp.DEFAULT_CONFIG, language: lang }, { bundleCachePath: '' });
     const bytes = Buffer.byteLength(expr, 'utf8');
     assert.ok(bytes < 549500, `Channel 1 (${lang}) must be strictly < 549,500 B, got ${bytes}`);

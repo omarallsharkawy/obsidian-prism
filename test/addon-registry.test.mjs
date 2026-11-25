@@ -68,7 +68,7 @@ function createDirLink(targetDir, linkPath) {
 }
 
 test('isTrustedAddonUrl enforces HTTPS allowlist, RMvdesi/obsidian-prism repo prefix, and blocks ports/userInfo/traversal', () => {
-  // 允许的白名单 URL
+  // Allowed whitelist URLs
   const allowed = [
     'https://github.com/RMvdesi/obsidian-prism/releases/download/v1.0.8/manifest.json',
     'https://raw.githubusercontent.com/RMvdesi/obsidian-prism/main/addons/demo/manifest.json',
@@ -81,7 +81,7 @@ test('isTrustedAddonUrl enforces HTTPS allowlist, RMvdesi/obsidian-prism repo pr
     assert.equal(isTrustedAddonUrl(url), true, `Expected trusted URL to pass: ${url}`);
   }
 
-  // 严禁的非白名单 / SSRF / 绕过 URL
+  // Strictly blocked non-allowlisted / SSRF / bypass URLs
   const blocked = [
     '',
     'http://github.com/RMvdesi/obsidian-prism/releases/download/v1.0.8/manifest.json',
@@ -164,7 +164,7 @@ test('validateSafeRelativePath and validateAddonManifest block traversal, absolu
     'https://raw.githubusercontent.com/RMvdesi/obsidian-prism/main/addons/sample/index.js'
   );
 
-  // 非法 ID / 非法 SHA / entry 不在 files[] / 非白名单 file.url
+  // Invalid ID / invalid SHA / entry missing from files[] / non-allowlisted file.url
   assert.equal(
     validateAddonManifest({ id: 'Bad_ID', version: '1.0.0', files: [{ path: 'a.js', sha256: goodSha }] }, { manifestUrl }).ok,
     false
@@ -233,12 +233,12 @@ test('AddonRegistry bundled periodic-picker status performs strictly 0 network c
     assert.equal(missingRes.addon.installed, false);
     assert.equal(fetchCalls, 0);
 
-    // 禁止卸载 bundled 模块
+    // Bundled modules cannot be removed
     const rmBundled = registry.remove('periodic-picker');
     assert.equal(rmBundled.ok, false);
     assert.equal(rmBundled.error, 'cannot_remove_bundled_addon');
 
-    // 未执行 install 时不得提前创建 addonsDir 污染磁盘
+    // addonsDir must not be created on disk before install is invoked
     assert.equal(fs.existsSync(addonsDir), false);
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -298,7 +298,7 @@ test('AddonRegistry install verifies redirects, memory SHA-256, atomic rename, u
       },
     });
 
-    // 1) 正常安装（含合法 302 跳转至 objects.githubusercontent.com）
+    // 1) Normal install (including valid 302 redirect to objects.githubusercontent.com)
     const res = await registry.install({ manifestUrl });
     assert.equal(res.ok, true);
     assert.equal(res.id, 'demo-pack');
@@ -310,16 +310,16 @@ test('AddonRegistry install verifies redirects, memory SHA-256, atomic rename, u
     assert.equal(fs.readFileSync(path.join(installedDir, 'index.js'), 'utf8'), file1Body);
     assert.equal(fs.readFileSync(path.join(installedDir, 'lib', 'helper.js'), 'utf8'), file2Body);
     assert.equal(fs.existsSync(path.join(installedDir, 'manifest.json')), true);
-    // 无残留隐藏 staging/backup 目录
+    // No leftover hidden staging/backup directories
     assert.deepEqual(fs.readdirSync(addonsDir), ['demo-pack']);
 
-    // 列出与状态查询可见
+    // Visible in list and status queries
     const status = registry.getAddonStatus('demo-pack');
     assert.equal(status.ok, true);
     assert.equal(status.addon.installed, true);
     assert.equal(status.addon.version, '1.0.0');
 
-    // 1b) 覆盖升级时若新版本 SHA-256 失败，旧版本文件 100% 完好无损；验签通过则原子替换为 v2
+    // 1b) If v2 SHA-256 fails on upgrade, existing v1 stays 100% intact; when verified, atomically swaps to v2
     const v2BadUrl = 'https://raw.githubusercontent.com/RMvdesi/obsidian-prism/main/addons/demo-pack/v2-bad.json';
     const v2TamperedFileUrl = 'https://raw.githubusercontent.com/RMvdesi/obsidian-prism/main/addons/demo-pack/v2-tampered.js';
     routes.set(v2BadUrl, () =>
@@ -361,7 +361,7 @@ test('AddonRegistry install verifies redirects, memory SHA-256, atomic rename, u
     assert.equal(fs.existsSync(path.join(installedDir, 'lib', 'helper.js')), false, 'Old v1 files must be atomically replaced');
     assert.deepEqual(fs.readdirSync(addonsDir), ['demo-pack'], 'No .backup-* or .staging-* residue after upgrade');
 
-    // 1c) 单文件超过 maxFileBytes 上限时拒绝写盘
+    // 1c) Reject writing when a single file exceeds maxFileBytes
     const cappedRegistry = new AddonRegistry({
       rootDir: ROOT,
       addonsDir,
@@ -390,7 +390,7 @@ test('AddonRegistry install verifies redirects, memory SHA-256, atomic rename, u
     assert.equal(bigFileRes.error, 'payload_too_large');
     assert.equal(fs.existsSync(path.join(addonsDir, 'too-big')), false);
 
-    // 2) SHA-256 不匹配：全新安装拒绝写盘，零目录残留
+    // 2) SHA-256 mismatch: fresh install refuses disk write and leaves zero residue
     const badManifestUrl = 'https://raw.githubusercontent.com/RMvdesi/obsidian-prism/main/addons/bad-sha/manifest.json';
     const badFileUrl = 'https://raw.githubusercontent.com/RMvdesi/obsidian-prism/main/addons/bad-sha/main.js';
     routes.set(badManifestUrl, () =>
@@ -411,7 +411,7 @@ test('AddonRegistry install verifies redirects, memory SHA-256, atomic rename, u
     assert.equal(fs.existsSync(path.join(addonsDir, 'bad-sha')), false, 'Target dir must not exist on SHA-256 mismatch');
     assert.deepEqual(fs.readdirSync(addonsDir), ['demo-pack'], 'No staging residue allowed after failure');
 
-    // 3) 302 跨站劫持与超过 5 跳拦截
+    // 3) Cross-site 302 hijack and > 5 redirect hops blocked
     const hijackUrl = 'https://github.com/RMvdesi/obsidian-prism/releases/download/v1.0.8/hijack.json';
     routes.set(hijackUrl, () =>
       makeMockResponse({ status: 302, headers: { location: 'https://evil.example.com/steal.json' } })
@@ -436,14 +436,14 @@ test('AddonRegistry install verifies redirects, memory SHA-256, atomic rename, u
     assert.equal(portRes.ok, false);
     assert.equal(portRes.error, 'untrusted_redirect_url');
 
-    // 超过 5 跳重定向循环
+    // Redirect loop exceeding 5 hops
     const loopUrl = 'https://github.com/RMvdesi/obsidian-prism/releases/download/v1.0.8/loop.json';
     routes.set(loopUrl, () => makeMockResponse({ status: 302, headers: { location: loopUrl } }));
     const loopRes = await registry.install({ manifestUrl: loopUrl });
     assert.equal(loopRes.ok, false);
     assert.equal(loopRes.error, 'too_many_redirects');
 
-    // 4) 超大 manifest (> 512 KiB) 拦截
+    // 4) Oversized manifest (> 512 KiB) rejected
     const hugeManifestUrl = 'https://raw.githubusercontent.com/RMvdesi/obsidian-prism/main/addons/huge/manifest.json';
     routes.set(hugeManifestUrl, () =>
       makeMockResponse({ status: 200, body: Buffer.alloc(MAX_MANIFEST_BYTES + 64, 0x20) })
@@ -452,7 +452,7 @@ test('AddonRegistry install verifies redirects, memory SHA-256, atomic rename, u
     assert.equal(hugeRes.ok, false);
     assert.equal(hugeRes.error, 'payload_too_large');
 
-    // 5) 禁止覆盖内置 bundled periodic-picker
+    // 5) Prevent overriding bundled periodic-picker
     const spoofBundledUrl = 'https://raw.githubusercontent.com/RMvdesi/obsidian-prism/main/addons/spoof/manifest.json';
     routes.set(spoofBundledUrl, () =>
       makeMockResponse({
@@ -468,7 +468,7 @@ test('AddonRegistry install verifies redirects, memory SHA-256, atomic rename, u
     assert.equal(spoofRes.ok, false);
     assert.equal(spoofRes.error, 'cannot_override_bundled_addon');
 
-    // 6) 安全卸载外部扩展
+    // 6) Safely remove external addon
     const rmRes = registry.remove('demo-pack');
     assert.equal(rmRes.ok, true);
     assert.equal(rmRes.removed, true);
@@ -481,7 +481,7 @@ test('AddonRegistry install verifies redirects, memory SHA-256, atomic rename, u
 test('AddonRegistry blocks symlink/junction targets, redline addonsDir, and hijacked AG_PRISM_ADDONS_DIR', async () => {
   const tmpDir = mkTempDir('prism-addon-sym-');
   try {
-    // 1) 红线目录与越权外部目录必须拒绝
+    // 1) Redline directories and unauthorized external paths must be rejected
     assert.equal(validateAddonsDir(path.join(tmpDir, 'conversations_archive', 'addons')).ok, false);
     assert.equal(validateAddonsDir(path.join(tmpDir, 'prism-knowledge-space', 'addons')).ok, false);
     assert.equal(validateAddonsDir(path.join(tmpDir, 'Antigravity-Spark', 'addons')).ok, false);
@@ -490,7 +490,7 @@ test('AddonRegistry blocks symlink/junction targets, redline addonsDir, and hija
       /redline_addons_dir/
     );
 
-    // 2) 非法 AG_PRISM_ADDONS_DIR 环境变量：resolveSafeAddonsDir 返回 null，constructor 拒绝采纳并回退默认安全路径
+    // 2) Invalid AG_PRISM_ADDONS_DIR env var: resolveSafeAddonsDir returns null, constructor rejects it and falls back to default safe path
     const evilEnvDir = path.join(tmpDir, 'unrelated-folder');
     fs.mkdirSync(evilEnvDir, { recursive: true });
     assert.equal(resolveSafeAddonsDir({ env: { AG_PRISM_ADDONS_DIR: evilEnvDir } }), null);
@@ -505,7 +505,7 @@ test('AddonRegistry blocks symlink/junction targets, redline addonsDir, and hija
     assert.equal(regWithBadEnv._rejectedEnvAddonsDir, true);
     assert.notEqual(regWithBadEnv.addonsDir, path.resolve(evilEnvDir));
 
-    // 3) symlink / junction 目标在 install 与 remove 时均 100% 拒绝且不触碰外部目录
+    // 3) Symlink / junction targets are 100% refused on both install and remove without touching outside directory
     const addonsDir = path.join(tmpDir, 'safe-addons');
     const outsideVictim = path.join(tmpDir, 'outside-victim');
     fs.mkdirSync(addonsDir, { recursive: true });
@@ -548,11 +548,11 @@ test('AddonRegistry blocks symlink/junction targets, redline addonsDir, and hija
     assert.equal(removeLink.error, 'refused_symlink_target');
     assert.equal(fs.readFileSync(victimFile, 'utf8'), 'do-not-touch');
 
-    // listAddons 也必须忽略 symlink 目录
+    // listAddons must also ignore symlink directories
     const listed = registry.listAddons();
     assert.equal(listed.addons.some((a) => a.id === 'linked-addon'), false);
 
-    // 4) 拒绝非合法 addonId 路径穿越删除
+    // 4) Reject path traversal deletion via invalid addonId
     assert.equal(registry.remove('../outside-victim').ok, false);
     assert.equal(fs.readFileSync(victimFile, 'utf8'), 'do-not-touch');
   } finally {
@@ -597,7 +597,7 @@ test('PrismDaemon executeRepoAction gates addons-* behind OBSIDIAN_PRISM_ADDONS_
       silent: true,
     });
 
-    // 1) 未开启或非严格 '1' 时全部 Fail-Closed
+    // 1) Fail-Closed whenever unset or not strictly '1'
     for (const val of [undefined, '', '0', 'true', '1 ']) {
       if (val === undefined) delete process.env.OBSIDIAN_PRISM_ADDONS_LAB;
       else process.env.OBSIDIAN_PRISM_ADDONS_LAB = val;
@@ -612,7 +612,7 @@ test('PrismDaemon executeRepoAction gates addons-* behind OBSIDIAN_PRISM_ADDONS_
     }
     assert.equal(fetchCalls, 0, 'Lab-disabled calls must never trigger network access');
 
-    // 2) 开启 OBSIDIAN_PRISM_ADDONS_LAB === '1' 后正常暴露受控调试接口
+    // 2) Expose gated lab debug actions when OBSIDIAN_PRISM_ADDONS_LAB === '1'
     process.env.OBSIDIAN_PRISM_ADDONS_LAB = '1';
     assert.equal(isLabEnabled(), true);
 

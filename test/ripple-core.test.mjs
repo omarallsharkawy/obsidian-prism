@@ -236,7 +236,7 @@ test('createGlyphField 2D renderer renders swirling four-color aura, prism waves
   const calmedAlpha = samplePixel(cx, cy)[3];
   assert.ok(calmedAlpha < unmaskedAlpha * 0.65, `expected calmZone alpha (${calmedAlpha}) < 0.65 * unmasked (${unmaskedAlpha})`);
 
-  // Light 白底模式：清晰深石板蓝底网 + 高饱和宝石四色受激折射
+  // Light mode: crisp deep slate-blue grid + high-saturation jewel four-color refraction
   const lightWaves = rippleCore.createWaveField(cols, rows, () => 0.5);
   const lightCanvas = makeMockCanvas(cols * cellWidth, rows * cellHeight);
   const lightField = rippleCore.createGlyphField(lightCanvas, cols, rows, lightWaves);
@@ -636,7 +636,7 @@ test('mountBrandHorizonGlow WebGL2 shader compiles #version 300 es prism/surge/s
     ]) {
       assert.ok(fragSrc.includes(token), `Expected HORIZON_FRAGMENT_SHADER to include "${token}"`);
     }
-    // 严格防退化：WebGL2 GLSL ES 3.00 源码必须 100% 纯 ASCII（防 ANGLE 编译器因非 ASCII 注释报错），且浅色分支绝不可使用 mix(vec3(1.0), ...) 冲白
+    // Regression guard: WebGL2 GLSL ES 3.00 source must be 100% pure ASCII (prevents ANGLE compiler errors on non-ASCII comments), and daylight branch must never wash out with mix(vec3(1.0), ...)
     for (const src of shaderSources) {
       assert.equal(/^[\x09\x0a\x0d\x20-\x7e]*$/.test(src), true, 'WebGL2 GLSL ES 3.00 shader source must contain strictly ASCII characters');
       let braces = 0;
@@ -721,13 +721,13 @@ test('Daylight Dichroic Ink Wash renders vivid non-white jewel chroma on #F4F7FB
   const glow = rippleCore.mountBrandHorizonGlow(canvas, { force2D: true });
   glow.resize(W, H, 1);
 
-  // 在苛刻的会话页低强度 strength = 0.24（浅色模式）下直接绘制静帧快照
+  // Render static snapshot directly under low conversation strength = 0.24 (light mode)
   const rendered = glow.drawStaticSnapshot(1000, false, 0.24, { reach: 0.26, prism: 0.22, surge: 0, speed: 0.55 });
   assert.equal(rendered, true);
   assert.equal(glow.isSleeping(), true);
   assert.ok(lastImage, 'Expected 2D ImageData output for daylight static snapshot');
 
-  // 上方阅读区必须 100% 透明
+  // Upper reading zone must stay 100% transparent
   let topAlpha = 0;
   for (let y = 0; y < Math.floor(H * 0.45); y++) {
     for (let x = 0; x < W; x++) {
@@ -736,7 +736,7 @@ test('Daylight Dichroic Ink Wash renders vivid non-white jewel chroma on #F4F7FB
   }
   assert.equal(topAlpha, 0, 'Upper reading area must remain 100% transparent in daylight mode');
 
-  // 采样底部地平线光带，合成到 Daylight Crystal (#F4F7FB = [244, 247, 251]) 白底上检验视觉对比度与彩墨饱和度
+  // Sample bottom horizon band composited onto Daylight Crystal (#F4F7FB = [244, 247, 251]) to verify contrast & jewel chroma
   const bg = [244, 247, 251];
   const rowY = H - 6;
   let maxAlpha = 0;
@@ -754,7 +754,7 @@ test('Daylight Dichroic Ink Wash renders vivid non-white jewel chroma on #F4F7FB
     if (a > 20) {
       const rawChroma = Math.max(r, g, b) - Math.min(r, g, b);
       if (rawChroma > maxRawChroma) maxRawChroma = rawChroma;
-      // 严禁退化为近纯白灰雾（例如 R>235 && G>235 && B>235）
+      // Must never degenerate into near-white gray fog (e.g. R>235 && G>235 && B>235)
       assert.equal(r > 235 && g > 235 && b > 235, false, `Pixel at x=${x} degenerated to near-white fog: rgba(${r},${g},${b},${a})`);
       const af = a / 255;
       const compR = bg[0] * (1 - af) + r * af;
@@ -770,7 +770,7 @@ test('Daylight Dichroic Ink Wash renders vivid non-white jewel chroma on #F4F7FB
   assert.ok(maxRawChroma >= 95, `Expected high-saturation jewel ink chroma >= 95 (not washed-out gray/white), got ${maxRawChroma}`);
   assert.ok(maxCompositeDeltaFromBg >= 65, `Expected clear visible contrast >= 65 against #F4F7FB canvas, got ${maxCompositeDeltaFromBg}`);
 
-  // 验证横跨地平线存在多色棱镜折射梯度（左翼与右翼 RGB 明显不同）
+  // Verify multi-hue prismatic dispersion across the horizon span (left vs right wing RGB clearly distinct)
   assert.ok(sampledHues.length >= 6);
   let maxSpanDiff = 0;
   for (let i = 0; i < sampledHues.length; i++) {
@@ -783,7 +783,7 @@ test('Daylight Dichroic Ink Wash renders vivid non-white jewel chroma on #F4F7FB
   }
   assert.ok(maxSpanDiff >= 90, `Expected multi-hue prismatic ink dispersion across horizon span, got max diff ${maxSpanDiff}`);
 
-  // 验证动态唤醒后 isSleeping 自动解除，再次单对象调用 drawStaticSnapshot 立即重回休眠
+  // Verify dynamic wake clears isSleeping and single-object drawStaticSnapshot returns to sleep immediately
   glow.draw(1200, false, 0.35, { reach: 0.26, prism: 0.3, surge: 0.4, speed: 1.1 });
   assert.equal(glow.isSleeping(), false);
   assert.equal(glow.drawStaticSnapshot({ dark: false, strength: 0.52, reach: 0.32, prism: 0.2 }), true);
@@ -872,7 +872,7 @@ test('createGlyphField.triggerLiftoffBurst & busy() converge strictly to false a
   }
   assert.ok(maxBurstChroma >= 45, `Expected prism dispersion boost chroma >= 45 on liftoff burst, got ${maxBurstChroma}`);
 
-  // 验证大跨度时间戳跳跃后单帧即可彻底衰减尾迹归零，无需数十次冗余 draw
+  // Verify a large timestamp jump decays trail to zero in a single frame without redundant draws
   assert.equal(field.triggerLiftoffBurst(Number.NaN, 99), true);
   for (let step = 0; step < 520; step++) waves.advance(0.05);
   assert.equal(waves.active(), false);
@@ -880,7 +880,7 @@ test('createGlyphField.triggerLiftoffBurst & busy() converge strictly to false a
   assert.equal(field.busy(), false, 'busy() must immediately settle to false once wave & glow decay elapse');
   assert.equal(field.isSettled(), true);
 
-  // 验证无渲染上下文（headless null context）下 busy() 同样能准确归零，绝不残留 prismBurst
+  // Verify busy() also settles cleanly under headless null context with zero residual prismBurst
   const headlessWaves = rippleCore.createWaveField(20, 12, () => 0.5);
   const headlessField = rippleCore.createGlyphField({ width: 140, height: 180, ownerDocument: { hidden: false }, getContext: () => null }, 20, 12, headlessWaves);
   assert.equal(headlessField.triggerLiftoffBurst(), true);
@@ -1033,7 +1033,7 @@ test('style.css enforces GPU compositor offloading, dual daylight presets (Cryst
   }
   assert.equal(cssBraces, 0, 'style.css curly braces must be 100% balanced');
 
-  // 1) 常驻底部输入舱与首页大面板彻底拔除 backdrop-filter，仅小面积临时浮层保留 blur(16px)
+  // 1) Persistent bottom composer and large home panel remove backdrop-filter; only small transient overlays keep blur(16px)
   const composerBlock = css.match(/& \.surface-composer-card\{[\s\S]*?\n\}/)?.[0] || '';
   assert.ok(composerBlock.includes('backdrop-filter:none !important'), '.surface-composer-card must force backdrop-filter:none !important');
   assert.equal(composerBlock.includes('blur('), false, '.surface-composer-card must not apply any blur()');
@@ -1046,21 +1046,21 @@ test('style.css enforces GPU compositor offloading, dual daylight presets (Cryst
   assert.equal(css.includes('blur(20px)'), false);
   assert.equal(css.includes('blur(24px)'), false);
 
-  // 2) 流式吐字移除逐词 filter:blur(4px)，100% 纯 GPU 合成层属性 + 收敛侧栏无限滤镜位移
+  // 2) Streaming text removes per-word filter:blur(4px), using pure GPU compositor properties + removing infinite sidebar filter shifts
   const streamKeyframe = css.split('\n').find((l) => l.startsWith('@keyframes ag-cs-stream-chunk')) || '';
   assert.ok(streamKeyframe.includes('translate3d(0,2.5px,0)'), 'ag-cs-stream-chunk must use pure GPU translate3d(0, 2.5px, 0)');
   assert.equal(streamKeyframe.includes('filter'), false, 'ag-cs-stream-chunk must never animate filter/blur');
   assert.equal(css.includes('ag-cs-row-aurora'), false, 'Expensive background-position row-aurora loop must be removed');
   assert.equal(css.includes('ag-cs-pill-breath'), false, 'Expensive filter:brightness pill-breath loop must be removed');
 
-  // 3) 关键特异性与防黑边防线（滚动视口禁用全屏离屏 mask-image 解锁 GPU 合成快速滚动）+ warm/claude 暖调同享 + .ag-prism-thought-raw-toggle 零闪烁保护
+  // 3) Key specificity & anti-black-edge guards (disable full-screen offscreen mask-image on scroll viewport) + warm/claude tone + .ag-prism-thought-raw-toggle zero-flicker guard
   assert.ok(css.includes('[data-testid="autoscroll-viewport"]{-webkit-mask-image:none !important;mask-image:none !important;}'));
   assert.ok(css.includes('&[data-ag-cs-style][data-ag-cs-style] [data-testid="thinking-collapsible-trigger"]+div{'));
   assert.ok(css.includes('&[data-ag-cs-style][data-ag-cs-style] [data-testid="thinking-collapsible-trigger"][aria-expanded="true"]+div{'));
   assert.ok(css.includes('[data-ag-cs-palette="warm"]'));
   assert.ok(css.includes('.ag-prism-thought-raw-toggle{') && css.includes('animation:none !important'));
 
-  // 4) 双浅色白昼光学重塑（Daylight Crystal & Warm Alabaster）+ Hero C/D/E 非白扫白高饱和宝石四色
+  // 4) Dual daylight optical themes (Daylight Crystal & Warm Alabaster) + high-saturation jewel four-color Hero C/D/E
   for (const token of [
     '--sidebar:#E8EEF6 !important',
     '--background:#F4F7FB !important',
@@ -1079,7 +1079,7 @@ test('style.css enforces GPU compositor offloading, dual daylight presets (Cryst
   }
   assert.equal(css.includes('rgba(255,255,255,.98)'), false, 'Light Hero C caustic must not sweep white-on-white rgba(255,255,255,.98)');
 
-  // 5) Wave 2: 可折叠设置手风琴外壳 (.ag-cs-settings-fold-head / .ag-cs-settings-fold-body) 与「关于、Git 更新与致谢」卡片 (.ag-cs-about-box)
+  // 5) Wave 2: Collapsible settings accordion (.ag-cs-settings-fold-head / .ag-cs-settings-fold-body) and About / Git Sync / Credits card (.ag-cs-about-box)
   for (const w2Token of [
     '.ag-cs-settings-fold-head',
     '.ag-cs-settings-fold-body',
@@ -1112,7 +1112,7 @@ test('Wave 2: mountBrandHorizonGlow exhibits visible aurora drift and breathing 
   const glow = rippleCore.mountBrandHorizonGlow(canvas, { force2D: true });
   glow.resize(W, H, 1);
 
-  // 1) Idle 慢呼吸流淌（speed = 0.72, frameMs = 50ms）：连续两帧像素差必须 > 0，且跨 2.4s 呈现明显明暗呼吸
+  // 1) Idle slow breathing flow (speed = 0.72, frameMs = 50ms): consecutive frame pixel delta > 0 with perceptible breathing
   glow.draw(1000, true, 0.24, { reach: 0.5, prism: 0.12, surge: 0, speed: 0.72 });
   const idleFrame0 = Uint8ClampedArray.from(lastImage.data);
   glow.draw(1050, true, 0.24, { reach: 0.5, prism: 0.12, surge: 0, speed: 0.72 });
@@ -1123,7 +1123,7 @@ test('Wave 2: mountBrandHorizonGlow exhibits visible aurora drift and breathing 
   }
   assert.ok(idleStepDelta > 0, `Expected living aurora pixel drift between consecutive 50ms idle frames, got delta=${idleStepDelta}`);
 
-  // 2) Running 极光流淌（speed = 1.45, prism = 0.70）：跨呼吸半周期采样总 alpha 振幅与横向色散游走显著可感
+  // 2) Running aurora flow (speed = 1.45, prism = 0.70): perceptible alpha breathing amplitude across half-period
   let minRunAlpha = Infinity;
   let maxRunAlpha = 0;
   for (let ms = 2000; ms <= 6000; ms += 250) {

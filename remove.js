@@ -169,7 +169,7 @@ function resolveSafeAddonsDir(hostConfigDir, geminiRoot, envAddonsDir) {
 }
 
 function purgeUserPluginData(opts = {}) {
-  // 绝对红线：严禁触碰 conversations_archive、Antigravity-Spark、prism-knowledge-space
+  // Hard red line: never touch conversations_archive, Antigravity-Spark, or prism-knowledge-space
   const purgedPaths = [];
   const hostConfigDir = resolveHostConfigDir(opts);
   const geminiRoot = hostConfigDir ? path.dirname(hostConfigDir) : null;
@@ -245,7 +245,7 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// 发送 SIGTERM 后轮询等待守护彻底退出（超时则升级 SIGKILL 再短等），防止退出中临终 flush 复活已清理的缓存文件
+// Send SIGTERM and poll until the daemon exits completely (escalate to SIGKILL on timeout and wait briefly) to prevent a final flush from recreating cleaned cache files
 async function terminatePidAndWait(pid, opts = {}) {
   const num = Number(pid);
   if (!Number.isInteger(num) || num <= 0 || num === process.pid) {
@@ -317,12 +317,12 @@ async function stopPidFile(filePath, label, opts = {}) {
         const res = await terminatePidAndWait(pid, opts);
         if (res.signaled) {
           stoppedPid = pid;
-          console.log(`[✓] 已停止${label} (PID ${pid})`);
+          console.log(`[✓] Stopped ${label} (PID ${pid})`);
         } else {
-          console.log(`[i] ${label}未在运行`);
+          console.log(`[i] ${label} is not running`);
         }
       } catch {
-        console.log(`[i] ${label}未在运行`);
+        console.log(`[i] ${label} is not running`);
       }
     }
     try {
@@ -335,8 +335,8 @@ async function stopPidFile(filePath, label, opts = {}) {
 async function stopWatcher(opts = {}) {
   const watchPidFile = opts.watchPidFile || PID_FILE;
   const daemonPidFile = opts.daemonPidFile || path.join(__dirname, '.daemon.pid');
-  const stoppedWatchPid = await stopPidFile(watchPidFile, '守护进程', opts);
-  const stoppedDaemonPid = await stopPidFile(daemonPidFile, 'Sidecar 守护进程', opts);
+  const stoppedWatchPid = await stopPidFile(watchPidFile, 'watch daemon', opts);
+  const stoppedDaemonPid = await stopPidFile(daemonPidFile, 'Sidecar daemon', opts);
   return { stoppedWatchPid, stoppedDaemonPid };
 }
 
@@ -345,13 +345,13 @@ async function main(argv = process.argv.slice(2), opts = {}) {
   await stopWatcher(opts);
   const port = opts.noCdp ? null : readPort();
   if (!port) {
-    console.log('[i] Antigravity 未运行，无需清理窗口');
+    console.log('[i] Antigravity is not running, no windows to clean');
   } else {
     let pages = null;
     try {
       pages = await listPages(port);
     } catch {
-      console.log(`[i] 端口 ${port} 无响应，无需清理窗口`);
+      console.log(`[i] Port ${port} is not responding, no windows to clean`);
     }
     if (Array.isArray(pages)) {
       for (const page of pages) {
@@ -359,7 +359,7 @@ async function main(argv = process.argv.slice(2), opts = {}) {
         try {
           const res = await session.evaluate(REMOVE_EXPRESSION);
           const safeTitle = redactSensitiveUrl(page.title || page.url || '');
-          console.log(`[✓] 已恢复原生界面: ${safeTitle} (清理节点 ${res?.removed ?? 0})`);
+          console.log(`[✓] Restored native UI: ${safeTitle} (removed ${res?.removed ?? 0} nodes)`);
         } finally {
           session.close();
         }
@@ -376,7 +376,7 @@ async function main(argv = process.argv.slice(2), opts = {}) {
           session = await CdpSession.connect(target.webSocketDebuggerUrl, 2000);
           await session.evaluate(SWARM_I18N_REMOVE_EXPRESSION);
           const safeTitle = redactSensitiveUrl(target.title || target.url || 'Swarm');
-          console.log(`[✓] 已恢复原生 Swarm 面板: ${safeTitle}`);
+          console.log(`[✓] Restored native Swarm panel: ${safeTitle}`);
         } catch {
         } finally {
           if (session) session.close();
@@ -387,7 +387,7 @@ async function main(argv = process.argv.slice(2), opts = {}) {
 
   if (cli.purgeData) {
     const purged = purgeUserPluginData(opts);
-    console.log(`[✓] 已彻底清理用户插件配置与缓存 (${purged.length} 项)`);
+    console.log(`[✓] Purged user plugin config and cache (${purged.length} items)`);
   }
 }
 

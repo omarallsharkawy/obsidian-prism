@@ -76,7 +76,7 @@ const BLOCKED_SUBPATHS = [
   '/library/application support/antigravity',
 ];
 
-// 绝对红线：严禁写入或覆盖用户核心数据目录
+// Hard redline: never write to or overwrite core user data directories
 const REDLINE_DIR_SEGMENTS = new Set([
   'conversations_archive',
   'prism-knowledge-space',
@@ -116,7 +116,7 @@ const MP4_BRANDS = new Set([
 
 const AVIF_BRANDS = new Set(['avif', 'avis']);
 
-// 固定无插值 PowerShell 文件选择脚本（通过 -EncodedCommand 执行，杜绝任何 shell 拼接）
+// Fixed static PowerShell file picker script with no interpolation (executed via -EncodedCommand to avoid shell concatenation)
 const WIN_PICK_MEDIA_PS = [
   '$ErrorActionPreference = "Stop"',
   '$ProgressPreference = "SilentlyContinue"',
@@ -172,7 +172,7 @@ function stripTrailingSlashes(str) {
 
 function stripExtendedWinPrefix(p) {
   const s = String(p || '');
-  // 仅剥离常规盘符长路径前缀 \\?\C:\，严禁剥离 \\?\UNC\ 或设备前缀
+  // Only strip standard drive long-path prefix \\?\C:\; never strip \\?\UNC\ or device prefixes
   if (/^\\\\\?\\[a-zA-Z]:\\/.test(s)) {
     return s.slice(4);
   }
@@ -255,14 +255,14 @@ function isSystemOrBlockedSubpath(candidatePath, opts = {}) {
   const norm = normalizePosixLower(candidatePath).replace(/\/+/g, '/');
   if (!norm) return true;
 
-  // 系统根目录前缀检查（Windows 与 POSIX 跨平台一致拦截）
+  // System root directory prefix check (blocks both Windows and POSIX paths consistently)
   if (/^[a-z]:\/(?:windows|programdata|system volume information|\$recycle\.bin)(?:\/|$)/.test(norm)) {
     return true;
   }
   if (/^\/(?:etc|proc|sys|dev|boot|root|sbin|usr\/sbin|var\/run|run|private\/etc|private\/var\/db|system\/library)(?:\/|$)/.test(norm)) {
     return true;
   }
-  // 兼容 Windows 上解析 /etc/... -> c:/etc/... 的路径形态
+  // Handle Windows-resolved /etc/... -> c:/etc/... path forms
   if (/^[a-z]:\/(?:etc|proc|sys|dev|boot|root)(?:\/|$)/.test(norm)) {
     return true;
   }
@@ -353,7 +353,7 @@ function resolveSafeConfigPathOverride(rawCandidate) {
   const matchedRoot = allRoots.find((root) => isWithinOrEqualDir(parentDir, root));
   if (!matchedRoot) return null;
 
-  // 禁止白名单根之内存在敏感目录段、红线目录段或未展开短名段
+  // Disallow sensitive directory segments, redline directory segments, or unexpanded 8.3 short names inside allowlisted roots
   const relDir = path.relative(matchedRoot, parentDir);
   if (relDir) {
     const relSegs = relDir.split(/[\\/]+/).filter(Boolean);
@@ -368,10 +368,10 @@ function resolveSafeConfigPathOverride(rawCandidate) {
     }
   }
 
-  // 校验目标文件及祖先目录链（至白名单根）零符号链接
+  // Verify zero symlinks in the target file and ancestor chain up to the allowlisted root
   if (hasSymlinkInChain(resolved, matchedRoot)) return null;
 
-  // 校验最近已存在祖先经 realpathSync.native 展开后仍在白名单真实根内且无短名/敏感路径逃逸
+  // Verify the nearest existing ancestor after realpathSync.native remains within allowlisted real roots without short-name or sensitive path escape
   let existingCur = parentDir;
   let realExisting = '';
   for (let depth = 0; depth < 64; depth++) {
@@ -434,7 +434,7 @@ function isUncOrDevicePath(rawStr) {
   // UNC (\\server\share, //server/share), extended/device prefixes (\\?\, \\.\, //?/, //./)
   if (s.startsWith('\\\\') || s.startsWith('//')) return true;
   if (/^[\\/]{2}[?.][\\/]/.test(s)) return true;
-  // Windows 保留设备名检查
+  // Windows reserved device name check
   const parts = s.split(/[\\/]+/).filter(Boolean);
   for (const part of parts) {
     const base = part.split('.')[0];
@@ -455,7 +455,7 @@ function isSensitiveSystemOrCredentialPath(candidatePath, opts = {}) {
     return true;
   }
 
-  // 仅取目录部分检查敏感目录段（避免误伤文件名如 my-windows-wall.png）
+  // Only inspect directory segments for sensitive names (avoid false positives on filenames like my-windows-wall.png)
   const lastSlash = norm.lastIndexOf('/');
   const dirPart = lastSlash >= 0 ? norm.slice(0, lastSlash) : '';
   const dirSegments = dirPart.split('/').filter(Boolean);
@@ -513,7 +513,7 @@ export function verifyMediaMagicBytes(ext, headerBuf, bytesRead = headerBuf?.len
     if (bytesRead < 12) return false;
     if (headerBuf.subarray(4, 8).toString('ascii') !== 'ftyp') return false;
     const boxSize = headerBuf.readUInt32BE(0);
-    // 畸形 ftyp boxSize（1 或 2..15）直接拒绝，绝不回退扫描后续正文
+    // Reject malformed ftyp boxSize (1 or 2..15) immediately; never scan further into the payload
     if (boxSize === 1 || (boxSize >= 2 && boxSize < 16)) return false;
     const limit = boxSize === 0 ? bytesRead : Math.min(bytesRead, boxSize);
     const major = headerBuf.subarray(8, 12).toString('ascii');
@@ -524,7 +524,7 @@ export function verifyMediaMagicBytes(ext, headerBuf, bytesRead = headerBuf?.len
     if (e === '.avif') {
       return AVIF_BRANDS.has(major) || compat.some((b) => AVIF_BRANDS.has(b));
     }
-    // .mp4: 拒绝纯 avif/avis 伪装，要求命中合法 MP4/ISO-BMFF 品牌
+    // .mp4: reject pure avif/avis spoofing; require a valid MP4/ISO-BMFF brand
     if (AVIF_BRANDS.has(major) && !compat.some((b) => MP4_BRANDS.has(b))) {
       return false;
     }
@@ -576,7 +576,7 @@ export function validateWallpaperMediaPath(rawPath, opts = {}) {
     };
   }
 
-  // 在访问文件系统之前先对原始与解析路径做敏感目录拦截
+  // Block sensitive directories on raw and expanded paths before touching the filesystem
   if (isSensitiveSystemOrCredentialPath(trimmed, opts) || isSensitiveSystemOrCredentialPath(expanded, opts)) {
     return {
       ok: false,
@@ -655,7 +655,7 @@ export function validateWallpaperMediaPath(rawPath, opts = {}) {
       : MAX_VIDEO_FILE_BYTES;
   const maxBytes = realSpec.mediaType === 'video' ? maxVideoBytes : maxImageBytes;
 
-  // 打开同一 fd 完成 fstat 与头部 64 字节二次魔数校验，消除校验窗口
+  // Open a single fd for fstat and 64-byte header magic verification to eliminate TOCTOU windows
   const header = Buffer.alloc(64);
   let bytesRead = 0;
   let stat = null;
@@ -921,7 +921,7 @@ export function createWallpaperService(opts = {}) {
   let disposed = false;
   const activeSockets = new Set();
 
-  // 初始化时若配置中已有 mediaPath，同步校验其合法性（不启动 HTTP 服务器，保持懒启动）
+  // On startup, synchronously validate existing mediaPath without starting the HTTP server (keep lazy startup)
   if (config.mediaPath) {
     const check = validateWallpaperMediaPath(config.mediaPath, validateOpts);
     if (check.ok) {
@@ -1011,7 +1011,7 @@ export function createWallpaperService(opts = {}) {
       'Accept-Ranges': 'bytes',
     };
 
-    // 严格来源检查：绝不输出 Access-Control-Allow-Origin: *
+    // Strict origin check: never emit Access-Control-Allow-Origin: *
     const reqOrigin = typeof req.headers?.origin === 'string' ? req.headers.origin.trim() : '';
     if (reqOrigin) {
       if (!ALLOWED_ORIGIN_RE.test(reqOrigin)) {
@@ -1056,7 +1056,7 @@ export function createWallpaperService(opts = {}) {
       return;
     }
 
-    // 读时 TOCTOU 防护：按 fd 打开并复核 native realpath、非敏感路径、fstat 大小与文件头魔数，再复用该 fd 流式输出
+    // Read-time TOCTOU guard: open fd and re-verify native realpath, non-sensitive path, fstat size, and magic header before streaming from the same fd
     const targetRealPath = activeMedia.realPath;
     const targetExt = activeMedia.ext || path.extname(targetRealPath).toLowerCase();
     const targetMime = activeMedia.mimeType;
@@ -1324,7 +1324,7 @@ export function createWallpaperService(opts = {}) {
         nextActive = checked;
       }
     } else if (nextCfg.enabled && nextCfg.mediaPath) {
-      // 启用已有路径时复检一次安全性与文件存在性
+      // Re-verify security and file existence when enabling an existing path
       const checked = validateWallpaperMediaPath(nextCfg.mediaPath, validateOpts);
       if (!checked.ok) {
         activeMedia = null;
@@ -1487,7 +1487,7 @@ export function createWallpaperService(opts = {}) {
     if (disposed) {
       return Promise.resolve({ ok: false, code: 'service-disposed', error: 'Wallpaper service is disposed' });
     }
-    // 服务端单飞互斥锁：并发调用复用同一在途选择器 Promise，避免拉起多个模态进程
+    // Server-side single-flight mutex: concurrent calls share the in-flight picker Promise to avoid spawning multiple modal dialogs
     if (pickInFlightPromise) {
       return pickInFlightPromise;
     }
@@ -1618,7 +1618,7 @@ export function createWallpaperService(opts = {}) {
     if (disposed) {
       return { ok: false, code: 'service-disposed', error: 'Wallpaper service is disposed' };
     }
-    // 严格仅允许读取当前已保存配置的壁纸文件，杜绝通过 RPC 探测读取任意本地图片
+    // Strictly allow reading only the currently saved wallpaper file to prevent arbitrary local image probing via RPC
     if (payload && typeof payload.mediaPath === 'string' && payload.mediaPath.trim() && config.mediaPath) {
       const reqResolved = path.resolve(payload.mediaPath.trim());
       const curResolved = path.resolve(config.mediaPath);
@@ -1664,7 +1664,7 @@ export function createWallpaperService(opts = {}) {
     const reqRev = rev;
     const reqKey = `${reqRev}:${checked.realPath}`;
 
-    // 同 rev 单飞复用，跨 rev 串行排队，保证异步读盘并发上限恒为 1
+    // Coalesce same-rev requests and serialize cross-rev requests so async disk read concurrency stays capped at 1
     if (blobInFlight && blobInFlight.key === reqKey) {
       return blobInFlight.promise;
     }

@@ -361,7 +361,7 @@ test('OmniServer /viewer renders HTML workbench and all 5 RPC actions validate p
 
   // /viewer route with SVG file & Mermaid mode + corners=['sharp','balanced','soft'] default 'balanced'
   const viewerSvg = await httpGetRaw(
-    `${info.baseUrl}/viewer?token=${info.token}&path=${encodeURIComponent(svgFile)}&theme=dark&palette=obsidian&accent=amber&lang=zh-CN`
+    `${info.baseUrl}/viewer?token=${info.token}&path=${encodeURIComponent(svgFile)}&theme=dark&palette=obsidian&accent=amber&lang=ar`
   );
   assert.equal(viewerSvg.statusCode, 200);
   assert.match(String(viewerSvg.headers['content-type'] || ''), /text\/html/i);
@@ -542,8 +542,8 @@ test('OmniServer SEC-3/5/6 & WB-4: Host/Origin/CSP/Referrer-Policy, remote UNC b
     assert.equal(symSlice.ok, false);
   }
 
-  // 4. WB-4: Multibyte UTF-8 boundary rollback (3-byte CJK + 4-byte supplementary emoji, zero U+FFFD corruption)
-  const utf8Sample = '曜石棱镜光学引擎🚀跨分片多字节边界无损还原验证！\n'.repeat(12);
+  // 4. WB-4: Multibyte UTF-8 boundary rollback (2-byte Arabic + 3-byte symbols + 4-byte supplementary emoji, zero U+FFFD corruption)
+  const utf8Sample = 'Obsidian Prism أوبسيديان بريزم ★€🚀 multi-byte UTF-8 boundary check!\n'.repeat(12);
   const utf8File = path.join(tmpDir, 'utf8-multibyte.md');
   fs.writeFileSync(utf8File, utf8Sample, 'utf8');
 
@@ -554,7 +554,7 @@ test('OmniServer SEC-3/5/6 & WB-4: Host/Origin/CSP/Referrer-Policy, remote UNC b
     const chunkRes = await server.handleRpcAction('readTextSlice', {
       path: utf8File,
       offset: cursor,
-      maxBytes: 17, // Prime byte chunk size guaranteed to cut across 3-byte CJK and 4-byte emoji boundaries
+      maxBytes: 17, // Prime byte chunk size guaranteed to cut across 2-byte Arabic, 3-byte symbols, and 4-byte emoji boundaries
     });
     assert.equal(chunkRes.ok, true);
     assert.equal(chunkRes.textSlice.includes('\uFFFD'), false, `Chunk at offset ${cursor} must never contain U+FFFD`);
@@ -566,7 +566,7 @@ test('OmniServer SEC-3/5/6 & WB-4: Host/Origin/CSP/Referrer-Policy, remote UNC b
   assert.equal(assembled, utf8Sample, 'Concatenated UTF-8 slices must match original multibyte text 100%');
 });
 
-test('OmniServer /sandbox/ enforces strict opaque-origin CSP on .html/.htm and /viewer supports full 8+1 locales', async (t) => {
+test('OmniServer /sandbox/ enforces strict opaque-origin CSP on .html/.htm and /viewer supports bilingual en/ar locales', async (t) => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ag-omni-b3-'));
   const htmlFile = path.join(tmpDir, 'demo.html');
   const htmFile = path.join(tmpDir, 'legacy.htm');
@@ -620,15 +620,15 @@ test('OmniServer /sandbox/ enforces strict opaque-origin CSP on .html/.htm and /
     );
   }
 
-  // /viewer accepts all 8 locales + yue compatibility and falls back invalid locales to zh-CN
-  for (const lang of ['zh-CN', 'zh-TW', 'yue', 'en', 'ja', 'ko', 'es', 'fr', 'de']) {
+  // /viewer accepts bilingual en/ar locales and falls back invalid locales to en
+  for (const lang of ['en', 'ar']) {
     const res = await httpGetRaw(`${info.baseUrl}/viewer?token=${info.token}&kind=mermaid&lang=${encodeURIComponent(lang)}`);
     assert.equal(res.statusCode, 200);
     assert.ok(res.text.includes(`<html lang="${lang}"`), `/viewer must preserve lang="${lang}"`);
   }
   const fallbackRes = await httpGetRaw(`${info.baseUrl}/viewer?token=${info.token}&kind=mermaid&lang=xx-INVALID`);
   assert.equal(fallbackRes.statusCode, 200);
-  assert.ok(fallbackRes.text.includes('<html lang="zh-CN"'));
+  assert.ok(fallbackRes.text.includes('<html lang="en"'));
 });
 
 test('OmniServer CORS hardening: zero wildcard *, reflects verified local Origin or /sandbox/ null Origin with Vary: Origin', async (t) => {

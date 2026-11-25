@@ -334,8 +334,8 @@ test('Issue #62 CSS & Budget Gate: tiling-splitter transparent hitbox + ::before
   assert.equal(pvbTxt.includes('\r'), false);
   assert.equal(/innerHTML|outerHTML|insertAdjacentHTML/.test(pvbTxt), false);
 
-  // Channel 1 9-lang budget < 549,500 B
-  for (const lang of ['auto', 'zh-CN', 'zh-TW', 'en', 'ja', 'ko', 'es', 'fr', 'de']) {
+  // Channel 1 3-mode budget < 549,500 B
+  for (const lang of ['auto', 'en', 'ar']) {
     const expr = cdp.buildInjectExpression({ ...cdp.DEFAULT_CONFIG, language: lang }, { bundleCachePath: '' });
     const bytes = Buffer.byteLength(expr, 'utf8');
     assert.ok(bytes < 549500, `Channel 1 (${lang}) must stay < 549,500 B, got ${bytes}`);
@@ -391,7 +391,7 @@ test('Issue #62 Multi-Pane Telemetry & Single-Vial Follow: independent bars/RO/c
 
   vm.runInNewContext(fs.readFileSync(path.join(ROOT, 'vendor', 'pulse-dashboard', 'inline-fallback.js'), 'utf8'), sb);
   const tel = sb.__agPrismTelemetry;
-  tel.sync({ telemetryModule: 'on', language: 'zh-CN' });
+  tel.sync({ telemetryModule: 'on', language: 'ar' });
   await new Promise((r) => setTimeout(r, 30));
 
   const bars = tel.getBars();
@@ -423,7 +423,7 @@ test('Issue #62 Multi-Pane Telemetry & Single-Vial Follow: independent bars/RO/c
   await tel.refresh();
   const subBadgeTxt = bars[0].shadowRoot.getElementById('subagent-badge').textContent;
   assert.equal(subBadgeTxt.startsWith('·'), false, `subagent-badge must not have leading dot (got ${JSON.stringify(subBadgeTxt)})`);
-  assert.equal(subBadgeTxt, '2代理');
+  assert.equal(subBadgeTxt, '2 فرعي');
 
   // Independent ResizeObserver folding with 0 getBoundingClientRect calls
   p1.footer._rectReads = 0;
@@ -481,7 +481,7 @@ test('Issue #62 Multi-Pane Telemetry & Single-Vial Follow: independent bars/RO/c
 
   // Remove Pane 2 -> bar 2 & its RO cleanly torn down
   p2.pane.remove();
-  tel.sync({ telemetryModule: 'on', language: 'zh-CN' });
+  tel.sync({ telemetryModule: 'on', language: 'ar' });
   assert.equal(tel.getBars().length, 1);
   assert.ok(roList.some((r) => r.disconnected), 'Removed pane ResizeObserver must be disconnected');
   tel.destroy();
@@ -534,7 +534,7 @@ test('Issue #62 ui-runtime Multi-Pane Wiring: all visible prism-box, single masc
   const sb = {
     document: env.doc,
     location: { pathname: '/c/' + CID1 },
-    navigator: { language: 'zh-CN' },
+    navigator: { language: 'en' },
     performance: { now: () => 1000 },
     requestAnimationFrame: (fn) => { fn(1016); return 1; },
     cancelAnimationFrame() {},

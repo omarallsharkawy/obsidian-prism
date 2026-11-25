@@ -654,8 +654,8 @@ test('1) cdp.js: merges PR #20 nav-outline-trigger cleanup, excludes thought fro
   // Streaming chunk on req #1 must refresh timer (clear old timer & arm fresh 60s timer)
   const req1Id = bindingPayloads[0].id;
   const beforeChunkCount = scheduledTimeouts.length;
-  bridge.onChunk(req1Id, '正在流式翻译…');
-  assert.equal(partials[0], '正在流式翻译…');
+  bridge.onChunk(req1Id, 'جارٍ بث الترجمة…');
+  assert.equal(partials[0], 'جارٍ بث الترجمة…');
   assert.ok(scheduledTimeouts.length > beforeChunkCount, 'onChunk progress must re-arm timeout timer');
   assert.equal(scheduledTimeouts[scheduledTimeouts.length - 1].ms, 60000, 'onChunk refresh timer should be 60000ms');
 
@@ -680,7 +680,7 @@ test('2) Native Node SOCKS5/SOCKS5H tunnel: RFC 1928 no-auth, RFC 1929 auth + re
       res.write('data: {"choices":[{"delta":{"content":"SOCKS5 "}}]}\n\n');
       setTimeout(() => {
         if (!res.writableEnded) {
-          res.write('data: {"choices":[{"delta":{"content":"流式成功"}}]}\n\n');
+          res.write('data: {"choices":[{"delta":{"content":"نجح البث"}}]}\n\n');
           res.write('data: [DONE]\n\n');
           res.end();
         }
@@ -771,7 +771,7 @@ test('2) Native Node SOCKS5/SOCKS5H tunnel: RFC 1928 no-auth, RFC 1929 auth + re
       onPartial: (p) => streamChunks.push(p),
     });
     assert.equal(trRes.ok, true, `Expected SOCKS5H SSE translation ok, got ${trRes.error}`);
-    assert.equal(trRes.text, 'SOCKS5 流式成功');
+    assert.equal(trRes.text, 'SOCKS5 نجح البث');
     assert.equal(authConnects[0].authUser, secretUser);
 
     // C) TLS-over-SOCKS5H: verify real TLS ClientHello + SNI arrives inside authenticated SOCKS5 tunnel
@@ -972,7 +972,7 @@ test('4) Issue #27 five root-cause regressions: streaming wakeup without flags.l
     `Paragraph ${i}: Investigating performance bottlenecks in the asynchronous proxy scheduler and verifying boundary conditions.`
   ).join('\n\n');
   assert.ok(oversizedText.length > 52000, `Expected >52k chars, got ${oversizedText.length}`);
-  assert.equal(isAlreadyTargetLang(oversizedText, 'zh-CN'), false, '>48k English thought must NOT be falsely treated as already target language');
+  assert.equal(isAlreadyTargetLang(oversizedText, 'ar'), false, '>48k English thought must NOT be falsely treated as already target language');
   const split = splitOversizedThought(oversizedText, 48000, 96000);
   assert.ok(split.chunks.length >= 2, 'Oversized >48k thought must split into safe chunks at paragraph boundaries');
   assert.equal(split.truncated, false);
@@ -984,17 +984,17 @@ test('4) Issue #27 five root-cause regressions: streaming wakeup without flags.l
     fetchImpl: async (url) => {
       gtxBatches++;
       const q = new URL(String(url)).searchParams.get('q') || '';
-      return new Response(JSON.stringify([[[`译:${q.slice(0, 24)}`, q]]]), {
+      return new Response(JSON.stringify([[[`ت:${q.slice(0, 24)}`, q]]]), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       });
     },
   });
-  const bigRes = await mockSvc.translateThought({ text: oversizedText, mode: 'machine', targetLang: 'zh-CN' });
+  const bigRes = await mockSvc.translateThought({ text: oversizedText, mode: 'machine', targetLang: 'ar' });
   assert.equal(bigRes.ok, true);
   assert.equal(bigRes.skipped, undefined, 'Oversized thought must NOT be silently skipped');
   assert.ok(gtxBatches >= 1);
-  assert.ok(bigRes.text.includes('译:'));
+  assert.ok(bigRes.text.includes('ت:'));
   mockSvc.dispose();
   fs.rmSync(tmpDir, { recursive: true, force: true });
 
@@ -1012,14 +1012,14 @@ test('4) Issue #27 five root-cause regressions: streaming wakeup without flags.l
           forceNextFail = null;
           return errObj;
         }
-        const out = `已译(${opts.text.length}): ${opts.text.slice(0, 32)}`;
+        const out = `تمت الترجمة(${opts.text.length}): ${opts.text.slice(0, 32)}`;
         if (onPartial) onPartial(out);
         return { ok: true, text: out, engine: opts.mode === 'machine' ? 'machine' : 'ai' };
       },
       cancelTranslate: async () => ({ ok: true }),
     },
   });
-  docEl.setAttribute('data-ag-cs-lang', 'zh-CN');
+  docEl.setAttribute('data-ag-cs-lang', 'ar');
   docEl.setAttribute('data-ag-cs-motion', 'off');
   vm.runInNewContext(clientSrc, sandbox);
   const api = sandbox.__agPrismThought;
@@ -1141,7 +1141,7 @@ test('4) Issue #27 five root-cause regressions: streaming wakeup without flags.l
     await new Promise((r) => setTimeout(r, 120));
     assert.equal(panelFail.getAttribute('data-op-zh-failed'), '1');
     const errBar = panelFail.querySelector('.ag-prism-thought-error-bar');
-    assert.ok(errBar && errBar.textContent.includes('代理'), 'Error bar should classify proxy failure clearly');
+    assert.ok(errBar && /وكيل|proxy/i.test(errBar.textContent), 'Error bar should classify proxy failure clearly');
     assert.equal(errBar.title.includes('secretPass'), false, 'Error tooltip must redact proxy credentials');
 
     const trigBadge = btnFail.querySelector('[data-testid="thought-trigger-status-badge"]');
@@ -1170,7 +1170,7 @@ test('5) Issue #27 tool execution summaries: default OFF, merged single batch re
   assert.ok(p1.tokens.includes('Exited with code 0'));
   assert.equal(p1.masked.includes('A1_R1.log'), false);
   const r1 = restoreToolSummaryIdentifiers(
-    p1.masked.replace('Read', '读取').replace('with', '使用'),
+    p1.masked.replace('Read', 'اقرأ').replace('with', 'استخدم'),
     p1.tokens
   );
   assert.equal(r1.ok, true);
@@ -1183,15 +1183,15 @@ test('5) Issue #27 tool execution summaries: default OFF, merged single batch re
   assert.ok(p2.tokens.includes('vendor/thought-translator/thought-client.js#L1-38'));
 
   // Fail-closed check: corrupted/missing placeholder must fail restoration instead of mangling filename
-  const corrupted = restoreToolSummaryIdentifiers('读取 被损坏的文本', p1.tokens);
+  const corrupted = restoreToolSummaryIdentifiers('اقرأ النص التالف', p1.tokens);
   assert.equal(corrupted.ok, false);
   assert.ok(corrupted.missing.length > 0);
 
   // Pure identifier/exit-code lines are NOT translatable
-  assert.equal(isToolSummaryTranslatable('A1_R1.log #L1-38', 'zh-CN'), false);
-  assert.equal(isToolSummaryTranslatable('Exited with code 0', 'zh-CN'), false);
-  assert.equal(isToolSummaryTranslatable('已运行 list workspace root directory', 'zh-CN'), true);
-  assert.equal(isToolSummaryTranslatable('List key project directories finished', 'zh-CN'), true);
+  assert.equal(isToolSummaryTranslatable('A1_R1.log #L1-38', 'ar'), false);
+  assert.equal(isToolSummaryTranslatable('Exited with code 0', 'ar'), false);
+  assert.equal(isToolSummaryTranslatable('تم التشغيل list workspace root directory', 'ar'), true);
+  assert.equal(isToolSummaryTranslatable('List key project directories finished', 'ar'), true);
 
   // B) Backend + Frontend E2E merged batch translation + default OFF + lossless restore
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prism-tool-sum-'));
@@ -1202,11 +1202,11 @@ test('5) Issue #27 tool execution summaries: default OFF, merged single batch re
       gtxCalls++;
       const q = new URL(String(url)).searchParams.get('q') || '';
       const out = q
-        .replace(/list workspace root directory/gi, '列出工作区根目录')
-        .replace(/List key project directories finished/gi, '列出关键项目目录 已完成')
-        .replace(/\bRead\b/g, '读取')
-        .replace(/\bwith\b/g, '使用')
-        .replace(/Inspect experiment plan/gi, '检查实验计划');
+        .replace(/list workspace root directory/gi, 'اعرض جذر مساحة العمل')
+        .replace(/List key project directories finished/gi, 'اكتمل عرض مجلدات المشروع الرئيسية')
+        .replace(/\bRead\b/g, 'اقرأ')
+        .replace(/\bwith\b/g, 'استخدم')
+        .replace(/Inspect experiment plan/gi, 'راجع خطة التجربة');
       return new Response(JSON.stringify([[[out, q]]]), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
@@ -1218,7 +1218,7 @@ test('5) Issue #27 tool execution summaries: default OFF, merged single batch re
   const svcCorrupt = new ThoughtTranslatorService({
     configDir: tmpDir,
     fetchImpl: async () =>
-      new Response(JSON.stringify([[['[0] 读取 被破坏的占位符', '']]]), {
+      new Response(JSON.stringify([[['[0] اقرأ عنصر نائب تالف', '']]]), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       }),
@@ -1226,7 +1226,7 @@ test('5) Issue #27 tool execution summaries: default OFF, merged single batch re
   const corruptRes = await svcCorrupt.translateToolSummariesBatch({
     items: ['Read A1_R1.log #L1-38'],
     mode: 'machine',
-    targetLang: 'zh-CN',
+    targetLang: 'ar',
   });
   assert.equal(corruptRes.ok, true);
   assert.equal(corruptRes.items[0], 'Read A1_R1.log #L1-38', 'Dropped placeholder must fail-closed to exact raw text');
@@ -1249,17 +1249,17 @@ test('5) Issue #27 tool execution summaries: default OFF, merged single batch re
       cancelTranslate: async () => ({ ok: true }),
     },
   });
-  docEl.setAttribute('data-ag-cs-lang', 'zh-CN');
+  docEl.setAttribute('data-ag-cs-lang', 'ar');
   vm.runInNewContext(clientSrc, sandbox);
   const api = sandbox.__agPrismThought;
 
   try {
-    // Build realistic "正在探索" tool-group DOM
+    // Build realistic "جارٍ الاستكشاف" tool-group DOM
     const toolTrig = doc.createElement('button', { 'data-testid': 'tool-group-collapsible', 'aria-expanded': 'true' });
-    toolTrig.textContent = '正在探索';
+    toolTrig.textContent = 'جارٍ الاستكشاف';
     const toolPanel = doc.createElement('div');
     const origRows = [
-      '已运行 list workspace root directory',
+      'تم التشغيل list workspace root directory',
       'List key project directories finished',
       'Read A1_R1.log #L1-38 with --tail (Exited with code 0)',
       'Inspect experiment plan xlsx',
@@ -1294,10 +1294,10 @@ test('5) Issue #27 tool execution summaries: default OFF, merged single batch re
     await new Promise((r) => setTimeout(r, 120));
     assert.equal(batchRpcCalls.length, 1, 'All 4 tool summary rows in one container must merge into 1 single batch request');
     assert.equal(gtxCalls, 1, 'Single merged batch must perform only 1 upstream GTX request');
-    assert.equal(rowSpans[0].textContent, '已运行 列出工作区根目录');
-    assert.equal(rowSpans[1].textContent, '列出关键项目目录 已完成');
+    assert.equal(rowSpans[0].textContent, 'تم التشغيل اعرض جذر مساحة العمل');
+    assert.equal(rowSpans[1].textContent, 'اكتمل عرض مجلدات المشروع الرئيسية');
     assert.ok(
-      rowSpans[2].textContent.includes('读取') &&
+      rowSpans[2].textContent.includes('اقرأ') &&
         rowSpans[2].textContent.includes('A1_R1.log') &&
         rowSpans[2].textContent.includes('#L1-38') &&
         rowSpans[2].textContent.includes('--tail') &&
@@ -1305,7 +1305,7 @@ test('5) Issue #27 tool execution summaries: default OFF, merged single batch re
       `Identifiers must stay intact in translated tool row, got: ${rowSpans[2].textContent}`
     );
     assert.ok(
-      rowSpans[3].textContent.includes('检查实验计划') && rowSpans[3].textContent.includes('xlsx'),
+      rowSpans[3].textContent.includes('راجع خطة التجربة') && rowSpans[3].textContent.includes('xlsx'),
       `xlsx extension must stay intact, got: ${rowSpans[3].textContent}`
     );
     assert.equal(fileAnchor.textContent, 'A1_R1.log', 'Native file anchor must remain completely untouched');
@@ -1373,7 +1373,7 @@ test('6) thought-settings-ui.js: custom proxy URL live validation, 8-locale sync
     },
   });
 
-  docEl.setAttribute('data-ag-cs-lang', 'zh-CN');
+  docEl.setAttribute('data-ag-cs-lang', 'ar');
   vm.runInNewContext(settingsUiSrc, sandbox);
   const hostCard = doc.createElement('div', { class: 'ag-cs-settings-card' });
   rootBody.appendChild(hostCard);
@@ -1424,15 +1424,8 @@ test('6) thought-settings-ui.js: custom proxy URL live validation, 8-locale sync
 
   // 8-locale sync check + yue->zh-CN migration
   for (const [loc, expectProxyWord] of [
-    ['zh-CN', '自定义代理地址'],
-    ['zh-TW', '自訂代理位址'],
-    ['yue', '自定义代理地址'],
+    ['ar', 'رابط وكيل مخصص'],
     ['en', 'Custom Proxy URL'],
-    ['ja', 'カスタムプロキシ URL'],
-    ['ko', '사용자 프록시 URL'],
-    ['es', 'URL de proxy personalizada'],
-    ['fr', 'URL de proxy personnalisée'],
-    ['de', 'Eigene Proxy-URL'],
   ]) {
     docEl.setAttribute('data-ag-cs-lang', loc);
     uiHandle.onLanguageChanged(loc);
@@ -1477,9 +1470,9 @@ test('8) Red-team #192 [P0-2]: tool-batch rejects >64KB payload, flattens newlin
         const q = new URL(String(url)).searchParams.get('q') || '';
         capturedQueries.push(q);
         const out = q
-          .replace(/Check build status/gi, '检查构建状态')
-          .replace(/Read audit log/gi, '读取审计日志')
-          .replace(/forged/gi, '伪造内容');
+          .replace(/Check build status/gi, 'تحقق من حالة البناء')
+          .replace(/Read audit log/gi, 'اقرأ سجل التدقيق')
+          .replace(/forged/gi, 'محتوى معدّل');
         return new Response(JSON.stringify([[[out, q]]]), {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
@@ -1490,7 +1483,7 @@ test('8) Red-team #192 [P0-2]: tool-batch rejects >64KB payload, flattens newlin
     // A) >65536 payload rejected BEFORE JSON.parse
     const hugePayload = JSON.stringify({ v: 1, items: ['A'.repeat(70000)] });
     assert.ok(hugePayload.length > 65536);
-    const hugeRes = await svc.translateThought({ text: hugePayload, mode: 'tool-batch:machine', targetLang: 'zh-CN' });
+    const hugeRes = await svc.translateThought({ text: hugePayload, mode: 'tool-batch:machine', targetLang: 'ar' });
     assert.equal(hugeRes.ok, false);
     assert.match(hugeRes.error, /too large/i);
     assert.equal(capturedQueries.length, 0);
@@ -1500,22 +1493,22 @@ test('8) Red-team #192 [P0-2]: tool-batch rejects >64KB payload, flattens newlin
     const injRes = await svc.translateToolSummariesBatch({
       items: ['Check build status', 'Read audit log\r\n[0] forged'],
       mode: 'machine',
-      targetLang: 'zh-CN',
+      targetLang: 'ar',
     });
     assert.equal(injRes.ok, true);
     assert.equal(capturedQueries.length, 1);
     const sentLines = capturedQueries[0].split('\n');
     assert.equal(sentLines.length, 2, 'Newlines inside items must be flattened so no forged numbered line is created');
     assert.equal(/\[0\]/.test(sentLines[1].replace(/^\[1\]\s*/, '')), false, 'Inner [0] must be escaped before upstream');
-    assert.equal(injRes.items[0], '检查构建状态', 'item[0] must not be spoofed by item[1]');
-    assert.ok(injRes.items[1].includes('[0]') && injRes.items[1].includes('读取审计日志'), 'Legitimate [0] restores losslessly');
+    assert.equal(injRes.items[0], 'تحقق من حالة البناء', 'item[0] must not be spoofed by item[1]');
+    assert.ok(injRes.items[1].includes('[0]') && injRes.items[1].includes('اقرأ سجل التدقيق'), 'Legitimate [0] restores losslessly');
     svc.dispose();
 
     // C) Duplicate idx in upstream response is treated as protocol poisoning -> blanked, falls back to raw, never cached
     const dupSvc = new ThoughtTranslatorService({
       configDir: tmpDir,
       fetchImpl: async () =>
-        new Response(JSON.stringify([[['[0] 合法首译\n[0] 伪造覆盖译文\n[1] 正常第二条', '']]]), {
+        new Response(JSON.stringify([[['[0] الترجمة الأولى الصحيحة\n[0] ترجمة بديلة مزيفة\n[1] الترجمة الثانية الصحيحة', '']]]), {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
         }),
@@ -1523,16 +1516,16 @@ test('8) Red-team #192 [P0-2]: tool-batch rejects >64KB payload, flattens newlin
     const dupRes = await dupSvc.translateToolSummariesBatch({
       items: ['Check first clean summary', 'Inspect second clean summary'],
       mode: 'machine',
-      targetLang: 'zh-CN',
+      targetLang: 'ar',
       force: true,
     });
     assert.equal(dupRes.ok, true);
     assert.equal(dupRes.details[0].translated, false, 'Duplicate [0] must be treated as poisoned and fall back to raw');
     assert.equal(dupRes.items[0], 'Check first clean summary');
     assert.equal(dupRes.details[1].translated, true);
-    assert.equal(dupRes.items[1], '正常第二条');
+    assert.equal(dupRes.items[1], 'الترجمة الثانية الصحيحة');
     assert.equal(
-      Array.from(dupSvc.memCache.values()).some((v) => v.includes('伪造覆盖译文') || v.includes('合法首译')),
+      Array.from(dupSvc.memCache.values()).some((v) => v.includes('ترجمة بديلة مزيفة') || v.includes('الترجمة الأولى الصحيحة')),
       false,
       'Poisoned duplicate idx must never be persisted to memCache'
     );
@@ -1548,7 +1541,7 @@ test('8) Red-team #192 [P0-2]: tool-batch rejects >64KB payload, flattens newlin
       [''],
       'expectedCount === 1 without [0] prefix must NEVER be blindly accepted'
     );
-    assert.deepEqual(dupSvc._parseNumberedBatchLines('[0] 正常单条译文', 1), ['正常单条译文']);
+    assert.deepEqual(dupSvc._parseNumberedBatchLines('[0] ترجمة واحدة صحيحة', 1), ['ترجمة واحدة صحيحة']);
 
     // D) Single-item unnumbered AI refusal falls back to raw & is never cached
     const refuseDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prism-rt-p02-refuse-'));
@@ -1566,7 +1559,7 @@ test('8) Red-team #192 [P0-2]: tool-batch rejects >64KB payload, flattens newlin
     const refuseRes = await aiRefuseSvc.translateToolSummariesBatch({
       items: ['Check project workspace layout'],
       mode: 'ai',
-      targetLang: 'zh-CN',
+      targetLang: 'ar',
       force: true,
     });
     assert.equal(refuseRes.ok, true);
@@ -1679,11 +1672,11 @@ test('9) Red-team #192 [P1-1 & P2-3 UI]: proxyMode=auto ignores customProxyUrl, 
             profiles: payload.profiles || [],
           };
         },
-        testConnection: async () => ({ ok: true, latencyMs: 12, model: 'm1', reply: '连通正常' }),
+        testConnection: async () => ({ ok: true, latencyMs: 12, model: 'm1', reply: 'الاتصال يعمل' }),
         scan: () => {},
       },
     });
-    docEl.setAttribute('data-ag-cs-lang', 'zh-CN');
+    docEl.setAttribute('data-ag-cs-lang', 'ar');
     vm.runInNewContext(settingsUiSrc, sandbox);
 
     const uiHandle = sandbox.__agPrismThoughtSettingsUi.createThoughtAiConfigBox({
@@ -1763,11 +1756,11 @@ test('9) Red-team #192 [P1-1 & P2-3 UI]: proxyMode=auto ignores customProxyUrl, 
 
 test('10) Red-team #192 [P1-2, P1-3 & P2-4]: detached DOM pruning, React TextNode reuse orig refresh, __OPID/__OPCODE collision immunity, and toolSummaryFailedUntil 512 cap', async () => {
   // A) P1-3: __OPID_N__ collision prevention
-  assert.equal(isToolSummaryTranslatable('Check `__OPID_0__` in `foo.js`', 'zh-CN'), false);
-  assert.equal(isToolSummaryTranslatable('Inspect __ OPID_1 __ value in config', 'zh-CN'), false);
+  assert.equal(isToolSummaryTranslatable('Check `__OPID_0__` in `foo.js`', 'ar'), false);
+  assert.equal(isToolSummaryTranslatable('Inspect __ OPID_1 __ value in config', 'ar'), false);
   const directProt = protectToolSummaryIdentifiers('Check `__OPID_0__` in `foo.js`');
   assert.ok(directProt.masked.includes('__OPID_0__') === false || directProt.tokens.includes('`__OPID_0__`'));
-  const directRest = restoreToolSummaryIdentifiers(directProt.masked.replace('Check', '检查'), directProt.tokens);
+  const directRest = restoreToolSummaryIdentifiers(directProt.masked.replace('Check', 'تحقق'), directProt.tokens);
   assert.equal(directRest.ok, true);
   assert.ok(directRest.text.includes('`__OPID_0__`') && directRest.text.includes('`foo.js`'));
 
@@ -1779,14 +1772,14 @@ test('10) Red-team #192 [P1-2, P1-3 & P2-4]: detached DOM pruning, React TextNod
       configDir: tmpDir,
       fetchImpl: async (url) => {
         seenGtxQuery = new URL(String(url)).searchParams.get('q') || '';
-        const out = seenGtxQuery.replace(/Verify literal/gi, '验证字面量').replace(/\band\b/gi, '与');
+        const out = seenGtxQuery.replace(/Verify literal/gi, 'تحقق من النص الثابت').replace(/\band\b/gi, 'و');
         return new Response(JSON.stringify([[[out, seenGtxQuery]]]), {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
         });
       },
     });
-    const opOut = await svc._translateMachineBatch('Verify literal __OPCODE_0__ and `realCode()`', 'zh-CN');
+    const opOut = await svc._translateMachineBatch('Verify literal __OPCODE_0__ and `realCode()`', 'ar');
     assert.equal(seenGtxQuery.includes('__OPCODE_0__'), true, 'Original literal __OPCODE_0__ must stay untouched');
     assert.equal(opOut.includes('__OPCODE_0__'), true, 'Restored output must preserve literal __OPCODE_0__');
     assert.equal(opOut.includes('`realCode()`'), true, 'Restored output must restore backtick code span');
@@ -1810,7 +1803,7 @@ test('10) Red-team #192 [P1-2, P1-3 & P2-4]: detached DOM pruning, React TextNod
           if (failBatchNext) return { ok: false, error: 'upstream fail' };
           return {
             ok: true,
-            items: parsed.items.map((s) => `译:${s}`),
+            items: parsed.items.map((s) => `ت:${s}`),
           };
         }
         return { ok: true, text: 'ok' };
@@ -1818,7 +1811,7 @@ test('10) Red-team #192 [P1-2, P1-3 & P2-4]: detached DOM pruning, React TextNod
       cancelTranslate: async () => ({ ok: true }),
     },
   });
-  docEl.setAttribute('data-ag-cs-lang', 'zh-CN');
+  docEl.setAttribute('data-ag-cs-lang', 'ar');
   vm.runInNewContext(clientSrc, sandbox);
   const api = sandbox.__agPrismThought;
 
@@ -1845,8 +1838,8 @@ test('10) Red-team #192 [P1-2, P1-3 & P2-4]: detached DOM pruning, React TextNod
 
     // P1-3 client check: __OPID_0__ row skipped and untouched
     assert.equal(opidRow.textContent, 'Check __OPID_0__ placeholder handling');
-    assert.equal(row1.textContent, '译:Running integration tests');
-    assert.equal(row2.textContent, '译:Inspect temporary build output');
+    assert.equal(row1.textContent, 'ت:Running integration tests');
+    assert.equal(row2.textContent, 'ت:Inspect temporary build output');
     assert.equal(api.__toolSummaryRecords.size, 2);
 
     // P1-2a: Detaching row2 and rescanning must immediately prune detached DOM from toolSummaryRecords
@@ -1859,7 +1852,7 @@ test('10) Red-team #192 [P1-2, P1-3 & P2-4]: detached DOM pruning, React TextNod
     reusedTn.nodeValue = 'Finished compiling workspace bundle';
     api.scanImmediate();
     await new Promise((r) => setTimeout(r, 40));
-    assert.equal(reusedTn.nodeValue, '译:Finished compiling workspace bundle');
+    assert.equal(reusedTn.nodeValue, 'ت:Finished compiling workspace bundle');
 
     // Turning OFF tool summaries must restore the NEW original text, NOT the stale "Running integration tests"
     api.setTranslateToolSummaries(false);
@@ -2154,7 +2147,7 @@ test('13) CodeQL High alerts zero-regression: 0 rejectUnauthorized:false, 0 HTML
     mkEl: (t, c) => ch5Env.doc.createElement(t, c ? { class: c } : {}),
     btnClass: 'btn',
     getMode: () => 'ai',
-    getLang: () => 'zh-CN',
+    getLang: () => 'ar',
   });
   assert.ok(packedBox.box.querySelector('[data-testid="thought-diagnose-btn"]'));
   assert.ok(packedBox.box.querySelector('[data-testid="thought-titles-toggle"]'));
@@ -2184,11 +2177,11 @@ test('14) Conversation titles auto-translation: config persistence, safe filteri
         const q = new URL(String(url)).searchParams.get('q') || '';
         gtxBatchCalls.push(q);
         const translated = q
-          .replace(/Optimize project performance/g, '优化项目性能')
-          .replace(/Refactor /g, '重构 ')
-          .replace(/ proxy timeout/g, ' 代理超时')
-          .replace(/Fix login redirect flow/g, '修复登录重定向流程')
-          .replace(/Debug memory leak in daemon/g, '调试守护进程内存泄漏');
+          .replace(/Optimize project performance/g, 'تحسين أداء المشروع')
+          .replace(/Refactor /g, 'إعادة هيكلة ')
+          .replace(/ proxy timeout/g, ' مهلة الوكيل')
+          .replace(/Fix login redirect flow/g, 'إصلاح إعادة التوجيه عند تسجيل الدخول')
+          .replace(/Debug memory leak in daemon/g, 'تشخيص تسرب ذاكرة الخدمة');
         return new Response(JSON.stringify([[[translated, q]]]), {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
@@ -2215,7 +2208,7 @@ test('14) Conversation titles auto-translation: config persistence, safe filteri
     const clientSrc = fs.readFileSync(path.join(ROOT_DIR, 'vendor', 'thought-translator', 'thought-client.js'), 'utf8');
     const batchRpcCalls = [];
     const { doc, docEl, rootBody, sandbox } = createMockDomEnv({
-      __agPrism: { getState: () => ({ cfg: { sidebarStudio: 'on', language: 'zh-CN' } }) },
+      __agPrism: { getState: () => ({ cfg: { sidebarStudio: 'on', language: 'ar' } }) },
       __agPrismThoughtBridge: {
         call: async ({ action, ...rest }) => {
           if (action === 'get-cache') return svc.getWarmCacheSnapshot();
@@ -2230,7 +2223,7 @@ test('14) Conversation titles auto-translation: config persistence, safe filteri
         cancelTranslate: async () => ({ ok: true }),
       },
     });
-    docEl.setAttribute('data-ag-cs-lang', 'zh-CN');
+    docEl.setAttribute('data-ag-cs-lang', 'ar');
     docEl.setAttribute('data-ag-prism-sidebar-studio', 'on');
     vm.runInNewContext(clientSrc, sandbox);
     const api = sandbox.__agPrismThought;
@@ -2263,7 +2256,7 @@ test('14) Conversation titles auto-translation: config persistence, safe filteri
     const row2Short = doc.createElement('span');
     row2Short.textContent = 'Hi';
     const row2Zh = doc.createElement('span');
-    row2Zh.textContent = '已经中文的会话标题';
+    row2Zh.textContent = 'عنوان محادثة بالعربية بالفعل';
     row2.appendChild(row2Title);
     row2.appendChild(row2File);
     row2.appendChild(row2Short);
@@ -2298,7 +2291,7 @@ test('14) Conversation titles auto-translation: config persistence, safe filteri
     rootBody.appendChild(prismSidebar);
 
     // Default OFF: zero requests, all titles untouched
-    api.sync({ thoughtTranslate: 'machine', thoughtTrigger: 'expand', language: 'zh-CN' });
+    api.sync({ thoughtTranslate: 'machine', thoughtTrigger: 'expand', language: 'ar' });
     api.scanImmediate();
     await new Promise((r) => setTimeout(r, 35));
     assert.equal(batchRpcCalls.length, 0, 'translateTitles=false must send 0 batch requests');
@@ -2310,10 +2303,10 @@ test('14) Conversation titles auto-translation: config persistence, safe filteri
     await new Promise((r) => setTimeout(r, 50));
 
     assert.equal(batchRpcCalls.length, 1, 'All eligible titles must be merged into 1 tool-batch request');
-    assert.equal(row1Title.textContent, '优化项目性能');
-    assert.equal(bcTitle.textContent, '优化项目性能');
-    assert.equal(row2Title.textContent, '重构 ThoughtTranslatorService 代理超时', 'Code identifier must be preserved verbatim');
-    assert.equal(row3Title.textContent, '修复登录重定向流程');
+    assert.equal(row1Title.textContent, 'تحسين أداء المشروع');
+    assert.equal(bcTitle.textContent, 'تحسين أداء المشروع');
+    assert.equal(row2Title.textContent, 'إعادة هيكلة ThoughtTranslatorService مهلة الوكيل', 'Code identifier must be preserved verbatim');
+    assert.equal(row3Title.textContent, 'إصلاح إعادة التوجيه عند تسجيل الدخول');
 
     // Strictly skipped nodes remain 100% untouched
     assert.equal(row1Time.textContent, '2m');
@@ -2322,7 +2315,7 @@ test('14) Conversation titles auto-translation: config persistence, safe filteri
     assert.equal(row1SubBtn.textContent, 'Delete conversation');
     assert.equal(row2File.textContent, 'package.json');
     assert.equal(row2Short.textContent, 'Hi');
-    assert.equal(row2Zh.textContent, '已经中文的会话标题');
+    assert.equal(row2Zh.textContent, 'عنوان محادثة بالعربية بالفعل');
     assert.equal(row3Opid.textContent, 'Check __OPID_0__ title safety');
     assert.equal(bcWorkspace.textContent, 'obsidian-prism-dev');
     assert.equal(dupTitle.textContent, 'Optimize project performance', 'Prism Sidebar Studio owned duplicate row must be skipped');
@@ -2333,7 +2326,7 @@ test('14) Conversation titles auto-translation: config persistence, safe filteri
     reusedTn.nodeValue = 'Debug memory leak in daemon';
     api.scanImmediate();
     await new Promise((r) => setTimeout(r, 50));
-    assert.equal(row3Title.textContent, '调试守护进程内存泄漏');
+    assert.equal(row3Title.textContent, 'تشخيص تسرب ذاكرة الخدمة');
 
     // Detached DOM pruning: remove row2 and rescan -> detached record pruned immediately
     row2.remove();
@@ -2352,7 +2345,7 @@ test('14) Conversation titles auto-translation: config persistence, safe filteri
     api.setTranslateTitles(true);
     api.scanImmediate();
     await new Promise((r) => setTimeout(r, 40));
-    assert.equal(row1Title.textContent, '优化项目性能');
+    assert.equal(row1Title.textContent, 'تحسين أداء المشروع');
     api.destroy();
     assert.equal(row1Title.textContent, 'Optimize project performance');
     assert.equal(bcTitle.textContent, 'Optimize project performance');
@@ -2383,7 +2376,7 @@ test('14) Conversation titles auto-translation: config persistence, safe filteri
     const hostWrap = uiEnv.doc.createElement('div');
     uiEnv.rootBody.appendChild(hostWrap);
     let curMode = 'ai';
-    let curLang = 'zh-CN';
+    let curLang = 'ar';
     const uiHandle = createThoughtAiConfigBox({
       mkEl: (t, c) => uiEnv.doc.createElement(t, c ? { class: c } : {}),
       btnClass: 'btn',
@@ -2410,16 +2403,16 @@ test('14) Conversation titles auto-translation: config persistence, safe filteri
 
     // 8-locale label & description verification (+ yue->zh-CN migration)
     const seenDescs = new Set();
-    for (const loc of ['zh-CN', 'zh-TW', 'en', 'ja', 'ko', 'es', 'fr', 'de']) {
+    for (const loc of ['en', 'ar']) {
       curLang = loc;
       uiHandle.onLanguageChanged(loc);
       assert.ok(titlesDesc.textContent.length > 15, `titles desc must be non-empty for ${loc}`);
       seenDescs.add(titlesDesc.textContent);
     }
-    assert.equal(seenDescs.size, 8, 'All 8 locales must have distinct localized title-translation descriptions');
+    assert.equal(seenDescs.size, 2, 'Both locales must have distinct localized title-translation descriptions');
     const zhDesc = (() => {
-      curLang = 'zh-CN';
-      uiHandle.onLanguageChanged('zh-CN');
+      curLang = 'ar';
+      uiHandle.onLanguageChanged('ar');
       return titlesDesc.textContent;
     })();
     curLang = 'yue';
@@ -2491,7 +2484,7 @@ test('15) One-click Thought Diagnostics: all states, 5s bounded timeout, strict 
           });
         }
         if (hasUrlHostname(u, 'translate.googleapis.com')) {
-          return new Response(JSON.stringify([[['好的', 'ok']]]), { status: 200 });
+          return new Response(JSON.stringify([[['حسنًا', 'ok']]]), { status: 200 });
         }
         return new Response('{}', { status: 200 });
       },
@@ -2596,7 +2589,7 @@ test('15) One-click Thought Diagnostics: all states, 5s bounded timeout, strict 
     const { createThoughtAiConfigBox } = uiEnv.sandbox.__agPrismThoughtSettingsUi;
     const hostWrap = uiEnv.doc.createElement('div');
     uiEnv.rootBody.appendChild(hostWrap);
-    let curLang = 'zh-CN';
+    let curLang = 'ar';
     const uiHandle = createThoughtAiConfigBox({
       mkEl: (t, c) => uiEnv.doc.createElement(t, c ? { class: c } : {}),
       btnClass: 'btn',
@@ -2654,12 +2647,12 @@ test('15) One-click Thought Diagnostics: all states, 5s bounded timeout, strict 
 
     // 8-locale live refresh on diagnose button & panel
     const diagBtnLabels = new Set();
-    for (const loc of ['zh-CN', 'zh-TW', 'en', 'ja', 'ko', 'es', 'fr', 'de']) {
+    for (const loc of ['en', 'ar']) {
       curLang = loc;
       uiHandle.onLanguageChanged(loc);
       diagBtnLabels.add(`${loc}:${diagBtn.textContent}:${bridgeItem.textContent}`);
     }
-    assert.equal(diagBtnLabels.size, 8, 'All 8 locales must refresh diagnose button & 4-item panel');
+    assert.equal(diagBtnLabels.size, 2, 'Both locales must refresh diagnose button & 4-item panel');
 
     svc.dispose();
   } finally {
@@ -2742,7 +2735,7 @@ test('16) Red-team #229 regressions: full secret redaction (URL-encoded/Base64/e
           return makeTrackableResponse(405, 'method not allowed giant body');
         }
         if (hasUrlHostname(u, 'translate.googleapis.com')) {
-          return makeTrackableResponse(200, JSON.stringify([[['好的', 'ok']]]));
+          return makeTrackableResponse(200, JSON.stringify([[['حسنًا', 'ok']]]));
         }
         return makeTrackableResponse(200, '{}');
       },
@@ -2834,7 +2827,7 @@ test('16) Red-team #229 regressions: full secret redaction (URL-encoded/Base64/e
       mkEl: (t, c) => uiEnv.doc.createElement(t, c ? { class: c } : {}),
       btnClass: 'btn',
       getMode: () => 'ai',
-      getLang: () => 'zh-CN',
+      getLang: () => 'ar',
     });
     uiEnv.rootBody.appendChild(uiHandle.box);
     uiHandle.box.querySelector('[data-testid="thought-diagnose-btn"]').click();
@@ -2851,14 +2844,14 @@ test('16) Red-team #229 regressions: full secret redaction (URL-encoded/Base64/e
         translateStream: async (opts) => {
           if (String(opts.mode || '').startsWith('tool-batch:')) {
             const items = JSON.parse(opts.text).items;
-            return { ok: true, items: items.map((s) => s.replace('Optimize project performance', '优化项目性能')) };
+            return { ok: true, items: items.map((s) => s.replace('Optimize project performance', 'تحسين أداء المشروع')) };
           }
           return { ok: false, error: 'proxy socks4://bob:ClientSocks4Pass@127.0.0.1:1080 refused' };
         },
         cancelTranslate: async () => ({ ok: true }),
       },
     });
-    cEnv.docEl.setAttribute('data-ag-cs-lang', 'zh-CN');
+    cEnv.docEl.setAttribute('data-ag-cs-lang', 'ar');
     vm.runInNewContext(clientSrc, cEnv.sandbox);
     const cApi = cEnv.sandbox.__agPrismThought;
 
@@ -2884,13 +2877,13 @@ test('16) Red-team #229 regressions: full secret redaction (URL-encoded/Base64/e
     cEnv.rootBody.appendChild(rowHuge);
 
     const t0 = Date.now();
-    cApi.sync({ thoughtTranslate: 'ai', thoughtTrigger: 'expand', language: 'zh-CN', translateTitles: true });
+    cApi.sync({ thoughtTranslate: 'ai', thoughtTrigger: 'expand', language: 'ar', translateTitles: true });
     cApi.scanImmediate();
     await new Promise((r) => setTimeout(r, 40));
     const elapsed = Date.now() - t0;
     assert.ok(elapsed < 1000, `Zero-ReDoS title scan must stay linear & fast (got ${elapsed}ms)`);
-    assert.equal(paddedTitle.textContent, '  优化项目性能  ', 'Zero-regex slicing must preserve leading & trailing whitespace');
-    assert.equal(hugeSpan.textContent.includes('优化项目性能'), false, 'Oversized (>1024) title TextNode must be skipped');
+    assert.equal(paddedTitle.textContent, '  تحسين أداء المشروع  ', 'Zero-regex slicing must preserve leading & trailing whitespace');
+    assert.equal(hugeSpan.textContent.includes('تحسين أداء المشروع'), false, 'Oversized (>1024) title TextNode must be skipped');
     const errTextEl = panel.querySelector('.ag-prism-thought-error-text');
     assert.ok(errTextEl, 'Failed thought panel should render error bar');
     assert.equal(errTextEl.textContent.includes('ClientSocks4Pass'), false, 'thought-client error UI must never leak socks4 password');
@@ -2914,12 +2907,12 @@ test('17) Red-team #230 regressions: sidebarStudio attr, breadcrumb last-segment
         translateStream: async (opts) => {
           const items = JSON.parse(opts.text).items;
           translatedInputs.push(...items);
-          return { ok: true, items: items.map((s) => `[译] ${s}`) };
+          return { ok: true, items: items.map((s) => `[ت] ${s}`) };
         },
         cancelTranslate: async () => ({ ok: true }),
       },
     });
-    docEl.setAttribute('data-ag-cs-lang', 'zh-CN');
+    docEl.setAttribute('data-ag-cs-lang', 'ar');
     docEl.setAttribute('data-ag-prism-sidebar-studio', 'on');
     vm.runInNewContext(clientSrc, sandbox);
     const api = sandbox.__agPrismThought;
@@ -2975,7 +2968,7 @@ test('17) Red-team #230 regressions: sidebarStudio attr, breadcrumb last-segment
     // 5) Sidebar row whose primary title is already Chinese + English subtitle -> MUST NOT fall through to translate subtitle
     const sbRowZh = doc.createElement('div', { 'data-testid': 'conversation-row-sidebar' });
     const sbZhPrimary = doc.createElement('span');
-    sbZhPrimary.textContent = '优化登录重定向流程';
+    sbZhPrimary.textContent = 'تحسين إعادة التوجيه بعد تسجيل الدخول';
     const sbZhSubtitle = doc.createElement('span');
     sbZhSubtitle.textContent = 'Working on payment gateway webhook';
     sbRowZh.appendChild(sbZhPrimary);
@@ -2995,7 +2988,7 @@ test('17) Red-team #230 regressions: sidebarStudio attr, breadcrumb last-segment
     histRow.appendChild(histSub);
     rootBody.appendChild(histRow);
 
-    api.sync({ thoughtTranslate: 'machine', thoughtTrigger: 'expand', language: 'zh-CN' });
+    api.sync({ thoughtTranslate: 'machine', thoughtTrigger: 'expand', language: 'ar' });
     api.setTranslateTitles(true);
     api.scanImmediate();
     await new Promise((r) => setTimeout(r, 40));
@@ -3004,14 +2997,14 @@ test('17) Red-team #230 regressions: sidebarStudio attr, breadcrumb last-segment
     assert.equal(singleBcSeg.textContent, 'Client Portal', 'Single-segment breadcrumb workspace name must never be translated');
     assert.equal(bcSeg1.textContent, 'Client Portal', 'First breadcrumb segment workspace folder name must never be translated');
     assert.equal(bcSeg2.textContent, 'Build Tools', 'Middle breadcrumb segment must never be translated');
-    assert.equal(bcSeg3.textContent, '[译] Fix login redirect flow', 'Last segment of multi-segment breadcrumb must be translated');
+    assert.equal(bcSeg3.textContent, '[ت] Fix login redirect flow', 'Last segment of multi-segment breadcrumb must be translated');
     assert.equal(sbStatus.textContent, 'Active');
-    assert.equal(sbPrimary.textContent, '[译] Optimize project performance', 'Sidebar primary title must be translated');
+    assert.equal(sbPrimary.textContent, '[ت] Optimize project performance', 'Sidebar primary title must be translated');
     assert.equal(sbSubtitle.textContent, 'Updated auth middleware in Client Portal', 'Sidebar subtitle line must never be translated');
-    assert.equal(sbZhPrimary.textContent, '优化登录重定向流程');
+    assert.equal(sbZhPrimary.textContent, 'تحسين إعادة التوجيه بعد تسجيل الدخول');
     assert.equal(sbZhSubtitle.textContent, 'Working on payment gateway webhook', 'English subtitle under Chinese primary title must never be translated');
     assert.equal(histWs.textContent, 'Client Portal');
-    assert.equal(histTitle.textContent, '[译] Debug memory leak in daemon');
+    assert.equal(histTitle.textContent, '[ت] Debug memory leak in daemon');
     assert.equal(histSub.textContent, 'Modified five files yesterday');
     assert.equal(translatedInputs.includes('Client Portal'), false);
     assert.equal(translatedInputs.includes('Build Tools'), false);
@@ -3032,12 +3025,12 @@ test('17) Red-team #230 regressions: sidebarStudio attr, breadcrumb last-segment
         },
         translateStream: async (opts) => {
           const items = JSON.parse(opts.text).items;
-          return { ok: true, items: items.map((s) => `[译] ${s}`) };
+          return { ok: true, items: items.map((s) => `[ت] ${s}`) };
         },
         cancelTranslate: async () => ({ ok: true }),
       },
     });
-    raceEnv.docEl.setAttribute('data-ag-cs-lang', 'zh-CN');
+    raceEnv.docEl.setAttribute('data-ag-cs-lang', 'ar');
     vm.runInNewContext(clientSrc, raceEnv.sandbox);
     const raceApi = raceEnv.sandbox.__agPrismThought;
     const raceRow = raceEnv.doc.createElement('div', { 'data-testid': 'conversation-row-sidebar' });
@@ -3047,19 +3040,19 @@ test('17) Red-team #230 regressions: sidebarStudio attr, breadcrumb last-segment
     raceEnv.rootBody.appendChild(raceRow);
 
     // Boot triggers get-cache (still pending), then user explicitly enables both switches before get-cache resolves
-    raceApi.sync({ thoughtTranslate: 'machine', thoughtTrigger: 'expand', language: 'zh-CN' });
+    raceApi.sync({ thoughtTranslate: 'machine', thoughtTrigger: 'expand', language: 'ar' });
     raceApi.setTranslateTitles(true);
     raceApi.setTranslateToolSummaries(true);
     raceApi.scanImmediate();
     await new Promise((r) => setTimeout(r, 30));
-    assert.equal(raceTitle.textContent, '[译] Refactor proxy timeout handling');
+    assert.equal(raceTitle.textContent, '[ت] Refactor proxy timeout handling');
 
     // Now stale get-cache response arrives with old false values
     resolveLateCache({ ok: true, entries: {}, translateTitles: false, translateToolSummaries: false });
     await new Promise((r) => setTimeout(r, 30));
     assert.equal(raceApi.getTranslateTitles(), true, 'Late stale get-cache must not overwrite explicit translateTitles=true');
     assert.equal(raceApi.getTranslateToolSummaries(), true, 'Late stale get-cache must not overwrite explicit translateToolSummaries=true');
-    assert.equal(raceTitle.textContent, '[译] Refactor proxy timeout handling', 'Late stale get-cache must not trigger restoreAllTitles()');
+    assert.equal(raceTitle.textContent, '[ت] Refactor proxy timeout handling', 'Late stale get-cache must not trigger restoreAllTitles()');
     raceApi.destroy();
 
     // C) #230 [P1-6] Part 2: thought-settings-ui.js runDiagnostics before state.loaded waits for real config and never sends OpenAI placeholders
@@ -3105,7 +3098,7 @@ test('17) Red-team #230 regressions: sidebarStudio attr, breadcrumb last-segment
       mkEl: (t, c) => uiEnv1.doc.createElement(t, c ? { class: c } : {}),
       btnClass: 'btn',
       getMode: () => 'ai',
-      getLang: () => 'zh-CN',
+      getLang: () => 'ar',
     });
     uiEnv1.rootBody.appendChild(ui1.box);
     // Click immediately while state.loaded === false
@@ -3143,7 +3136,7 @@ test('17) Red-team #230 regressions: sidebarStudio attr, breadcrumb last-segment
       mkEl: (t, c) => uiEnv2.doc.createElement(t, c ? { class: c } : {}),
       btnClass: 'btn',
       getMode: () => 'ai',
-      getLang: () => 'zh-CN',
+      getLang: () => 'ar',
     });
     uiEnv2.rootBody.appendChild(ui2.box);
     ui2.box.querySelector('[data-testid="thought-diagnose-btn"]').click();
@@ -3199,7 +3192,7 @@ test('18) Red-team #256 [P1 #7]: composeAbortSignal uses managed ref-d timeout a
       fetchImpl: async (url, init = {}) => {
         const u = String(url);
         if (hasUrlHostname(u, 'translate.googleapis.com')) {
-          return new Response(JSON.stringify([[['你好世界', 'Hello world']]]), { status: 200 });
+          return new Response(JSON.stringify([[['مرحبًا بالعالم', 'Hello world']]]), { status: 200 });
         }
         if (u.includes('/hang-external')) {
           return new Promise((_resolve, reject) => {
@@ -3218,7 +3211,7 @@ test('18) Red-team #256 [P1 #7]: composeAbortSignal uses managed ref-d timeout a
             if (batchAttempts === 1) {
               return new Response('Bad Request: unsupported enable_thinking', { status: 400 });
             }
-            return new Response(JSON.stringify({ choices: [{ message: { content: '[0] 读取配置文件' } }] }), {
+            return new Response(JSON.stringify({ choices: [{ message: { content: '[0] اقرأملف الإعدادات' } }] }), {
               status: 200,
               headers: { 'content-type': 'application/json' },
             });
@@ -3228,7 +3221,7 @@ test('18) Red-team #256 [P1 #7]: composeAbortSignal uses managed ref-d timeout a
             return new Response('Bad Request: unsupported enable_thinking', { status: 400 });
           }
           if (aiAttempts === 2) {
-            return new Response(JSON.stringify({ choices: [{ message: { content: '非流式译文' } }] }), {
+            return new Response(JSON.stringify({ choices: [{ message: { content: 'ترجمة كاملة' } }] }), {
               status: 200,
               headers: { 'content-type': 'application/json' },
             });
@@ -3236,8 +3229,8 @@ test('18) Red-team #256 [P1 #7]: composeAbortSignal uses managed ref-d timeout a
           const enc = new TextEncoder();
           const stream = new ReadableStream({
             start(controller) {
-              controller.enqueue(enc.encode('data: {"choices":[{"delta":{"content":"流式"}}]}\n\n'));
-              controller.enqueue(enc.encode('data: {"choices":[{"delta":{"content":"译文"}}]}\n\n'));
+              controller.enqueue(enc.encode('data: {"choices":[{"delta":{"content":"ترجمة "}}]}\n\n'));
+              controller.enqueue(enc.encode('data: {"choices":[{"delta":{"content":"متدفقة"}}]}\n\n'));
               controller.enqueue(enc.encode('data: [DONE]\n\n'));
               controller.close();
             },
@@ -3260,30 +3253,30 @@ test('18) Red-team #256 [P1 #7]: composeAbortSignal uses managed ref-d timeout a
     });
 
     // 1) GTX machine translate cleans up 9s managed timeout
-    const gtxOut = await svc.translateMachine('Analyze the performance bottleneck carefully', null, 'zh-CN');
-    assert.equal(gtxOut, '你好世界');
+    const gtxOut = await svc.translateMachine('Analyze the performance bottleneck carefully', null, 'ar');
+    assert.equal(gtxOut, 'مرحبًا بالعالم');
     assert.equal(countReqTimeouts(), 0, 'GTX translateMachine must leave 0 active timeout timers');
 
     // 2) AI non-streaming (including 400 noThink retry) cleans up BOTH 45s managed timeouts
-    const aiNonStream = await svc.translateAiStream('Thinking step one carefully', null, null, 'zh-CN');
-    assert.equal(aiNonStream.text, '非流式译文');
+    const aiNonStream = await svc.translateAiStream('Thinking step one carefully', null, null, 'ar');
+    assert.equal(aiNonStream.text, 'ترجمة كاملة');
     assert.equal(aiAttempts, 2, 'AI non-stream must exercise 400 retry branch');
     assert.equal(countReqTimeouts(), 0, 'AI non-stream + retry must leave 0 active timeout timers');
 
     // 3) AI streaming cleans up 45s managed timeout after stream drains
     const partials = [];
-    const aiStream = await svc.translateAiStream('Thinking step two carefully', (s) => partials.push(s), null, 'zh-CN');
-    assert.equal(aiStream.text, '流式译文');
+    const aiStream = await svc.translateAiStream('Thinking step two carefully', (s) => partials.push(s), null, 'ar');
+    assert.equal(aiStream.text, 'ترجمة متدفقة');
     assert.equal(countReqTimeouts(), 0, 'AI streaming must leave 0 active timeout timers');
 
     // 4) AI tool-summary batch (including 400 noThink retry) cleans up BOTH 30s managed timeouts
     const batchRes = await svc.translateToolSummariesBatch({
       items: ['Read config file'],
       mode: 'ai',
-      targetLang: 'zh-CN',
+      targetLang: 'ar',
     });
     assert.equal(batchRes.ok, true);
-    assert.equal(batchRes.items[0], '读取配置文件');
+    assert.equal(batchRes.items[0], 'اقرأملف الإعدادات');
     assert.equal(batchAttempts, 2, 'AI batch must exercise 400 retry branch');
     assert.equal(countReqTimeouts(), 0, 'AI batch + retry must leave 0 active timeout timers');
 
@@ -3296,7 +3289,7 @@ test('18) Red-team #256 [P1 #7]: composeAbortSignal uses managed ref-d timeout a
     extCtl.signal.addEventListener = (...a) => { extAdds += 1; return origAdd(...a); };
     extCtl.signal.removeEventListener = (...a) => { extRemoves += 1; return origRem(...a); };
 
-    await svc.translateMachine('Analyze the performance bottleneck carefully', extCtl.signal, 'zh-CN');
+    await svc.translateMachine('Analyze the performance bottleneck carefully', extCtl.signal, 'ar');
     assert.equal(countReqTimeouts(), 0, 'Completed GTX with externalSignal must leave 0 active timers');
     assert.equal(extRemoves, extAdds, 'Completed GTX with externalSignal must remove all attached abort listeners');
 
@@ -3309,7 +3302,7 @@ test('18) Red-team #256 [P1 #7]: composeAbortSignal uses managed ref-d timeout a
       ],
     });
     const abortCtl2 = new AbortController();
-    const pendingAi = svc.translateAiStream('Should abort early cleanly', null, abortCtl2.signal, 'zh-CN');
+    const pendingAi = svc.translateAiStream('Should abort early cleanly', null, abortCtl2.signal, 'ar');
     await new Promise((r) => origSetTimeout(r, 15));
     abortCtl2.abort(new Error('caller cancelled'));
     await assert.rejects(pendingAi);

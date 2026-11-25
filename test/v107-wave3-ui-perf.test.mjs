@@ -324,20 +324,20 @@ function makeDomNode(tag, attrs = {}, rect = { left: 0, top: 0, width: 200, heig
   return node;
 }
 
-// ── 1. style.css 铁律 + P1-3a/P1-3b + Channel 1 体积预算 ───────────────────
+// ── 1. style.css invariants + P1-3a/P1-3b + Channel 1 size budget ──────────
 test('Wave 3 CSS hygiene: 0 :has(), 0 non-ASCII, balanced braces, 0 [style*="--ag-row-i"], toast without backdrop-filter, no sidebar content-visibility, Channel 1 < 685,000 B', () => {
   const css = fs.readFileSync(path.join(ROOT, 'style.css'), 'utf8');
   assert.equal((css.match(/:has\(/g) || []).length, 0, 'style.css must have 0 :has( selectors');
   assert.equal(/[^\x00-\x7F]/.test(css), false, 'style.css must have 0 non-ASCII chars');
   assert.equal(checkBalancedBraces(css).ok, true, 'style.css braces must be strictly balanced');
 
-  // P1-3a: 彻底清除 [style*="--ag-row-i"]，统一改用 [data-ag-row-stagger="1"]
+  // P1-3a: remove [style*="--ag-row-i"] completely and standardize on [data-ag-row-stagger="1"]
   assert.equal(css.includes('[style*="--ag-row-i"]'), false, 'style.css must not scan inline style with [style*="--ag-row-i"]');
   assert.ok(css.includes('& [data-ag-row-stagger="1"]{animation:ag-cs-row-stagger'), 'style.css must target & [data-ag-row-stagger="1"]');
   const reduceLine = css.split('\n').find((l) => l.includes('prefers-reduced-motion:reduce') && l.includes('ag-cs-ctx-toast')) || '';
   assert.ok(reduceLine.includes('[data-ag-row-stagger="1"]'), 'prefers-reduced-motion rule must also use [data-ag-row-stagger="1"]');
 
-  // P1-3b: .ag-cs-ctx-toast 不带 backdrop-filter，仅 .ag-cs-ctx-menu 保留 blur(16px)
+  // P1-3b: .ag-cs-ctx-toast omits backdrop-filter; only .ag-cs-ctx-menu retains blur(16px)
   const sharedCtxLine = css.split('\n').find((l) => l.startsWith(':is(.ag-cs-ctx-menu,.ag-cs-ctx-toast){')) || '';
   assert.ok(sharedCtxLine.length > 0, 'Expected shared .ag-cs-ctx-menu/.ag-cs-ctx-toast base rule');
   assert.equal(sharedCtxLine.includes('backdrop-filter'), false, '.ag-cs-ctx-toast shared base rule must NOT include backdrop-filter');
@@ -349,21 +349,21 @@ test('Wave 3 CSS hygiene: 0 :has(), 0 non-ASCII, balanced braces, 0 [style*="--a
   const toastLine = css.split('\n').find((l) => l.startsWith('.ag-cs-ctx-toast{')) || '';
   assert.equal(toastLine.includes('backdrop-filter'), false, '.ag-cs-ctx-toast must NOT declare backdrop-filter');
 
-  // 保守红线：绝不给 conversation-row-sidebar 加 content-visibility:auto
+  // Strict guardrail: never apply content-visibility:auto to conversation-row-sidebar
   for (const line of css.split('\n')) {
     if (line.includes('conversation-row-sidebar')) {
       assert.equal(line.includes('content-visibility'), false, 'Must never add content-visibility to conversation-row-sidebar');
     }
   }
 
-  // Channel 1 总包必须 < 685,000 B
+  // Channel 1 bundle must stay < 685,000 B
   const cdp = require(path.join(ROOT, 'cdp.js'));
   const expr = cdp.buildInjectExpression(cdp.DEFAULT_CONFIG);
   const bytes = Buffer.byteLength(expr, 'utf8');
   assert.ok(bytes < 685000, `Channel 1 bundle must stay < 685,000 B, got ${bytes} B`);
 });
 
-// ── 2. ui-runtime: P1-1, P1-2a, P1-2b, P1-2c, P2-1 真实执行全链路验证 ────────
+// ── 2. ui-runtime: P1-1, P1-2a, P1-2b, P1-2c, P2-1 end-to-end verification ─
 test('Wave 3 ui-runtime: P1-1 mascot power sync, P1-2a narrowed dirtyFlags, P1-2b owned fast-path & inConvStream quick check, P1-2c async enhancer sync, P2-1 passive listeners & lazy pointer rect', () => {
   const cdp = require(path.join(ROOT, 'cdp.js'));
   const uiMainFactory = require(path.join(ROOT, 'ui-runtime.js'));
@@ -453,7 +453,7 @@ test('Wave 3 ui-runtime: P1-1 mascot power sync, P1-2a narrowed dirtyFlags, P1-2
     location: { pathname: '/c/cid-wave3', href: 'http://localhost/c/cid-wave3' },
     localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
     performance: { now: () => fakeNow },
-    navigator: { language: 'zh-CN' },
+    navigator: { language: 'en' },
     innerWidth: 1280,
     innerHeight: 800,
     devicePixelRatio: 1,
@@ -765,7 +765,7 @@ test('Wave 3 ui-runtime: P1-1 mascot power sync, P1-2a narrowed dirtyFlags, P1-2
   }
 });
 
-// ── 3. host-workbench-enhancer: P1-2c & P2-2 真实执行验证 ──────────────────
+// ── 3. host-workbench-enhancer: P1-2c & P2-2 live execution verification ───
 test('Wave 3 host-workbench-enhancer: cached iframe size, zero-alloc countCodeLines, streamingPre short-circuit & non-tail seal, in-place outline active switch, passive navRail hover short-circuit', () => {
   const enhancerMod = require(path.join(ROOT, 'host-workbench-enhancer.js'));
 
@@ -773,7 +773,7 @@ test('Wave 3 host-workbench-enhancer: cached iframe size, zero-alloc countCodeLi
     'data-ag-cs-style': '1',
     'data-ag-cs-theme': 'dark',
     'data-ag-cs-palette': 'obsidian',
-    'data-ag-cs-lang': 'zh-CN',
+    'data-ag-cs-lang': 'en',
   });
   const body = makeDomNode('body');
   html.appendChild(body);
@@ -976,8 +976,8 @@ test('Wave 3 host-workbench-enhancer: cached iframe size, zero-alloc countCodeLi
   ctl.destroy();
 });
 
-// ── 4. stream-choreography: P1-3c 英文历史 "Thinking Process" 不误判 streaming ─
-test('Wave 3 stream-choreography P1-3c: historical English "Thinking Process" never false-triggers streaming spark or comet, while active streaming ellipsis/Chinese/attr works accurately', () => {
+// ── 4. stream-choreography: P1-3c historical English "Thinking Process" never false-triggers streaming ─
+test('Wave 3 stream-choreography P1-3c: historical English "Thinking Process" never false-triggers streaming spark or comet, while active streaming ellipsis/Arabic/attr works accurately', () => {
   const src = fs.readFileSync(path.join(ROOT, 'stream-choreography.js'), 'utf8');
   const html = makeDomNode('html', { 'data-ag-cs-motion': 'ultra' });
   const body = makeDomNode('body');
@@ -1061,8 +1061,8 @@ test('Wave 3 stream-choreography P1-3c: historical English "Thinking Process" ne
     assert.equal(bDiv.hasAttribute('data-ag-cs-thought-streaming'), false, `${label} must not set thought-streaming comet`);
   }
 
-  // Case 2: Latest trigger actively streaming ("Thinking...", "正在思考", "思考中") OR explicit data-op-thought-state="streaming"
-  for (const activeText of ['Thinking...', '正在思考', '思考中', '正在推演…']) {
+  // Case 2: Latest trigger actively streaming ("Thinking...", "جاري التفكير", "يفكر", "جارٍ التحليل…") OR explicit data-op-thought-state="streaming"
+  for (const activeText of ['Thinking...', 'جاري التفكير', 'يفكر', 'جارٍ التحليل…']) {
     lblLatestDone.textContent = activeText;
     ctl.syncThinkingSparks({ brand: 'gemini' });
     ctl.syncDualStreamEngine();
@@ -1085,7 +1085,7 @@ test('Wave 3 stream-choreography P1-3c: historical English "Thinking Process" ne
   ctl.clearTransientTimers();
 });
 
-// ── 5. home-studio-panel: P2-3 非配额页免重绘 ─────────────────────────────
+// ── 5. home-studio-panel: P2-3 skip re-render on non-quota tabs ──────────
 test('Wave 3 home-studio-panel P2-3: quota telemetry refreshes perform 0 panel re-renders on Overview/Models tabs, and re-render normally on Quotas tab', async () => {
   const src = fs.readFileSync(path.join(ROOT, 'home-studio-panel.js'), 'utf8');
   const html = makeDomNode('html');
@@ -1205,7 +1205,7 @@ test('Wave 3 home-studio-panel P2-3: quota telemetry refreshes perform 0 panel r
   assert.ok(panel.querySelector('.ag-cs-quota-card'), 'Quotas tab must render quota cards');
 });
 
-// ── 6. model-glyph-crystal: P2-4 stepCrystalLoop 先读后写 + 缓存 knob/宽度 ─
+// ── 6. model-glyph-crystal: P2-4 stepCrystalLoop read-before-write + cache knob/width ─
 test('Wave 3 model-glyph-crystal P2-4: stepCrystalLoop reads fillRatio before writing --knob-px/--knob-py and caches knob ref & track width', () => {
   const src = fs.readFileSync(path.join(ROOT, 'model-glyph-crystal.js'), 'utf8');
   const html = makeDomNode('html', { 'data-ag-cs-ambient': '1' });
@@ -1350,7 +1350,7 @@ test('Wave 3 model-glyph-crystal P2-4: stepCrystalLoop reads fillRatio before wr
   ctl.teardownCrystalMount();
 });
 
-// ── 7. pulse-dashboard/inline-fallback: P2-5 合并 seatObs 重复查询与早退 ───
+// ── 7. pulse-dashboard/inline-fallback: P2-5 merge duplicate seatObs queries & early exit ───
 test('Wave 3 pulse inline-fallback P2-5: seatObs merges duplicate isConv() and findAnchor() queries and early-exits cleanly', () => {
   const src = fs.readFileSync(path.join(ROOT, 'vendor', 'pulse-dashboard', 'inline-fallback.js'), 'utf8');
   const html = makeDomNode('html');
@@ -1412,7 +1412,7 @@ test('Wave 3 pulse inline-fallback P2-5: seatObs merges duplicate isConv() and f
   vm.runInNewContext(src, sb);
 
   // 1) Start in auto mode on conversation page (fbEl mounted + data-ag-owned="1")
-  sb.__agPrismTelemetry.sync({ telemetryModule: 'on', language: 'zh-CN' });
+  sb.__agPrismTelemetry.sync({ telemetryModule: 'on', language: 'en' });
   assert.ok(seatMoCb, 'seatObs must be attached');
   const fbNode = html.querySelector('#ag-prism-pulse-bar');
   assert.ok(fbNode);
@@ -1428,7 +1428,7 @@ test('Wave 3 pulse inline-fallback P2-5: seatObs merges duplicate isConv() and f
   // 2) Unmount fbEl (e.g. home page -> back to conv without fbEl): seatObs merges isConv across hasExt + findAnchor into 1 call!
   const homeEl = makeDomNode('div', { class: 'agy-home' });
   body.appendChild(homeEl);
-  sb.__agPrismTelemetry.sync({ telemetryModule: 'on', language: 'zh-CN' });
+  sb.__agPrismTelemetry.sync({ telemetryModule: 'on', language: 'en' });
   assert.equal(html.querySelector('#ag-prism-pulse-bar'), null, 'Home page must unmount fallback bar');
 
   // While on home page: seatObs early-exits after 1 isConv and 0 findAnchor calls
@@ -1452,7 +1452,7 @@ test('Wave 3 pulse inline-fallback P2-5: seatObs merges duplicate isConv() and f
   sb.__agPrismTelemetry.destroy();
 });
 
-// ── 8. ui-runtime autoUpdate 归一化 & 布尔兼容 ─────────────────────────────
+// ── 8. ui-runtime autoUpdate normalization & boolean compatibility ─────────
 test('P1 ui-runtime autoUpdate normalization (default off, boolean true/false -> on/off, wire binding alignment)', () => {
   const cdp = require(path.join(ROOT, 'cdp.js'));
   const uiMainFactory = require(path.join(ROOT, 'ui-runtime.js'));
@@ -1489,7 +1489,7 @@ test('P1 ui-runtime autoUpdate normalization (default off, boolean true/false ->
       removeItem: (k) => storage.delete(k),
     },
     performance: { now: () => 1000 },
-    navigator: { language: 'zh-CN' },
+    navigator: { language: 'en' },
     innerWidth: 1280,
     innerHeight: 800,
     devicePixelRatio: 1,
@@ -1540,7 +1540,7 @@ test('P1 ui-runtime autoUpdate normalization (default off, boolean true/false ->
   api.destroy();
 });
 
-// ── 9. Effort Slider 卸载属性对称 + conv-aura 外部调用隔离 + enhancer guarded title ──
+// ── 9. Effort Slider cleanup symmetry + conv-aura external caller isolation + enhancer guarded title ──
 test('P1 Effort Slider cleanup strips data-ces-orch-b/tunable, conv-aura computeConvAuraOptics isolates external callers, and host-workbench-enhancer guards outlineTitleEl mutation', () => {
   // (a) slider-coexist clrTint & upstream-client _clrAgDom strip data-ces-orch-b and data-ces-orch-tunable
   const sliderCoexist = require(path.join(ROOT, 'vendor', 'effort-slider', 'slider-coexist.js'));

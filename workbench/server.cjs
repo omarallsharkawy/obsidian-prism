@@ -126,7 +126,7 @@ function parseReplicaPrismConfig(searchParams) {
     homeLayout: ['studio', 'classic', 'off'],
     telemetryModule: ['auto', 'on', 'off'],
     effortSliderModule: ['auto', 'on', 'off'],
-    language: ['zh-CN', 'zh-TW', 'yue', 'en', 'ja'],
+    language: ['en', 'ar'],
     codeFont: ['default', 'jetbrains', 'cascadia', 'sfmono'],
   };
   for (const [k, vals] of Object.entries(allow)) {
@@ -429,7 +429,7 @@ function createWorkbenchServer(options = {}) {
   const rootWatchers = [];
   let reloadTimer = null;
 
-  // 每实例独立随机 Token 与严格 mkdtemp 私有沙盒（绝不触碰 ~/.gemini/config）
+  // Per-instance random token and strict mkdtemp private sandbox (never touches ~/.gemini/config)
   const studioToken = crypto.randomBytes(24).toString('hex');
   let studioSandboxRoot = null;
   let studioService = null;
@@ -464,7 +464,7 @@ function createWorkbenchServer(options = {}) {
             try {
               fs.rmSync(tmpRoot, { recursive: true, force: true });
             } catch {
-              // 忽略临时目录清理异常
+              // Ignore temporary directory cleanup errors
             }
           }
           throw initErr;
@@ -518,7 +518,7 @@ function createWorkbenchServer(options = {}) {
         });
         rootWatchers.push(w);
       } catch {
-        // 忽略单个文件监听失败
+        // Ignore individual file watch failures
       }
     }
   }
@@ -542,7 +542,7 @@ function createWorkbenchServer(options = {}) {
       return;
     }
 
-    // ── Studio API 路由（独立回环校验 + 每实例 Token + 隔离沙盒服务） ──
+    // ── Studio API routes (strict loopback check + per-instance token + isolated sandbox service) ──
     if (pathname.startsWith('/api/studio/')) {
       const isWrite = req.method === 'POST';
       const sec = verifyStudioRequestSecurity(req, server, studioToken, isWrite);
@@ -592,7 +592,7 @@ function createWorkbenchServer(options = {}) {
               sendJson(res, mapStudioErrorStatus(rstRes), buildStudioEnvelope(svc, rstRes));
               return;
             }
-            // 可信弹窗模拟专用：按 operationId 读取一次性 WSL challenge
+            // Trusted modal simulation only: read one-time WSL challenge by operationId
             const opId = body && typeof body.operationId === 'string' ? body.operationId.trim() : '';
             if (!opId) {
               sendJson(res, 400, { ok: false, error: { code: 'INVALID_ARGUMENT', message: 'Missing operationId', retryable: false } });
@@ -873,7 +873,7 @@ function createWorkbenchServer(options = {}) {
           await studioService.dispose();
         }
       } catch {
-        // 忽略关闭期间排空异常
+        // Ignore drain errors during server shutdown
       }
       if (studioSandboxRoot) {
         const rootToClean = studioSandboxRoot;
@@ -881,7 +881,7 @@ function createWorkbenchServer(options = {}) {
         try {
           fs.rmSync(rootToClean, { recursive: true, force: true });
         } catch {
-          // 忽略临时目录清理异常
+          // Ignore temporary directory cleanup errors
         }
       }
     };

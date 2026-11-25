@@ -171,7 +171,7 @@
         pending.set(id, { resolve: res, timer });
         try {
           const ret = rawFn(JSON.stringify({ id, action, payload: payload || {} }));
-          // 兼容单测或非 CDP 环境中直接返回 Promise 的 mock 实现
+          // Support mock implementations returning a Promise directly in unit tests or non-CDP environments
           if (ret && typeof ret.then === 'function') {
             ret.then(
               (val) => resolve(id, val),
@@ -477,7 +477,7 @@
         }
         const blob = new BlobCtor([bytes], { type: res.mimeType });
         const nextUrl = urlApi.createObjectURL(blob);
-        // 撤销旧 ObjectURL 防内存泄漏
+        // Revoke previous ObjectURL to prevent memory leaks
         revokeActiveObjectUrl();
         activeObjectUrl = nextUrl;
         activeSrc = nextUrl;
@@ -797,7 +797,7 @@
         } catch {}
       }
       unmountRootLayer();
-      // 兜底再次查询 DOM 中的视频节点并释放硬件解码管线
+      // Fallback query for any remaining video nodes in DOM to release hardware decoder pipeline
       try {
         const orphanRoot = doc.getElementById ? doc.getElementById(WALLPAPER_ROOT_ID) : null;
         if (orphanRoot) {

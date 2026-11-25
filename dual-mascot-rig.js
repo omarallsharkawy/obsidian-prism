@@ -13,10 +13,10 @@
   'use strict';
 
   /**
-   * 双宠像素骨架与物理引擎（Aligned to Official Claude Clawd Pixel Grammar）
-   * - 主宠栅格 PX = 3 (每格 3 CSS px), 离散动画节拍 TICK = 100ms
-   * - 主体与腿爪耳尾零黑描边、零眼高光噪点、纯方块几何、暗部色 's'、1x2 竖瞳 'o'
-   * - 动作道具采用同色系柔和中间调渲染
+   * Dual-mascot pixel rig & physics engine (Aligned to Official Claude Clawd Pixel Grammar)
+   * - Primary mascot grid PX = 3 (3 CSS px per cell), discrete animation tick TICK = 100ms
+   * - Zero black outline, zero eye specular noise, pure blocky geometry, shadow color 's', 1x2 vertical eyes 'o'
+   * - Action props rendered in soft harmonious midtones
    */
   const PX = 3;
   const TICK = 100;
@@ -62,7 +62,7 @@
     PALETTES[name] = decodePal(spec, sh === '1' ? SHARED_PROP_PALETTE : null);
   }
 
-  // 棱镜边环境反光调色表（6色调：[darkCore,darkWash,lightCore,lightWash]）
+  // Prism edge ambient reflection palette (6 tones: [darkCore, darkWash, lightCore, lightWash])
   const RIM_PALS = Object.fromEntries(
     'default:164,208,255;155,114,203;37,99,235;124,58,237|warm:255,220,176;240,163,126;194,89,52;217,119,6|cobalt:148,228,255;66,133,244;29,78,216;2,132,199|iris:221,214,254;165,138,248;91,33,182;139,92,246|amber:253,230,138;242,184,75;180,83,9;245,158,11|mono:236,242,248;148,163,184;51,65,85;100,116,139'
       .split('|')
@@ -89,7 +89,7 @@
     };
   }
 
-  // ── 紧凑 RLE 图集（去重派生 + 自动进入 cdp.js 共享 LZ 压缩池，纯函数解码还原同构对象）──
+  // -- Compact RLE atlas (deduplicated + shared with cdp.js LZ pool, pure decode to isomorphic objects) --
   const SPRITE_ATLAS_RAW =
     'c.shadow!w12=2,10,g:12h;w14=1,10,g:14h;w10=3,10,g:10h|c.body!stand=2,0:12#*8;tall=2,-1:12#*9;squash=1,2:.12s./14#*6;squash2=1,4:.12s./14#*4;flat=2,7:12s/12#*2;turnL=2,0:11#s*8;turnR=~turnL;leanR=2,0:.12#*4/12#.*4;leanL=~leanR;peek=2,2:12#*6|c.eyes!open=4,2:o6.o*2;openL=@open,3,2;openR=@open,5,2;half=4,3:o6.o;shut=3,3:oo6.oo;happy=3,2:.o6.o./o.o4.o.o;squint=4,2:o6.o/.o4.o./o6.o;wide=3,2:oo6.oo*2;peekOpen=@open,4,4;peekHalf=@half,4,5;flatEyes=4,8:oo4.oo;blink=3,3:ss6.ss;upL=@open,3,1;up=@open,4,1;upR=@open,5,1|c.mouth!small=6,5:.ss.;yawn=6,5:4s/.ss.|c.legs!stand=2,8:.#.#4.#.#.*2;crouch=2,9:.#.#4.#.#.;tuck=2,8:..#.#..#.#..*2;walkA=2,8:.#.s4.#.s./.#6.#3.;walkB=~walkA;dangle=2,8:.#.#4.#.#./.#.#8.*2;dangle2=~dangle;flailA=2,8:#3.#..#3.#/#10.#;flailB=2,8:..#.#..#.#../4.#..#4.;flailC=2,8:#..#4.#..#/3.#4.#..#|c.clawL!stub=0,5:##*2;front=0,5:ss*2;up=0,-2:##*2/#.;peekGrip=1,7:ss;flatLeft=@peekGrip,0,8;open=0,4:##/.#/##|c.clawR!stub=14,5:##*2;front=14,5:ss*2;up=14,-2:##*2/.#;low=14,8:3#*2;reach1=14,4:3.##/5#;write1=@front,13,6;write2=@front;peekGrip=13,7:ss;flatRight=@peekGrip,14,8;open=14,4:##/#./##;waveOut=14,-1:.##*2/#..|k.ears!stand=2,-1:#10.#/##8.##;nod=@stand,2,0;loaf=@stand,2,2;airplane=0,0:##12.##/3#10.3#;peek=@stand,2,1;flat=1,6:#12.#;twitchL=2,-1:11.#/##8.##;twitchR=~twitchL|k.body!stand=2,1:12#*7;loaf=1,4:.12s./14#*5;stretch=2,0:s11#/12#*2/.11#*2/..10#/12#*2;turnL=2,1:11#s*7;turnR=~turnL;leanR=2,1:.12#*4/12#.*3;leanL=~leanR|k.eyes!loafShut=3,6:oo6.oo;loafHalf=4,6:o6.o|k.paws!none=0,0:;groom1=12,4:ss*2;groom2=@groom1,12,3;cheer=0,2:#14.#*2;up=0,-1:##12.##*2;peekGrip=1,7:ss10.ss;write1=@groom1,13,5;write2=@groom1,14,6;upR=14,0:##*2|' +
     'k.tail!up=14,3:.s/.#*2/##;sway=14,3:.#*2/s#/#.;curl=14,4:##/.#/s#;loaf=14,6:.#*2/s#;puff=14,2:.#/##*2/s#/#.|' +
@@ -186,7 +186,7 @@
     PROPS[k + 'B'] = recolorFrame(PROPS[k], { L: 'A', H: 'E', x: 'C', j: 'i', J: 'I' });
   });
 
-  // 背后火海算法生成（保留轮廓白光 'V'）
+  // Procedurally generated backdrop flames (preserving white rim highlight 'V')
   (() => {
     const sil = new Set();
     for (let y = 0; y <= 7; y++) for (let x = 2; x <= 13; x++) sil.add(`${x},${y}`);
@@ -236,7 +236,7 @@
     });
   })();
 
-  // ── 刚体层与符号层登记（符号层水平镜像时仅翻转锚点，字符正向绘制）────────
+  // -- Rigid & symbol layer registry (horizontal mirror flips anchor only so glyphs stay upright) --------
   const RIGID_LAYERS = new WeakSet();
   const SYM_LAYERS = new WeakSet();
   Object.values(PROPS).forEach((l) => RIGID_LAYERS.add(l));
@@ -245,7 +245,7 @@
     SYM_LAYERS.add(l);
   });
 
-  // 整格平移帧（带缓存，传递刚体与符号标记）
+  // Integer-cell translated frame (cached, propagates rigid & symbol flags)
   const SHIFT_CACHE = new WeakMap();
   function shiftFrame(fr, dx, dy) {
     if (!fr || (!dx && !dy)) return fr;
@@ -314,10 +314,10 @@
     }
   }
 
-  // ── 整数格挤压（替代 ctx.scale 浮点缩放）─────────────────────────────────
-  // 思路：把弹性身体部件合成为一张字符点阵，再按「中心接缝最近邻」在整格层面
-  // 增删行/列（优先选纯色体块行列、靠近中心、保护眼睛 o 与暗面 s 特征和着地腿），
-  // 水平中心与底边锚定。这样每个方块永远是精确 PX×PX，边缘锐利不糊。
+  // -- Integer-grid squash & stretch (replaces floating-point ctx.scale) ---------------------------------
+  // Approach: composite elastic body parts into a character bitmap, then add/remove integer rows/cols
+  // via nearest-center seam selection (prefer solid body rows/cols near center, protecting eyes o, shadow s, and feet),
+  // anchored horizontally at center and vertically at bottom so every pixel stays crisp PX x PX.
   function compositeGrid(layers) {
     let minX = Infinity;
     let minY = Infinity;
@@ -355,7 +355,7 @@
     return { g, minX, minY, W, H };
   }
 
-  // 选择要删除/复制的接缝线（行或列）；lines 为字符串数组
+  // Choose seam lines (rows or cols) to delete or duplicate; lines is an array of strings
   function pickSeams(lines, count, remove, protectTail) {
     const n = lines.length;
     if (!count || n < 3) return new Set();
@@ -375,7 +375,7 @@
     cand.sort((a, b) => a.score - b.score || a.i - b.i);
     const chosen = new Set();
     const limit = min(count, n - 2);
-    // 第一轮：删除非纯色线时必须保留一条未被删除的同形邻线，防止特征整体消失
+    // Pass 1: when removing non-solid lines, preserve an identical adjacent line so features never vanish
     for (const c of cand) {
       if (chosen.size >= limit) break;
       if (remove && !c.pure) {
@@ -402,8 +402,8 @@
   }
 
   /**
-   * 对弹性部件做整数格挤压，返回 { layer, shiftX(x), shiftY(y) }。
-   * sqW / sqH 为整数格增量（正=拉宽/拉高，负=压窄/压扁）。
+   * Apply integer-grid squash/stretch to elastic parts; returns { layer, shiftX(x), shiftY(y) }.
+   * sqW / sqH are integer grid deltas (positive = wider/taller, negative = narrower/flatter).
    */
   function squashLayersToGrid(layers, sqW, sqH) {
     const comp = compositeGrid(layers);
@@ -419,10 +419,10 @@
     const rowMap = buildSeamMap(H, dh < 0 ? rowPick : new Set(), dh > 0 ? rowPick : new Set());
     const newW = colMap.length;
     const newH = rowMap.length;
-    const left = minX + round((W - newW) / 2); // 水平中心锚定
-    const top = minY + (H - newH); // 底边锚定
+    const left = minX + round((W - newW) / 2); // Horizontal center anchor
+    const top = minY + (H - newH); // Bottom edge anchor
     const rows = rowMap.map((ry) => colMap.map((cx) => g[ry][cx]).join(''));
-    // 源行/列 → 目标位置（被删除的线映射到其下方/右方最近保留线）
+    // Source row/col -> target position (removed seams map to nearest kept line below/right)
     const targetOf = (map, src, n) => {
       for (let s = src; s < n; s++) {
         const t = map.indexOf(s);
@@ -472,11 +472,11 @@
     ctx.imageSmoothingEnabled = false;
 
     const mirror = !!options.mirror;
-    // 垂直位移吸附到整格，保证方块网格不出现亚格错位
+    // Snap vertical lift to integer grid cells to avoid sub-pixel misalignment
     const tyPx = round(Number(options.tyPx || 0) / pxSize) * pxSize;
     const rotDeg = Number(options.rotDeg || 0);
     const clipBottomY = options.clipBottomY;
-    // 兼容旧入参 sxScale/syScale：换算为 16×10 画框上的整数格增量
+    // Legacy sxScale/syScale support: convert to integer cell deltas on the 16x10 frame
     const sqW =
       options.sqW !== undefined ? round(options.sqW) : round(16 * (Number(options.sxScale || 1) - 1));
     const sqH =
@@ -495,7 +495,7 @@
       else bodyLayers.push(layer);
     }
 
-    // 弹性层最终列表：挤压时身体合成为一张整格点阵，道具/符号整格平移随行
+    // Final elastic layer list: composite body bitmap during squash while shifting props/symbols on integer grid
     let elasticLayers;
     if ((sqW || sqH) && bodyLayers.length) {
       const sq = squashLayersToGrid(bodyLayers, sqW, sqH);
@@ -503,7 +503,7 @@
         elasticLayers = [sq.layer];
         for (const r of rigidLayers) {
           const w = max(1, ...r.rows.map((row) => row.length));
-          // 左右边缘平移量取均值：加宽时居中符号保持居中，偏侧道具随该侧移动
+          // Average left/right edge shifts so centered symbols stay centered while side props follow their side
           const dx = round((sq.shiftX(r.ox) + sq.shiftX(r.ox + w - 1)) / 2);
           const dy = sq.shiftY(r.oy + r.rows.length - 1);
           elasticLayers.push(shiftFrame(r, dx, dy));
@@ -511,7 +511,7 @@
       }
     }
     if (!elasticLayers) elasticLayers = [...bodyLayers, ...rigidLayers];
-    // 保持原有绘制顺序：身体部件 → 道具 → 符号（rigid 本就位于末尾）
+    // Preserve draw order: body parts -> props -> symbols (rigid layers already sit at the end)
 
     ctx.save();
     if (typeof clipBottomY === 'number' && isFn(ctx.clip)) {
@@ -528,7 +528,7 @@
       ctx.clip();
     }
 
-    // 地面/背景独立层（影子、火海衬底、生长节点、地面激光、立麦架）不随挤压或歪头旋转
+    // Ground/backdrop layers (shadow, flames, growth nodes, floor laser, mic stand) do not squash or tilt
     if (groundedLayers.length) {
       ctx.save();
       if (mirror) {
@@ -579,7 +579,7 @@
     if (!rotDeg) {
       paintElastic(ctx);
     } else {
-      // 拖拽摆角：先在离屏画布上按整格绘制，再整体旋转贴图（关闭平滑，避免逐块缝隙与模糊）
+      // Drag swing tilt: draw crisp integer grid offscreen first, then rotate the blit with smoothing disabled
       let off = canvas.__agRotOff;
       const docRef = canvas.ownerDocument;
       if (!off && docRef && isFn(docRef.createElement)) {
@@ -611,25 +611,25 @@
     ctx.restore();
   }
 
-  // 可被随机眨眼覆盖眼部的姿态；小紫猫慢摆尾的姿态
+  // Poses eligible for random blink override; poses where cat sways tail slowly
   const BLINKABLE_POSES = new Set(['idle', 'walk', 'lookNod', 'readAlong', 'gaze']);
   const SLOW_TAIL_POSES = new Set(['idle', 'lookNod', 'readAlong', 'gaze']);
-  // 冰晶让位：头顶已有道具的姿态不挂冰晶；居中符号出现时冰晶暂隐，仅侧边汗滴与打盹 z 可共存
+  // Ice crystal yield: hide crystal when overhead prop or centered symbol is shown; side sweat/sleep z may coexist
   const CRYSTAL_HIDE_POSES = new Set([
     'siren', 'onFire', 'cheerSticks', 'peek', 'flat', 'rickroll', 'carry', 'whaleSpout',
     'slashGoal', 'slashBoost', 'slashSchedule', 'slashGrill', 'slashLearnBulb',
   ]);
   const CRYSTAL_OK_SYMS = new Set([SYMS.sweat, SYMS.z1, SYMS.z2, SYMS.dozeZ0, SYMS.dozeZ1, SYMS.dozeZ2, SYMS.sleepBubble0, SYMS.sleepBubble1]);
-  // 哈欠接伸懒腰：前 10 拍打哈欠，之后伸懒腰
+  // Yawn followed by stretch: first 10 ticks yawn, then stretch
   const YAWN_STRETCH_SPLIT = 10;
 
-  // ── 紧凑数据驱动姿态配方引擎（24 个常规姿态走极简字符串表进入 LZ 池，复杂时间轴保留短函数）──
+  // -- Compact data-driven pose recipe engine (24 standard poses in string table for LZ pooling; complex timelines as short fns) --
   const PLANT_STAGES_C = [[5, 'seed'], [9, 'p1'], [13, 'p2'], [17, 'p3'], [23, 'p4'], [27, 'wilt1'], [31, 'wilt2']];
   const PLANT_STAGES_K = [[5, 'seed'], [9, 'p1'], [13, 'p2'], [17, 'p3'], [23, 'p4']];
   const pickStage = (t, v, fb) => { for (const [lim, k] of t) if (v < lim) return k; return fb; };
 
-  // DSL 字段码: 0=backProp sh=shadow b=body e=eyes l=legs L=clawL R=clawR a=ears w=paws t=tail m=mouth 1=prop1 2=prop2 y=extraSym(无sym时) Y=extraSym(强制) z=sink
-  // 值后缀: ~f (frameMod?A:B), ~c (clipMod?A:B), ~4 (phase4), ~3 (tickIdx%3), ~l (lt%len), ~a-b (a<=lt<b?A:B); ~ 表示 null, 空串跳过; 前缀 C:/K:/S:/W:/N: 对应蟹/猫龙鲸/猫/鲸/非鲸
+  // DSL keys: 0=backProp sh=shadow b=body e=eyes l=legs L=clawL R=clawR a=ears w=paws t=tail m=mouth 1=prop1 2=prop2 y=extraSym(if no sym) Y=extraSym(forced) z=sink
+  // Value suffixes: ~f (frameMod?A:B), ~c (clipMod?A:B), ~4 (phase4), ~3 (tickIdx%3), ~l (lt%len), ~a-b (a<=lt<b?A:B); ~ = null, empty = skip; prefixes C:/K:/S:/W:/N: = crab/non-crab/cat/whale/non-whale
   const POSE_DSL_RAW =
     'flat:sh=w14,b=flat,e=flatEyes,l=~,C:L=flatLeft,C:R=flatRight,K:a=flat,K:w=~,K:t=curl|' +
     'dangle:sh=~,e=wide,l=dangle/flailA/dangle2/flailB~4,C:b=turnL/turnR~f,C:L=up,C:R=up,K:a=airplane,K:t=puff|' +
@@ -936,10 +936,10 @@
     return [backProp, shadow, tail, legs, body, mouth, ears, eyes, paws, prop1, prop2, extraSym].filter(Boolean);
   }
 
-  // 随机眨眼过渡：1×2 竖瞳 → 1×1 → 闭（s 暗面横线）→ 1×1 → 1×2
+  // Random blink transition: 1x2 vertical eye -> 1x1 -> closed (shadow line s) -> 1x1 -> 1x2
   const BLINK_SINGLE = ['half', 'closed', 'half'];
   const BLINK_DOUBLE = ['half', 'closed', 'half', 'closed', 'half'];
-  // 迷你蟹眨眼帧缓存：把竖瞳 o 替换为暗面色 s
+  // Mini-crab blink frame cache: replaces vertical eye o with shadow color s
   const MINI_BLINK_CACHE = new WeakMap();
   function miniBlinkFrame(fr) {
     let out = MINI_BLINK_CACHE.get(fr);
@@ -950,7 +950,7 @@
     return out;
   }
 
-  // ── 纯几何碰撞与擦肩经过判定（供主宠自主散步 / 拖拽 / 单元契约共测） ──
+  // -- Pure geometric collision & pass-by detection (shared by autonomous stroll, drag, and unit contract tests) --
   const CRAB_ENCOUNTER_SEQ = new WeakMap();
 
   function classifyPairEncounter(opts = {}) {
@@ -974,18 +974,18 @@
     const dA = dirA >= 0 ? 1 : -1;
     const dB = dirB >= 0 ? 1 : -1;
 
-    // 1. 双向相向逼近 → 迎面轻撞 (bump)
+    // 1. Head-on approach -> gentle bump
     if (walkingA && walkingB && dA * sign > 0 && dB * sign < 0) {
       return { kind: 'bump', sign };
     }
-    // 2. 单方朝静止伙伴靠近且尚未完全跨过 → 擦肩经过 (passBy)
+    // 2. Single actor approaching stationary partner before clearing -> passBy
     if (walkingA && !walkingB && dA * sign > 0 && abs(dx) >= 10) {
       return { kind: 'passBy', mover: 'A', stationary: 'B', dir: dA };
     }
     if (walkingB && !walkingA && dB * sign < 0 && abs(dx) >= 10) {
       return { kind: 'passBy', mover: 'B', stationary: 'A', dir: dB };
     }
-    // 3. 同向行走且后方追上前车 → 超车擦肩经过 (passBy)
+    // 3. Same-direction walking with rear actor overtaking -> passBy
     if (walkingA && walkingB && dA === dB && abs(dx) >= 8) {
       const rearIsA = dA > 0 ? xA < xB : xA > xB;
       return {
@@ -998,7 +998,7 @@
     return null;
   }
 
-  // ── 迷你三蟹舞台走廊漫步与碰钳/翻越经过逻辑 ─────────────────────────────
+  // -- Mini-crab trio corridor stroll & claw-bump / pass-over logic -----------------------------
   function stepMiniCrabCorridor(crabs, opts = {}) {
     const minX = isFin(opts.minX) ? opts.minX : 2;
     const maxX = max(minX + 16, isFin(opts.maxX) ? opts.maxX : 220);
@@ -1013,7 +1013,7 @@
       CRAB_ENCOUNTER_SEQ.set(crabs, pairCounts);
     }
 
-    // 1. 自由状态下的迷你蟹匀速漫步 + 走廊边界折返
+    // 1. Free mini crabs stroll at constant speed and turn at corridor bounds
     for (const mc of crabs) {
       if (!mc || mc.act) continue;
       if (!isFin(mc.px)) mc.px = isFin(mc.x) ? mc.x : minX;
@@ -1034,7 +1034,7 @@
       mc.px = next;
     }
 
-    // 2. 两两检测接触：迎面交替触发 crabBump / crabPass；同向追及触发 crabPass
+    // 2. Pairwise contact check: head-on alternates crabBump / crabPass; overtaking triggers crabPass
     for (let i = 0; i < crabs.length; i++) {
       const a = crabs[i];
       if (!a || a.act || (a.cooldownTick || -99) > nowTick) continue;
@@ -1091,7 +1091,7 @@
     return events;
   }
 
-  // ── Google 四色全息棱镜虹彩光谱插值 & 5 宠一维刚体防重叠 & 遇障决策纯函数 ──────
+  // -- Google 4-color holographic prism spectrum interpolation, 1D rigid-body separation, and obstacle decision helpers ------
   const CHROMA_STOPS = [
     [0x42, 0x85, 0xf4], // #4285F4 Cobalt Blue
     [0x9b, 0x72, 0xcb], // #9B72CB Amethyst Iris
@@ -1137,9 +1137,9 @@
   }
 
   /**
-   * 一维地面刚体防重叠与向空旷侧推挤分离求解器
-   * 输入 bodies: Array<{ id: string, cx: number, halfW: number, locked?: boolean }>
-   * 原地更新每个非 locked 角色的 cx，保证净间距 >= minGap（默认 6px）
+   * 1D ground rigid-body anti-overlap and open-space separation solver
+   * Input bodies: Array<{ id: string, cx: number, halfW: number, locked?: boolean }>
+   * Mutates cx of every unlocked body in place to guarantee clear spacing >= minGap (default 6px)
    */
   function resolveGroundSeparation(bodies, stageMinX = 12, stageMaxX = 708, minGap = 6) {
     if (!Array.isArray(bodies) || bodies.length < 2) {
@@ -1191,7 +1191,7 @@
         if (!left.locked) left.cx = clamp(left.cx, stageMinX + left.halfW, stageMaxX - left.halfW);
         if (!right.locked) right.cx = clamp(right.cx, stageMinX + right.halfW, stageMaxX - right.halfW);
       }
-      // 二次单向扫掠消除靠墙挤压残余
+      // Second one-way sweep removes residual wall-compression overlap
       for (let i = 0; i < ordered.length - 1; i++) {
         const l = ordered[i];
         const r = ordered[i + 1];
@@ -1214,10 +1214,10 @@
   }
 
   /**
-   * 散步遇障三种灵动越障决策器：
-   * - 'leapfrog': 抛物线撑跳越过对方头顶（峰值 ~26px）落到另一侧继续走
-   * - 'autoPerch': 顺势轻跳坐上对方（或塔顶）头顶搭便车
-   * - 'greetTurn': 驻足眨眼/拉墨镜偷瞄/挥魔杖闪星后礼貌转身
+   * Three playful obstacle-encounter actions during stroll:
+   * - 'leapfrog': parabolic vault over the partner (~26px peak) landing on the other side
+   * - 'autoPerch': light hop onto the partner (or totem top) to hitch a ride
+   * - 'greetTurn': pause to blink / peek over shades / wave wand, then politely turn around
    */
   function chooseObstacleAction(opts = {}) {
     const canLeap = opts.canLeap !== false;
@@ -1233,7 +1233,7 @@
     return 'greetTurn';
   }
 
-  // ── 自由点选桌宠阵容编解码（向后兼容 5 预设 + dual 别名，单物种纯开关 0/1，主宠总数 <= 4，旧多数量自动夹紧）──
+  // -- Custom mascot cast codec (backward-compatible with 5 presets + dual alias; 0/1 per species, <= 4 primary actors) --
   const MASCOT_SPECIES_ORDER = ['c', 'k', 'd', 'w'];
   const MASCOT_MAX_PER_SPECIES = 1;
   const MASCOT_MAX_TOTAL = 4;
@@ -1350,7 +1350,7 @@
       return el;
     };
 
-    // ── prefers-reduced-motion：无 window / matchMedia 时安全降级为 false ──
+    // -- prefers-reduced-motion: safely falls back to false without window/matchMedia --
     let reducedMotion = false;
     let reducedMq = null;
     const onReducedChange = (e) => {
@@ -1375,7 +1375,7 @@
     }
     if (options.reducedMotion !== undefined) reducedMotion = !!options.reducedMotion;
 
-    // 统一托管的延时器（剧目分镜 / 起跳预备），dispose 时全部清理
+    // Managed timeout registry (skit cues / jump prep), fully cleared on dispose
     const pendingTimers = new Set();
     const later = (ms, fn) => {
       const id = setTimeout(() => {
@@ -1407,7 +1407,7 @@
       return a;
     };
 
-    // 物种挂载顺序保持 k(cat) -> c(clawd) -> d(dragon) -> w(whale)，100% 兼容原有 ['cat','clawd'] / ['cat','clawd','dragon','whale'] 断言
+    // Keep mount order k(cat) -> c(clawd) -> d(dragon) -> w(whale) for 100% compatibility with existing roster assertions
     const SPECIES_DEF = [
       { key: 'k', kind: 'cat', label: 'Gemini Cat', basePhase: 14 },
       { key: 'c', kind: 'clawd', label: 'Claude Clawd', basePhase: 0 },
@@ -1492,7 +1492,7 @@
         else if (isFn(st.removeItem)) st.removeItem(CHROMA_STORE_KEY);
         else st.setItem(CHROMA_STORE_KEY, '0');
       } catch {
-        /* 忽略存储受限环境 */
+        /* ignore restricted storage */
       }
     };
 
@@ -1542,7 +1542,7 @@
     const chromaSparks = [];
     let fxCanvasCleared = true;
 
-    // 打盹生态：45s（深夜 30s）无用户操作 → 哈欠 → 打盹；任何操作唤醒
+    // Sleep ecology: 45s idle (30s late night) -> yawn -> sleep; any activity wakes them up
     const DOZE_AFTER_MS = 45000;
     const DOZE_AFTER_NIGHT_MS = 30000;
     let dozing = false;
@@ -1576,7 +1576,7 @@
       domTransformSkips: 0,
     };
 
-    // 扩大至 96x84px (32x28 格, PX=3), OX=8, OY=17 -> y=10 脚底在 81px, 头顶留满 51px 放火舌/立麦/节点花!
+    // Expanded to 96x84px (32x28 cells, PX=3), OX=8, OY=17 -> feet at 81px with 51px headroom for flames/mic/bloom!
     const CANVAS_W = 96;
     const CANVAS_H = 84;
     const OX = 8;
@@ -1638,7 +1638,7 @@
     releaseFxCanvas();
     hostEl.appendChild(fxCanvas);
 
-    // ── 右侧角落微缩像素栖息地摆件（图层 z-index:14 在双宠背后，仅状态切换绘制 1 帧，日常 0fps）──
+    // -- Right-corner miniature pixel habitat props (z-index:14 behind mascots, 1 frame per state change, 0fps idle) --
     const habitatCanvas = markNoTrOwned(doc.createElement('canvas'));
     habitatCanvas.className = 'ag-v2-habitat-prop';
     habitatCanvas.setAttribute('aria-hidden', 'true');
@@ -1704,7 +1704,7 @@
       }
     };
 
-    // ── A1 VRAM 0x0 回收与唤醒恢复（document.hidden / park / hostSleep / detached） ──
+    // -- A1 VRAM 0x0 reclamation & wake restore (document.hidden / park / hostSleep / detached) --
     const reclaimStageVram = () => {
       if (vramReclaimed) return;
       vramReclaimed = true;
@@ -1729,7 +1729,7 @@
       return true;
     };
 
-    // ── 多宠统一图腾塔拓扑、抽底重力补位与地面刚体防重叠核心 ─────────────────
+    // -- Multi-mascot totem tower topology, base-pull gravity settling, and ground anti-overlap core -----------------
     const miniById = new Map(miniCrabs.map((m) => [m.id, m]));
     const getEnt = (id) => (hasOwn(actors, id) ? actors[id] : miniById.get(id) || null);
     const isMiniEnt = (ent) => Boolean(ent?.kind === 'mini');
@@ -1944,7 +1944,7 @@
       const now = nowMs(), nextMaxX = maxXFor(nw), mains = activeMainActors(), resizingNow = isStageResizing();
       if (nw < prevW) {
         if (reboundTm) { clearTimeout(reboundTm); pendingTimers.delete(reboundTm); reboundTm = null; }
-        // 快路径：主角均远离右边界时 0 计算早退
+        // Fast path: zero-cost early exit when all heroes are far from right edge
         if (!mains.some((a) => freeMain(a) && a.x >= nextMaxX - 96)) return;
         const beforeX = mains.map((a) => (a ? a.x : 0));
         const order = mains.map((_, idx) => idx).sort((i, j) => beforeX[j] - beforeX[i]);
@@ -2011,7 +2011,7 @@
           if (disposed) return;
           const lastEntry = entries?.length ? entries[entries.length - 1] : null;
           const cr = lastEntry?.contentRect;
-          // 仅读取 contentRect.width，杜绝折叠/空帧回退读 hostEl.clientWidth 触发同步回流
+          // Read contentRect.width only, avoiding fallback to hostEl.clientWidth that triggers synchronous reflow
           const nw = cr && typeof cr.width === 'number' ? round(cr.width) : 0;
           const dprChanged = syncStageDpr();
           if (nw > 0) {
@@ -2259,7 +2259,7 @@
 
     resetHomePositions(false);
 
-    // ── 节拍序列：steps = [pose, ticks, sqW, sqH, lift] ───────────────────────
+    // -- Tick sequence: steps = [pose, ticks, sqW, sqH, lift] -----------------------
     const playSeq = (actor, steps, then) => {
       actor.seq = steps.map(([pose, ticks, sqW = 0, sqH = 0, lift = 0]) => ({ pose, ticks, sqW, sqH, lift }));
       actor.seqStartTick = tickIdx + 1;
@@ -2411,7 +2411,7 @@
       } else {
         perfStats.domTransformSkips += 1;
       }
-      // 60fps GPU 倾角同步到内层 canvas（外层 actor.el 维持纯 translate3d 兼容），静止 rot=0 清回 ''
+      // Sync 60fps GPU tilt to inner canvas (keeping pure translate3d on outer actor.el); clears to '' when rot=0
       const nextRot = snapRot(inspectState ? 0 : effectiveRot(actor, now));
       if (actor.lastDomRot !== nextRot) {
         actor.lastDomRot = nextRot;
@@ -2427,9 +2427,9 @@
       }
     };
 
-    // ── 待机微动作：随机眨眼 / 呼吸下沉 / 耳尖抖动 / 单钳开合 / 左顾右盼 ──
+    // -- Idle micro-motions: random blink / breathing bob / ear twitch / single-claw snip / glance around --
     const updateIdleFx = (a, pose, now) => {
-      // 眨眼计时在任何姿态下推进，仅在可眨眼姿态生效；减少动态时依旧保留
+      // Blink timer advances in all poses, applies only in blinkable poses; preserved under reduced motion
       if (tickIdx >= a.nextBlinkTick) {
         a.blinkTick = tickIdx;
         a.blinkDouble = random() < 0.15;
@@ -2446,7 +2446,7 @@
       };
       const idleNow = pose === 'idle' && !a.seq && !a.dragging;
       if (reducedMotion || !idleNow) {
-        // 非待机期间把到期的微动作顺延，避免回到待机瞬间扎堆触发
+        // Defer due micro-motions while busy so they do not burst simultaneously on returning to idle
         if (tickIdx >= a.nextBreathTick) a.nextBreathTick = tickIdx + ticksIn(800, 1800);
         if (tickIdx >= a.nextTwitchTick) a.nextTwitchTick = tickIdx + ticksIn(1500, 4000);
         if (tickIdx >= a.nextSnapTick) a.nextSnapTick = tickIdx + ticksIn(1500, 4000);
@@ -2454,7 +2454,7 @@
         if (now >= a.nextGlanceAt) a.nextGlanceAt = now + rand(1500, 4000);
         return fx;
       }
-      // 呼吸：每 2.8~4.2s 下沉 1 格持续 2 拍
+      // Breathing: sink 1 cell for 2 ticks every 2.8-4.2s
       if (tickIdx >= a.nextBreathTick) {
         a.breathTick = tickIdx;
         a.nextBreathTick = tickIdx + ticksIn(2800, 4200);
@@ -2462,7 +2462,7 @@
       const brk = tickIdx - a.breathTick;
       fx.breath = brk >= 0 && brk < 2;
       if (a.kind === 'cat' || a.kind === 'dragon' || a.kind === 'whale') {
-        // 耳尖抖动 / 龙角闪光 / 鲸尾拍浪：6~10s 一次，1~2 拍
+        // Ear twitch / dragon horn gleam / whale tail slap: 1-2 ticks every 6-10s
         if (tickIdx >= a.nextTwitchTick) {
           a.twitchTick = tickIdx;
           a.twitchLen = random() < 0.5 ? 1 : 2;
@@ -2473,7 +2473,7 @@
         if (tk >= 0 && tk < a.twitchLen) fx.earTwitch = a.twitchSide;
       }
       if (a.kind === 'clawd' || a.kind === 'dragon' || a.kind === 'whale') {
-        // 单钳开合 / 龙翼微振 / 鲸鳍轻摆：8~12s 一次，开-合-开-合 共 4 拍
+        // Single claw snip / dragon wing flutter / whale fin wave: 4 ticks every 8-12s
         if (tickIdx >= a.nextSnapTick) {
           a.snapTick = tickIdx;
           a.snapSide = random() < 0.5 ? 'L' : 'R';
@@ -2482,7 +2482,7 @@
         const sk = tickIdx - a.snapTick;
         if (sk >= 0 && sk < 4 && sk % 2 === 0) fx.clawSnap = a.snapSide;
       }
-      // 左顾右盼：随机方向 + 随机驻留，30% 概率回看另一侧
+      // Glance around: random direction + dwell, 30% chance to look back the other way
       if (!a.glanceDir && now >= a.nextGlanceAt) {
         a.glanceDir = random() < 0.5 ? -1 : 1;
         a.glanceUntil = now + rand(600, 1800);
@@ -2502,7 +2502,7 @@
       return fx;
     };
 
-    // ── 叠叠乐平衡：下方角色（含迷你蟹）每拍位移 → 上方角色反向摆角（±8°）──
+    // -- Totem stack balance: lower actor displacement induces counter-sway (+/-8 deg) on upper actors --
     const updateBalance = () => {
       for (const id of activeMainIds()) {
         const top = actors[id];
@@ -2517,8 +2517,8 @@
       for (const e of allActiveEnts()) e.prevCx = getEntWorldCx(e);
     };
 
-    // ── 生态联动辅助：打盹 z / 迷你蟹互动路径 ─────────────────────────────
-    // 打盹符号：日间打盹冒 z（小→中→大），深夜（23:00~05:00）吹轻柔睡眠小鼻泡
+    // -- Ecology helpers: sleep z / mini-crab interactive paths -----------------------------
+    // Sleep symbol: daytime emits rising z (S->M->L); late night (23:00-05:00) blows gentle sleep bubbles
     const dozeSymFor = (a) => {
       const offNight = Number(a.phaseOff) || 0;
       const offDay = (offNight * 2 + (a.kind === 'cat' ? 1 : a.kind === 'whale' ? 3 : 0)) % 18;
@@ -2534,7 +2534,7 @@
     const crabRiding = () =>
       miniPileEnabled && miniCrabs.some((mc) => mc.act && mc.act.type === 'ride' && tickIdx >= mc.act.start);
 
-    // 迷你蟹分段路径求值：返回 { x, y, sprite, mirror, hopPx }；未激活或结束返回 null
+    // Piecewise mini-crab path evaluator: returns { x, y, sprite, mirror, hopPx } or null when inactive/done
     const miniActPose = (mc, baseSprite, anim) => {
       const act = mc.act;
       if (!act) return null;
@@ -2577,7 +2577,7 @@
       };
     };
 
-    // 迷你蟹坐标：translateX 相对迷你堆左缘（宿主 left 12px），精灵中心在画布 20px 处
+    // Mini-crab coords: translateX relative to mini cluster left (host left 12px), sprite center at canvas 20px
     const crabHostCenter = (mc) => 12 + mc.lastX + 20;
     const crabSafeX = (x) => min(clampActorX(9999) - 132, max(2, round(x)));
     const crabMaxX = () => max(40, readStageWidth() - 52);
@@ -2588,7 +2588,7 @@
     const actorFree = (a, now) =>
       !a.dragging && !a.ballisticActive && !a.stackedOn && !a.seq && a.y === 0 && !(a.overridePose === 'dangle' && now < a.overrideUntil);
 
-    // 迎宾：三蟹集体挥手（复用 trick 帧，错峰 2 拍起手）
+    // Welcome wave: all three mini crabs wave in staggered 2-tick offsets (reusing trick frames)
     const crabsWave = () => {
       if (!miniPileEnabled) return;
       miniCrabs.forEach((mc, idx) => {
@@ -2602,7 +2602,7 @@
       });
     };
 
-    // 抛掷落地砸在蟹附近：受惊跳开 → 定住 → 慢慢走回原位
+    // Thrown actor lands near mini crabs: startle jump away -> freeze -> slowly walk back
     const scatterCrabsNear = (hx) => {
       if (!miniPileEnabled || reducedMotion) return;
       miniCrabs.forEach((mc, idx) => {
@@ -2625,7 +2625,7 @@
     };
 
     let crabSerial = 0;
-    // 小猫追蟹：一只迷你蟹跑到猫（或任意在场主宠）跟前挑衅 → 惊觉追几步 → 蟹逃回原位 → 歪头
+    // Cat-and-crab chase: mini crab taunts hero -> brief chase -> crab flees home -> curious head tilt
     const runCrabChase = (force) => {
       const now = nowMs();
       const cat = actors.cat || activeMainActors().find((a) => a.kind === 'cat') || activeMainActors()[0];
@@ -2673,7 +2673,7 @@
       return true;
     };
 
-    // 迷你蟹骑头：走到 Clawd（或任意在场主宠）脚边 → 整格弧线跳上头顶坐一会儿（中途挥手）→ 跳下走回
+    // Mini-crab head ride: walks to hero -> integer-grid arc hop onto head (waves mid-ride) -> hops off and returns
     const runCrabRide = (force) => {
       const now = nowMs();
       const clawd = actors.clawd || activeMainActors().find((a) => a.kind === 'clawd') || activeMainActors()[0];
@@ -2684,7 +2684,7 @@
       if (!mc) return false;
       const x0 = crabSafeX(mc.lastX);
       const clawdX0 = clawd.x;
-      // Clawd 头顶（y=0 行顶边）距宿主底 33px，迷你蟹脚底距宿主底 11px → 上移 22px；水平居中对齐 48px / 20px
+      // Hero crown (y=0 top) is 33px above host bottom, mini-crab feet at 11px -> +22px lift; center aligned 48px / 20px
       const headX = round(clawd.x + 16);
       const headY = -22;
       const side = x0 + 32 < clawd.x + 48 ? -1 : 1;
@@ -2701,7 +2701,7 @@
           { ticks: 4, x0: headX, x1: sideX, y0: headY, y1: 0, arc: 8, sprite: 'trick' },
           { ticks: max(2, approach), x0: sideX, x1: x0, y0: 0, y1: 0, sprite: 'walk' },
         ],
-        // 宿主被拖走 / 移除 / 起飞 / 位移 / 叠叠乐时，蟹立即放弃骑头回到原位
+        // Abort head ride and return home immediately if host is dragged, removed, airborne, moved, or stacked
         abort: (segIdx) =>
           segIdx >= 1 &&
           segIdx <= 3 &&
@@ -2732,7 +2732,7 @@
       return true;
     };
 
-    // 舞台棱镜像素星屑渲染器（无粒子时自动缩回 0×0 释放 GPU 显存纹理，0 常驻开销）
+    // Stage prism pixel stardust renderer (shrinks to 0x0 to free GPU texture when empty, 0 idle cost)
     const stepAndPaintChromaFx = () => {
       if (!chromaSparks.length) {
         if (!fxCanvasCleared || fxCanvas.width || fxCanvas.height) releaseFxCanvas();
@@ -2790,7 +2790,7 @@
         let pose = resolvePoseFor(a, now);
         const st = seqStep(a);
 
-        // 待机巡逻位移（每拍定步推进，底下散步时稳稳驮着头顶整串伙伴同步移动）
+        // Idle patrol step (steady stride per tick, smoothly carrying any stacked partners overhead)
         if (pose === 'walk' && !a.dragging && !a.stackedOn && !a.leap && now < a.overrideUntil && !reducedMotion && a.walkStepTick !== tickIdx) {
           a.walkStepTick = tickIdx;
           const stepPx = now < a.passBoostUntil ? 1.4 * 1.55 : 1.4;
@@ -2799,7 +2799,7 @@
           syncAllStackedFollowers();
         }
 
-        // 自动搭便车超时后轻巧侧跳落地
+        // Light side-hop dismount after auto-perch timeout
         if (a.stackedOn && a.perchUntil > 0 && now >= a.perchUntil && !a.dragging) {
           a.perchUntil = 0;
           const prevY = computeWorldFootY(a);
@@ -2810,7 +2810,7 @@
           startBallistic(a, jumpDir * 2.8, -3.6, { noSnap: true });
         }
 
-        // 主动抛物线撑跳越过 / 搭便车跃上（Leapfrog / AutoPerch，峰值 ~26px）
+        // Active parabolic leapfrog vault / auto-perch hop (~26px peak)
         if (a.leap && !a.dragging) {
           const lp = a.leap;
           const k = min(1, (tickIdx - lp.startTick + 1) / max(1, lp.ticks));
@@ -2842,7 +2842,7 @@
           syncAllStackedFollowers();
         }
 
-        // 叠叠乐上层失衡：张钳/张爪
+        // Upper totem stack wobble: spread claws/paws
         if (a.stackedOn && pose === 'idle' && abs(a.balRot) > 1.5) pose = 'balance';
 
         const sym =
@@ -2922,7 +2922,7 @@
         const snappedTy = round(Number(nodOffset || 0) / PX) * PX;
         const frameIdx = computeLayersFrameIdx(layers);
         const rc = a.lastRender;
-        // 像素层仅在精灵帧/朝向/表情/挤压/尺寸等真实像素内容变化时重绘，物理位移与倾角 rot 由 GPU transform 实时驱动
+        // Redraw pixel canvas only when sprite frame/facing/expression/squash/size actually changes; position & tilt driven by GPU transform
         if (
           rc.poseKey === effectivePose &&
           rc.frameIdx === frameIdx &&
@@ -3040,7 +3040,7 @@
           const anim = MINI_ANIM_FRAMES[mc.id];
           const moving = !reducedMotion && !dozing && yieldMode !== 'peek';
 
-          // 自动搭便车超时后轻巧侧跳落地
+          // Light side-hop dismount after auto-perch timeout
           if (mc.stackedOn && mc.perchUntil > 0 && now >= mc.perchUntil && !mc.dragging) {
             mc.perchUntil = 0;
             const prevY = computeWorldFootY(mc);
@@ -3050,7 +3050,7 @@
             startMiniBallistic(mc, jumpDir * 2.8, -3.6, { noSnap: true });
           }
 
-          // 抛物线撑跳越过推进
+          // Advance parabolic leapfrog vault
           if (mc.leap && !mc.dragging) {
             const lp = mc.leap;
             const k = min(1, (tickIdx - lp.startTick + 1) / max(1, lp.ticks));
@@ -3183,7 +3183,7 @@
       enforceGroundSeparation(
         draggingMain ? draggingMain.id : (miniCrabs.find((m) => m.dragging) || {}).id || null
       );
-      // 二次刷新被防重叠微调后的 DOM transform（若未变则自动命中缓存 0 写入）
+      // Re-sync DOM transforms after anti-overlap nudges (cache hit = 0 writes if unchanged)
       for (const a of activeMainActors()) applyActorTransform(a, now);
       if (miniPileEnabled) {
         const miniPeekY = yieldMode === 'peek' ? MINI_PEEK_Y : 0;
@@ -3214,7 +3214,7 @@
       if (opts.patrolDir) actor.patrolDir = opts.patrolDir;
     };
 
-    // 统一清理角色瞬态姿态/物理状态，根治交叉打断导致的残余旋转/镜像/序列卡死
+    // Reset transient pose/physics state uniformly to prevent leftover tilt/mirror/stalled sequences on interruption
     const resetActorTransient = (ent, opts = {}) => {
       if (!ent) return;
       if (!opts.keepFly) ent.flying += 1;
@@ -3244,7 +3244,7 @@
       }
     };
 
-    // 减少动态开启：中止抛掷/巡逻/序列与星屑，回到静态待机
+    // Reduced motion enabled: cancel throws/patrol/sequences/stardust and settle into static idle
     function freezeMotion() {
       chromaSparks.length = 0;
       releaseFxCanvas();
@@ -3292,7 +3292,7 @@
       }
     };
 
-    // ── 五段递进戳戳气鼓鼓 + 叠塔连击四下切换隐藏棱彩形态 ────────────────────
+    // -- 5-stage escalating poke-sulk + 4x stacked tap toggles hidden prismatic mode --------------------
     const triggerPoke = (actor, fromPointer) => {
       if (!actor) return;
       const now = nowMs();
@@ -3333,7 +3333,7 @@
         startClip(actor, firstPose, firstPose === 'dragonFlame' || firstPose === 'whaleSpout' ? 1400 : 750, { sym: 'spark' });
         if (fromPointer && !inTower) startBallistic(actor, 0, -4.4, { anticipate: true });
       } else if (actor.pokeCount === 2) {
-        // 作废第 1 击可能挂起的 200ms 延迟弹射，防止 jiggle 被滞后弹飞打断
+        // Cancel pending 200ms delayed launch from click 1 so jiggle is not interrupted
         actor.flying += 1;
         actor.seq = null;
         startClip(actor, 'jiggle', 950, { sym: 'note' });
@@ -3351,7 +3351,7 @@
       renderAllFrames(now);
     };
 
-    // ── 紧凑时间轴剧本表驱动：日常剧场 + 彩蛋 + 合演（Batch 2 Slash 剧场复用此执行器）──
+    // -- Compact timeline script engine: daily skits, easter eggs, ensembles (shared by Slash skits) --
     const DAILY_BASE = 'letter,plant,butterfly,walk'.split(',');
     const DAILY_POOL = {
       clawd: [...'polish,eat,stretch,spinHop,wave,yawn'.split(','), ...DAILY_BASE],
@@ -3526,7 +3526,7 @@
     };
     scheduleTheater(3800);
 
-    // ── 多层图腾塔吸附、抽底重力顺滑补位、剧烈动作侧跳下塔与统一弹道引擎 ──────
+    // -- Multi-tier totem snapping, base-pull gravity drop, action dismount, and unified ballistic engine ------
     const trySnapOntoTower = (mover, now = nowMs()) => {
       if (!mover || mover.dragging) return false;
       const moverChain = getTowerMembers(mover.id);
@@ -3800,7 +3800,7 @@
       return action;
     };
 
-    // 统一主宠 + 迷你蟹弹道物理循环
+    // Unified primary + mini-crab ballistic physics loop
     const launchEntity = (ent, vx0, vy0, bopts = {}) => {
       const mini = isMiniEnt(ent);
       const flightId = (ent.flying += 1);
@@ -3818,7 +3818,7 @@
         ent.overridePose = 'dangle';
         ent.overrideUntil = nowMs() + 3000;
       }
-      // 起跳瞬间立刻锁死 data-direct="1" 与 transition: none，防止首帧落入 220ms CSS transition
+      // Lock data-direct="1" and transition: none on launch so frame 1 does not fall into a 220ms CSS transition
       syncDirectMotionDomAttr(ent, mini ? ent.canvas : ent.el);
 
       let prev = nowMs();
@@ -3913,7 +3913,7 @@
             vy = -vy * (mini ? 0.32 : 0.36);
             vx *= mini ? 0.78 : 0.82;
             bounces += 1;
-            // 中途弹跳：ballisticActive 保持 true 锁死 data-direct
+            // Mid-air bounce: keep ballisticActive true to hold data-direct lock
             if (!mini) playSeq(ent, [['flat', 1, 2, 0]]);
           } else {
             const impact = abs(vy);
@@ -3945,7 +3945,7 @@
           syncTower(ent, now);
         } else {
           applyActorTransform(ent, now);
-          // 仅在姿态真正切变（如起跳进 dangle 或触地切 flat）时重绘精灵，避免 60fps 软件重绘
+          // Redraw sprite only on real pose transitions (e.g. dangle or flat on landing) to avoid 60fps software repaints
           if (resolvePoseFor(ent, now) !== ent.lastRender.poseKey) {
             renderAllFrames(now);
           }
@@ -4003,7 +4003,7 @@
       });
     };
 
-    // ── 投喂彩蛋（右键=甜甜圈 / Alt+左键=热咖啡）：立即消气清 pokeCount 并解除 sulk ──
+    // -- Treat easter egg (Right-click = donut / Alt+click = coffee): instantly clears pokeCount and sulk --
     const feedActor = (actor, item = 'donut') => {
       if (!actor || isMiniEnt(actor) || disposed) return false;
       const now = nowMs();
@@ -4020,7 +4020,7 @@
       return true;
     };
 
-    // 统一主宠 + 迷你蟹指针拖拽绑定（主宠附带右键甜甜圈 & Alt+左键热咖啡投喂）
+    // Unified primary + mini-crab pointer drag bindings (primary actors also accept right-click donut & Alt+click coffee)
     const bindEntityPointer = (ent) => {
       const mini = isMiniEnt(ent);
       const domNode = mini ? ent.canvas : ent.el;
@@ -4397,7 +4397,7 @@
       } catch {}
     }
 
-    // ── 生态联动：活动唤醒 / 打盹 / 领衔交接 / 外部事件 notify ───────────────
+    // -- Ecology hooks: activity wake / sleep / lead handoff / external event notify ---------------
     const faceToward = (from, to) => (!from || !to || to.x >= from.x ? 'right' : 'left');
 
     const onHeartbeat = () => {
@@ -4463,7 +4463,7 @@
       dozing = false;
       lastActivityAt = nowMs();
       syncHeartbeat();
-      // 伸懒腰醒来（复用 stretch 姿态，各宠错峰 2 拍）
+      // Wake up with a stretch (staggered 2 ticks per actor)
       const mains = activeMainActors();
       mains.forEach((a, i) => {
         const go = () => {
@@ -4483,7 +4483,7 @@
       else syncHeartbeat();
     }
 
-    // 进入打盹：先打哈欠（错峰 0.4s），哈欠结束后由 resolvePoseFor 接管为 sleep 并拉宽至 400ms
+    // Enter sleep: yawn first (0.4s stagger), then resolvePoseFor transitions to sleep at 400ms cadence
     function startDoze(skipYawn) {
       if (dozing) return;
       dozing = true;
@@ -4506,7 +4506,7 @@
 
     const bumpSeq = (p) => [['squash', 1, 2, -1, 0], [p, 2, -1, 1, -2], ['idle', 1, 1, -1, 0]];
 
-    // 每拍生态检查：忙碌视为活动；空闲超时则打盹；检测自主散步遇障（撑跳越过 / 搭便车 / 礼貌转身）与伙伴碰撞
+    // Per-tick ecology check: busy counts as activity; idle triggers sleep; detects stroll obstacles and partner bumps
     const ecoTick = (now) => {
       if (stageBusy()) {
         lastActivityAt = now;
@@ -4560,7 +4560,7 @@
         }
       }
 
-      // 场景 4 · 散步遇障（主宠与自由迷你蟹相遇时触发撑跳越过 / 自动搭便车 / 驻足眨眼转身）
+      // Scene 4: stroll obstacle encounter between primary actor and free mini crab (leapfrog / autoPerch / greetTurn)
       if (miniPileEnabled) {
         for (const a of mains) {
           if (!freeG(a)) continue;
@@ -4577,7 +4577,7 @@
       }
     };
 
-    // 原地整格小跳（减少动态 / 拖拽 / 叠叠乐 / 腾空时跳过，直接回调）
+    // In-place integer-grid hop (skips directly to callback under reduced motion / drag / stack / airborne)
     const hop = (a, airPose, then) => {
       const now = nowMs();
       const partnerOnTop = Boolean(findDirectRider(a.id));
@@ -4588,14 +4588,14 @@
       playSeq(a, hopSteps(airPose), then);
     };
 
-    // 扫视：转身 + 竖瞳偏向；up=true 时抬头
+    // Glance: turn + vertical eye offset; up=true looks upward
     const gaze = (a, dir, ms, up = false, sym = null) => {
       const now = nowMs();
       if (a.dragging || (a.overridePose === 'dangle' && now < a.overrideUntil)) return;
       startClip(a, 'gaze', ms, { face: dir === 'left' ? 'left' : 'right', param: up ? 1 : 0, sym: sym || undefined });
     };
 
-    // 领衔位交接：新阵营下蹲小跳交换站位；落地后新阵营全员冒 spark、旧阵营点头，三蟹迎宾挥手
+    // Lead handoff: new camp crouches and hops into lead slot; lands with spark while old camp nods and mini crabs wave
     const campHandoff = (prevCamp = null) => {
       const now = nowMs();
       if (now - lastHandoffAt < 700) return;
@@ -4660,7 +4660,7 @@
       mains.forEach((a) => hop(a, 'jiggle'));
     };
 
-    // ── 9 大 Slash 指令专属微剧场（2.4~2.8s，演完归零 0fps）──────────────────
+    // -- 9 Slash command micro-skits (2.4-2.8s, settles back to 0fps) ------------------
     let lastVialWarnAt = 0;
     const SLASH_HANDLERS = {
       plan(workers, partners, fP) {
@@ -4743,7 +4743,7 @@
       return true;
     };
 
-    // 外部事件处理表（未知事件静默忽略）
+    // External event handler table (unknown events silently ignored)
     const NOTIFY = {
       activity() {},
       'slash-cmd'(p) {
@@ -4804,7 +4804,7 @@
         recordInteraction('aura-complete', mains.length > 2 ? 'multi' : 'clawd-cat', now);
       },
       campSwitch() {
-        // 与 setState 自动触发 700ms 内去重，避免主代理双路调用时重复交接
+        // Deduplicate within 700ms against setState auto-trigger to avoid double handoffs
         campHandoff();
       },
       'model-shift'() {
@@ -4900,7 +4900,7 @@
       renderAllFrames();
     };
 
-    // 鼠标靠近舞台或切回可见标签页时，0ms 恢复 100ms 灵敏心跳
+    // Restore crisp 100ms heartbeat immediately when pointer approaches stage or tab becomes visible
     const onApproach = () => {
       markActivity();
     };
@@ -5059,7 +5059,7 @@
           }
         }
         if (camp !== prev[1]) {
-          // 挂载后阵营实际变化：自动播放领衔交接（站位交换在其内部完成）
+          // Camp changed after mount: automatically play lead handoff (slot swap handled internally)
           markActivity();
           campHandoff(prev[1]);
           if (nowMs() - lastHandoffAt > 50) resetHomePositions(popoverRightWidth !== prev[0]);
@@ -5221,13 +5221,13 @@
         const workers = workingActors();
         if (!workers.length) return;
         const trimmed = String(text || '').replace(/\s+$/, '');
-        if (/[?？]$/.test(trimmed)) {
+        if (/[?؟]$/.test(trimmed)) {
           for (const w of workers) startClip(w, 'tilt', 750, { rot: -9, sym: 'q' });
-        } else if (/[!！]$/.test(trimmed)) {
+        } else if (/[!]$/.test(trimmed)) {
           for (const w of workers) startClip(w, 'wow', 700, { sym: 'bang' });
         } else {
           for (const w of workers) {
-            w.nodY = PX; // 打字点头：整格下沉 1 格
+            w.nodY = PX; // Typing nod: drop 1 integer grid cell
             w.nodUntil = now + 140;
             w.eyeScan = 0;
           }
@@ -5269,7 +5269,7 @@
           miniPileEnabled,
           quadEnabled,
           reducedMotion,
-          // 生态联动与按需渲染遥测只读诊断
+          // Read-only diagnostics for ecology hooks and on-demand rendering telemetry
           dozing,
           orchestrator,
           rimLight: { active: rim.on, strength: round(rim.s * 100) / 100, toneKey: rim.t },
@@ -5321,7 +5321,7 @@
               stackedOn: a.stackedOn,
               leap: !!a.leap,
               rect: rect ? { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom } : null,
-              // 附加诊断字段（只读）：整数格挤压量、待机微动作与静止帧缓存快照
+              // Extra read-only diagnostics: integer squash deltas, idle micro-motions, and static frame cache snapshot
               squash: a.lastSq ? { ...a.lastSq } : { w: 0, h: 0 },
               blinkStage: fx.blinkStage || null,
               breath: !!fx.breath,

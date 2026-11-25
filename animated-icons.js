@@ -5,7 +5,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function () {
   'use strict';
 
-  /** Google Brand Studio 官方高饱和四色色板（亮暗双适配、零渐变 ID 冲突） */
+  /** Official Google Brand Studio high-saturation four-color palette (light/dark adaptive, zero gradient ID collisions) */
   const GOOGLE_COLORS = Object.freeze({
     blue: '#4285F4',
     red: '#EA4335',
@@ -30,7 +30,7 @@
     return out;
   }
 
-  /** 正统 Google Gemini 高斯柔光四色单体星（零固定 ID 冲突） */
+  /** Official Google Gemini four-color Gaussian soft-glow four-point star (zero fixed ID collisions) */
   const OFFICIAL_GEMINI_SPARK_D =
     'M12 1.2c.25 0 .47.17.53.41c.21.79.48 1.56.8 2.31c1.23 2.86 3.39 5.02 6.25 6.25c.75.32 1.52.59 2.31.8c.24.06.41.28.41.53s-.17.47-.41.53a16 16 0 0 0-2.31.8c-2.86 1.23-5.02 3.39-6.25 6.25c-.32.75-.59 1.52-.8 2.31a.55.55 0 0 1-.53.41a.55.55 0 0 1-.53-.41a16 16 0 0 0-.8-2.31c-1.23-2.86-3.39-5.02-6.25-6.25a16 16 0 0 0-2.31-.8A.55.55 0 0 1 1.2 12c0-.25.17-.47.41-.53c.79-.21 1.56-.48 2.31-.8c2.86-1.23 5.02-3.39 6.25-6.25c.32-.75.59-1.52.8-2.31c.06-.24.28-.41.53-.41Z';
 
@@ -54,7 +54,7 @@
       );
     }
 
-    // 饱满四色单层合并柔光：零固定 ID 冲突，单个合并层 1 次滤镜替代 4 次独立高斯模糊（直降 75% 光栅开销）
+    // Rich four-color single-layer merged glow: zero fixed ID collisions, 1 filter pass replaces 4 separate Gaussian blurs (75% lower raster cost)
     const meshBody =
       `<path d="${OFFICIAL_GEMINI_SPARK_D}" fill="${GOOGLE_COLORS.blue}"/>` +
       `<g style="clip-path:path('${OFFICIAL_GEMINI_SPARK_D}')"><g style="filter:blur(2.7px)">` +
@@ -86,7 +86,7 @@
   const pt = (c, d, ex = '') => `<path class="ai-part-${c}" d="${d}"${ex}/>`;
   const gp = (c, inner) => `<g class="ai-part-${c}">${inner}</g>`;
 
-  /** 21 枚 lucide-animated & line-md 微动态 SVG 图标模板 */
+  /** 21 lucide-animated & line-md micro-animated SVG icon templates */
   const TEMPLATES = Object.freeze({
     'panel-left': () => '<rect class="ai-part-frame" x="3" y="4" width="18" height="16" rx="3"/>' + pt('rail', 'M9.2 4v16'),
     'sparkles-pen': () =>

@@ -237,7 +237,7 @@ export class MetricsStore {
 
   async refreshQuota(force = false) {
     if (!this.owned()) throw new Error('Backend reconnected; waiting for refresh');
-    if (!force && this.quota && Date.now() - this.quotaAt < 60000) return;
+    if (!force && this.quota && Date.now() - this.quotaAt < 12000) return;
     if (this.quotaPending) return this.quotaPending;
     const epoch = this.epoch;
     this.quotaPending = (async () => {
@@ -261,7 +261,7 @@ export class MetricsStore {
       let primaryQuota = null;
       let quotaErr = null;
       try {
-        const response = await this.client.call('RetrieveUserQuotaSummary', force ? { forceRefresh: true } : {});
+        const response = await this.client.call('RetrieveUserQuotaSummary', { forceRefresh: true });
         if (!this.owned() || epoch !== this.epoch || identity !== this.identity) throw new Error('Backend reconnected; waiting for refresh');
         primaryQuota = quotaMetrics(response);
       } catch (err) {
@@ -288,7 +288,7 @@ export class MetricsStore {
 
   async listConversations(force = false) {
     if (!this.owned()) throw new Error('Backend reconnected; waiting for refresh');
-    if (!force && Date.now() - this.summariesAt < 12000) return this.summaries;
+    if (!force && Date.now() - this.summariesAt < 5000) return this.summaries;
     const scope = this.identity, epoch = this.epoch;
     const response = await this.client.call('GetAllCascadeTrajectories', { excludeSubtrajectories: false });
     if (!this.owned() || scope !== this.identity || epoch !== this.epoch) throw new Error('Backend reconnected; waiting for refresh');
@@ -407,7 +407,7 @@ export class MetricsStore {
     const identity = this.identity, scope = this.storageScope(identity), epoch = this.epoch;
     let entry = this.sessions.get(id);
     if (entry?.pending) return entry.pending;
-    if (!force && entry?.data && Date.now() - entry.updatedAt < 4500) return entry.data;
+    if (!force && entry?.data && Date.now() - entry.updatedAt < 1800) return entry.data;
     entry ||= {};
     this.sessions.delete(id);
     this.sessions.set(id, entry);
@@ -429,7 +429,7 @@ export class MetricsStore {
         if (entry.backgroundReady) {
           const age = Date.now() - (entry.backgroundCompletedAt || 0);
           if (force && age < BACKGROUND_MANUAL_COOLDOWN_MS) return entry.data;
-          if (!force && Date.now() - entry.backgroundCheckedAt < 30000) return entry.data;
+          if (!force && Date.now() - entry.backgroundCheckedAt < 8000) return entry.data;
           const summary = await this.client.reader.summary(id, null, force);
           if (!current()) throw Error('Backend reconnected; waiting for refresh');
           entry.backgroundCheckedAt = Date.now();

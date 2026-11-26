@@ -2502,7 +2502,12 @@
   };
   const wakeWinBlur = () => {
     try {
-      if (blurTm || ha(de(), BLUR_ATTR)) {
+      const h = de();
+      if (h) {
+        if (!splitDragActive && !resizeEndTm && ha(h, RESIZE_ATTR)) runGuardedMut(() => ra(h, RESIZE_ATTR));
+        if (ha(h, 'data-ag-pp-open') && !byId('ag-prism-periodic-picker-root')) runGuardedMut(() => ra(h, 'data-ag-pp-open'));
+      }
+      if (blurTm || ha(h, BLUR_ATTR)) {
         clearWinBlur();
         if (typeof document.hasFocus === 'function' && !document.hasFocus()) onWinBlur();
       }
@@ -2512,7 +2517,7 @@
     try {
       if (splitDragActive) {
         splitDragActive = false;
-        scheduleResizingEnd();
+        finishResizing(false);
       }
       if (destroyed || blurTm) return;
       blurTm = ST(() => {
@@ -2687,7 +2692,7 @@
           const h = de();
           if (h && ga(h, RESIZE_ATTR) !== '1') runGuardedMut(() => sa(h, RESIZE_ATTR, '1'));
           if (resizeEndTm) CT(resizeEndTm);
-          resizeEndTm = ST(() => finishResizing(true), 10000);
+          resizeEndTm = ST(() => finishResizing(true), 3500);
         }
         if (isMotionStandardOrUltra()) {
           if (!cl(t, '[role="dialog"]')) {

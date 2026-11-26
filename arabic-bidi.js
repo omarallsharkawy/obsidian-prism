@@ -9,13 +9,13 @@
   const ARABIC_RE = new RegExp('[' + AR + ']'), LAT_RE = /[A-Za-z]/;
   const TOK_RE = new RegExp('[' + AR + ']+|[A-Za-z]+(?:[\'\\u2019-][A-Za-z]+)*', 'g');
   const FIRST_RE = new RegExp('([' + AR + '])|([A-Za-z])');
-  const TECH_TOK_RE = /https?:\/\/\S+|(?:[A-Za-z]:\\|\/|~\/|\.\.?\/)[^\s,\u060C\u061B()\[\]{}"']+|@[A-Za-z0-9._/-]+|\b[A-Za-z0-9_-]+\.(?:[jt]sx?|[mc]js|json|s?css|html?|mdx?|py|kts?|java|go|rs|sh|pdf|png|jpe?g|svg|ya?ml|sql|txt)\b/gi;
-  const STOP_RE = /^(?:the|a|an|is|are|was|were|be|been|being|have|has|had|do|does|did|will|would|should|can|could|may|might|must|to|of|in|for|on|with|at|by|from|as|into|about|between|after|before|without|this|that|these|those|it|its|they|them|their|we|our|you|your|i|my|me|he|she|his|her|and|or|but|if|then|when|where|while|not|no|so|than|too|very|just|also|here|there|now|how|what|which|who|why|all|any|both|each|more|most|some|such|only|same)$/i;
+  const TECH_TOK_RE = /https?:\/\/\S+|(?:[A-Za-z]:\\|\/|~\/|\.\.?\/)[^\s,\u060C\u061B()\[\]{}"']+|@[A-Za-z0-9._/-]+|\b[A-Za-z0-9_-]+\.[a-z]{1,4}\b/gi;
+  const STOP_RE = /^(?:the|a|an|is|are|was|were|be|have|has|had|do|does|did|will|would|should|can|could|to|of|in|for|on|with|at|by|from|as|into|about|this|that|these|those|it|its|they|we|you|your|and|or|but|if|then|when|where|while|not|no|here|now|how|what|which|all|some|only)$/i;
   const SKIP_TG = /^(PRE|CODE|KBD|SAMP|SCRIPT|STYLE|SVG|MATH|NOSCRIPT|BDI|CANVAS|VIDEO|AUDIO)$/;
   const NEST_TG = /^(UL|OL|BLOCKQUOTE|TABLE|PRE|DIV)$/;
   const CODE_TG = /^(CODE|KBD|SAMP)$/;
   const T = (v) => `[data-testid="${v}"]`;
-  const TECH_SEL = `.context-scope-mention,[data-quotable-inline="true"],${T('entity-pill')},.inline-pill,.ag-prism-thought-file-pill,[data-ag-ltr="1"]`;
+  const TECH_SEL = `.context-scope-mention,[data-quotable-inline="true"],${T('entity-pill')},.inline-pill,[data-ag-ltr="1"]`;
   const CHAT_SEL = `${T('agent-response')},${T('planner-response-text')},${T('artifact-view')},${T('user-message-bubble')},.agy-user-bubble,${T('queued-messages-card')},${T('side-question-panel')},${T('interaction-takeover-card')},${T('thinking-collapsible-trigger')}+div`;
   const BLOCK_SEL = `p,li,h1,h2,h3,h4,h5,h6,blockquote,.markdown-alert,td,th,${T('user-message-content')}>div`;
   const INLINE_SEL = 'strong,b,em,i,a,mark,del,s,code,kbd,samp,bdi,' + TECH_SEL;

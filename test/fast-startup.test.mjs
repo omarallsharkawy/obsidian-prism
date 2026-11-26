@@ -147,13 +147,22 @@ test('hasMatchingPersistentOwner yields to matching persistent daemon and detect
     const match = d2.hasMatchingPersistentOwner();
     assert.ok(match && match.pid === (process.ppid || 1), 'Sidecar should yield to matching persistent daemon');
 
-    // Simulate upgraded cdp.js signature -> must NOT yield
+    // Simulate upgraded cdp.js signature from an OLDER persistent daemon -> newer daemon must NOT yield
     fs.writeFileSync(
       d1.pidFile,
-      JSON.stringify({ pid: process.ppid || 1, token: 'tok', persistent: true, rootDir: tmpDir, cdpSig: 'old-sig' }),
+      JSON.stringify({ pid: process.ppid || 1, token: 'tok', persistent: true, rootDir: tmpDir, cdpSig: 'old-sig', startedAt: Date.now() - 60000 }),
       'utf8'
     );
     assert.equal(d2.hasMatchingPersistentOwner(), null, 'Upgraded daemon must take over from stale persistent daemon');
+
+    // Simulate an OLDER parked sidecar seeing a NEWER persistent daemon with an updated cdpSig -> older sidecar MUST yield
+    fs.writeFileSync(
+      d1.pidFile,
+      JSON.stringify({ pid: process.ppid || 1, token: 'tok', persistent: true, rootDir: tmpDir, cdpSig: 'newer-sig', startedAt: Date.now() + 60000 }),
+      'utf8'
+    );
+    const newerMatch = d2.hasMatchingPersistentOwner();
+    assert.ok(newerMatch && newerMatch.pid === (process.ppid || 1), 'Older parked sidecar must yield to newer persistent daemon even after upgrade');
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
@@ -264,4 +273,24 @@ test('Windows C# and macOS Swift standalone watchers include instant DevToolsAct
   assert.ok(macWatcher.includes('DevToolsActivePort'));
   assert.ok(macWatcher.includes('portDirSource'));
   assert.ok(macWatcher.includes('fastRetryDeadline'));
+});
+
+test('telemetry freshness, RTL unit isolation, and freeze/pointer-capture recovery stay wired', () => {
+  const root = path.resolve(import.meta.dirname, '..');
+  const storeSrc = fs.readFileSync(path.join(root, 'vendor', 'pulse-dashboard', 'sidecars', 'panel', 'store.mjs'), 'utf8');
+  assert.ok(storeSrc.includes('RetrieveUserQuotaSummary'), 'store.mjs should call RetrieveUserQuotaSummary');
+  assert.ok(storeSrc.includes('forceRefresh: true'), 'store.mjs must force-refresh quota summary to avoid stale LS limits');
+  assert.ok(storeSrc.includes('< 12_000') || storeSrc.includes('< 12000'), 'store.mjs quota TTL should be 12s');
+  assert.ok(storeSrc.includes('< 1800'), 'store.mjs session hot TTL should be 1800ms');
+
+  const fallbackSrc = fs.readFileSync(path.join(root, 'vendor', 'pulse-dashboard', 'inline-fallback.js'), 'utf8');
+  assert.ok(fallbackSrc.includes('direction:ltr;unicode-bidi:isolate'), 'inline-fallback.js must isolate LTR numeric/unit readouts in RTL mode');
+  assert.ok(fallbackSrc.includes('quotaRefresh: true'), 'opening telemetry popover must force quota refresh');
+  assert.ok(fallbackSrc.includes("'pointerdown'"), 'outside pointerdown must close stuck telemetry popover');
+
+  const mascotSrc = fs.readFileSync(path.join(root, 'dual-mascot-rig.js'), 'utf8');
+  assert.ok(mascotSrc.includes('lostpointercapture'), 'dual-mascot-rig.js must recover on lostpointercapture');
+
+  const pickerSrc = fs.readFileSync(path.join(root, 'vendor', 'periodic-picker', 'periodic-picker.js'), 'utf8');
+  assert.ok(pickerSrc.includes('lostpointercapture'), 'periodic-picker.js must recover on lostpointercapture');
 });

@@ -991,7 +991,7 @@ test('perf guard 17: pulse-dashboard keep-alive agent & includeMessages:false, b
   const mainSrc = fs.readFileSync(path.join(ROOT, 'sidecars/daemon/main.mjs'), 'utf8');
 
   assert.ok(readerSrc.includes('budgetBytes=4*1024*1024') && readerSrc.includes('summaryAt>=6000') && readerSrc.includes('trajectoryVerbosity:2'), 'trajectory-reader must use 4 MiB budget, 6s summary TTL, and compact trajectoryVerbosity:2');
-  assert.ok(storeSrc.includes('updatedAt < 4500') && storeSrc.includes('this.sessions.size > 32'), 'store must use 4.5s hot TTL and 32-session cap');
+  assert.ok(storeSrc.includes('updatedAt < 1800') && storeSrc.includes('this.sessions.size > 32'), 'store must use 1.8s hot TTL and 32-session cap');
   assert.ok(delSrc.includes('budgetBytes=2*1024*1024') && delSrc.includes('refreshMs=15000'), 'delegated-usage must use 2 MiB budget and 15s refresh');
   assert.ok(bgStatSrc.includes('maxOldGenerationSizeMb:48'), 'background-statistics worker V8 cap must be 48 MB');
   assert.ok(bgWorkSrc.includes('++revisions>1') && bgWorkSrc.includes('sleep(8000)') && bgWorkSrc.includes('trajectoryVerbosity:2'), 'background-worker must cap active-session restarts to 1 with 8s backoff and verbosity 2');

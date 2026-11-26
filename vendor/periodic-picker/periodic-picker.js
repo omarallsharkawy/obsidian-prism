@@ -5766,6 +5766,7 @@
 
         overlayEl.addEventListener('pointerup', function (ev) { finishActiveGesture(ev, false); });
         overlayEl.addEventListener('pointercancel', function (ev) { finishActiveGesture(ev, true); });
+        overlayEl.addEventListener('lostpointercapture', function (ev) { finishActiveGesture(ev, true); });
 
         overlayEl.addEventListener('transitionend', function (ev) {
           if (!overlayEl || isDestroyed || isConfirmClosing || isDrawerClosing) return;
@@ -6261,6 +6262,10 @@
         if (!holdState && (!overlayEl || isConfirmClosing || isDrawerClosing || isHostPaused)) return;
         if (!ev || isDestroyed) return;
         if (holdState) {
+          if (ev.buttons === 0 && ev.pointerType !== 'touch') {
+            cancelHold(false);
+            return;
+          }
           if (!isNodeConnectedToDoc(doc, holdState.btn) || isHostModelTriggerLocked(holdState.btn)) {
             var lockedInMove = isHostModelTriggerLocked(holdState.btn);
             cancelHold(false);

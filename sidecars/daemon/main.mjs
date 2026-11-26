@@ -2088,6 +2088,7 @@ export class PrismDaemon {
     this.pollIntervalMs = Math.max(200, Number(pollIntervalMs) || 3000);
     this.enabledCheck = enabledCheck;
     this.persistent = Boolean(persistent);
+    this._startedAt = Date.now();
     this.silent = Boolean(silent);
     this.cdp = require(path.join(this.rootDir, 'cdp.js'));
     this._loadedCdpVerifier = typeof this.cdp?.isExpectedDaemonProcess === 'function' ? this.cdp.isExpectedDaemonProcess : null;
@@ -11630,8 +11631,9 @@ export class PrismDaemon {
       const cur = JSON.parse(fs.readFileSync(this.pidFile, 'utf8'));
       const pid = Number(cur?.pid);
       if (!cur || !cur.persistent || !Number.isInteger(pid) || pid <= 0 || pid === process.pid) return null;
-      if (cur.cdpSig && this._cdpFileSig && cur.cdpSig !== this._cdpFileSig) return null;
       if (cur.rootDir && path.resolve(cur.rootDir) !== this.rootDir) return null;
+      const isNewerPersistent = Number(cur.startedAt) > (this._startedAt || 0);
+      if (!isNewerPersistent && cur.cdpSig && this._cdpFileSig && cur.cdpSig !== this._cdpFileSig) return null;
       try {
         process.kill(pid, 0);
       } catch {

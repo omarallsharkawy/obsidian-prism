@@ -4037,6 +4037,7 @@
       let moved = false;
       let petTimer = 0;
       let petTriggered = false;
+      let activePointerId = null;
 
       const onDown = (evt) => {
         if (yieldMode === 'peek' || evt.button !== 0 || (mini && !miniPileEnabled)) return;
@@ -4046,6 +4047,7 @@
           feedActor(ent, 'coffee');
           return;
         }
+        activePointerId = evt.pointerId ?? null;
         try { ent.el.setPointerCapture?.(evt.pointerId); } catch {}
         const downNow = nowMs();
         if (ent.glideUntil && downNow < ent.glideUntil) {
@@ -4114,6 +4116,10 @@
 
       const onMove = (evt) => {
         if (lastMoveT === 0) return;
+        if (evt && evt.buttons === 0 && evt.pointerType !== 'touch') {
+          cancelDragOnBlur();
+          return;
+        }
         const dxTotal = evt.clientX - downX;
         const dyTotal = evt.clientY - downY;
         let justStarted = false;
@@ -4196,7 +4202,8 @@
       const onUp = (evt) => {
         if (lastMoveT === 0) return;
         clearTimeout(petTimer);
-        ent.el.releasePointerCapture?.(evt.pointerId);
+        try { ent.el.releasePointerCapture?.(evt.pointerId); } catch {}
+        activePointerId = null;
         const prevMoveT = lastMoveT;
         lastMoveT = 0;
 
@@ -4232,8 +4239,12 @@
       };
 
       const cancelDragOnBlur = () => {
-        if (lastMoveT === 0 && !ent.dragging) return;
+        if (lastMoveT === 0 && !ent.dragging && activePointerId === null) return;
         clearTimeout(petTimer);
+        if (activePointerId !== null) {
+          try { ent.el?.releasePointerCapture?.(activePointerId); } catch {}
+          activePointerId = null;
+        }
         lastMoveT = 0;
         if (moved || ent.dragging) {
           moved = false;
@@ -4260,6 +4271,7 @@
       ent.el.addEventListener('pointermove', onMove);
       ent.el.addEventListener('pointerup', onUp);
       ent.el.addEventListener('pointercancel', onUp);
+      ent.el.addEventListener('lostpointercapture', cancelDragOnBlur);
       if (!mini) ent.el.addEventListener('contextmenu', onContextMenu);
       const unbind = () => {
         clearTimeout(petTimer);
@@ -4270,6 +4282,7 @@
           ent.el.removeEventListener('pointermove', onMove);
           ent.el.removeEventListener('pointerup', onUp);
           ent.el.removeEventListener('pointercancel', onUp);
+          ent.el.removeEventListener('lostpointercapture', cancelDragOnBlur);
           if (!mini) ent.el.removeEventListener('contextmenu', onContextMenu);
         }
       };

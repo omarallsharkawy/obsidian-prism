@@ -294,3 +294,105 @@ test('telemetry freshness, RTL unit isolation, and freeze/pointer-capture recove
   const pickerSrc = fs.readFileSync(path.join(root, 'vendor', 'periodic-picker', 'periodic-picker.js'), 'utf8');
   assert.ok(pickerSrc.includes('lostpointercapture'), 'periodic-picker.js must recover on lostpointercapture');
 });
+
+test('CdpSession.close() marks session closed synchronously even on zombie half-open sockets', async () => {
+  const cdp = require('../cdp.js');
+  let closeCalls = 0;
+  let onCloseFired = 0;
+  const fakeWs = {
+    addEventListener() {},
+    send() {},
+    close() {
+      closeCalls += 1;
+      // Intentionally never emits "close" (simulates half-open socket inherited by xdg-open/browser)
+    },
+  };
+  const sess = new cdp.CdpSession(fakeWs);
+  sess.onClose = () => {
+    onCloseFired += 1;
+  };
+  const pending = sess.send('Runtime.evaluate', { expression: '1' }, 5000);
+  sess.close();
+  assert.equal(sess.closed, true, 'CdpSession.close() must set closed=true synchronously');
+  assert.equal(closeCalls, 1);
+  assert.equal(onCloseFired, 1);
+  await assert.rejects(pending, /closed/i);
+});
+
+test('tick() evicts stale-port zombie sessions immediately on port change without blocking new-port attach', async () => {
+  const cdp = require('../cdp.js');
+  const daemon = new PrismDaemon({
+    rootDir: path.resolve(import.meta.dirname, '..'),
+    overridePort: 34837,
+    enabledCheck: () => true,
+    enableAutoUpdateTimer: false,
+    enableStorageGuardTimer: false,
+    silent: true,
+  });
+  daemon.running = true;
+  daemon.injectExpr = '(() => ({ status: "ok" }))()';
+  daemon._lastActiveCdpPort = 40983;
+
+  let zombieRpcCalls = 0;
+  let zombieCloseCalls = 0;
+  const zombieWs = {
+    addEventListener() {},
+    send() {
+      zombieRpcCalls += 1;
+    },
+    close() {
+      zombieCloseCalls += 1;
+    },
+  };
+  const zombieSession = new cdp.CdpSession(zombieWs);
+  const oldWsUrl = 'ws://127.0.0.1:40983/devtools/page/OLD';
+  daemon.sessions.set(oldWsUrl, {
+    wsUrl: oldWsUrl,
+    pageId: 'OLD',
+    url: 'https://127.0.0.1:41111/',
+    title: 'Old Antigravity',
+    session: zombieSession,
+    scriptId: 's1',
+    omniScriptId: 's2',
+    hostI18nScriptId: 's3',
+    _opChain: Promise.resolve(),
+  });
+
+  const attachedTargets = [];
+  daemon.cdp = {
+    ...daemon.cdp,
+    listPages: async (p) => {
+      assert.equal(p, 34837);
+      return [
+        {
+          id: 'NEW1',
+          type: 'page',
+          title: 'Antigravity',
+          url: 'https://127.0.0.1:42961/',
+          webSocketDebuggerUrl: 'ws://127.0.0.1:34837/devtools/page/NEW1',
+        },
+      ];
+    },
+    getBrowserWsUrl: async () => null,
+  };
+  daemon.attachTarget = async (target) => {
+    attachedTargets.push(target.id);
+    daemon.sessions.set(target.webSocketDebuggerUrl, {
+      wsUrl: target.webSocketDebuggerUrl,
+      pageId: target.id,
+      session: { closed: false, close() {} },
+    });
+    return null;
+  };
+
+  const t0 = Date.now();
+  await daemon.tick();
+  const elapsedMs = Date.now() - t0;
+
+  assert.equal(zombieCloseCalls, 1, 'Stale-port zombie session must be closed immediately');
+  assert.equal(zombieSession.closed, true, 'Stale-port zombie session must become closed=true');
+  assert.equal(zombieRpcCalls, 0, 'Must not send blocking teardown RPCs to a stale port');
+  assert.equal(daemon.sessions.has(oldWsUrl), false, 'Old-port session must be evicted');
+  assert.deepEqual(attachedTargets, ['NEW1'], 'New-port page must attach immediately on the same tick');
+  assert.ok(elapsedMs < 500, `Expected instant port-change failover (<500ms), got ${elapsedMs}ms`);
+});

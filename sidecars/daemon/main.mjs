@@ -11375,8 +11375,8 @@ export class PrismDaemon {
             void this._maybeRunAutoArchiveOnExit().catch(() => {});
           }
           await this._handleMissingCdpPort();
-          if (this._portRetryArmed) this._scheduleFastPortRetry();
         }
+        if (this._portRetryArmed) this._scheduleFastPortRetry();
         return { attached: this.sessions.size, port, unreachable: true };
       }
 
@@ -11389,6 +11389,7 @@ export class PrismDaemon {
       const canRunShortcutSync = Boolean(this.timer || typeof this._relaunchHooks?.syncShortcuts === 'function');
       let forcedShortcutSyncThisTick = false;
       if (portChanged) {
+        this.closeBrowserDiscovery();
         this._resetShortcutBackoff(`port-changed:${prevActivePort}->${port}`);
         if (canRunShortcutSync) {
           forcedShortcutSyncThisTick = true;
@@ -11411,6 +11412,24 @@ export class PrismDaemon {
           this.sessions.delete(wsUrl);
           continue;
         }
+        const wsPortMatch = /^wss?:\/\/(?:[^/@]+@)?(?:\[[^\]]+\]|[^/:]+):(\d+)(?:\/|$)/i.exec(String(wsUrl || ''));
+        const wsPort = wsPortMatch ? Number(wsPortMatch[1]) : null;
+        if (wsPort !== null && wsPort !== port) {
+          // Stale session from an exited host port (e.g. half-open TCP socket inherited by a child process like xdg-open/browser):
+          // evict immediately without sending teardown RPCs that would block tick() for ~60s on timeouts.
+          if (entry._healTimer) {
+            clearTimeout(entry._healTimer);
+            this._managedTimers?.delete(entry._healTimer);
+            entry._healTimer = null;
+          }
+          if (entry._isoPauseTimers) {
+            for (const tid of entry._isoPauseTimers) clearTimeout(tid);
+            entry._isoPauseTimers.clear();
+          }
+          entry.session.close();
+          this.sessions.delete(wsUrl);
+          continue;
+        }
         if (!activeUrls.has(wsUrl)) {
           // Guard live workbench sessions against transient SPA title shifts (e.g. Swarm "Full View" -> "Untitled Conversation"):
           // verify actual in-page DOM before ever issuing REMOVE_EXPRESSION!
@@ -11418,7 +11437,7 @@ export class PrismDaemon {
           if (check && check.alive && (!check.ready || check.isHostDom)) {
             continue;
           }
-          if (!entry.session.closed) {
+          if (check && check.alive && !entry.session.closed) {
             if (entry.scriptId) {
               await entry.session.send('Page.removeScriptToEvaluateOnNewDocument', { identifier: entry.scriptId }).catch(() => {});
             }
@@ -11474,6 +11493,15 @@ export class PrismDaemon {
             if (entry.isolatedHostI18nPaused) {
               await this._syncIsolatedHostI18n(entry, false).catch(() => {});
             }
+          }
+          if (entry._healTimer) {
+            clearTimeout(entry._healTimer);
+            this._managedTimers?.delete(entry._healTimer);
+            entry._healTimer = null;
+          }
+          if (entry._isoPauseTimers) {
+            for (const tid of entry._isoPauseTimers) clearTimeout(tid);
+            entry._isoPauseTimers.clear();
           }
           entry.session.close();
           this.sessions.delete(wsUrl);

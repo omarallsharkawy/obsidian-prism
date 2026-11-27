@@ -2811,6 +2811,7 @@ class CdpSession {
         } catch {}
       }
     };
+    this._markClosed = markClosed;
     ws.addEventListener('close', () => markClosed('CDP connection closed'));
     ws.addEventListener('error', () => markClosed('CDP socket error'));
   }
@@ -2964,7 +2965,13 @@ class CdpSession {
   }
 
   close() {
-    if (!this.closed) this.ws.close();
+    if (this.closed) return;
+    try {
+      this.ws.close();
+    } catch {}
+    if (typeof this._markClosed === 'function') {
+      this._markClosed('CDP connection closed');
+    }
   }
 }
 
